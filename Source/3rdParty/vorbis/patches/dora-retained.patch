@@ -1,0 +1,2089 @@
+--- a/codec.h
++++ b/codec.h
+@@ -22,7 +22,7 @@
+ {
+ #endif /* __cplusplus */
+ 
+-#include <ogg/ogg.h>
++#include "../ogg/ogg.h"
+ 
+ typedef struct vorbis_info{
+   int version;
+@@ -61,6 +61,7 @@
+ 
+   float **pcm;
+   float **pcmret;
++  float *preextrapolate_work;
+   int      pcm_storage;
+   int      pcm_current;
+   int      pcm_returned;
+@@ -239,4 +240,3 @@
+ #endif /* __cplusplus */
+ 
+ #endif
+-
+--- a/lib/analysis.c
++++ b/lib/analysis.c
+@@ -17,7 +17,7 @@
+ #include <stdio.h>
+ #include <string.h>
+ #include <math.h>
+-#include <ogg/ogg.h>
++#include "../../ogg/ogg.h"
+ #include "vorbis/codec.h"
+ #include "codec_internal.h"
+ #include "registry.h"
+@@ -106,14 +106,3 @@
+ }
+ 
+ #endif
+-
+-
+-
+-
+-
+-
+-
+-
+-
+-
+-
+--- a/lib/barkmel.c
++++ b/lib/barkmel.c
+@@ -60,4 +60,3 @@
+   }
+   return(0);
+ }
+-
+--- a/lib/bitrate.c
++++ b/lib/bitrate.c
+@@ -17,7 +17,7 @@
+ #include <stdlib.h>
+ #include <string.h>
+ #include <math.h>
+-#include <ogg/ogg.h>
++#include "../../ogg/ogg.h"
+ #include "vorbis/codec.h"
+ #include "codec_internal.h"
+ #include "os.h"
+--- a/lib/block.c
++++ b/lib/block.c
+@@ -20,7 +20,7 @@
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
+-#include <ogg/ogg.h>
++#include "../../ogg/ogg.h"
+ #include "vorbis/codec.h"
+ #include "codec_internal.h"
+ 
+@@ -394,6 +394,7 @@
+           if(v->pcm[i])_ogg_free(v->pcm[i]);
+       _ogg_free(v->pcm);
+       if(v->pcmret)_ogg_free(v->pcmret);
++      if(v->preextrapolate_work)_ogg_free(v->preextrapolate_work);
+     }
+ 
+     if(b){
+@@ -439,11 +440,18 @@
+   int i;
+   int order=16;
+   float *lpc=alloca(order*sizeof(*lpc));
+-  float *work=alloca(v->pcm_current*sizeof(*work));
++  float *work;
++  int workbuf=v->pcm_current*sizeof(*work);
+   long j;
+   v->preextrapolate=1;
+ 
+-  if(v->pcm_current-v->centerW>order*2){ /* safety */
++  if(workbuf<256*1024)
++    work=alloca(workbuf);
++  else
++    /* workbuf is too big to safely allocate on the stack */
++    work=v->preextrapolate_work=_ogg_realloc(v->preextrapolate_work,workbuf);
++
++  if(v->pcm_current-v->centerW>order*2 && work){ /* safety */
+     for(i=0;i<v->vi->channels;i++){
+       /* need to run the extrapolation in reverse! */
+       for(j=0;j<v->pcm_current;j++)
+@@ -493,7 +501,7 @@
+       }
+     }
+   }
+-  
++
+   if(vals<=0){
+     int order=32;
+     int i;
+--- a/lib/books/coupled/res_books_51.h
++++ b/lib/books/coupled/res_books_51.h
+@@ -12270,4 +12270,3 @@
+ 	NULL,
+ 	0
+ };
+-
+--- a/lib/books/coupled/res_books_stereo.h
++++ b/lib/books/coupled/res_books_stereo.h
+@@ -14,7 +14,7 @@
+ 
+  ********************************************************************/
+ 
+-#include "codebook.h"
++#include "../../codebook.h"
+ 
+ static const long _vq_quantlist__16c0_s_p1_0[] = {
+         1,
+@@ -15779,4 +15779,3 @@
+         NULL,
+         0
+ };
+-
+--- a/lib/books/floor/floor_books.h
++++ b/lib/books/floor/floor_books.h
+@@ -14,7 +14,7 @@
+ 
+  ********************************************************************/
+ 
+-#include "codebook.h"
++#include "../../codebook.h"
+ 
+ static const char _huff_lengthlist_line_256x7_0sub1[] = {
+          0, 2, 3, 3, 3, 3, 4, 3, 4,
+@@ -1543,4 +1543,3 @@
+         NULL,
+         0
+ };
+-
+--- a/lib/books/uncoupled/res_books_uncoupled.h
++++ b/lib/books/uncoupled/res_books_uncoupled.h
+@@ -14,7 +14,7 @@
+ 
+  ********************************************************************/
+ 
+-#include "codebook.h"
++#include "../../codebook.h"
+ 
+ static const long _vq_quantlist__16u0__p1_0[] = {
+         1,
+@@ -7754,4 +7754,3 @@
+         NULL,
+         0
+ };
+-
+--- a/lib/codebook.c
++++ b/lib/codebook.c
+@@ -17,7 +17,7 @@
+ #include <stdlib.h>
+ #include <string.h>
+ #include <math.h>
+-#include <ogg/ogg.h>
++#include "../../ogg/ogg.h"
+ #include "vorbis/codec.h"
+ #include "codebook.h"
+ #include "scales.h"
+@@ -77,7 +77,7 @@
+ 
+ #if	!defined(_USRDLL)
+ /* Takes only up to 32 bits. */
+-STIN vorbis_oggpack_write(oggpack_buffer *b, unsigned long value, int bits)
++STIN void vorbis_oggpack_write(oggpack_buffer *b, unsigned long value, int bits)
+ {
+ 	uint32_t lvalue, hvalue;
+ 	if(b->endbyte+4>=b->storage){
+@@ -86,7 +86,7 @@
+ 		b->ptr=b->buffer+b->endbyte;
+ 	}
+ 
+-	value&=mask[bits]; 
++	value&=mask[bits];
+ 	bits+=b->endbit;
+ 
+ 	if(bits<24)
+@@ -125,18 +125,18 @@
+     /* not the main path */
+     if(b->endbyte*8+bits>b->storage*8)return(-1);
+   }
+-  
++
+ #if defined(_MSC_VER)
+ 	t = *(unsigned __int64*)(b->ptr);
+ 	return ((long)(t >> b->endbit))&m;
+ #else
+   ret=b->ptr[0]>>b->endbit;
+   if(bits>8){
+-    ret|=b->ptr[1]<<(8-b->endbit);  
++    ret|=b->ptr[1]<<(8-b->endbit);
+     if(bits>16){
+-      ret|=b->ptr[2]<<(16-b->endbit);  
++      ret|=b->ptr[2]<<(16-b->endbit);
+       if(bits>24){
+-	ret|=b->ptr[3]<<(24-b->endbit);  
++	ret|=b->ptr[3]<<(24-b->endbit);
+ 	if(bits>32 && b->endbit)
+ 	  ret|=b->ptr[4]<<(32-b->endbit);
+       }
+--- a/lib/codebook.h
++++ b/lib/codebook.h
+@@ -17,7 +17,7 @@
+ #ifndef _V_CODEBOOK_H_
+ #define _V_CODEBOOK_H_
+ 
+-#include <ogg/ogg.h>
++#include "../../ogg/ogg.h"
+ 
+ /* This structure encapsulates huffman and VQ style encoding books; it
+    doesn't do anything specific to either.
+--- a/lib/codec_internal.h
++++ b/lib/codec_internal.h
+@@ -85,7 +85,7 @@
+   /* encode only
+      added by aoyumi */
+   float *lownoise_compand_level;
+-  float *mblock; /* lW logmdct buffer */  
++  float *mblock; /* lW logmdct buffer */
+   float *tblock; /* temporal masking buffer (impulse block) */
+   int lW_block_mode; /* last window blocktype, modenumber */
+   int lW_no; /* the number of continuous window blocks (last window) */
+--- a/lib/cpu.c
++++ b/lib/cpu.c
+@@ -25,9 +25,9 @@
+ {
+ 	unsigned int t, u;
+ #if !defined(_WIN64)
+-    _asm { 
+-		mov	eax,1 
+-		cpuid 
++    _asm {
++		mov	eax,1
++		cpuid
+ 		mov	t, edx
+ 		mov	u, ecx
+ 	}
+--- a/lib/envelope.c
++++ b/lib/envelope.c
+@@ -18,7 +18,7 @@
+ #include <string.h>
+ #include <stdio.h>
+ #include <math.h>
+-#include <ogg/ogg.h>
++#include "../../ogg/ogg.h"
+ #include "vorbis/codec.h"
+ #include "codec_internal.h"
+ 
+@@ -65,8 +65,8 @@
+   }
+ 
+   for(i=0;i<VE_BANDS;i++){
+-  	e->band[i].begin=band_begin[i];
+-  	e->band[i].end=band_end[i];
++	e->band[i].begin=band_begin[i];
++	e->band[i].end=band_end[i];
+   }
+ 
+   for(j=0;j<VE_BANDS;j++){
+--- a/lib/floor0.c
++++ b/lib/floor0.c
+@@ -17,7 +17,7 @@
+ #include <stdlib.h>
+ #include <string.h>
+ #include <math.h>
+-#include <ogg/ogg.h>
++#include "../../ogg/ogg.h"
+ #include "vorbis/codec.h"
+ #include "codec_internal.h"
+ #include "registry.h"
+--- a/lib/floor1.c
++++ b/lib/floor1.c
+@@ -17,7 +17,7 @@
+ #include <stdlib.h>
+ #include <string.h>
+ #include <math.h>
+-#include <ogg/ogg.h>
++#include "../../ogg/ogg.h"
+ #include "vorbis/codec.h"
+ #include "codec_internal.h"
+ #include "registry.h"
+@@ -274,11 +274,11 @@
+ }
+ 
+ #if	defined(__SSE__)										/* SSE Optimize */
+-static _MM_ALIGN16 const float pfv0[4]	 = 
++static _MM_ALIGN16 const float pfv0[4]	 =
+ 	{7.3142857f, 7.3142857f, 7.3142857f, 7.3142857f};
+-static _MM_ALIGN16 const float pfv1[4]	 = 
++static _MM_ALIGN16 const float pfv1[4]	 =
+ 	{1023.5f, 1023.5f, 1023.5f, 1023.5f};
+-static _MM_ALIGN16 const float pfv2[4]	 = 
++static _MM_ALIGN16 const float pfv2[4]	 =
+ 	{1023.f, 1023.f, 1023.f, 1023.f};
+ #endif														/* SSE Optimize */
+ 
+--- a/lib/highlevel.h
++++ b/lib/highlevel.h
+@@ -53,7 +53,7 @@
+   double trigger_setting;
+ 
+   float pre_amplitude;
+-  
++
+   highlevel_byblocktype block[4]; /* padding, impulse, transition, long */
+ 
+ } highlevel_encode_setup;
+--- a/lib/info.c
++++ b/lib/info.c
+@@ -19,7 +19,7 @@
+ 
+ #include <stdlib.h>
+ #include <string.h>
+-#include <ogg/ogg.h>
++#include "../../ogg/ogg.h"
+ #include "vorbis/codec.h"
+ #include "codec_internal.h"
+ #include "codebook.h"
+@@ -296,7 +296,7 @@
+     vc->comment_lengths[i]=len;
+     vc->user_comments[i]=calloc(len+1,1);
+     _v_readstring(opb,vc->user_comments[i],len);
+-  }	  
++  }
+ #else														/* SSE Optimize */
+   vc->user_comments=_ogg_calloc(vc->comments+1,sizeof(*vc->user_comments));
+   vc->comment_lengths=_ogg_calloc(vc->comments+1, sizeof(*vc->comment_lengths));
+--- a/lib/lookups.pl
++++ b/lib/lookups.pl
+@@ -137,5 +137,3 @@
+ 
+ 
+ print "#endif\n\n#endif\n";
+-
+-
+--- a/lib/mapping0.c
++++ b/lib/mapping0.c
+@@ -18,7 +18,7 @@
+ #include <stdio.h>
+ #include <string.h>
+ #include <math.h>
+-#include <ogg/ogg.h>
++#include "../../ogg/ogg.h"
+ #include "vorbis/codec.h"
+ #include "codec_internal.h"
+ #include "codebook.h"
+@@ -765,7 +765,7 @@
+   int partition=(psy_look->vi->normal_p ? psy_look->vi->normal_partition : 16);
+ 
+   vb->mode=modenumber;
+-  
++
+   /* set modenumber+blocktype
+      0=Impulse
+      1=Padding
+@@ -773,7 +773,7 @@
+      3=Long             */
+   block_mode=blocktype;
+   block_mode|=(modenumber << 1);
+-  
++
+   /* prepare lowpass filter of residue */
+   if(modenumber)lowpass_residue=ci->block_lowpassr[1];
+   else lowpass_residue=ci->block_lowpassr[0];
+--- a/lib/mdct.c
++++ b/lib/mdct.c
+@@ -344,7 +344,7 @@
+ 			for(i=0;i<n;i+=128)
+ 			{
+ 				__m128	XMM0, XMM1, XMM2, XMM3, XMM4, XMM5;
+-	
++
+ 				XMM0	 = _mm_load_ps(S+ 96);
+ 				XMM2	 = _mm_load_ps(S+ 64);
+ 				XMM3	 = _mm_load_ps(S+ 32);
+@@ -378,7 +378,7 @@
+ 			for(i=0;i<n;i+=256)
+ 			{
+ 				__m128	XMM0, XMM1, XMM2, XMM3, XMM4, XMM5;
+-	
++
+ 				XMM0	 = _mm_load_ps(S+192);
+ 				XMM2	 = _mm_load_ps(S+128);
+ 				XMM3	 = _mm_load_ps(S+ 64);
+@@ -1083,10 +1083,10 @@
+ STIN void mdct_butterflies_backward(mdct_lookup *init,
+ 			     float *x,
+ 			     int points, float *x0, float *x1){
+-  
++
+   int stages=init->log2n-5;
+   int i,j;
+-  
++
+   if(--stages>0){
+     mdct_butterfly_first_backward(init->n,init->trig_butterfly_first,x,points,x0,x1);
+   }
+@@ -1160,17 +1160,17 @@
+ 	float *w0      = x;
+ 	float *w1      = x = w0+(n>>1);
+ 	float *T       = init->trig_bitreverse;
+-	
++
+ 	do
+ 	{
+ 		float *x0	 = x+bit[0];
+ 		float *x1	 = x+bit[1];
+ 		float *x2	 = x+bit[2];
+ 		float *x3	 = x+bit[3];
+-		
++
+ 		__m128	XMM0, XMM1, XMM2, XMM3, XMM4, XMM5, XMM6, XMM7;
+ 		w1		 -= 4;
+-		
++
+ 		XMM0	 = _mm_lddqu_ps(x0);
+ 		XMM1	 = _mm_lddqu_ps(x1);
+ 		XMM4	 = _mm_lddqu_ps(x2);
+@@ -1179,7 +1179,7 @@
+ 		XMM3	 = XMM1;
+ 		XMM5	 = XMM0;
+ 		XMM6	 = XMM1;
+-		
++
+ 		XMM0	 = _mm_shuffle_ps(XMM0, XMM4, _MM_SHUFFLE(0,1,0,1));
+ 		XMM1	 = _mm_shuffle_ps(XMM1, XMM7, _MM_SHUFFLE(0,1,0,1));
+ 		XMM2	 = _mm_shuffle_ps(XMM2, XMM4, _MM_SHUFFLE(0,0,0,0));
+@@ -1218,11 +1218,11 @@
+ 		_mm_store_ps(w0, XMM0);
+ 		_mm_storeh_pi((__m64*)(w1  ), XMM1);
+ 		_mm_storel_pi((__m64*)(w1+2), XMM1);
+-		
++
+ 		T		+= 8;
+ 		bit		+= 4;
+ 		w0		+= 4;
+-		
++
+ 	}
+ 	while(w0<w1);
+ #else														/* SSE Optimize */
+@@ -1280,13 +1280,13 @@
+ 
+ #ifdef __SSE__												/* SSE Optimize */
+ 	/* rotate */
+-	
++
+ 	float *iX	 = in+n2-8;
+ 	float *oX0	 = out+n2+n4;
+ 	float *T	 = init->trig_backward;
+ 	float *oX1   = oX0;
+ 	float *zX0, *zX1;
+-	
++
+ 	if(n<1024)
+ 	{
+ 		do
+@@ -1403,18 +1403,18 @@
+ 		oX1		+= 4;
+ 		T		+= 16;
+ 	}
+-	
++
+ 	mdct_butterflies_backward(init,out+n2,n2,zX0,zX1);
+ 	mdct_bitreverse(init,out);
+-	
++
+ 	/* roatate + window */
+-	
++
+ 	{
+ 		float *oX1	 = out+n2+n4;
+ 		float *oX2	 = out+n2+n4;
+ 		float *iX	 = out;
+ 		float *T	 = init->trig_backward+n;
+-		
++
+ 		do
+ 		{
+ 			__m128	XMM0, XMM1, XMM2, XMM3, XMM4, XMM5;
+@@ -1442,11 +1442,11 @@
+ 			iX		+= 8;
+ 			T		+= 8;
+ 		}while(iX<oX1);
+-		
++
+ 		iX	 = out+n2+n4;
+ 		oX1	 = out+n4;
+ 		oX2	 = oX1;
+-		
++
+ 		do
+ 		{
+ 			__m128	XMM0, XMM1, XMM2, XMM3;
+@@ -1474,11 +1474,11 @@
+ 			_mm_store_ps(oX2+12, XMM3);
+ 			oX2		+= 16;
+ 		}while(oX2<iX);
+-		
++
+ 		iX	 = out+n2+n4;
+ 		oX1	 = out+n2+n4;
+ 		oX2	 = out+n2;
+-		
++
+ 		if(n4>16)
+ 		{
+ 			do
+@@ -1635,17 +1635,17 @@
+ 	int n8	 = n>>3;
+ 	float *w	 = (float*)_ogg_alloca(n*sizeof(*w)); /* forward needs working space */
+ 	float *w2	 = w+n2;
+-	
++
+ 	/* rotate */
+-	
++
+ 	/* window + rotate + step 1 */
+-	
++
+ 	int i, j;
+-	
++
+ 	float *x0	 = in+n2+n4-8;
+ 	float *x1	 = in+n2+n4;
+ 	float *T	 = init->trig_forward;
+-	
++
+ #pragma warning(disable : 592)
+ 	for(i=0,j=n2-2;i<n8;i+=4,j-=4)
+ 	{
+@@ -1684,7 +1684,7 @@
+ 
+ 	x0	 = in;
+ 	x1	 = in+n2-8;
+-	
++
+ 	for(;i<n4;i+=4,j-=4)
+ 	{
+ 		__m128	XMM0, XMM1, XMM2, XMM3, XMM4, XMM5, XMM6, XMM7;
+@@ -1724,9 +1724,9 @@
+ 
+ 	mdct_butterflies(init, w+n2, n2);
+ 	mdct_bitreverse(init, w);
+-	
++
+ 	/* roatate + window */
+-	
++
+ 	T	 = init->trig_forward+n;
+ 	x0	  =out +n2;
+ 
+--- a/lib/misc.c
++++ b/lib/misc.c
+@@ -213,4 +213,3 @@
+     free(ptr);
+   }
+ }
+-
+--- a/lib/modes/floor_all.h
++++ b/lib/modes/floor_all.h
+@@ -15,8 +15,8 @@
+  ********************************************************************/
+ 
+ #include "vorbis/codec.h"
+-#include "backends.h"
+-#include "books/floor/floor_books.h"
++#include "../backends.h"
++#include "../books/floor/floor_books.h"
+ 
+ static const static_codebook*const _floor_128x4_books[]={
+   &_huff_book_line_128x4_class0,
+@@ -160,7 +160,7 @@
+   _floor_2048x27_books,
+   _floor_512x17_books,
+   _floor_Xx0_books,
+-  
++
+   _floor_1024x27_books,
+   _floor_2048x27_books,
+   _floor_256x4low_books,
+--- a/lib/modes/psych_44.h
++++ b/lib/modes/psych_44.h
+@@ -20,7 +20,7 @@
+ static const vorbis_info_psy_global _psy_global_44[6]={
+ /*
+   { lines per eighth octave,
+-   { pre-echo thresh.}, 
++   { pre-echo thresh.},
+    { post-echo thresh.}, stretch penalty, pre-echo minimum energy,
+    ampmax att 1/sec,
+    {coupling point(kHz)},{{coupling point limit0},{coupling point limit1}},
+@@ -35,7 +35,7 @@
+    {99.},{{99.},{99.}},{0},{0},{{0.},{0.}}
+   },
+   {8,   /* lines per eighth octave */
+-//   {20.f,14.f,12.f,12.f,12.f,12.f,12.f}, 
++//   {20.f,14.f,12.f,12.f,12.f,12.f,12.f},
+    {20.f,14.f,14.f,14.f,14.f,14.f,14.f,  14.f,14.f,14.f,14.f,12.f},
+    {-60.f,-30.f,-40.f,-40.f,-40.f,-40.f,-40.f,  -40.f,-40.f,-40.f,-60.f,-60.f}, 2,-75.f,
+    -6.f,
+@@ -54,14 +54,14 @@
+    {99.},{{99.},{99.}},{0},{0},{{0.},{0.}}
+   },
+   {8,   /* lines per eighth octave */
+-//   {10.f,8.f,8.f,8.f,8.f,8.f,8.f}, 
++//   {10.f,8.f,8.f,8.f,8.f,8.f,8.f},
+    {8.f,8.f,8.f,6.f,6.f,6.f,7.f,  8.f,8.f,8.f,8.f,8.f},
+    {-20.f,-15.f,-12.f,-12.f,-12.f,-12.f,-12.f,  -12.f,-12.f,-15.f,-20.f,-20.f}, 0,-80.f,
+    -6.f,
+    {99.},{{99.},{99.}},{0},{0},{{0.},{0.}}
+   },
+   {8,   /* lines per eighth octave */
+-//   {10.f,6.f,6.f,6.f,6.f,6.f,6.f}, 
++//   {10.f,6.f,6.f,6.f,6.f,6.f,6.f},
+    {6.f,6.f,6.f,6.f,6.f,6.f,6.f,  8.f,8.f,8.f,8.f,8.f},
+ //   {-15.f,-15.f,-12.f,-12.f,-12.f,-12.f,-12.f}, 0,-85.f,
+    {-15.f,-14.f,-10.f,-10.f,-10.f,-11.f,-12.f,  -12.f,-12.f,-15.f,-20.f,-20.f}, 0,-85.f,
+--- a/lib/modes/residue_44.h
++++ b/lib/modes/residue_44.h
+@@ -15,8 +15,8 @@
+  ********************************************************************/
+ 
+ #include "vorbis/codec.h"
+-#include "backends.h"
+-#include "books/coupled/res_books_stereo.h"
++#include "../backends.h"
++#include "../books/coupled/res_books_stereo.h"
+ 
+ /***** residue backends *********************************************/
+ 
+--- a/lib/modes/residue_44p51.h
++++ b/lib/modes/residue_44p51.h
+@@ -15,9 +15,9 @@
+  ********************************************************************/
+ 
+ #include "vorbis/codec.h"
+-#include "backends.h"
+-
+-#include "books/coupled/res_books_51.h"
++#include "../backends.h"
++
++#include "../books/coupled/res_books_51.h"
+ 
+ /***** residue backends *********************************************/
+ 
+--- a/lib/modes/residue_44u.h
++++ b/lib/modes/residue_44u.h
+@@ -15,8 +15,8 @@
+  ********************************************************************/
+ 
+ #include "vorbis/codec.h"
+-#include "backends.h"
+-#include "books/uncoupled/res_books_uncoupled.h"
++#include "../backends.h"
++#include "../books/uncoupled/res_books_uncoupled.h"
+ 
+ /***** residue backends *********************************************/
+ 
+--- a/lib/modes/residue_8.h
++++ b/lib/modes/residue_8.h
+@@ -15,7 +15,7 @@
+  ********************************************************************/
+ 
+ #include "vorbis/codec.h"
+-#include "backends.h"
++#include "../backends.h"
+ 
+ /***** residue backends *********************************************/
+ 
+--- a/lib/modes/setup_44.h
++++ b/lib/modes/setup_44.h
+@@ -14,9 +14,9 @@
+ 
+  ********************************************************************/
+ 
+-#include "modes/floor_all.h"
+-#include "modes/residue_44.h"
+-#include "modes/psych_44.h"
++#include "floor_all.h"
++#include "residue_44.h"
++#include "psych_44.h"
+ 
+ static const float preamp_44[13]={
+ 0.995, 0.995,
+--- a/lib/modes/setup_44p51.h
++++ b/lib/modes/setup_44p51.h
+@@ -14,7 +14,7 @@
+ 
+  ********************************************************************/
+ 
+-#include "modes/residue_44p51.h"
++#include "residue_44p51.h"
+ 
+ static const double rate_mapping_44p51[13]={
+   12000.,14000.,20000.,28000.,38000.,46000.,54000.,
+--- a/lib/modes/setup_44u.h
++++ b/lib/modes/setup_44u.h
+@@ -14,7 +14,7 @@
+ 
+  ********************************************************************/
+ 
+-#include "modes/residue_44u.h"
++#include "residue_44u.h"
+ 
+ static const double rate_mapping_44_un[13]={
+ //  32000.,48000.,60000.,70000.,80000.,86000.,
+--- a/lib/os.h
++++ b/lib/os.h
+@@ -21,7 +21,7 @@
+ #endif
+ 
+ #include <math.h>
+-#include <ogg/os_types.h>
++#include "../../ogg/os_types.h"
+ 
+ #ifdef HAVE_STDINT_H
+ #  include <stdint.h>
+--- a/lib/psy.c
++++ b/lib/psy.c
+@@ -80,7 +80,7 @@
+ };
+ 
+ /* noise compander for stereo threshlod calc. */
+-static const int stn_compand[]={ 
++static const int stn_compand[]={
+      0, 1, 2, 3, 4, 5, 6,  7,
+      8, 9,10,10,11,11,12, 12,
+     13,13,14,14,15,15,15, 16,
+@@ -425,7 +425,7 @@
+       select=11;
+     }
+   }
+-  
++
+   if(select<0){
+     p->tonecomp_endp=0; // dummy
+     p->tonecomp_thres=.25;
+@@ -484,7 +484,7 @@
+     p->noiseoffset[i]=_ogg_malloc(n*sizeof(**p->noiseoffset));
+ 
+   p->ntfix_noiseoffset=_ogg_malloc(n*sizeof(*p->ntfix_noiseoffset));
+-  
++
+   for(i=0;i<n;i++){
+     float halfoc=toOC((i+.5)*rate/(2.*n))*2.;
+     int inthalfoc;
+@@ -499,7 +499,7 @@
+       p->noiseoffset[j][i]=
+         p->vi->noiseoff[j][inthalfoc]*(1.-del) +
+         p->vi->noiseoff[j][inthalfoc+1]*del;
+-    
++
+     /* setup ntfix offset */
+      p->ntfix_noiseoffset[i]=ntfix_offset[inthalfoc]*(1.-del) +
+                              ntfix_offset[inthalfoc+1]*del;
+@@ -557,7 +557,7 @@
+ 
+ 		if(oc>=P_BANDS)oc=P_BANDS-1;
+ 		if(oc<0)oc=0;
+-		
++
+ 		p->octsft[i]	 = oc;
+ 		p->octpos[i]	 = ((p->octave[i]+p->octave[i+1])>>1)-p->firstoc;
+ 
+@@ -741,7 +741,7 @@
+ 		i++;
+ 		if(f[i]>max)max	 = f[i];
+ 	}
+-	
++
+ 	if(max+6.f>flr[i])
+ 	{
+ 		oc	 = p->octsft[i];
+@@ -942,7 +942,7 @@
+ 	long	linpos	 = 0;
+ 	long	pos;
+ 	float*	TEMP	 = (float*)_ogg_alloca(sizeof(float)*p->n);
+-	
++
+ 	seed_chase(seed,linesper,n); /* for masking */
+ 	{
+ 		__m128	PVAL	 = _mm_set_ps1(p->vi->tone_abs_limit);
+@@ -1023,7 +1023,7 @@
+ 				TEMP[linpos]	 = minV;
+ 		}
+ 	}
+-	
++
+ 	{
+ 		float minV	 = seed[p->total_octave_lines-1];
+ 		for(;linpos<p->n;linpos++)
+@@ -1118,7 +1118,7 @@
+ 	XMM6	 = XX*TN
+ 	XMM7	 = X*X
+ 	XMM1	 = XX*TN - X*X	... D
+-	
++
+ 	Phase 5.
+ 	XMM4	 = PX*B
+ 	XMM4	 = PX*B+A
+@@ -1218,7 +1218,7 @@
+ 	__m128	*XXYY	 = (__m128*)(N+n);
+ 	float	*xxyy	 = N+n;
+ 	short	*sb	 = (short*)p->bark;
+-	
++
+ 	int		i, j;
+ 	int		lo, hi;
+ 	int		midpoint1, midpoint2;
+@@ -1230,13 +1230,13 @@
+ 	float	x;
+ 	float	*TN = N;
+ 	__m128	*TXXYY = XXYY;
+-	
++
+ 	__m128	OFFSET;
+ 	__m128	PXXYY	 = _mm_setzero_ps();
+ 	__m128	PA, PB, PD;
+ 	_MM_ALIGN16 __m128	TEMP[16];
+ 	int	p0, p1;
+-	
++
+ 	// Phase 1
+ 	_mm_prefetch((const char*)(f     ), _MM_HINT_NTA);
+ 	_mm_prefetch((const char*)(findex2     ), _MM_HINT_NTA);
+@@ -1634,39 +1634,39 @@
+ 		p1	 =-sb[i*2+3];
+ 		p2	 =-sb[i*2+5];
+ 		p3	 =-sb[i*2+7];
+-		
++
+ 		XMM0	 = XXYY[p0];
+ 		XMM1	 = XXYY[p1];
+ 		XMM4	 = XXYY[p2];
+ 		XMM3	 = XXYY[p3];
+-		
++
+ 		TN.sf[0]	 = N[p0];
+ 		TN.sf[1]	 = N[p1];
+ 		TN.sf[2]	 = N[p2];
+ 		TN.sf[3]	 = N[p3];
+-		
++
+ 		XMM0	 = _mm_xor_ps(XMM0, PM128(PCS_RNNR));
+ 		XMM1	 = _mm_xor_ps(XMM1, PM128(PCS_RNNR));
+ 		XMM4	 = _mm_xor_ps(XMM4, PM128(PCS_RNNR));
+ 		XMM3	 = _mm_xor_ps(XMM3, PM128(PCS_RNNR));
+-		
++
+ 		p0	 = sb[i*2  ];
+ 		p1	 = sb[i*2+2];
+ 		p2	 = sb[i*2+4];
+ 		p3	 = sb[i*2+6];
+-		
++
+ 		XMM0	 = _mm_add_ps(XMM0, XXYY[p0]);
+ 		XMM1	 = _mm_add_ps(XMM1, XXYY[p1]);
+ 		XMM4	 = _mm_add_ps(XMM4, XXYY[p2]);
+ 		XMM3	 = _mm_add_ps(XMM3, XXYY[p3]);
+-		
++
+ 		TN1.sf[0]	 = N[p0];
+ 		TN1.sf[1]	 = N[p1];
+ 		TN1.sf[2]	 = N[p2];
+ 		TN1.sf[3]	 = N[p3];
+-		
++
+ 		TN.ps	 = _mm_add_ps(TN.ps, TN1.ps);
+-		
++
+ 		bark_noise_hybridmp_SSE_SUBC();
+ 		XMM4	 = _mm_max_ps(XMM4, PM128(PFV_0));
+ 		XMM4	 = _mm_sub_ps(XMM4, OFFSET);
+@@ -1679,33 +1679,33 @@
+ 		{
+ 			lo	 = sb[i*2+1];
+ 			hi	 = sb[i*2];
+-			
++
+ 			tN	 = N[hi] + N[-lo];
+ 			tX	 = xxyy[hi*4  ] - xxyy[-lo*4  ];
+ 			tXX	 = xxyy[hi*4+1] + xxyy[-lo*4+1];
+ 			tY	 = xxyy[hi*4+2] + xxyy[-lo*4+2];
+ 			tXY	 = xxyy[hi*4+3] - xxyy[-lo*4+3];
+-			
++
+ 			A	 = tY * tXX - tX * tXY;
+ 			B	 = tN * tXY - tX * tY;
+ 			D	 = tN * tXX - tX * tX;
+ 			R	 = (A + x * B) / D;
+ 			if(R<0.f)
+ 				R	 = 0.f;
+-			
++
+ 			noise[i]	 = R - offset;
+ 		}
+ 		for (;i<p->midpoint2;i++,x+=1.f)
+ 		{
+ 			lo	 = sb[i*2+1];
+ 			hi	 = sb[i*2];
+-			
++
+ 			tN	 = N[hi] - N[lo];
+ 			tX	 = xxyy[hi*4  ] - xxyy[lo*4  ];
+ 			tXX	 = xxyy[hi*4+1] - xxyy[lo*4+1];
+ 			tY	 = xxyy[hi*4+2] - xxyy[lo*4+2];
+ 			tXY	 = xxyy[hi*4+3] - xxyy[lo*4+3];
+-			
++
+ 			A	 = tY * tXX - tX * tXY;
+ 			B	 = tN * tXY - tX * tY;
+ 			D	 = tN * tXX - tX * tX;
+@@ -1721,7 +1721,7 @@
+ 			R	 = (A + x * B) / D;
+ 			if(R<0.f)
+ 				R	 = 0.f;
+-			
++
+ 			noise[i]	 = R - offset;
+ 		}
+ 		PA	 = _mm_set_ps1(A);
+@@ -1743,36 +1743,36 @@
+ 					p1	 = sb[i*2+2];
+ 					p2	 = sb[i*2+4];
+ 					p3	 = sb[i*2+6];
+-					
++
+ 					XMM0	 = XXYY[p0];
+ 					XMM1	 = XXYY[p1];
+ 					XMM4	 = XXYY[p2];
+ 					XMM3	 = XXYY[p3];
+-					
++
+ 					TN.sf[0]	 = N[p0];
+ 					TN.sf[1]	 = N[p1];
+ 					TN.sf[2]	 = N[p2];
+ 					TN.sf[3]	 = N[p3];
+-					
++
+ 					XMM0	 = _mm_xor_ps(XMM0, PM128(PCS_RNNR));
+-					
++
+ 					p0	 = sb[i*2  ];
+ 					p1	 = sb[i*2+3];
+ 					p2	 = sb[i*2+5];
+ 					p3	 = sb[i*2+7];
+-					
++
+ 					XMM0	 = _mm_add_ps(XMM0, XXYY[p0]);
+ 					XMM1	 = _mm_sub_ps(XMM1, XXYY[p1]);
+ 					XMM4	 = _mm_sub_ps(XMM4, XXYY[p2]);
+ 					XMM3	 = _mm_sub_ps(XMM3, XXYY[p3]);
+-					
++
+ 					TN1.sf[0]	 = N[p0];
+ 					TN1.sf[1]	 = N[p1];
+ 					TN1.sf[2]	 = N[p2];
+ 					TN1.sf[3]	 = N[p3];
+-					
++
+ 					TN.ps	 = _mm_sub_ps(TN.ps, _mm_xor_ps(TN1.ps, PM128(PCS_NNNR)));
+-					
++
+ 					bark_noise_hybridmp_SSE_SUBC();
+ 					XMM4	 = _mm_max_ps(XMM4, PM128(PFV_0));
+ 					XMM4	 = _mm_sub_ps(XMM4, OFFSET);
+@@ -1789,37 +1789,37 @@
+ 					p1	 =-sb[i*2+3];
+ 					p2	 = sb[i*2+4];
+ 					p3	 = sb[i*2+6];
+-					
++
+ 					XMM0	 = XXYY[p0];
+ 					XMM1	 = XXYY[p1];
+ 					XMM4	 = XXYY[p2];
+ 					XMM3	 = XXYY[p3];
+-					
++
+ 					TN.sf[0]	 = N[p0];
+ 					TN.sf[1]	 = N[p1];
+ 					TN.sf[2]	 = N[p2];
+ 					TN.sf[3]	 = N[p3];
+-					
++
+ 					XMM0	 = _mm_xor_ps(XMM0, PM128(PCS_RNNR));
+ 					XMM1	 = _mm_xor_ps(XMM1, PM128(PCS_RNNR));
+-					
++
+ 					p0	 = sb[i*2  ];
+ 					p1	 = sb[i*2+2];
+ 					p2	 = sb[i*2+5];
+ 					p3	 = sb[i*2+7];
+-					
++
+ 					XMM0	 = _mm_add_ps(XMM0, XXYY[p0]);
+ 					XMM1	 = _mm_add_ps(XMM1, XXYY[p1]);
+ 					XMM4	 = _mm_sub_ps(XMM4, XXYY[p2]);
+ 					XMM3	 = _mm_sub_ps(XMM3, XXYY[p3]);
+-					
++
+ 					TN1.sf[0]	 = N[p0];
+ 					TN1.sf[1]	 = N[p1];
+ 					TN1.sf[2]	 = N[p2];
+ 					TN1.sf[3]	 = N[p3];
+-					
++
+ 					TN.ps	 = _mm_sub_ps(TN.ps, _mm_xor_ps(TN1.ps, PM128(PCS_NNRR)));
+-					
++
+ 					bark_noise_hybridmp_SSE_SUBC();
+ 					XMM4	 = _mm_max_ps(XMM4, PM128(PFV_0));
+ 					XMM4	 = _mm_sub_ps(XMM4, OFFSET);
+@@ -1836,38 +1836,38 @@
+ 					p1	 =-sb[i*2+3];
+ 					p2	 =-sb[i*2+5];
+ 					p3	 = sb[i*2+6];
+-					
++
+ 					XMM0	 = XXYY[p0];
+ 					XMM1	 = XXYY[p1];
+ 					XMM4	 = XXYY[p2];
+ 					XMM3	 = XXYY[p3];
+-					
++
+ 					TN.sf[0]	 = N[p0];
+ 					TN.sf[1]	 = N[p1];
+ 					TN.sf[2]	 = N[p2];
+ 					TN.sf[3]	 = N[p3];
+-					
++
+ 					XMM0	 = _mm_xor_ps(XMM0, PM128(PCS_RNNR));
+ 					XMM1	 = _mm_xor_ps(XMM1, PM128(PCS_RNNR));
+ 					XMM4	 = _mm_xor_ps(XMM4, PM128(PCS_RNNR));
+-					
++
+ 					p0	 = sb[i*2  ];
+ 					p1	 = sb[i*2+2];
+ 					p2	 = sb[i*2+4];
+ 					p3	 = sb[i*2+7];
+-					
++
+ 					XMM0	 = _mm_add_ps(XMM0, XXYY[p0]);
+ 					XMM1	 = _mm_add_ps(XMM1, XXYY[p1]);
+ 					XMM4	 = _mm_add_ps(XMM4, XXYY[p2]);
+ 					XMM3	 = _mm_sub_ps(XMM3, XXYY[p3]);
+-					
++
+ 					TN1.sf[0]	 = N[p0];
+ 					TN1.sf[1]	 = N[p1];
+ 					TN1.sf[2]	 = N[p2];
+ 					TN1.sf[3]	 = N[p3];
+-					
++
+ 					TN.ps	 = _mm_sub_ps(TN.ps, _mm_xor_ps(TN1.ps, PM128(PCS_NRRR)));
+-					
++
+ 					bark_noise_hybridmp_SSE_SUBC();
+ 					XMM4	 = _mm_max_ps(XMM4, PM128(PFV_0));
+ 					XMM4	 = _mm_sub_ps(XMM4, OFFSET);
+@@ -2332,22 +2332,22 @@
+ 			p1	 = sb[i*2+ 2];
+ 			p2	 = sb[i*2+ 4];
+ 			p3	 = sb[i*2+ 6];
+-			
++
+ 			XMM0	 = XXYY[p0];
+ 			XMM1	 = XXYY[p1];
+ 			XMM4	 = XXYY[p2];
+ 			XMM3	 = XXYY[p3];
+-			
++
+ 			TN0.sf[0]	 = N[p0];
+ 			TN0.sf[1]	 = N[p1];
+ 			TN0.sf[2]	 = N[p2];
+ 			TN0.sf[3]	 = N[p3];
+-			
++
+ 			p0	 = sb[i*2+ 1];
+ 			p1	 = sb[i*2+ 3];
+ 			p2	 = sb[i*2+ 5];
+ 			p3	 = sb[i*2+ 7];
+-			
++
+ 			XMM2	 = XXYY[p0];
+ 			XMM5	 = XXYY[p1];
+ 			XMM6	 = XXYY[p2];
+@@ -2357,7 +2357,7 @@
+ 			XMM1	 = _mm_sub_ps(XMM1, XMM5);
+ 			XMM4	 = _mm_sub_ps(XMM4, XMM6);
+ 			XMM3	 = _mm_sub_ps(XMM3, XMM7);
+-			
++
+ 			XMM2	 = XMM0;
+ 			XMM5	 = XMM4;
+ 			XMM0	 = _mm_shuffle_ps(XMM0, XMM1, _MM_SHUFFLE(1,0,1,0));
+@@ -2418,13 +2418,13 @@
+ 					{
+ 						lo	 = sb[i*2-1];
+ 						hi	 = sb[i*2-2];
+-						
++
+ 						tN	 = N[hi] - N[lo];
+ 						tX	 = xxyy[hi*4  ] - xxyy[lo*4  ];
+ 						tXX	 = xxyy[hi*4+1] - xxyy[lo*4+1];
+ 						tY	 = xxyy[hi*4+2] - xxyy[lo*4+2];
+ 						tXY	 = xxyy[hi*4+3] - xxyy[lo*4+3];
+-						
++
+ 						A	 = tY * tXX - tX * tXY;
+ 						B	 = tN * tXY - tX * tY;
+ 						D	 = tN * tXX - tX * tX;
+@@ -2436,22 +2436,22 @@
+ 				case 1:
+ 					{
+ 						p0	 = sb[i*2  ];
+-						
++
+ 						XMM0	 = XXYY[p0];
+-						
++
+ 						TN.ps	 = _mm_set_ps1(N[p0]);
+-						
++
+ 						p0	 = sb[i*2+1];
+-						
++
+ 						XMM1	 =
+ 						XMM4	 =
+ 						XMM3	 =
+ 						XMM0	 = _mm_sub_ps(XMM0, XXYY[p0]);
+-						
++
+ 						TN1.ps	 = _mm_set_ps1(N[p0]);
+-						
++
+ 						TN.ps	 = _mm_sub_ps(TN.ps, TN1.ps);
+-						
++
+ 						bark_noise_hybridmp_SSE_SUBC2();
+ 						XMM4	 = _mm_max_ps(XMM4, PM128(PFV_0));
+ 						XMM4	 = _mm_sub_ps(XMM4, OFFSET);
+@@ -2466,30 +2466,30 @@
+ 					{
+ 						p0	 = sb[i*2  ];
+ 						p1	 = sb[i*2+2];
+-						
++
+ 						XMM0	 = XXYY[p0];
+ 						XMM1	 = XXYY[p1];
+-						
++
+ 						TN.sf[0]	 = N[p0];
+ 						TN.sf[1]	 =
+ 						TN.sf[2]	 =
+ 						TN.sf[3]	 = N[p1];
+-						
++
+ 						p0	 = sb[i*2+1];
+ 						p1	 = sb[i*2+3];
+-						
++
+ 						XMM0	 = _mm_sub_ps(XMM0, XXYY[p0]);
+ 						XMM4	 =
+ 						XMM3	 =
+ 						XMM1	 = _mm_sub_ps(XMM1, XXYY[p1]);
+-						
++
+ 						TN1.sf[0]	 = N[p0];
+ 						TN1.sf[1]	 =
+ 						TN1.sf[2]	 =
+ 						TN1.sf[3]	 = N[p1];
+-						
++
+ 						TN.ps	 = _mm_sub_ps(TN.ps, TN1.ps);
+-						
++
+ 						bark_noise_hybridmp_SSE_SUBC2();
+ 						XMM4	 = _mm_max_ps(XMM4, PM128(PFV_0));
+ 						XMM4	 = _mm_sub_ps(XMM4, OFFSET);
+@@ -2505,32 +2505,32 @@
+ 						p0	 = sb[i*2  ];
+ 						p1	 = sb[i*2+2];
+ 						p2	 = sb[i*2+4];
+-						
++
+ 						XMM0	 = XXYY[p0];
+ 						XMM1	 = XXYY[p1];
+ 						XMM4	 = XXYY[p2];
+-						
++
+ 						TN.sf[0]	 = N[p0];
+ 						TN.sf[1]	 = N[p1];
+ 						TN.sf[2]	 =
+ 						TN.sf[3]	 = N[p2];
+-						
++
+ 						p0	 = sb[i*2+1];
+ 						p1	 = sb[i*2+3];
+ 						p2	 = sb[i*2+5];
+-						
++
+ 						XMM0	 = _mm_sub_ps(XMM0, XXYY[p0]);
+ 						XMM1	 = _mm_sub_ps(XMM1, XXYY[p1]);
+ 						XMM3	 =
+ 						XMM4	 = _mm_sub_ps(XMM4, XXYY[p2]);
+-						
++
+ 						TN1.sf[0]	 = N[p0];
+ 						TN1.sf[1]	 = N[p1];
+ 						TN1.sf[2]	 =
+ 						TN1.sf[3]	 = N[p2];
+-						
++
+ 						TN.ps	 = _mm_sub_ps(TN.ps, TN1.ps);
+-						
++
+ 						bark_noise_hybridmp_SSE_SUBC2();
+ 						XMM4	 = _mm_max_ps(XMM4, PM128(PFV_0));
+ 						XMM4	 = _mm_sub_ps(XMM4, OFFSET);
+@@ -2604,11 +2604,11 @@
+ 
+ 	midpoint1	 = (fixed+1)/2;
+ 	midpoint2	 = n-fixed/2;
+-	
++
+ 	j	 = midpoint1&(~7);
+ 	p1	 = fixed / 2;
+ 	p0	 = p1 - 3;
+-	
++
+ 	for(i=0;i<j;i+=8)
+ 	{
+ 		__m128	XMM0, XMM1, XMM2, XMM3;
+@@ -2729,27 +2729,27 @@
+ 	{
+ 		__m128	XMM0, XMM1, XMM4, XMM3, XMM5;
+ 		__m128x	TN;
+-		
++
+ 		XMM5	 = _mm_lddqu_ps(N+p0);
+ 		XMM0	 = XXYY[p0+3];
+ 		XMM1	 = XXYY[p0+2];
+ 		XMM4	 = XXYY[p0+1];
+ 		XMM3	 = XXYY[p0  ];
+ 		TN.ps	 = _mm_shuffle_ps(XMM5, XMM5, _MM_SHUFFLE(0,1,2,3));
+-		
++
+ 		XMM0	 = _mm_xor_ps(XMM0, PM128(PCS_RNNR));
+ 		XMM1	 = _mm_xor_ps(XMM1, PM128(PCS_RNNR));
+ 		XMM4	 = _mm_xor_ps(XMM4, PM128(PCS_RNNR));
+ 		XMM3	 = _mm_xor_ps(XMM3, PM128(PCS_RNNR));
+-		
++
+ 		XMM5	 = _mm_lddqu_ps(N+p1);
+ 		XMM0	 = _mm_add_ps(XMM0, XXYY[p1  ]);
+ 		XMM1	 = _mm_add_ps(XMM1, XXYY[p1+1]);
+ 		XMM4	 = _mm_add_ps(XMM4, XXYY[p1+2]);
+ 		XMM3	 = _mm_add_ps(XMM3, XXYY[p1+3]);
+-		
++
+ 		TN.ps	 = _mm_add_ps(TN.ps, XMM5);
+-		
++
+ 		bark_noise_hybridmp_SSE_SUBC();
+ 		XMM4	 = _mm_sub_ps(XMM4, OFFSET);
+ 		XMM4	 = _mm_min_ps(XMM4, PM128(noise+i  ));
+@@ -2764,18 +2764,18 @@
+ 		{
+ 			hi	 = i + fixed / 2;
+ 			lo	 = hi - fixed;
+-	
++
+ 			tN	 = N[hi] + N[-lo];
+ 			tX	 = xxyy[hi*4  ] - xxyy[-lo*4  ];
+ 			tXX	 = xxyy[hi*4+1] + xxyy[-lo*4+1];
+ 			tY	 = xxyy[hi*4+2] + xxyy[-lo*4+2];
+ 			tXY	 = xxyy[hi*4+3] - xxyy[-lo*4+3];
+-	
++
+ 			A	 = tY * tXX - tX * tXY;
+ 			B	 = tN * tXY - tX * tY;
+ 			D	 = tN * tXX - tX * tX;
+ 			R	 = (A + x * B) / D;
+-	
++
+ 			if(R - offset < noise[i])
+ 				noise[i]	 = R - offset;
+ 		}
+@@ -2783,13 +2783,13 @@
+ 		{
+ 			hi	 = i + fixed / 2;
+ 			lo	 = hi - fixed;
+-	
++
+ 			tN	 = N[hi] - N[lo];
+ 			tX	 = xxyy[hi*4  ] - xxyy[lo*4  ];
+ 			tXX	 = xxyy[hi*4+1] - xxyy[lo*4+1];
+ 			tY	 = xxyy[hi*4+2] - xxyy[lo*4+2];
+ 			tXY	 = xxyy[hi*4+3] - xxyy[lo*4+3];
+-			
++
+ 			A	 = tY * tXX - tX * tXY;
+ 			B	 = tN * tXY - tX * tY;
+ 			D	 = tN * tXX - tX * tX;
+@@ -2822,34 +2822,34 @@
+ 					int	p0, p1;
+ 					p0	 = -((i  ) + fixed / 2 - fixed);
+ 					p1	 = (i+1) + fixed / 2;
+-					
++
+ 					XMM0	 = XXYY[p0  ];
+ 					XMM1	 = XXYY[p1  ];
+ 					XMM4	 = XXYY[p1+1];
+ 					XMM3	 = XXYY[p1+2];
+-					
++
+ 					TN.sf[0]	 = N[p0  ];
+ 					TN.sf[1]	 = N[p1  ];
+ 					TN.sf[2]	 = N[p1+1];
+ 					TN.sf[3]	 = N[p1+2];
+-					
++
+ 					XMM0	 = _mm_xor_ps(XMM0, PM128(PCS_RNNR));
+-					
++
+ 					p0	 = (i  ) + fixed / 2;
+ 					p1	-= fixed;
+-					
++
+ 					XMM0	 = _mm_add_ps(XMM0, XXYY[p0  ]);
+ 					XMM1	 = _mm_sub_ps(XMM1, XXYY[p1  ]);
+ 					XMM4	 = _mm_sub_ps(XMM4, XXYY[p1+1]);
+ 					XMM3	 = _mm_sub_ps(XMM3, XXYY[p1+2]);
+-					
++
+ 					TN1.sf[0]	 = N[p0  ];
+ 					TN1.sf[1]	 = N[p1  ];
+ 					TN1.sf[2]	 = N[p1+1];
+ 					TN1.sf[3]	 = N[p1+2];
+-					
++
+ 					TN.ps	 = _mm_sub_ps(TN.ps, _mm_xor_ps(TN1.ps, PM128(PCS_NNNR)));
+-					
++
+ 					bark_noise_hybridmp_SSE_SUBC();
+ 					XMM4	 = _mm_sub_ps(XMM4, OFFSET);
+ 					XMM4	 = _mm_min_ps(XMM4, PM128(noise+i  ));
+@@ -2864,35 +2864,35 @@
+ 					int	p0, p1;
+ 					p0	 = -((i  ) + fixed / 2 - fixed);
+ 					p1	 = (i+2) + fixed / 2;
+-					
++
+ 					XMM0	 = XXYY[p0  ];
+ 					XMM1	 = XXYY[p0-1];
+ 					XMM4	 = XXYY[p1  ];
+ 					XMM3	 = XXYY[p1+1];
+-					
++
+ 					TN.sf[0]	 = N[p0  ];
+ 					TN.sf[1]	 = N[p0-1];
+ 					TN.sf[2]	 = N[p1  ];
+ 					TN.sf[3]	 = N[p1+1];
+-					
++
+ 					XMM0	 = _mm_xor_ps(XMM0, PM128(PCS_RNNR));
+ 					XMM1	 = _mm_xor_ps(XMM1, PM128(PCS_RNNR));
+-					
++
+ 					p0	 = (i  ) + fixed / 2;
+ 					p1	-= fixed;
+-					
++
+ 					XMM0	 = _mm_add_ps(XMM0, XXYY[p0  ]);
+ 					XMM1	 = _mm_add_ps(XMM1, XXYY[p0+1]);
+ 					XMM4	 = _mm_sub_ps(XMM4, XXYY[p1  ]);
+ 					XMM3	 = _mm_sub_ps(XMM3, XXYY[p1+1]);
+-					
++
+ 					TN1.sf[0]	 = N[p0  ];
+ 					TN1.sf[1]	 = N[p0+1];
+ 					TN1.sf[2]	 = N[p1  ];
+ 					TN1.sf[3]	 = N[p1+1];
+-					
++
+ 					TN.ps	 = _mm_sub_ps(TN.ps, _mm_xor_ps(TN1.ps, PM128(PCS_NNRR)));
+-					
++
+ 					bark_noise_hybridmp_SSE_SUBC();
+ 					XMM4	 = _mm_sub_ps(XMM4, OFFSET);
+ 					XMM4	 = _mm_min_ps(XMM4, PM128(noise+i  ));
+@@ -2907,36 +2907,36 @@
+ 					int	p0, p1;
+ 					p0	 = -((i  ) + fixed / 2 - fixed);
+ 					p1	 = (i+3) + fixed / 2;
+-					
++
+ 					XMM0	 = XXYY[p0  ];
+ 					XMM1	 = XXYY[p0-1];
+ 					XMM4	 = XXYY[p0-2];
+ 					XMM3	 = XXYY[p1  ];
+-					
++
+ 					TN.sf[0]	 = N[p0  ];
+ 					TN.sf[1]	 = N[p0-1];
+ 					TN.sf[2]	 = N[p0-2];
+ 					TN.sf[3]	 = N[p1  ];
+-					
++
+ 					XMM0	 = _mm_xor_ps(XMM0, PM128(PCS_RNNR));
+ 					XMM1	 = _mm_xor_ps(XMM1, PM128(PCS_RNNR));
+ 					XMM4	 = _mm_xor_ps(XMM4, PM128(PCS_RNNR));
+-					
++
+ 					p0	 = (i  ) + fixed / 2;
+ 					p1	-= fixed;
+-					
++
+ 					XMM0	 = _mm_add_ps(XMM0, XXYY[p0  ]);
+ 					XMM1	 = _mm_add_ps(XMM1, XXYY[p0+1]);
+ 					XMM4	 = _mm_sub_ps(XMM4, XXYY[p0+2]);
+ 					XMM3	 = _mm_sub_ps(XMM3, XXYY[p1  ]);
+-					
++
+ 					TN1.sf[0]	 = N[p0  ];
+ 					TN1.sf[1]	 = N[p0+1];
+ 					TN1.sf[2]	 = N[p0+2];
+ 					TN1.sf[3]	 = N[p1  ];
+-					
++
+ 					TN.ps	 = _mm_sub_ps(TN.ps, _mm_xor_ps(TN1.ps, PM128(PCS_NRRR)));
+-					
++
+ 					bark_noise_hybridmp_SSE_SUBC();
+ 					XMM4	 = _mm_sub_ps(XMM4, OFFSET);
+ 					XMM4	 = _mm_min_ps(XMM4, PM128(noise+i  ));
+@@ -2953,7 +2953,7 @@
+ 			__m128	XMM0, XMM1, XMM2, XMM3;
+ 			__m128	XMM4, XMM5, XMM6, XMM7;
+ 			__m128x	TN, TN1;
+-			
++
+ 			XMM0	 = XXYY[p0   ];
+ 			XMM1	 = XXYY[p0+ 1];
+ 			XMM4	 = XXYY[p0+ 2];
+@@ -3157,7 +3157,7 @@
+ 			__m128	XMM0, XMM1, XMM2, XMM3;
+ 			__m128	XMM4, XMM5, XMM6, XMM7;
+ 			__m128x	TN, TN1;
+-			
++
+ 			XMM0	 = XXYY[p0  ];
+ 			XMM1	 = XXYY[p0+1];
+ 			XMM4	 = XXYY[p0+2];
+@@ -3264,7 +3264,7 @@
+ 			__m128	XMM0, XMM1, XMM4, XMM3;
+ 			__m128x	TN;
+ 			__m128	XMM5;
+-			
++
+ 			XMM0	 = XXYY[p0  ];
+ 			XMM1	 = XXYY[p0+1];
+ 			XMM4	 = XXYY[p0+2];
+@@ -3275,9 +3275,9 @@
+ 			XMM1	 = _mm_sub_ps(XMM1, XXYY[p1+1]);
+ 			XMM4	 = _mm_sub_ps(XMM4, XXYY[p1+2]);
+ 			XMM3	 = _mm_sub_ps(XMM3, XXYY[p1+3]);
+-			
++
+ 			TN.ps	 = _mm_sub_ps(TN.ps, XMM5);
+-			
++
+ 			bark_noise_hybridmp_SSE_SUBC();
+ 			XMM4	 = _mm_sub_ps(XMM4, OFFSET);
+ 			XMM4	 = _mm_min_ps(XMM4, PM128(noise+i  ));
+@@ -3293,13 +3293,13 @@
+ 					{
+ 						hi	 = (i-1) + fixed / 2;
+ 						lo	 = hi - fixed;
+-						
++
+ 						tN	 = N[hi] - N[lo];
+ 						tX	 = xxyy[hi*4  ] - xxyy[lo*4  ];
+ 						tXX	 = xxyy[hi*4+1] - xxyy[lo*4+1];
+ 						tY	 = xxyy[hi*4+2] - xxyy[lo*4+2];
+ 						tXY	 = xxyy[hi*4+3] - xxyy[lo*4+3];
+-						
++
+ 						A	 = tY * tXX - tX * tXY;
+ 						B	 = tN * tXY - tX * tY;
+ 						D	 = tN * tXX - tX * tX;
+@@ -3313,25 +3313,25 @@
+ 						__m128	XMM0, XMM1, XMM4, XMM3;
+ 						__m128x	TN, TN1;
+ 						int p0	 = (i  ) + fixed / 2;
+-						
++
+ 						XMM0	 =
+ 						XMM1	 =
+ 						XMM4	 =
+ 						XMM3	 = XXYY[p0];
+-						
++
+ 						TN.ps	 = _mm_set_ps1(N[p0]);
+-						
++
+ 						p0	-= fixed;
+-						
++
+ 						XMM0	 =
+ 						XMM4	 =
+ 						XMM3	 =
+ 						XMM1	 = _mm_sub_ps(XMM3, XXYY[p0]);
+-						
++
+ 						TN1.ps	 = _mm_set_ps1(N[p0]);
+-						
++
+ 						TN.ps	 = _mm_sub_ps(TN.ps, TN1.ps);
+-						
++
+ 						bark_noise_hybridmp_SSE_SUBC2();
+ 						XMM4	 = _mm_sub_ps(XMM4, OFFSET);
+ 						XMM4	 = _mm_min_ps(XMM4, PM128(noise+i  ));
+@@ -3348,25 +3348,25 @@
+ 						__m128x	TN;
+ 						__m128	XMM5;
+ 						int p0	 = (i  ) + fixed / 2;
+-						
++
+ 						XMM5	 = _mm_lddqu_ps(N+p0);
+ 						XMM0	 = XXYY[p0  ];
+ 						XMM1	 =
+ 						XMM4	 =
+ 						XMM3	 = XXYY[p0+1];
+ 						TN.ps	 = _mm_shuffle_ps(XMM5, XMM5, _MM_SHUFFLE(1,1,1,0));
+-						
++
+ 						p0	-= fixed;
+-						
++
+ 						XMM5	 = _mm_lddqu_ps(N+p0);
+ 						XMM0	 = _mm_sub_ps(XMM0, XXYY[p0  ]);
+ 						XMM4	 =
+ 						XMM3	 =
+ 						XMM1	 = _mm_sub_ps(XMM3, XXYY[p0+1]);
+ 						XMM5	 = _mm_shuffle_ps(XMM5, XMM5, _MM_SHUFFLE(1,1,1,0));
+-						
++
+ 						TN.ps	 = _mm_sub_ps(TN.ps, XMM5);
+-						
++
+ 						bark_noise_hybridmp_SSE_SUBC2();
+ 						XMM4	 = _mm_sub_ps(XMM4, OFFSET);
+ 						XMM4	 = _mm_min_ps(XMM4, PM128(noise+i  ));
+@@ -3383,25 +3383,25 @@
+ 						__m128x	TN;
+ 						__m128	XMM5;
+ 						int p0	 = (i  ) + fixed / 2;
+-						
++
+ 						XMM5	 = _mm_lddqu_ps(N+p0);
+ 						XMM0	 = XXYY[p0  ];
+ 						XMM1	 = XXYY[p0+1];
+ 						XMM4	 =
+ 						XMM3	 = XXYY[p0+2];
+ 						TN.ps	 = _mm_shuffle_ps(XMM5, XMM5, _MM_SHUFFLE(2,2,1,0));
+-						
++
+ 						p0	-=  fixed;
+-						
++
+ 						XMM5	 = _mm_lddqu_ps(N+p0);
+ 						XMM0	 = _mm_sub_ps(XMM0, XXYY[p0  ]);
+ 						XMM1	 = _mm_sub_ps(XMM1, XXYY[p0+1]);
+-						XMM4	 = 
++						XMM4	 =
+ 						XMM3	 = _mm_sub_ps(XMM3, XXYY[p0+2]);
+ 						XMM5	 = _mm_shuffle_ps(XMM5, XMM5, _MM_SHUFFLE(2,2,1,0));
+-						
++
+ 						TN.ps	 = _mm_sub_ps(TN.ps, XMM5);
+-						
++
+ 						bark_noise_hybridmp_SSE_SUBC2();
+ 						XMM4	 = _mm_sub_ps(XMM4, OFFSET);
+ 						XMM4	 = _mm_min_ps(XMM4, PM128(noise+i  ));
+@@ -3665,7 +3665,7 @@
+     const int freq_upc=3;
+     const int freq_unc=4;
+     int nxplus=nx+freq_unc;
+-    
++
+     float tolerance=9.f;
+     float strength=.6f;
+     if(n==256)tolerance=15.f;
+@@ -3873,7 +3873,7 @@
+ #endif
+ 
+   ntfix(p, logmdct, work, block_mode);
+-  
++
+   /* noise compand & aoTuV M5 extension & pre sotre tone peak. */
+   i=0;
+   if(noise_compand_level > 0){
+@@ -4014,7 +4014,7 @@
+ 
+   /* initialization of npeak(nepeak) */
+   for(i=0,k=0; i<n; i+=partition, k++)npeak[k]=0.f;
+-  
++
+   /* reduction of post-echo. (postprocessing of aoTuV M2) */
+   if(poste>0){
+     for(i=0,k=0; i<p->min_nn_lp; i+=partition,k++){
+@@ -4102,7 +4102,7 @@
+ 	/* set the ATH (floating below localmax, not global max by a
+ 	   specified att) */
+ 	if(att<p->vi->ath_maxatt)att=p->vi->ath_maxatt;
+-	
++
+ 	{
+ 		__m128	pm = _mm_set_ps1(att);
+ 		for(i=0;i<n;i+=16)
+@@ -4146,7 +4146,7 @@
+      set parameters for aoTuV M3
+ */
+ static void set_m3p(local_mod3_psy *mp, const int lW_no, const int impadnum,
+-             const int n, const int hs_rate, const float toneatt, 
++             const int n, const int hs_rate, const float toneatt,
+              const float *logmdct, const float *lastmdct, float *tempmdct,
+              const int block_mode, const int lW_block_mode,
+              const int bit_managed, const int offset_select){
+@@ -4266,7 +4266,7 @@
+       break;
+   }
+ 
+-  /* higher noise curve (lower rate) && managed mode */ 
++  /* higher noise curve (lower rate) && managed mode */
+   if(bit_managed && (offset_select==0) && mp->sw) mp->noise_rate*=0.2;
+ 
+ }
+@@ -4401,7 +4401,7 @@
+ 
+     /* AoTuV */
+     /** @ M4 MAIN **
+-    The purpose of this portion is working noise normalization more correctly. 
++    The purpose of this portion is working noise normalization more correctly.
+     (There is this in order to prevent extreme boost of floor)
+       mp4.start = start point
+       mp4.end   = end point
+@@ -4434,7 +4434,7 @@
+     if(offset_select == 1) {
+       m1_coeffi = -17.2;       /* coeffi is a -17.2dB threshold */
+       val = val - logmdct[i];  /* val == mdct line value relative to floor in dB */
+-      
++
+       if(val > m1_coeffi){
+         /* mdct value is > -17.2 dB below floor */
+ 
+@@ -4458,7 +4458,7 @@
+       mdct[i] *= m1_de;
+     }
+   }
+-  
++
+   /** @ M3 SET lastmdct **/
+   if(mp3.mdctbuf_flag==1){
+     const int mag=8;
+@@ -4474,7 +4474,7 @@
+           memcpy(lastmdct, logmdct, n*sizeof(*lastmdct)); // next short block
+         }
+         break;
+-        
++
+       case 2:  // trans. block
+         if(!nW_modenumber){ // next short block
+           int nsh = n >> 3; // 1/8
+@@ -4491,7 +4491,7 @@
+           memcpy(lastmdct, logmdct, n*sizeof(*lastmdct)); // next long block
+         }
+         break;
+-        
++
+       case 3:  // long block (n==1024 or 2048)
+         memcpy(lastmdct, logmdct, n*sizeof(*lastmdct));
+         break;
+@@ -4626,7 +4626,7 @@
+ static void lossless_coupling(int *Mag, int *Ang){
+   int A = *Mag;
+   int B = *Ang;
+-  
++
+   if(abs(A)>abs(B)){
+     *Ang=(A>0?A-B:B-A);
+   }else{
+@@ -4643,7 +4643,7 @@
+ static void lossless_couplingf(float *Mag, float *Ang){
+   float A = *Mag;
+   float B = *Ang;
+-  
++
+   if(fabs(A)>fabs(B)){
+     *Ang=(A>0?A-B:B-A);
+   }else{
+@@ -4737,7 +4737,7 @@
+   int start = (vi->normal_p ? vi->normal_start-i : n);
+   //if(start>n)start=n;
+   if((start>n) || (nepeak<-0.5))start=n;
+-  
++
+   /* force classic behavior where only energy in the current band is considered */
+   acc=0.f;
+ 
+@@ -4771,7 +4771,7 @@
+   if(flags){
+     for(;j<n;j++){
+       float ve;
+-    
++
+       /* flags[j]!=1 is lossy coupled element */
+       if(flags[j]!=1){   /* can't noise norm elements that have
+                           already been loslessly coupled; we can
+@@ -4883,13 +4883,13 @@
+ 
+   /* unquantized energy (negative indicates amplitude has negative sign) */
+   float **raw = alloca(ch*sizeof(*raw));
+-  
++
+   /* quantized energy (if flag set), otherwise mdct */
+   float **quant = alloca(ch*sizeof(*quant));
+ 
+   /* floor energy */
+   float **floor = alloca(ch*sizeof(*floor));
+-  
++
+   /* residue for M6 */
+   float **res   = alloca(ch*sizeof(*res));
+ 
+@@ -4901,7 +4901,7 @@
+ 
+   /* energy surplus/defecit tracking */
+   float  *acc   = alloca((ch+vi->coupling_steps)*sizeof(*acc));
+-  
++
+   /* var for M6 */
+   float  *side_resdef= alloca(vi->coupling_steps*sizeof(*side_resdef));
+ 
+@@ -4918,7 +4918,7 @@
+     res[i]   = &res[0][partition*i];
+     flag[i]  = &flag[0][partition*i];
+   }
+-  
++
+   for(i=0;i<ch+vi->coupling_steps;i++)
+     acc[i]=0.f;
+ 
+@@ -4964,7 +4964,7 @@
+           if(mdct[k][i+j]<0.f) raw[k][j]*=-1.f;
+           floor[k][j]*=floor[k][j];
+         }
+-        
++
+         // per-channel noise normalization
+         // for lossless or mono mode
+         acc[track]=noise_normalize(p,limit,raw[k],quant[k],floor[k],res[k],NULL,acc[track],nepeak[k][pi],i,jn,iout);
+@@ -5006,7 +5006,7 @@
+ 
+         /** @ M6 MAIN **
+             The threshold of a stereo is changed dynamically. Ver3
+-            by Aoyumi @ 2010/12/31 
++            by Aoyumi @ 2010/12/31
+         */
+         /* In the case of specific depth coupling, invalidate this. */
+         if(p->tonefix_end>i){
+@@ -5055,7 +5055,7 @@
+               reM[j] = fabs(reM[j])+fabs(reA[j]);
+               qeM[j] = qeM[j]+qeA[j];
+               fM[j]=fA[j]=1;
+-              
++
+               lossless_couplingf(&resM[j], &resA[j]);
+ 
+               /* couple iM/iA */
+@@ -5079,7 +5079,7 @@
+ 
+               // aotuv hypot (sub)
+               //reM[j]=min_indemnity_dipole_hypotH(reM[j], reA[j]);
+-              
++
+               // original hypot
+               /*if(j<limit-i){
+                 // dipole
+@@ -5122,7 +5122,7 @@
+       }
+     }
+   }
+-  
++
+   if(lowpassr<n){
+     int j, block=n-lowpassr;
+     for(j=0;j<ch;j++){
+@@ -5142,11 +5142,11 @@
+ }
+ 
+ /*  aoTuV M5
+-    noise_compand_level of low frequency is determined from the level of high frequency. 
++    noise_compand_level of low frequency is determined from the level of high frequency.
+     by Aoyumi @ 2005/09/14
+-    
++
+     return value
+-    [normal compander] 0 <> 1.0 [high compander] 
++    [normal compander] 0 <> 1.0 [high compander]
+     negative value are disable
+ */
+ float lb_loudnoise_fix(const vorbis_look_psy *p,
+--- a/lib/psy.h
++++ b/lib/psy.h
+@@ -55,8 +55,8 @@
+   int   noisewindowfixed;
+   float noiseoff[P_NOISECURVES][P_BANDS];
+   float noisecompand[NOISE_COMPAND_LEVELS];
+-  float noisecompand_high[NOISE_COMPAND_LEVELS]; /* for aoTuV M5 */ 
+-  
++  float noisecompand_high[NOISE_COMPAND_LEVELS]; /* for aoTuV M5 */
++
+   float flacint; /* for aoTuV M2 */
+ 
+   float max_curve_dB;
+@@ -119,16 +119,16 @@
+ 
+   int m3n[4]; /* number for aoTuV M3 */
+   float m_val; /* masking compensation value */
+-  
++
+   int tonecomp_endp; /* for aoTuV M4 (and M3, M9) */
+   float tonecomp_thres; /* threshold of aoTuV M4 */
+   float *ntfix_noiseoffset; /* offset of aoTuV M7 */
+-  
++
+   int min_nn_lp; /* for aoTuV M2 (and M8) */
+   int endeg_start; /* for direct partial noise normalization [start] */
+   int endeg_end; /* for direct partial noise normalization [end] */
+   int tonefix_end; /* for aoTuV M6, M7 */
+-  
++
+   int n25p; /* mdct n(25%) */
+   int n33p; /* mdct n(33%) */
+   int n75p; /* mdct n(75%) */
+--- a/lib/res0.c
++++ b/lib/res0.c
+@@ -22,7 +22,7 @@
+ #include <stdlib.h>
+ #include <string.h>
+ #include <math.h>
+-#include <ogg/ogg.h>
++#include "../../ogg/ogg.h"
+ #include "vorbis/codec.h"
+ #include "codec_internal.h"
+ #include "registry.h"
+--- a/lib/sharedbook.c
++++ b/lib/sharedbook.c
+@@ -18,7 +18,7 @@
+ #include <limits.h>
+ #include <math.h>
+ #include <string.h>
+-#include <ogg/ogg.h>
++#include "../../ogg/ogg.h"
+ #include "os.h"
+ #include "misc.h"
+ #include "vorbis/codec.h"
+--- a/lib/smallft.c
++++ b/lib/smallft.c
+@@ -4860,7 +4860,7 @@
+ {
+ 	int		j;
+ 	float	*w	 = CT1STP;
+-	
++
+ 	__m128	XMM0, XMM1, XMM2, XMM3, XMM4, XMM5;
+ #pragma warning(disable : 592)
+ 	XMM0	 = _mm_loadl_pi(XMM0, (__m64*)(a   ));
+@@ -5277,7 +5277,7 @@
+ {
+ 	int j, j1, k, k1, l, m, m2;
+ 	float xr, xi, yr, yi;
+-	
++
+ 	ip[0] = 0;
+ 	l = n;
+ 	if(n==256)
+@@ -5367,7 +5367,7 @@
+ STIN void cftfsub(int n, float *a)
+ {
+ 	int j, j1, j2, j3, l;
+-	
++
+ 	l = 2;
+ 	if (n > 8) {
+ 		cft1st(n, a);
+@@ -5435,7 +5435,7 @@
+ STIN void rftfsub(int n, float *a, int nc, float *w)
+ {
+ 	int		j, k, m, o;
+-	
++
+ 	m	 = n >> 1;
+ 	j	 = 2;
+ 	{
+@@ -5534,7 +5534,7 @@
+ {
+ 	int nw, nc;
+ 	float xi;
+-	
++
+ 	nw = ip[0];
+ 	nc = ip[1];
+ 	if (n > 4) {
+--- a/lib/synthesis.c
++++ b/lib/synthesis.c
+@@ -15,7 +15,7 @@
+  ********************************************************************/
+ 
+ #include <stdio.h>
+-#include <ogg/ogg.h>
++#include "../../ogg/ogg.h"
+ #include "vorbis/codec.h"
+ #include "codec_internal.h"
+ #include "registry.h"
+--- a/lib/tone.c
++++ b/lib/tone.c
+@@ -51,4 +51,3 @@
+   }
+   return(0);
+ }
+-
+--- a/lib/vorbisenc.c
++++ b/lib/vorbisenc.c
+@@ -365,16 +365,16 @@
+   int i,is=s, ishcm;
+   double ds=s-is, dshcm;
+   int hcm_stop=5; // high compander limit
+-  
++
+   codec_setup_info *ci=vi->codec_setup;
+   vorbis_info_psy *p=ci->psy_param[block];
+-  
++
+   /* check mapping limit */
+   if(hcm_stop > mappings)hcm_stop=mappings;
+-  
++
+   /* the place was borrowed...  */
+   p->flacint=ds;
+-  
++
+   /* interpolate the compander mapping */
+   ds=x[is]*(1.-ds)+x[is+1]*ds;
+   is=(int)ds;
+@@ -383,7 +383,7 @@
+     is--;
+     ds=1.;
+   }
+-  
++
+   /* high compander setup */
+   ishcm = is;
+   dshcm = ds+.3;
+@@ -403,7 +403,7 @@
+     ishcm--;
+     dshcm=1.;
+   }
+-  
++
+   /* interpolate the compander settings */
+   for(i=0;i<NOISE_COMPAND_LEVELS;i++)
+     p->noisecompand[i]=in[is].data[i]*(1.-ds)+in[is+1].data[i]*ds;
+--- a/lib/xmmlib.c
++++ b/lib/xmmlib.c
+@@ -126,7 +126,7 @@
+ 	void* p1 = (void*)malloc(size + offset);
+ 	void** p2 = (void**)(((size_t)(p1) + offset) & ~15);
+ 	if (p1 == NULL) return NULL;
+-	p2[-1] = size;
++	p2[-1] = (void*)size;
+ 	p2[-2] = p1;
+ 	return p2;
+ #endif
+@@ -143,9 +143,9 @@
+ #ifdef	__SSE__
+ 		size_t	i,j, k;
+ 		__m128	XMM0, XMM1, XMM2, XMM3;
+-		XMM0	 = 
+-		XMM1	 = 
+-		XMM2	 = 
++		XMM0	 =
++		XMM1	 =
++		XMM2	 =
+ 		XMM3	 = _mm_setzero_ps();
+ 		k	 = nitems*size;
+ 		j	 = k&(~127);
+@@ -199,6 +199,18 @@
+ 	return	(void*)t_RetPtr;
+ }
+ /*---------------------------------------------------------------------------
++// 16Byte Allignment free
++//-------------------------------------------------------------------------*/
++void xmm_free(void* a_AlignedPtr)
++{
++    if(a_AlignedPtr)
++#ifdef _WIN32
++        _aligned_free(a_AlignedPtr);
++#else
++        free(((void**)a_AlignedPtr)[-2]);
++#endif
++}
++/*---------------------------------------------------------------------------
+ // 16Byte Allignment realloc
+ //-------------------------------------------------------------------------*/
+ void* xmm_realloc(void *block, size_t size)
+@@ -211,22 +223,10 @@
+ 	if (!block) return xmm_malloc(size);
+ 	blsize = (size_t) ((void**)block)[-1];
+ 	if (size <= blsize) return block;
+-	newblock = xmm_malloc(size);	
++	newblock = xmm_malloc(size);
+ 	memcpy(newblock, block, blsize);
+ 	xmm_free(block);
+ 	return newblock;
+-#endif
+-}
+-/*---------------------------------------------------------------------------
+-// 16Byte Allignment free
+-//-------------------------------------------------------------------------*/
+-void xmm_free(void* a_AlignedPtr)
+-{
+-	if(a_AlignedPtr)
+-#ifdef _WIN32
+-		_aligned_free(a_AlignedPtr);
+-#else
+-		free(((void**)a_AlignedPtr)[-2]);
+ #endif
+ }
+ /*---------------------------------------------------------------------------
+--- a/lib/xmmlib.h
++++ b/lib/xmmlib.h
+@@ -120,9 +120,9 @@
+ 
+ extern void* xmm_malloc(size_t);
+ extern void* xmm_calloc(size_t, size_t);
++extern void xmm_free(void*);
+ extern void* xmm_realloc(void*, size_t);
+ extern void* xmm_align(void*);
+-extern void xmm_free(void*);
+ 
+ STIN __m128 _mm_todB_ps(__m128 x)
+ {
+--- a/vorbisfile.h
++++ b/vorbisfile.h
+@@ -202,4 +202,3 @@
+ #endif /* __cplusplus */
+ 
+ #endif
+-

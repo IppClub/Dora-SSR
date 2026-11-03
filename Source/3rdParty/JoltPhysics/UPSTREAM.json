@@ -1,0 +1,2241 @@
+{
+  "schema_version": 1,
+  "identified_equivalent_release": "5.5.0",
+  "identified_equivalent_commit": "23dadd0e603f1b321142d4c74df07fce85064989",
+  "scope": "All 444 retained upstream files are byte-identical to the fixed official commit. The original Dora JOLT_VERSION.txt records the same version and commit; no code/header/license patch is present in this retained subset. Not a full upstream checkout, ABI or sharing acceptance.",
+  "upstream": "https://github.com/jrouwe/JoltPhysics",
+  "archive_url": "https://codeload.github.com/jrouwe/JoltPhysics/tar.gz/23dadd0e603f1b321142d4c74df07fce85064989",
+  "archive_sha256": "e4a44a9bfdcdb1e47259b7a66a300d9f31daf1b28ec19617761c3aad7165b979",
+  "archive_bytes": 18854313,
+  "dora_import_commit": "23ad2300feb643927bf7647ab03b9c17f8fcf4a9",
+  "files": [
+    {
+      "path": "Jolt/AABBTree/AABBTreeBuilder.cpp",
+      "upstream_sha256": "57124827f17206736cde0eccbeb04a7fe450773c4a7b95b39ad1602f584cdc14",
+      "vendor_sha256": "57124827f17206736cde0eccbeb04a7fe450773c4a7b95b39ad1602f584cdc14"
+    },
+    {
+      "path": "Jolt/AABBTree/AABBTreeBuilder.h",
+      "upstream_sha256": "8ff592a17bb482745d63d9f4874d94268076694f09713bd0e3d35365d65046a7",
+      "vendor_sha256": "8ff592a17bb482745d63d9f4874d94268076694f09713bd0e3d35365d65046a7"
+    },
+    {
+      "path": "Jolt/AABBTree/AABBTreeToBuffer.h",
+      "upstream_sha256": "98386a0b37134ef78bb2d4e0d1f29f489338aaad912b13a947543b282d8b455b",
+      "vendor_sha256": "98386a0b37134ef78bb2d4e0d1f29f489338aaad912b13a947543b282d8b455b"
+    },
+    {
+      "path": "Jolt/AABBTree/NodeCodec/NodeCodecQuadTreeHalfFloat.h",
+      "upstream_sha256": "0d8f75c733d9474fcde7dfcdc04c2a9f6c8855c0deb311a5a976b26e847e5751",
+      "vendor_sha256": "0d8f75c733d9474fcde7dfcdc04c2a9f6c8855c0deb311a5a976b26e847e5751"
+    },
+    {
+      "path": "Jolt/AABBTree/TriangleCodec/TriangleCodecIndexed8BitPackSOA4Flags.h",
+      "upstream_sha256": "e097dc8e5b22232ff4dde523b3a5f23891cfcc218fb2ecab3eaf04852997d95a",
+      "vendor_sha256": "e097dc8e5b22232ff4dde523b3a5f23891cfcc218fb2ecab3eaf04852997d95a"
+    },
+    {
+      "path": "Jolt/ConfigurationString.h",
+      "upstream_sha256": "8bc2483749f9f0ae1adf8889f18b22834637b234a3c9afd219975661735c1c1d",
+      "vendor_sha256": "8bc2483749f9f0ae1adf8889f18b22834637b234a3c9afd219975661735c1c1d"
+    },
+    {
+      "path": "Jolt/Core/ARMNeon.h",
+      "upstream_sha256": "dbab38dd176a55b59c0ef12c54c2dc19f2ef60f59799d04d587dbd034cc15448",
+      "vendor_sha256": "dbab38dd176a55b59c0ef12c54c2dc19f2ef60f59799d04d587dbd034cc15448"
+    },
+    {
+      "path": "Jolt/Core/Array.h",
+      "upstream_sha256": "a179c3811e06f8aeeab394c3232ebcf4d2ad867e397f9e7ab60a60397f1249c0",
+      "vendor_sha256": "a179c3811e06f8aeeab394c3232ebcf4d2ad867e397f9e7ab60a60397f1249c0"
+    },
+    {
+      "path": "Jolt/Core/Atomics.h",
+      "upstream_sha256": "6dd7c2e99763d9a59eb22c59a21300332cf4d30262f6b6a961540506834703a6",
+      "vendor_sha256": "6dd7c2e99763d9a59eb22c59a21300332cf4d30262f6b6a961540506834703a6"
+    },
+    {
+      "path": "Jolt/Core/BinaryHeap.h",
+      "upstream_sha256": "d444daf0cb49c3d2d51bee4e42bc522c80ea204c0dddaacfc8eefb216dc30600",
+      "vendor_sha256": "d444daf0cb49c3d2d51bee4e42bc522c80ea204c0dddaacfc8eefb216dc30600"
+    },
+    {
+      "path": "Jolt/Core/ByteBuffer.h",
+      "upstream_sha256": "6a03bb776d839496181a225c5981f3619e11d54d501ff41ccd704946832672ec",
+      "vendor_sha256": "6a03bb776d839496181a225c5981f3619e11d54d501ff41ccd704946832672ec"
+    },
+    {
+      "path": "Jolt/Core/Color.cpp",
+      "upstream_sha256": "9ecbda8f056f85227d029d23711ad06c3a3e22fafeeeeba047041d3baacacbce",
+      "vendor_sha256": "9ecbda8f056f85227d029d23711ad06c3a3e22fafeeeeba047041d3baacacbce"
+    },
+    {
+      "path": "Jolt/Core/Color.h",
+      "upstream_sha256": "f82ebbe23e64758541533ba863ca38f6b4867986ffe12c2303c8245e3413f840",
+      "vendor_sha256": "f82ebbe23e64758541533ba863ca38f6b4867986ffe12c2303c8245e3413f840"
+    },
+    {
+      "path": "Jolt/Core/Core.h",
+      "upstream_sha256": "ac12ce5db4a7e4bda7b1baf5e6432cc24ce5da11525afd3ba28051f75dfd7ae6",
+      "vendor_sha256": "ac12ce5db4a7e4bda7b1baf5e6432cc24ce5da11525afd3ba28051f75dfd7ae6"
+    },
+    {
+      "path": "Jolt/Core/FPControlWord.h",
+      "upstream_sha256": "7c6c4c5534ae4ff0c966a975631d4a0e9cb50b148e2372c10e87332b592e8920",
+      "vendor_sha256": "7c6c4c5534ae4ff0c966a975631d4a0e9cb50b148e2372c10e87332b592e8920"
+    },
+    {
+      "path": "Jolt/Core/FPException.h",
+      "upstream_sha256": "d7ae58a4d8709150078dcf91106a488a5e6fa28cef5b53f404745988ee9aa977",
+      "vendor_sha256": "d7ae58a4d8709150078dcf91106a488a5e6fa28cef5b53f404745988ee9aa977"
+    },
+    {
+      "path": "Jolt/Core/FPFlushDenormals.h",
+      "upstream_sha256": "e503581583737fef118258498f61fffe48e5c9c80214083b66490be9675141dc",
+      "vendor_sha256": "e503581583737fef118258498f61fffe48e5c9c80214083b66490be9675141dc"
+    },
+    {
+      "path": "Jolt/Core/Factory.cpp",
+      "upstream_sha256": "bf2df2706398cdfa4decdfdbf647c9a94ef55030d215e04aaab8077c3b430f75",
+      "vendor_sha256": "bf2df2706398cdfa4decdfdbf647c9a94ef55030d215e04aaab8077c3b430f75"
+    },
+    {
+      "path": "Jolt/Core/Factory.h",
+      "upstream_sha256": "af1598cf50871ff26d644fa80978152b539f48a6e9fd7fddc79567083c6b6716",
+      "vendor_sha256": "af1598cf50871ff26d644fa80978152b539f48a6e9fd7fddc79567083c6b6716"
+    },
+    {
+      "path": "Jolt/Core/FixedSizeFreeList.h",
+      "upstream_sha256": "f6603a650b0894ac324c1fabde1d0a3d2386ae32ec822d833c37be510bce8109",
+      "vendor_sha256": "f6603a650b0894ac324c1fabde1d0a3d2386ae32ec822d833c37be510bce8109"
+    },
+    {
+      "path": "Jolt/Core/FixedSizeFreeList.inl",
+      "upstream_sha256": "2980848ae1d1dfe1388112329cf7944984d1c45b0068ebaf6d30a54b08eabc3b",
+      "vendor_sha256": "2980848ae1d1dfe1388112329cf7944984d1c45b0068ebaf6d30a54b08eabc3b"
+    },
+    {
+      "path": "Jolt/Core/HashCombine.h",
+      "upstream_sha256": "ffc51c419850206d9d5f43e1bf58fcbc79ce32163b889ddfb0dbc3228714ec36",
+      "vendor_sha256": "ffc51c419850206d9d5f43e1bf58fcbc79ce32163b889ddfb0dbc3228714ec36"
+    },
+    {
+      "path": "Jolt/Core/HashTable.h",
+      "upstream_sha256": "4eda3c31fb27faf6cc1d009eae8ab7c7b902029c6a9e4196fdc6a1c39cdce2f1",
+      "vendor_sha256": "4eda3c31fb27faf6cc1d009eae8ab7c7b902029c6a9e4196fdc6a1c39cdce2f1"
+    },
+    {
+      "path": "Jolt/Core/InsertionSort.h",
+      "upstream_sha256": "71451dc59d7c2a4113cfd90c6aab8abc3438f7c4d2120d5122dee83558d91bef",
+      "vendor_sha256": "71451dc59d7c2a4113cfd90c6aab8abc3438f7c4d2120d5122dee83558d91bef"
+    },
+    {
+      "path": "Jolt/Core/IssueReporting.cpp",
+      "upstream_sha256": "b4e577a5337ae8e1f4e5b2c28fa11434549a76208a98bdd5079f20673afc89cf",
+      "vendor_sha256": "b4e577a5337ae8e1f4e5b2c28fa11434549a76208a98bdd5079f20673afc89cf"
+    },
+    {
+      "path": "Jolt/Core/IssueReporting.h",
+      "upstream_sha256": "2dfa3b655789a461d7cf737c22fcb79412d25575b6958c4f3bbc386b47bdc111",
+      "vendor_sha256": "2dfa3b655789a461d7cf737c22fcb79412d25575b6958c4f3bbc386b47bdc111"
+    },
+    {
+      "path": "Jolt/Core/JobSystem.h",
+      "upstream_sha256": "d884df960c24ec0fff2f531c7b15883d9535f91189697c3165fdf71c912dc57a",
+      "vendor_sha256": "d884df960c24ec0fff2f531c7b15883d9535f91189697c3165fdf71c912dc57a"
+    },
+    {
+      "path": "Jolt/Core/JobSystem.inl",
+      "upstream_sha256": "f09acf3b4806ee64969f6507bc242cb43c7473b40cff057fe246b2d2774a2466",
+      "vendor_sha256": "f09acf3b4806ee64969f6507bc242cb43c7473b40cff057fe246b2d2774a2466"
+    },
+    {
+      "path": "Jolt/Core/JobSystemSingleThreaded.cpp",
+      "upstream_sha256": "b53f7f857db24151f687096b4b95a5af10484db991d2dec602ab0586fbb494ff",
+      "vendor_sha256": "b53f7f857db24151f687096b4b95a5af10484db991d2dec602ab0586fbb494ff"
+    },
+    {
+      "path": "Jolt/Core/JobSystemSingleThreaded.h",
+      "upstream_sha256": "f73db82b6e196754d67e21fdea7984e334799f924b69e2c932f8dfacf9abb55d",
+      "vendor_sha256": "f73db82b6e196754d67e21fdea7984e334799f924b69e2c932f8dfacf9abb55d"
+    },
+    {
+      "path": "Jolt/Core/JobSystemThreadPool.cpp",
+      "upstream_sha256": "8c879340a88b0793448c8dcc56dfeea28065176bfa2684aeb7484fd6a4e002c7",
+      "vendor_sha256": "8c879340a88b0793448c8dcc56dfeea28065176bfa2684aeb7484fd6a4e002c7"
+    },
+    {
+      "path": "Jolt/Core/JobSystemThreadPool.h",
+      "upstream_sha256": "d263a2617008982850d8459c2672876dea0a3083b9284f1489d54bcf1b5e6578",
+      "vendor_sha256": "d263a2617008982850d8459c2672876dea0a3083b9284f1489d54bcf1b5e6578"
+    },
+    {
+      "path": "Jolt/Core/JobSystemWithBarrier.cpp",
+      "upstream_sha256": "717b69903662d6b1428cc025bfe193656514bac8d4ad74235d1be5a75b668f7e",
+      "vendor_sha256": "717b69903662d6b1428cc025bfe193656514bac8d4ad74235d1be5a75b668f7e"
+    },
+    {
+      "path": "Jolt/Core/JobSystemWithBarrier.h",
+      "upstream_sha256": "849424618af96dc76c87e33ad9b7e5dd422d1c7c9481e16a5b142522f2edb29b",
+      "vendor_sha256": "849424618af96dc76c87e33ad9b7e5dd422d1c7c9481e16a5b142522f2edb29b"
+    },
+    {
+      "path": "Jolt/Core/LinearCurve.cpp",
+      "upstream_sha256": "43e0a37fcc93812c6f3d1cf62be53478fa2204fb64c25e365a51de2fd487d727",
+      "vendor_sha256": "43e0a37fcc93812c6f3d1cf62be53478fa2204fb64c25e365a51de2fd487d727"
+    },
+    {
+      "path": "Jolt/Core/LinearCurve.h",
+      "upstream_sha256": "3b4b50d3b6e68f968c83c775400355a734fdcebda9ec70cdc8448bbd00dbb659",
+      "vendor_sha256": "3b4b50d3b6e68f968c83c775400355a734fdcebda9ec70cdc8448bbd00dbb659"
+    },
+    {
+      "path": "Jolt/Core/LockFreeHashMap.h",
+      "upstream_sha256": "59afd2d147f6334cd51a32ab67161467bfde1637b0c62cd6193c7b940593fb97",
+      "vendor_sha256": "59afd2d147f6334cd51a32ab67161467bfde1637b0c62cd6193c7b940593fb97"
+    },
+    {
+      "path": "Jolt/Core/LockFreeHashMap.inl",
+      "upstream_sha256": "32a6025e87e8a53a7e565f88b67862be92b390610ea8ae000d6fbebb202cfab6",
+      "vendor_sha256": "32a6025e87e8a53a7e565f88b67862be92b390610ea8ae000d6fbebb202cfab6"
+    },
+    {
+      "path": "Jolt/Core/Memory.cpp",
+      "upstream_sha256": "7b070bbe3fa64277ecdd12488e3458d7bbdfeba29cde66d0230b07bfc2c8b58c",
+      "vendor_sha256": "7b070bbe3fa64277ecdd12488e3458d7bbdfeba29cde66d0230b07bfc2c8b58c"
+    },
+    {
+      "path": "Jolt/Core/Memory.h",
+      "upstream_sha256": "e7bd754b7501edc549777bae9fef2dccdc8c6a16636fad5766ea32e898c60004",
+      "vendor_sha256": "e7bd754b7501edc549777bae9fef2dccdc8c6a16636fad5766ea32e898c60004"
+    },
+    {
+      "path": "Jolt/Core/Mutex.h",
+      "upstream_sha256": "29d829cf4665a52a13cf68ef1ee12045e7923a39f399943397b817896ebefbad",
+      "vendor_sha256": "29d829cf4665a52a13cf68ef1ee12045e7923a39f399943397b817896ebefbad"
+    },
+    {
+      "path": "Jolt/Core/MutexArray.h",
+      "upstream_sha256": "764bcbed9797a90f52d02ff0281c788e67f63764af2b88657859f9790e2c65a6",
+      "vendor_sha256": "764bcbed9797a90f52d02ff0281c788e67f63764af2b88657859f9790e2c65a6"
+    },
+    {
+      "path": "Jolt/Core/NonCopyable.h",
+      "upstream_sha256": "3b4b17d3a40d412b1b80f7b41084651a5914db037214f72cc7e214da19c68069",
+      "vendor_sha256": "3b4b17d3a40d412b1b80f7b41084651a5914db037214f72cc7e214da19c68069"
+    },
+    {
+      "path": "Jolt/Core/Profiler.cpp",
+      "upstream_sha256": "f5a71de0b1574f43154f14de2e665d6308c2438cbf426bd1342907072a99658d",
+      "vendor_sha256": "f5a71de0b1574f43154f14de2e665d6308c2438cbf426bd1342907072a99658d"
+    },
+    {
+      "path": "Jolt/Core/Profiler.h",
+      "upstream_sha256": "24f6bb901da5cc4d49ad67121d662cb7890f17d74ab5346fd7d6835520151089",
+      "vendor_sha256": "24f6bb901da5cc4d49ad67121d662cb7890f17d74ab5346fd7d6835520151089"
+    },
+    {
+      "path": "Jolt/Core/Profiler.inl",
+      "upstream_sha256": "8cbf202aab3c4c30e181106acc0776cd4c7f1c58fdcbe3a8863ca327b28f9f86",
+      "vendor_sha256": "8cbf202aab3c4c30e181106acc0776cd4c7f1c58fdcbe3a8863ca327b28f9f86"
+    },
+    {
+      "path": "Jolt/Core/QuickSort.h",
+      "upstream_sha256": "f6167390a570b08e55fb1c576592550de47cf5eca075ee7be55a12bc35c5aac0",
+      "vendor_sha256": "f6167390a570b08e55fb1c576592550de47cf5eca075ee7be55a12bc35c5aac0"
+    },
+    {
+      "path": "Jolt/Core/RTTI.cpp",
+      "upstream_sha256": "2122a048f8b48be16e530c02999bc59864f3e0ac520ed14bada8b876569ec8cf",
+      "vendor_sha256": "2122a048f8b48be16e530c02999bc59864f3e0ac520ed14bada8b876569ec8cf"
+    },
+    {
+      "path": "Jolt/Core/RTTI.h",
+      "upstream_sha256": "b3b4242f30450a1d7e7a8022176e5c7692cf5777fb8bbda157de27d65f25abb7",
+      "vendor_sha256": "b3b4242f30450a1d7e7a8022176e5c7692cf5777fb8bbda157de27d65f25abb7"
+    },
+    {
+      "path": "Jolt/Core/Reference.h",
+      "upstream_sha256": "03d47b73b2f4c72a51ef3e64826c7cffce67a775649dd77e3eeadf55b44930e9",
+      "vendor_sha256": "03d47b73b2f4c72a51ef3e64826c7cffce67a775649dd77e3eeadf55b44930e9"
+    },
+    {
+      "path": "Jolt/Core/Result.h",
+      "upstream_sha256": "69e9b31880d1e660525c03cfb3dc66e2b5aff3094ad9e41c8ce1ec754367bfb9",
+      "vendor_sha256": "69e9b31880d1e660525c03cfb3dc66e2b5aff3094ad9e41c8ce1ec754367bfb9"
+    },
+    {
+      "path": "Jolt/Core/STLAlignedAllocator.h",
+      "upstream_sha256": "0e959b8757fd43f33ebe142eccc8d13c42defaa0fbaf62d76ed798655be9a560",
+      "vendor_sha256": "0e959b8757fd43f33ebe142eccc8d13c42defaa0fbaf62d76ed798655be9a560"
+    },
+    {
+      "path": "Jolt/Core/STLAllocator.h",
+      "upstream_sha256": "fe5461708f8c5d27359d3054566e0795aab35f279752f48ab26bade75209d836",
+      "vendor_sha256": "fe5461708f8c5d27359d3054566e0795aab35f279752f48ab26bade75209d836"
+    },
+    {
+      "path": "Jolt/Core/STLLocalAllocator.h",
+      "upstream_sha256": "0f97952a4aa9e5485c8bf7888d674c45141d1120235abcdf4f3b78d56f36b1f5",
+      "vendor_sha256": "0f97952a4aa9e5485c8bf7888d674c45141d1120235abcdf4f3b78d56f36b1f5"
+    },
+    {
+      "path": "Jolt/Core/STLTempAllocator.h",
+      "upstream_sha256": "02dc5f6a9d8a11aeefd85e5d25f70a9b1e7b8ad19d89126003118d807dee3462",
+      "vendor_sha256": "02dc5f6a9d8a11aeefd85e5d25f70a9b1e7b8ad19d89126003118d807dee3462"
+    },
+    {
+      "path": "Jolt/Core/ScopeExit.h",
+      "upstream_sha256": "2bfb7db740a3c66aa7e324b0f804414af872ba8398c2412ab81a3d034c931f98",
+      "vendor_sha256": "2bfb7db740a3c66aa7e324b0f804414af872ba8398c2412ab81a3d034c931f98"
+    },
+    {
+      "path": "Jolt/Core/Semaphore.cpp",
+      "upstream_sha256": "92b09c7c3aaceae239445cacdd9f92b215e728cf3d252289e4c44642058eca76",
+      "vendor_sha256": "92b09c7c3aaceae239445cacdd9f92b215e728cf3d252289e4c44642058eca76"
+    },
+    {
+      "path": "Jolt/Core/Semaphore.h",
+      "upstream_sha256": "4503edbc0ac7021b6db95be70385f0d4ab8cd1f54f4ec504edff689bca0e200c",
+      "vendor_sha256": "4503edbc0ac7021b6db95be70385f0d4ab8cd1f54f4ec504edff689bca0e200c"
+    },
+    {
+      "path": "Jolt/Core/StaticArray.h",
+      "upstream_sha256": "24569796faceb2d5720e88ec660432fad748d1adb53e9c0248d9511233ec0002",
+      "vendor_sha256": "24569796faceb2d5720e88ec660432fad748d1adb53e9c0248d9511233ec0002"
+    },
+    {
+      "path": "Jolt/Core/StreamIn.h",
+      "upstream_sha256": "d0d890c62d186cb62826c81185aecc509c2945104e223e6cccf336cde6c847db",
+      "vendor_sha256": "d0d890c62d186cb62826c81185aecc509c2945104e223e6cccf336cde6c847db"
+    },
+    {
+      "path": "Jolt/Core/StreamOut.h",
+      "upstream_sha256": "4d767530e857e9d39dcd970a5552ee26fdc4ca7d1188521fc0f43c4829ab1de2",
+      "vendor_sha256": "4d767530e857e9d39dcd970a5552ee26fdc4ca7d1188521fc0f43c4829ab1de2"
+    },
+    {
+      "path": "Jolt/Core/StreamUtils.h",
+      "upstream_sha256": "8431fa5f6b10962ff01006ea2c27e54eb4c94ccaaa80c0bc53ce68a856ada24e",
+      "vendor_sha256": "8431fa5f6b10962ff01006ea2c27e54eb4c94ccaaa80c0bc53ce68a856ada24e"
+    },
+    {
+      "path": "Jolt/Core/StreamWrapper.h",
+      "upstream_sha256": "b4318f3dbe5142328397614fa7ffe3a6c11fc729785d6cdc00e3e7024b9c0c3a",
+      "vendor_sha256": "b4318f3dbe5142328397614fa7ffe3a6c11fc729785d6cdc00e3e7024b9c0c3a"
+    },
+    {
+      "path": "Jolt/Core/StridedPtr.h",
+      "upstream_sha256": "23ce6e2a5b2efa8f60c8d5e7cc9aca39022c7a09a0ad52fa9dee95121ee6b04d",
+      "vendor_sha256": "23ce6e2a5b2efa8f60c8d5e7cc9aca39022c7a09a0ad52fa9dee95121ee6b04d"
+    },
+    {
+      "path": "Jolt/Core/StringTools.cpp",
+      "upstream_sha256": "b4c7c997151c6a27e8d1a0558def979cb15fb15b79c1441277f86de5a111ece5",
+      "vendor_sha256": "b4c7c997151c6a27e8d1a0558def979cb15fb15b79c1441277f86de5a111ece5"
+    },
+    {
+      "path": "Jolt/Core/StringTools.h",
+      "upstream_sha256": "2940f4597f16469196f8d7ef79102cf4a9f269a5188914f49a63d9c8dba0a0ac",
+      "vendor_sha256": "2940f4597f16469196f8d7ef79102cf4a9f269a5188914f49a63d9c8dba0a0ac"
+    },
+    {
+      "path": "Jolt/Core/TempAllocator.h",
+      "upstream_sha256": "f9a63b3989093945c02b9fe65d00963a315efcd8b1801f8131ec1ead81509207",
+      "vendor_sha256": "f9a63b3989093945c02b9fe65d00963a315efcd8b1801f8131ec1ead81509207"
+    },
+    {
+      "path": "Jolt/Core/TickCounter.cpp",
+      "upstream_sha256": "37f6f72ea656458c9971a48bca8ee4f1f5f7d78049ff6e69d62300c840bc6ef4",
+      "vendor_sha256": "37f6f72ea656458c9971a48bca8ee4f1f5f7d78049ff6e69d62300c840bc6ef4"
+    },
+    {
+      "path": "Jolt/Core/TickCounter.h",
+      "upstream_sha256": "73591d7c178fa70ca26ab21c8319f0a27a63f299053ebe1e18ad725dcfce0506",
+      "vendor_sha256": "73591d7c178fa70ca26ab21c8319f0a27a63f299053ebe1e18ad725dcfce0506"
+    },
+    {
+      "path": "Jolt/Core/UnorderedMap.h",
+      "upstream_sha256": "03f6e3648b0941140bf02b802cf977e1e2dccbdd09fda8ef147f9a2a222169dc",
+      "vendor_sha256": "03f6e3648b0941140bf02b802cf977e1e2dccbdd09fda8ef147f9a2a222169dc"
+    },
+    {
+      "path": "Jolt/Core/UnorderedSet.h",
+      "upstream_sha256": "9d686ad320fe787351f0d1a2a78e6df2fad3e0d643ffd1e49e597c8ec96b459c",
+      "vendor_sha256": "9d686ad320fe787351f0d1a2a78e6df2fad3e0d643ffd1e49e597c8ec96b459c"
+    },
+    {
+      "path": "Jolt/Geometry/AABox.h",
+      "upstream_sha256": "7cdf9bd463a434f650945ebebf2acb1b9874615a4f0a46a05e3a75b32c24bd15",
+      "vendor_sha256": "7cdf9bd463a434f650945ebebf2acb1b9874615a4f0a46a05e3a75b32c24bd15"
+    },
+    {
+      "path": "Jolt/Geometry/AABox4.h",
+      "upstream_sha256": "e33488d162ad1ec0807ee06a19ba37c47fbaebfb2d07b2f63395677c3fc01263",
+      "vendor_sha256": "e33488d162ad1ec0807ee06a19ba37c47fbaebfb2d07b2f63395677c3fc01263"
+    },
+    {
+      "path": "Jolt/Geometry/ClipPoly.h",
+      "upstream_sha256": "f767b3fb64ca27939a8cc6ff97bc3e8ddcce6a725a741794841c28bbeddc2d66",
+      "vendor_sha256": "f767b3fb64ca27939a8cc6ff97bc3e8ddcce6a725a741794841c28bbeddc2d66"
+    },
+    {
+      "path": "Jolt/Geometry/ClosestPoint.h",
+      "upstream_sha256": "ed430bd8c462b385e0670905f4e2d110b6affcac4d25bae5b4d515cfb165022e",
+      "vendor_sha256": "ed430bd8c462b385e0670905f4e2d110b6affcac4d25bae5b4d515cfb165022e"
+    },
+    {
+      "path": "Jolt/Geometry/ConvexHullBuilder.cpp",
+      "upstream_sha256": "45247633917890871af725ab1a610ef22584436fc448587a491b579360557816",
+      "vendor_sha256": "45247633917890871af725ab1a610ef22584436fc448587a491b579360557816"
+    },
+    {
+      "path": "Jolt/Geometry/ConvexHullBuilder.h",
+      "upstream_sha256": "fe5c7cd865a4250b10d5a71c87cc8b9e7de799b631dd53aceb94d15eb6a1f2d4",
+      "vendor_sha256": "fe5c7cd865a4250b10d5a71c87cc8b9e7de799b631dd53aceb94d15eb6a1f2d4"
+    },
+    {
+      "path": "Jolt/Geometry/ConvexHullBuilder2D.cpp",
+      "upstream_sha256": "36c60f4cb5f27323089951a4e2e736abaef7fcf0dc091d7ab53beb3c0ec1b386",
+      "vendor_sha256": "36c60f4cb5f27323089951a4e2e736abaef7fcf0dc091d7ab53beb3c0ec1b386"
+    },
+    {
+      "path": "Jolt/Geometry/ConvexHullBuilder2D.h",
+      "upstream_sha256": "d454905250066f8f12ce64db4672338b4e7c3107a3c21b89595f0b2520b4ef6e",
+      "vendor_sha256": "d454905250066f8f12ce64db4672338b4e7c3107a3c21b89595f0b2520b4ef6e"
+    },
+    {
+      "path": "Jolt/Geometry/ConvexSupport.h",
+      "upstream_sha256": "58a9dcede68fd864d1e1b5002edc3dcee720a86953fab140954a9122a1d42075",
+      "vendor_sha256": "58a9dcede68fd864d1e1b5002edc3dcee720a86953fab140954a9122a1d42075"
+    },
+    {
+      "path": "Jolt/Geometry/EPAConvexHullBuilder.h",
+      "upstream_sha256": "9a29ddbacaa4d3db086d0e11839dbd3eca3cce1093aafb9a756232c2adb4c474",
+      "vendor_sha256": "9a29ddbacaa4d3db086d0e11839dbd3eca3cce1093aafb9a756232c2adb4c474"
+    },
+    {
+      "path": "Jolt/Geometry/EPAPenetrationDepth.h",
+      "upstream_sha256": "62d13e0a0c36ac7d8377e24110856d34de85b5e3cf1b082b034a70873add12b5",
+      "vendor_sha256": "62d13e0a0c36ac7d8377e24110856d34de85b5e3cf1b082b034a70873add12b5"
+    },
+    {
+      "path": "Jolt/Geometry/Ellipse.h",
+      "upstream_sha256": "83f2619e77fcb5000ec68659015558cd356bd1aae57276774313a5111cc59bf7",
+      "vendor_sha256": "83f2619e77fcb5000ec68659015558cd356bd1aae57276774313a5111cc59bf7"
+    },
+    {
+      "path": "Jolt/Geometry/GJKClosestPoint.h",
+      "upstream_sha256": "d82ccce9942bab8b2cac2b298aa74fb3e3324827028bce6af8d240cbc4dca619",
+      "vendor_sha256": "d82ccce9942bab8b2cac2b298aa74fb3e3324827028bce6af8d240cbc4dca619"
+    },
+    {
+      "path": "Jolt/Geometry/IndexedTriangle.h",
+      "upstream_sha256": "7bdc49a6f6a6fd69da76c9efab192ef2854c38fb6fa6a74d2dc9a8ca31915f0f",
+      "vendor_sha256": "7bdc49a6f6a6fd69da76c9efab192ef2854c38fb6fa6a74d2dc9a8ca31915f0f"
+    },
+    {
+      "path": "Jolt/Geometry/Indexify.cpp",
+      "upstream_sha256": "bd45004b4dd09b630d51c77ebc3caec26d680bb213dd126df8c223279965be10",
+      "vendor_sha256": "bd45004b4dd09b630d51c77ebc3caec26d680bb213dd126df8c223279965be10"
+    },
+    {
+      "path": "Jolt/Geometry/Indexify.h",
+      "upstream_sha256": "160e835f2d52e85a09ccbf53d396d7d2ae072a485ab91d0239d86f1f727daa26",
+      "vendor_sha256": "160e835f2d52e85a09ccbf53d396d7d2ae072a485ab91d0239d86f1f727daa26"
+    },
+    {
+      "path": "Jolt/Geometry/MortonCode.h",
+      "upstream_sha256": "a2b0e193d45a721fdfa4714f2d980cff6516e115d54d4748819fa16bedb83ff4",
+      "vendor_sha256": "a2b0e193d45a721fdfa4714f2d980cff6516e115d54d4748819fa16bedb83ff4"
+    },
+    {
+      "path": "Jolt/Geometry/OrientedBox.cpp",
+      "upstream_sha256": "5c34fb598ac861ab07a31cd89c21884e508e1abd90beb91050da30fba0895115",
+      "vendor_sha256": "5c34fb598ac861ab07a31cd89c21884e508e1abd90beb91050da30fba0895115"
+    },
+    {
+      "path": "Jolt/Geometry/OrientedBox.h",
+      "upstream_sha256": "a49b29e7501a53b0d0f81ee4d118a521279b1b676e395886428d67fe2adfa115",
+      "vendor_sha256": "a49b29e7501a53b0d0f81ee4d118a521279b1b676e395886428d67fe2adfa115"
+    },
+    {
+      "path": "Jolt/Geometry/Plane.h",
+      "upstream_sha256": "c8b457bf262ce03df9880dca1ec1c512c7bccb8bae82755f9b536d8d85739848",
+      "vendor_sha256": "c8b457bf262ce03df9880dca1ec1c512c7bccb8bae82755f9b536d8d85739848"
+    },
+    {
+      "path": "Jolt/Geometry/RayAABox.h",
+      "upstream_sha256": "453f131500a523651692594ea0b680bf4395439eff48e162b3fad4a72492a280",
+      "vendor_sha256": "453f131500a523651692594ea0b680bf4395439eff48e162b3fad4a72492a280"
+    },
+    {
+      "path": "Jolt/Geometry/RayCapsule.h",
+      "upstream_sha256": "5409fa469d5580cf86ec53efd7b46e195ff97af7ce864aca4e345262bb42892f",
+      "vendor_sha256": "5409fa469d5580cf86ec53efd7b46e195ff97af7ce864aca4e345262bb42892f"
+    },
+    {
+      "path": "Jolt/Geometry/RayCylinder.h",
+      "upstream_sha256": "cf100ba946273426bce31ab1e47003ba6313fd5f4a1be7caf11c13a94c341809",
+      "vendor_sha256": "cf100ba946273426bce31ab1e47003ba6313fd5f4a1be7caf11c13a94c341809"
+    },
+    {
+      "path": "Jolt/Geometry/RaySphere.h",
+      "upstream_sha256": "00a1ab7ef7e48d042d5d9090e6e49ba5f38f30884774ba7cbedd6a26d39bf671",
+      "vendor_sha256": "00a1ab7ef7e48d042d5d9090e6e49ba5f38f30884774ba7cbedd6a26d39bf671"
+    },
+    {
+      "path": "Jolt/Geometry/RayTriangle.h",
+      "upstream_sha256": "7e2a0dbc632a47808b64c6499b04282245b45fc6e0a716732d5ddee22d6b5fe0",
+      "vendor_sha256": "7e2a0dbc632a47808b64c6499b04282245b45fc6e0a716732d5ddee22d6b5fe0"
+    },
+    {
+      "path": "Jolt/Geometry/Sphere.h",
+      "upstream_sha256": "964d06aaff2637865b18d4e72ab793464534467ee4c44eece0cc5b6c05d87e81",
+      "vendor_sha256": "964d06aaff2637865b18d4e72ab793464534467ee4c44eece0cc5b6c05d87e81"
+    },
+    {
+      "path": "Jolt/Geometry/Triangle.h",
+      "upstream_sha256": "d1d6255ac1810f2280963ab5fb21913c90bcaca83431dda43a9903c88cfee006",
+      "vendor_sha256": "d1d6255ac1810f2280963ab5fb21913c90bcaca83431dda43a9903c88cfee006"
+    },
+    {
+      "path": "Jolt/Jolt.cmake",
+      "upstream_sha256": "704dfdbf6507b8811b6b497c865efb63c8abf3aac9e91e2db4d702024308d945",
+      "vendor_sha256": "704dfdbf6507b8811b6b497c865efb63c8abf3aac9e91e2db4d702024308d945"
+    },
+    {
+      "path": "Jolt/Jolt.h",
+      "upstream_sha256": "2798c564839df7062f01e725ef9193748ab050ea04eadfc7f3141c5315496480",
+      "vendor_sha256": "2798c564839df7062f01e725ef9193748ab050ea04eadfc7f3141c5315496480"
+    },
+    {
+      "path": "Jolt/Jolt.natvis",
+      "upstream_sha256": "79598481148ca3268dff20a73351276d66f5a2e6ca57f6cf8151f947fe56e82b",
+      "vendor_sha256": "79598481148ca3268dff20a73351276d66f5a2e6ca57f6cf8151f947fe56e82b"
+    },
+    {
+      "path": "Jolt/Math/BVec16.h",
+      "upstream_sha256": "652f5f6cf1009550d22dc6620606db8fb1095bb93068e46b2a4fc57b5d8fcc50",
+      "vendor_sha256": "652f5f6cf1009550d22dc6620606db8fb1095bb93068e46b2a4fc57b5d8fcc50"
+    },
+    {
+      "path": "Jolt/Math/BVec16.inl",
+      "upstream_sha256": "3b219eab2ee6325fc3078ba11611b810db45e571a51758273d6a45e830fd4704",
+      "vendor_sha256": "3b219eab2ee6325fc3078ba11611b810db45e571a51758273d6a45e830fd4704"
+    },
+    {
+      "path": "Jolt/Math/DMat44.h",
+      "upstream_sha256": "366d0f7ee5edeab6c98a6de7eacc5997bd8ca1578b5e70e3c24a2fb4550c8537",
+      "vendor_sha256": "366d0f7ee5edeab6c98a6de7eacc5997bd8ca1578b5e70e3c24a2fb4550c8537"
+    },
+    {
+      "path": "Jolt/Math/DMat44.inl",
+      "upstream_sha256": "d5b62d82218b9d4a2fe5d0e51cb20f9382e249d1a6996957895b804f4c8c7da5",
+      "vendor_sha256": "d5b62d82218b9d4a2fe5d0e51cb20f9382e249d1a6996957895b804f4c8c7da5"
+    },
+    {
+      "path": "Jolt/Math/DVec3.h",
+      "upstream_sha256": "33c622cba6983d93d438c499968cac89f79a02f9ecd4af953ae4a4546d5f3597",
+      "vendor_sha256": "33c622cba6983d93d438c499968cac89f79a02f9ecd4af953ae4a4546d5f3597"
+    },
+    {
+      "path": "Jolt/Math/DVec3.inl",
+      "upstream_sha256": "7dc0f062fd039cf9812eca9c223eda122451b91395e5c82c55d9f0f9c8ffc361",
+      "vendor_sha256": "7dc0f062fd039cf9812eca9c223eda122451b91395e5c82c55d9f0f9c8ffc361"
+    },
+    {
+      "path": "Jolt/Math/Double3.h",
+      "upstream_sha256": "6c9c549df44ac5412ffe3a6c6eb27abea4d93e5497b7ee831c2f6f6eea8be993",
+      "vendor_sha256": "6c9c549df44ac5412ffe3a6c6eb27abea4d93e5497b7ee831c2f6f6eea8be993"
+    },
+    {
+      "path": "Jolt/Math/DynMatrix.h",
+      "upstream_sha256": "edb6ba2495a558718d51db96eecbe18010ddafde02afdabba1c1e3b9e6c2b84e",
+      "vendor_sha256": "edb6ba2495a558718d51db96eecbe18010ddafde02afdabba1c1e3b9e6c2b84e"
+    },
+    {
+      "path": "Jolt/Math/EigenValueSymmetric.h",
+      "upstream_sha256": "9b83e31943cd0eb0b1ad19bd2586c399b919eab3cccafd6e534ea541e213530d",
+      "vendor_sha256": "9b83e31943cd0eb0b1ad19bd2586c399b919eab3cccafd6e534ea541e213530d"
+    },
+    {
+      "path": "Jolt/Math/FindRoot.h",
+      "upstream_sha256": "a7608ac406ed52fab7e21da06406dcde93b396b3db8042e540d84f413787b1e6",
+      "vendor_sha256": "a7608ac406ed52fab7e21da06406dcde93b396b3db8042e540d84f413787b1e6"
+    },
+    {
+      "path": "Jolt/Math/Float2.h",
+      "upstream_sha256": "198fd5d6c312f58adcf3c5325831cae3d8c190b1e89c9e5456e89b3aec21e8db",
+      "vendor_sha256": "198fd5d6c312f58adcf3c5325831cae3d8c190b1e89c9e5456e89b3aec21e8db"
+    },
+    {
+      "path": "Jolt/Math/Float3.h",
+      "upstream_sha256": "5aefc1ae76f37c04e822fefcbc8c1a94d5d9ce275051342b9267d58be5d280fe",
+      "vendor_sha256": "5aefc1ae76f37c04e822fefcbc8c1a94d5d9ce275051342b9267d58be5d280fe"
+    },
+    {
+      "path": "Jolt/Math/Float4.h",
+      "upstream_sha256": "d5b86950f87683a08497571f4a0fd27b686aa895bc1252c68c8494863d708b3a",
+      "vendor_sha256": "d5b86950f87683a08497571f4a0fd27b686aa895bc1252c68c8494863d708b3a"
+    },
+    {
+      "path": "Jolt/Math/GaussianElimination.h",
+      "upstream_sha256": "52e9e7bd4d40c8cd02125779f903690fd7381a286f28bf28b249cdd95c98ff58",
+      "vendor_sha256": "52e9e7bd4d40c8cd02125779f903690fd7381a286f28bf28b249cdd95c98ff58"
+    },
+    {
+      "path": "Jolt/Math/HalfFloat.h",
+      "upstream_sha256": "7adc4727b2378a2e8ff002257eeffa421872ecd2dae16fa63364922658375aed",
+      "vendor_sha256": "7adc4727b2378a2e8ff002257eeffa421872ecd2dae16fa63364922658375aed"
+    },
+    {
+      "path": "Jolt/Math/Mat44.h",
+      "upstream_sha256": "0e10d090db2f6dba655725ad64c2028cfee7b8db090f6eedb86528a6ba261e4d",
+      "vendor_sha256": "0e10d090db2f6dba655725ad64c2028cfee7b8db090f6eedb86528a6ba261e4d"
+    },
+    {
+      "path": "Jolt/Math/Mat44.inl",
+      "upstream_sha256": "9b120e9057b0eac9067f7899db0a4298c970276b96098dfdfd3f970d89575afd",
+      "vendor_sha256": "9b120e9057b0eac9067f7899db0a4298c970276b96098dfdfd3f970d89575afd"
+    },
+    {
+      "path": "Jolt/Math/Math.h",
+      "upstream_sha256": "3aa5fa6e91e2470d97562bc41b27b5bb19be69440b9b57300dca92b8e432bdc7",
+      "vendor_sha256": "3aa5fa6e91e2470d97562bc41b27b5bb19be69440b9b57300dca92b8e432bdc7"
+    },
+    {
+      "path": "Jolt/Math/MathTypes.h",
+      "upstream_sha256": "b8a0eb0e9da15929c6aa46c8a99582f14c06da459c495203c6cf9e28fb30105e",
+      "vendor_sha256": "b8a0eb0e9da15929c6aa46c8a99582f14c06da459c495203c6cf9e28fb30105e"
+    },
+    {
+      "path": "Jolt/Math/Matrix.h",
+      "upstream_sha256": "0af2841e7ac73ec7c9ad62e9cf8acdc55b13d85e9010884f693d0f54e1580c9d",
+      "vendor_sha256": "0af2841e7ac73ec7c9ad62e9cf8acdc55b13d85e9010884f693d0f54e1580c9d"
+    },
+    {
+      "path": "Jolt/Math/Quat.h",
+      "upstream_sha256": "8e6138166569495580369a1663002c0bcf20bdfc30ba0cbbe3faf05d1c8da2e1",
+      "vendor_sha256": "8e6138166569495580369a1663002c0bcf20bdfc30ba0cbbe3faf05d1c8da2e1"
+    },
+    {
+      "path": "Jolt/Math/Quat.inl",
+      "upstream_sha256": "9ecd4a5793039cb4377100bb62c6e35bdd87954f804860d884cc87a889586c02",
+      "vendor_sha256": "9ecd4a5793039cb4377100bb62c6e35bdd87954f804860d884cc87a889586c02"
+    },
+    {
+      "path": "Jolt/Math/Real.h",
+      "upstream_sha256": "c02f59ae19340cef5f5154ee4da61a4173e02656a4ec704737f4b3ee20d88a84",
+      "vendor_sha256": "c02f59ae19340cef5f5154ee4da61a4173e02656a4ec704737f4b3ee20d88a84"
+    },
+    {
+      "path": "Jolt/Math/Swizzle.h",
+      "upstream_sha256": "a53c561c94fe7329b20c44f69cd61f69a1f5b1db55ec45a7e4b80473adf6b12c",
+      "vendor_sha256": "a53c561c94fe7329b20c44f69cd61f69a1f5b1db55ec45a7e4b80473adf6b12c"
+    },
+    {
+      "path": "Jolt/Math/Trigonometry.h",
+      "upstream_sha256": "29877e3baa5775e3ecaaef1da6bc00d5b76d9a31ae1be3a8754b1d03ab7d445e",
+      "vendor_sha256": "29877e3baa5775e3ecaaef1da6bc00d5b76d9a31ae1be3a8754b1d03ab7d445e"
+    },
+    {
+      "path": "Jolt/Math/UVec4.h",
+      "upstream_sha256": "0cc540a7b14bf8855a98858ec9fa566a044f530d0a2553d429470309f8fb9d2f",
+      "vendor_sha256": "0cc540a7b14bf8855a98858ec9fa566a044f530d0a2553d429470309f8fb9d2f"
+    },
+    {
+      "path": "Jolt/Math/UVec4.inl",
+      "upstream_sha256": "0abe0ab189640180bc2edabe7be5eaf66ff5d8cd002c1ec73a9d46692d56722a",
+      "vendor_sha256": "0abe0ab189640180bc2edabe7be5eaf66ff5d8cd002c1ec73a9d46692d56722a"
+    },
+    {
+      "path": "Jolt/Math/Vec3.cpp",
+      "upstream_sha256": "5c59614071b6683dfe67dbf8d2201719ed18c07f1ea7f77436e157792e6b809c",
+      "vendor_sha256": "5c59614071b6683dfe67dbf8d2201719ed18c07f1ea7f77436e157792e6b809c"
+    },
+    {
+      "path": "Jolt/Math/Vec3.h",
+      "upstream_sha256": "52f2ba3fa7765489aa2f7c15162a192b6684b0515b399f4c797e2d0f184fa352",
+      "vendor_sha256": "52f2ba3fa7765489aa2f7c15162a192b6684b0515b399f4c797e2d0f184fa352"
+    },
+    {
+      "path": "Jolt/Math/Vec3.inl",
+      "upstream_sha256": "50e619bda4c0091c18424808d9d2340e77c4f641f6015e17bcd9c0c060a6883d",
+      "vendor_sha256": "50e619bda4c0091c18424808d9d2340e77c4f641f6015e17bcd9c0c060a6883d"
+    },
+    {
+      "path": "Jolt/Math/Vec4.h",
+      "upstream_sha256": "a5c4d35d216068e7aa699068a77439968add72e9ce675142caa8ae8058f479b0",
+      "vendor_sha256": "a5c4d35d216068e7aa699068a77439968add72e9ce675142caa8ae8058f479b0"
+    },
+    {
+      "path": "Jolt/Math/Vec4.inl",
+      "upstream_sha256": "7f62de2886616a2322e0715bdf1c3b11b439fe28d7b0e18da0dc77957ed79614",
+      "vendor_sha256": "7f62de2886616a2322e0715bdf1c3b11b439fe28d7b0e18da0dc77957ed79614"
+    },
+    {
+      "path": "Jolt/Math/Vector.h",
+      "upstream_sha256": "2e56ae793ad60d8e62ab2bc59d609dae50db05d17ea455e0f1cf886ff38b7c21",
+      "vendor_sha256": "2e56ae793ad60d8e62ab2bc59d609dae50db05d17ea455e0f1cf886ff38b7c21"
+    },
+    {
+      "path": "Jolt/ObjectStream/GetPrimitiveTypeOfType.h",
+      "upstream_sha256": "fef1ffc482739bc6585873b1ccb85ae1748608e5df3974843e3895fdd86c5012",
+      "vendor_sha256": "fef1ffc482739bc6585873b1ccb85ae1748608e5df3974843e3895fdd86c5012"
+    },
+    {
+      "path": "Jolt/ObjectStream/ObjectStream.cpp",
+      "upstream_sha256": "d3a990456d7865b53dd864b0e142594b12e1374d2e3a5909feedeb70872eb0ef",
+      "vendor_sha256": "d3a990456d7865b53dd864b0e142594b12e1374d2e3a5909feedeb70872eb0ef"
+    },
+    {
+      "path": "Jolt/ObjectStream/ObjectStream.h",
+      "upstream_sha256": "b420eff60f509a7b3dca7a7aeac819b702190a155cbf9f06faccb45887e60563",
+      "vendor_sha256": "b420eff60f509a7b3dca7a7aeac819b702190a155cbf9f06faccb45887e60563"
+    },
+    {
+      "path": "Jolt/ObjectStream/ObjectStreamBinaryIn.cpp",
+      "upstream_sha256": "4a5b27189935190634718bb5f10b50394fa4b477a7c25460ace9e188fd49cc59",
+      "vendor_sha256": "4a5b27189935190634718bb5f10b50394fa4b477a7c25460ace9e188fd49cc59"
+    },
+    {
+      "path": "Jolt/ObjectStream/ObjectStreamBinaryIn.h",
+      "upstream_sha256": "e40799c282677105645a877e3964d975e61196d4301c01d5c2fb1a6d4956e414",
+      "vendor_sha256": "e40799c282677105645a877e3964d975e61196d4301c01d5c2fb1a6d4956e414"
+    },
+    {
+      "path": "Jolt/ObjectStream/ObjectStreamBinaryOut.cpp",
+      "upstream_sha256": "e2b2d429ab190eb4d4d440a754ec9d4eb09b59e9199cffe686320b81ba40b641",
+      "vendor_sha256": "e2b2d429ab190eb4d4d440a754ec9d4eb09b59e9199cffe686320b81ba40b641"
+    },
+    {
+      "path": "Jolt/ObjectStream/ObjectStreamBinaryOut.h",
+      "upstream_sha256": "270a4a8cdf540fcfdb3e704a7065387749ad6f6c800096679e3b1abea63154ae",
+      "vendor_sha256": "270a4a8cdf540fcfdb3e704a7065387749ad6f6c800096679e3b1abea63154ae"
+    },
+    {
+      "path": "Jolt/ObjectStream/ObjectStreamIn.cpp",
+      "upstream_sha256": "6903723182be479b8d040872968257d2e8dccb7e6037145eefb302366c3ed8c4",
+      "vendor_sha256": "6903723182be479b8d040872968257d2e8dccb7e6037145eefb302366c3ed8c4"
+    },
+    {
+      "path": "Jolt/ObjectStream/ObjectStreamIn.h",
+      "upstream_sha256": "060fc88549bb18fc8667bf2486c12cf9ef866281ab7f727d0f31330868fef8d8",
+      "vendor_sha256": "060fc88549bb18fc8667bf2486c12cf9ef866281ab7f727d0f31330868fef8d8"
+    },
+    {
+      "path": "Jolt/ObjectStream/ObjectStreamOut.cpp",
+      "upstream_sha256": "5d95d91be7237474ac6c615a506d741a12f03f7bba3f2f55a1fc6872b9b4236c",
+      "vendor_sha256": "5d95d91be7237474ac6c615a506d741a12f03f7bba3f2f55a1fc6872b9b4236c"
+    },
+    {
+      "path": "Jolt/ObjectStream/ObjectStreamOut.h",
+      "upstream_sha256": "8a0705ab437a20b0d4155359c23be349f01da54fec9fa5218f4601d65777a51b",
+      "vendor_sha256": "8a0705ab437a20b0d4155359c23be349f01da54fec9fa5218f4601d65777a51b"
+    },
+    {
+      "path": "Jolt/ObjectStream/ObjectStreamTextIn.cpp",
+      "upstream_sha256": "37ed03373057aa48d257027667f6ab38da5ffa760a421c60ad646b765c74ef8f",
+      "vendor_sha256": "37ed03373057aa48d257027667f6ab38da5ffa760a421c60ad646b765c74ef8f"
+    },
+    {
+      "path": "Jolt/ObjectStream/ObjectStreamTextIn.h",
+      "upstream_sha256": "4faf2f0580729c4d531b7a118058a0bc3aa8ddc1b7e81cd45ea8d970acfa6ba4",
+      "vendor_sha256": "4faf2f0580729c4d531b7a118058a0bc3aa8ddc1b7e81cd45ea8d970acfa6ba4"
+    },
+    {
+      "path": "Jolt/ObjectStream/ObjectStreamTextOut.cpp",
+      "upstream_sha256": "684c05f32c0cfc8e47d8e73753f55edec78ed8b4507e23128c115b609e0d99d0",
+      "vendor_sha256": "684c05f32c0cfc8e47d8e73753f55edec78ed8b4507e23128c115b609e0d99d0"
+    },
+    {
+      "path": "Jolt/ObjectStream/ObjectStreamTextOut.h",
+      "upstream_sha256": "617188d3032206a328fc531d9a6eef773545f26ce7b589166e3b9082ec721997",
+      "vendor_sha256": "617188d3032206a328fc531d9a6eef773545f26ce7b589166e3b9082ec721997"
+    },
+    {
+      "path": "Jolt/ObjectStream/ObjectStreamTypes.h",
+      "upstream_sha256": "5f2008cf0204b888eaaf04ca288f04127ada23972ac54b69ce83fca298e8d88a",
+      "vendor_sha256": "5f2008cf0204b888eaaf04ca288f04127ada23972ac54b69ce83fca298e8d88a"
+    },
+    {
+      "path": "Jolt/ObjectStream/SerializableAttribute.h",
+      "upstream_sha256": "e89acb0a4aac93fdeab2911b68e9878b77e0d77b02c27c4a3132dee4c50cbb2c",
+      "vendor_sha256": "e89acb0a4aac93fdeab2911b68e9878b77e0d77b02c27c4a3132dee4c50cbb2c"
+    },
+    {
+      "path": "Jolt/ObjectStream/SerializableAttributeEnum.h",
+      "upstream_sha256": "ed2aaebd39945ee1a9aa69833e15626bdfc9716c4174dded505da323bf00deef",
+      "vendor_sha256": "ed2aaebd39945ee1a9aa69833e15626bdfc9716c4174dded505da323bf00deef"
+    },
+    {
+      "path": "Jolt/ObjectStream/SerializableAttributeTyped.h",
+      "upstream_sha256": "753b1e899311eb50d4883ee7fd493e701ee3f7c3337dda544c56a9b1e2cbc8d3",
+      "vendor_sha256": "753b1e899311eb50d4883ee7fd493e701ee3f7c3337dda544c56a9b1e2cbc8d3"
+    },
+    {
+      "path": "Jolt/ObjectStream/SerializableObject.cpp",
+      "upstream_sha256": "699d91c3aa98c7fd20dbb47b9a20f554b3e4225c3064d2672246d07dd98ad0d6",
+      "vendor_sha256": "699d91c3aa98c7fd20dbb47b9a20f554b3e4225c3064d2672246d07dd98ad0d6"
+    },
+    {
+      "path": "Jolt/ObjectStream/SerializableObject.h",
+      "upstream_sha256": "b8090b0e8e45f3a2b63397d1a0122db80a7ab796b3d5b826c8c572cd619d994b",
+      "vendor_sha256": "b8090b0e8e45f3a2b63397d1a0122db80a7ab796b3d5b826c8c572cd619d994b"
+    },
+    {
+      "path": "Jolt/ObjectStream/TypeDeclarations.cpp",
+      "upstream_sha256": "b22aa3f3527cd665b5832c3b35b58678800b1016a4a90115c61746e6b404af20",
+      "vendor_sha256": "b22aa3f3527cd665b5832c3b35b58678800b1016a4a90115c61746e6b404af20"
+    },
+    {
+      "path": "Jolt/ObjectStream/TypeDeclarations.h",
+      "upstream_sha256": "a495481502dc6d92ddc9f7736087a204dc1896f7f0e2d93bd5ef3b9349878d6f",
+      "vendor_sha256": "a495481502dc6d92ddc9f7736087a204dc1896f7f0e2d93bd5ef3b9349878d6f"
+    },
+    {
+      "path": "Jolt/Physics/Body/AllowedDOFs.h",
+      "upstream_sha256": "eb33833a1b945add8083433039ead7bce270c2f877467e15a112a9b5f124062a",
+      "vendor_sha256": "eb33833a1b945add8083433039ead7bce270c2f877467e15a112a9b5f124062a"
+    },
+    {
+      "path": "Jolt/Physics/Body/Body.cpp",
+      "upstream_sha256": "e9575d91cac4295957c4b00e154a808fd99c5e18ba113bea4fe420e6988c7541",
+      "vendor_sha256": "e9575d91cac4295957c4b00e154a808fd99c5e18ba113bea4fe420e6988c7541"
+    },
+    {
+      "path": "Jolt/Physics/Body/Body.h",
+      "upstream_sha256": "564ae279f2ea2a7b6c4a7b5763664b2af700cfe7ce9b30d7880b80e948cec157",
+      "vendor_sha256": "564ae279f2ea2a7b6c4a7b5763664b2af700cfe7ce9b30d7880b80e948cec157"
+    },
+    {
+      "path": "Jolt/Physics/Body/Body.inl",
+      "upstream_sha256": "fb96c60165572c4498f33e0db1121009b7c850763f172c2bcbb6b471d2386d2f",
+      "vendor_sha256": "fb96c60165572c4498f33e0db1121009b7c850763f172c2bcbb6b471d2386d2f"
+    },
+    {
+      "path": "Jolt/Physics/Body/BodyAccess.h",
+      "upstream_sha256": "64effa25581c7533a8b56fdceabc48a3bec4be3af166e54a2610eef32a356e78",
+      "vendor_sha256": "64effa25581c7533a8b56fdceabc48a3bec4be3af166e54a2610eef32a356e78"
+    },
+    {
+      "path": "Jolt/Physics/Body/BodyActivationListener.h",
+      "upstream_sha256": "74d00929f027645230dbfff978cbc227d422c624f36bf0f861ea895e6c9eab9b",
+      "vendor_sha256": "74d00929f027645230dbfff978cbc227d422c624f36bf0f861ea895e6c9eab9b"
+    },
+    {
+      "path": "Jolt/Physics/Body/BodyCreationSettings.cpp",
+      "upstream_sha256": "6e79582fa1ac182153739a4a25b488c650a9354556a656035106a7f771e5478b",
+      "vendor_sha256": "6e79582fa1ac182153739a4a25b488c650a9354556a656035106a7f771e5478b"
+    },
+    {
+      "path": "Jolt/Physics/Body/BodyCreationSettings.h",
+      "upstream_sha256": "7854840c7a4270f8c92147d74857b090d0cb309cd40543e25d705db278c06ae3",
+      "vendor_sha256": "7854840c7a4270f8c92147d74857b090d0cb309cd40543e25d705db278c06ae3"
+    },
+    {
+      "path": "Jolt/Physics/Body/BodyFilter.h",
+      "upstream_sha256": "0d683802b3257babc4d068b695e2b1d94884e20a4a6e47baa0a64543c69905d5",
+      "vendor_sha256": "0d683802b3257babc4d068b695e2b1d94884e20a4a6e47baa0a64543c69905d5"
+    },
+    {
+      "path": "Jolt/Physics/Body/BodyID.h",
+      "upstream_sha256": "2fad7d231f4503eb273a84d02a2a52ee52e53b58d408cf2e2886e66817e3504f",
+      "vendor_sha256": "2fad7d231f4503eb273a84d02a2a52ee52e53b58d408cf2e2886e66817e3504f"
+    },
+    {
+      "path": "Jolt/Physics/Body/BodyInterface.cpp",
+      "upstream_sha256": "efe6a520e76b682c8ef71d3a5241bc062f0ad8e892bf4483c0b6438ff9f48c67",
+      "vendor_sha256": "efe6a520e76b682c8ef71d3a5241bc062f0ad8e892bf4483c0b6438ff9f48c67"
+    },
+    {
+      "path": "Jolt/Physics/Body/BodyInterface.h",
+      "upstream_sha256": "96187d49ffd46e7d96e2f53d5c506f9c3b385e019a1149ba397c09f4994309d6",
+      "vendor_sha256": "96187d49ffd46e7d96e2f53d5c506f9c3b385e019a1149ba397c09f4994309d6"
+    },
+    {
+      "path": "Jolt/Physics/Body/BodyLock.h",
+      "upstream_sha256": "18217fcb4c1860e03b7f2a114a405a26b88f1ad254e8860a5aababb9730aacb7",
+      "vendor_sha256": "18217fcb4c1860e03b7f2a114a405a26b88f1ad254e8860a5aababb9730aacb7"
+    },
+    {
+      "path": "Jolt/Physics/Body/BodyLockInterface.h",
+      "upstream_sha256": "f30ac9ad4fc0f902f6fe8ffa0fdf9f05e39b7c944dc5e566070d5c6f15528a28",
+      "vendor_sha256": "f30ac9ad4fc0f902f6fe8ffa0fdf9f05e39b7c944dc5e566070d5c6f15528a28"
+    },
+    {
+      "path": "Jolt/Physics/Body/BodyLockMulti.h",
+      "upstream_sha256": "a7823eacd8282fe90e87c8bdf2f860bad7327a1b1cdacd61198d1b2d42b4dac4",
+      "vendor_sha256": "a7823eacd8282fe90e87c8bdf2f860bad7327a1b1cdacd61198d1b2d42b4dac4"
+    },
+    {
+      "path": "Jolt/Physics/Body/BodyManager.cpp",
+      "upstream_sha256": "c8ca295516c1e1fbd60a4132cbf3c587b2ba5eeb123a7bd4cc7c6b05e8a6a52b",
+      "vendor_sha256": "c8ca295516c1e1fbd60a4132cbf3c587b2ba5eeb123a7bd4cc7c6b05e8a6a52b"
+    },
+    {
+      "path": "Jolt/Physics/Body/BodyManager.h",
+      "upstream_sha256": "2244c31286a64b59cd8c89247f3921249853563dfa06fe2cc69bb4b7ea6e3870",
+      "vendor_sha256": "2244c31286a64b59cd8c89247f3921249853563dfa06fe2cc69bb4b7ea6e3870"
+    },
+    {
+      "path": "Jolt/Physics/Body/BodyPair.h",
+      "upstream_sha256": "bed39329a967258367c321fe7ab8635213606dee810ee76944de82d181c3ab25",
+      "vendor_sha256": "bed39329a967258367c321fe7ab8635213606dee810ee76944de82d181c3ab25"
+    },
+    {
+      "path": "Jolt/Physics/Body/BodyType.h",
+      "upstream_sha256": "61a7dd8a37d24eaac6177ae7d6dec365a88c114e16922becb4c3b30871cbe088",
+      "vendor_sha256": "61a7dd8a37d24eaac6177ae7d6dec365a88c114e16922becb4c3b30871cbe088"
+    },
+    {
+      "path": "Jolt/Physics/Body/MassProperties.cpp",
+      "upstream_sha256": "f3a3604208908412902841c43eb531da3045269d8d94a17cb9d3a540adf35354",
+      "vendor_sha256": "f3a3604208908412902841c43eb531da3045269d8d94a17cb9d3a540adf35354"
+    },
+    {
+      "path": "Jolt/Physics/Body/MassProperties.h",
+      "upstream_sha256": "3c1d6c29651fff8bd71a8142dadc03bd038d58c1e42fdae93058c4cecd107b26",
+      "vendor_sha256": "3c1d6c29651fff8bd71a8142dadc03bd038d58c1e42fdae93058c4cecd107b26"
+    },
+    {
+      "path": "Jolt/Physics/Body/MotionProperties.cpp",
+      "upstream_sha256": "9f16b5c16d74adcbb732b7d9829a37336ead0cda1399c2226890f01d80e0adb8",
+      "vendor_sha256": "9f16b5c16d74adcbb732b7d9829a37336ead0cda1399c2226890f01d80e0adb8"
+    },
+    {
+      "path": "Jolt/Physics/Body/MotionProperties.h",
+      "upstream_sha256": "cd0969279954baca101c1420f64a5afd743cacfe34587dd9fa4d88c8be215fd3",
+      "vendor_sha256": "cd0969279954baca101c1420f64a5afd743cacfe34587dd9fa4d88c8be215fd3"
+    },
+    {
+      "path": "Jolt/Physics/Body/MotionProperties.inl",
+      "upstream_sha256": "48195e2d0c95d296a1299e54536f0c5c435fa2bbaea193f71fc0261090e96df2",
+      "vendor_sha256": "48195e2d0c95d296a1299e54536f0c5c435fa2bbaea193f71fc0261090e96df2"
+    },
+    {
+      "path": "Jolt/Physics/Body/MotionQuality.h",
+      "upstream_sha256": "d0a58d5aa0ac47df84f97d0d9449049d6ec19e29f51b4c0683edc6bc6ddc62b9",
+      "vendor_sha256": "d0a58d5aa0ac47df84f97d0d9449049d6ec19e29f51b4c0683edc6bc6ddc62b9"
+    },
+    {
+      "path": "Jolt/Physics/Body/MotionType.h",
+      "upstream_sha256": "8618c56aa2c14d608f4e99488d2f7b81ffb7d3bec12a2364d0640e2c925ae454",
+      "vendor_sha256": "8618c56aa2c14d608f4e99488d2f7b81ffb7d3bec12a2364d0640e2c925ae454"
+    },
+    {
+      "path": "Jolt/Physics/Character/Character.cpp",
+      "upstream_sha256": "cb4f2c5d58fe778633e634798aa7d0d8a6b92ad8ac96f3f6c3de2f5f795c9b80",
+      "vendor_sha256": "cb4f2c5d58fe778633e634798aa7d0d8a6b92ad8ac96f3f6c3de2f5f795c9b80"
+    },
+    {
+      "path": "Jolt/Physics/Character/Character.h",
+      "upstream_sha256": "efe3295fffc5581b0cb3dc97eed5cf33b4d5175fd7344f4c485d409190e93c98",
+      "vendor_sha256": "efe3295fffc5581b0cb3dc97eed5cf33b4d5175fd7344f4c485d409190e93c98"
+    },
+    {
+      "path": "Jolt/Physics/Character/CharacterBase.cpp",
+      "upstream_sha256": "240759af6c743e1f04318f54915cda5593365aa9b3ecc6d600859401fcb92f84",
+      "vendor_sha256": "240759af6c743e1f04318f54915cda5593365aa9b3ecc6d600859401fcb92f84"
+    },
+    {
+      "path": "Jolt/Physics/Character/CharacterBase.h",
+      "upstream_sha256": "ac00d669b059fb46213eaf5d003b928c022e5ca78dc0f4b0018c9b37fc3cf9a0",
+      "vendor_sha256": "ac00d669b059fb46213eaf5d003b928c022e5ca78dc0f4b0018c9b37fc3cf9a0"
+    },
+    {
+      "path": "Jolt/Physics/Character/CharacterID.h",
+      "upstream_sha256": "6062b897fa45a0c12969ae31750e029329d058f00d8c83ca98b27ecd50d6d935",
+      "vendor_sha256": "6062b897fa45a0c12969ae31750e029329d058f00d8c83ca98b27ecd50d6d935"
+    },
+    {
+      "path": "Jolt/Physics/Character/CharacterVirtual.cpp",
+      "upstream_sha256": "e10dba35b8c9e976be0bf82bb0908ef6e649eace785de761236191a04abf26c1",
+      "vendor_sha256": "e10dba35b8c9e976be0bf82bb0908ef6e649eace785de761236191a04abf26c1"
+    },
+    {
+      "path": "Jolt/Physics/Character/CharacterVirtual.h",
+      "upstream_sha256": "c498b8b95a01636f8151bb74cea77aec4d5f0c0c7493b380801ba5db5ac979ed",
+      "vendor_sha256": "c498b8b95a01636f8151bb74cea77aec4d5f0c0c7493b380801ba5db5ac979ed"
+    },
+    {
+      "path": "Jolt/Physics/Collision/AABoxCast.h",
+      "upstream_sha256": "5d92cd45d2ac9d243efdb2863318e3ef138ccb562917910b1840b84f379b9e20",
+      "vendor_sha256": "5d92cd45d2ac9d243efdb2863318e3ef138ccb562917910b1840b84f379b9e20"
+    },
+    {
+      "path": "Jolt/Physics/Collision/ActiveEdgeMode.h",
+      "upstream_sha256": "eb54fd7adc94d313be91daafae80e26716ef5a1dedc7f2c9a54827d0be6949fb",
+      "vendor_sha256": "eb54fd7adc94d313be91daafae80e26716ef5a1dedc7f2c9a54827d0be6949fb"
+    },
+    {
+      "path": "Jolt/Physics/Collision/ActiveEdges.h",
+      "upstream_sha256": "16715dee0d5c9e4b362b08e5583464e900d5886f37b70095a34e96675348b79d",
+      "vendor_sha256": "16715dee0d5c9e4b362b08e5583464e900d5886f37b70095a34e96675348b79d"
+    },
+    {
+      "path": "Jolt/Physics/Collision/BackFaceMode.h",
+      "upstream_sha256": "90cc67d020d18934c299acb6caae3884d1788f3c26bd61445d5d9b9531d423c5",
+      "vendor_sha256": "90cc67d020d18934c299acb6caae3884d1788f3c26bd61445d5d9b9531d423c5"
+    },
+    {
+      "path": "Jolt/Physics/Collision/BroadPhase/BroadPhase.cpp",
+      "upstream_sha256": "04c21cf3b1fa45168d388098708c0a4b128dfb3077e77677212f2f06f26159ce",
+      "vendor_sha256": "04c21cf3b1fa45168d388098708c0a4b128dfb3077e77677212f2f06f26159ce"
+    },
+    {
+      "path": "Jolt/Physics/Collision/BroadPhase/BroadPhase.h",
+      "upstream_sha256": "ed1d899361c0b0bfd979daef21ffd14f9ad225e838b8692ba3d8acf973d606db",
+      "vendor_sha256": "ed1d899361c0b0bfd979daef21ffd14f9ad225e838b8692ba3d8acf973d606db"
+    },
+    {
+      "path": "Jolt/Physics/Collision/BroadPhase/BroadPhaseBruteForce.cpp",
+      "upstream_sha256": "9ba0d74d3bfc0a71a72dbc0ff0718ccb5f09aaecfcfc8aa7283f17de478c9d94",
+      "vendor_sha256": "9ba0d74d3bfc0a71a72dbc0ff0718ccb5f09aaecfcfc8aa7283f17de478c9d94"
+    },
+    {
+      "path": "Jolt/Physics/Collision/BroadPhase/BroadPhaseBruteForce.h",
+      "upstream_sha256": "aae1be6c9e9cf4348adaaa1b1bc60884088e31549d4e0b6108abb64030842ce2",
+      "vendor_sha256": "aae1be6c9e9cf4348adaaa1b1bc60884088e31549d4e0b6108abb64030842ce2"
+    },
+    {
+      "path": "Jolt/Physics/Collision/BroadPhase/BroadPhaseLayer.h",
+      "upstream_sha256": "b04573adda1f2edffbbdaedb2736d23079b907db1c0d13fb312e9c8a8e0e7faa",
+      "vendor_sha256": "b04573adda1f2edffbbdaedb2736d23079b907db1c0d13fb312e9c8a8e0e7faa"
+    },
+    {
+      "path": "Jolt/Physics/Collision/BroadPhase/BroadPhaseLayerInterfaceMask.h",
+      "upstream_sha256": "8e298817a73bbe7db0b3b6df15f38268bffbff84273e7de77d2dae233317f43b",
+      "vendor_sha256": "8e298817a73bbe7db0b3b6df15f38268bffbff84273e7de77d2dae233317f43b"
+    },
+    {
+      "path": "Jolt/Physics/Collision/BroadPhase/BroadPhaseLayerInterfaceTable.h",
+      "upstream_sha256": "285c89814ec9ba28f4ba9e064c2a3142a3e3b356e8e8a37df78774e73d714095",
+      "vendor_sha256": "285c89814ec9ba28f4ba9e064c2a3142a3e3b356e8e8a37df78774e73d714095"
+    },
+    {
+      "path": "Jolt/Physics/Collision/BroadPhase/BroadPhaseQuadTree.cpp",
+      "upstream_sha256": "2850f6c54d217e2f6045d8f321c12dcb1233794dbf7d63208ff29bd4122c1290",
+      "vendor_sha256": "2850f6c54d217e2f6045d8f321c12dcb1233794dbf7d63208ff29bd4122c1290"
+    },
+    {
+      "path": "Jolt/Physics/Collision/BroadPhase/BroadPhaseQuadTree.h",
+      "upstream_sha256": "9e5f4c961ee1468f65b302d95795020e752d41822be6a34a38bbffb1eb74ce9f",
+      "vendor_sha256": "9e5f4c961ee1468f65b302d95795020e752d41822be6a34a38bbffb1eb74ce9f"
+    },
+    {
+      "path": "Jolt/Physics/Collision/BroadPhase/BroadPhaseQuery.h",
+      "upstream_sha256": "4c8b7e522718f7fbe719d4e00bad85e661b2be6ce4205d6d08800b3018bff756",
+      "vendor_sha256": "4c8b7e522718f7fbe719d4e00bad85e661b2be6ce4205d6d08800b3018bff756"
+    },
+    {
+      "path": "Jolt/Physics/Collision/BroadPhase/ObjectVsBroadPhaseLayerFilterMask.h",
+      "upstream_sha256": "fb60d3dac9955c2c9711366c59de21abb878d93d7dd423241324413cca627563",
+      "vendor_sha256": "fb60d3dac9955c2c9711366c59de21abb878d93d7dd423241324413cca627563"
+    },
+    {
+      "path": "Jolt/Physics/Collision/BroadPhase/ObjectVsBroadPhaseLayerFilterTable.h",
+      "upstream_sha256": "8b04d8b872e6f711d6807f4d40013debcfded12a240dd013f13dabf8ebbe80b7",
+      "vendor_sha256": "8b04d8b872e6f711d6807f4d40013debcfded12a240dd013f13dabf8ebbe80b7"
+    },
+    {
+      "path": "Jolt/Physics/Collision/BroadPhase/QuadTree.cpp",
+      "upstream_sha256": "416bcf772535551a836cf993d0a1820b9dd07d508c647bdd615924555442be60",
+      "vendor_sha256": "416bcf772535551a836cf993d0a1820b9dd07d508c647bdd615924555442be60"
+    },
+    {
+      "path": "Jolt/Physics/Collision/BroadPhase/QuadTree.h",
+      "upstream_sha256": "11ba97ddce65ac07e745f755169a9a5fcde42d5b9437e7aed5758b89b2cf1e4b",
+      "vendor_sha256": "11ba97ddce65ac07e745f755169a9a5fcde42d5b9437e7aed5758b89b2cf1e4b"
+    },
+    {
+      "path": "Jolt/Physics/Collision/CastConvexVsTriangles.cpp",
+      "upstream_sha256": "0b0e0e865ab1c0b89a4c0f06ccdfc8ed0453a123e71d4533f0f0f6b2369dc53a",
+      "vendor_sha256": "0b0e0e865ab1c0b89a4c0f06ccdfc8ed0453a123e71d4533f0f0f6b2369dc53a"
+    },
+    {
+      "path": "Jolt/Physics/Collision/CastConvexVsTriangles.h",
+      "upstream_sha256": "0506f2c45a89196d2b2f02a1178f950b0e58307ef426eee5106f731f15991472",
+      "vendor_sha256": "0506f2c45a89196d2b2f02a1178f950b0e58307ef426eee5106f731f15991472"
+    },
+    {
+      "path": "Jolt/Physics/Collision/CastResult.h",
+      "upstream_sha256": "1f5f4482b25a8a9c072afeab6374a23b1b6cb3a00bfa85ed740d57566f33be2c",
+      "vendor_sha256": "1f5f4482b25a8a9c072afeab6374a23b1b6cb3a00bfa85ed740d57566f33be2c"
+    },
+    {
+      "path": "Jolt/Physics/Collision/CastSphereVsTriangles.cpp",
+      "upstream_sha256": "1675c92854c823b547fa7ab9d527eed30f52219047dfc0c012e19b70b4ecb920",
+      "vendor_sha256": "1675c92854c823b547fa7ab9d527eed30f52219047dfc0c012e19b70b4ecb920"
+    },
+    {
+      "path": "Jolt/Physics/Collision/CastSphereVsTriangles.h",
+      "upstream_sha256": "9f437cc7363b145456c7ff8c1f398d557366cc089927e6bacb652e024acc3c7e",
+      "vendor_sha256": "9f437cc7363b145456c7ff8c1f398d557366cc089927e6bacb652e024acc3c7e"
+    },
+    {
+      "path": "Jolt/Physics/Collision/CollectFacesMode.h",
+      "upstream_sha256": "b52a4d7e6bef6dc3032b5794b97e6bf48add289ca7e5431c362a21ef5aaa0b2c",
+      "vendor_sha256": "b52a4d7e6bef6dc3032b5794b97e6bf48add289ca7e5431c362a21ef5aaa0b2c"
+    },
+    {
+      "path": "Jolt/Physics/Collision/CollideConvexVsTriangles.cpp",
+      "upstream_sha256": "15d488143c30eee6fd07fdd3689144f7118910e62ed44fd677a9f6fd5df1dd40",
+      "vendor_sha256": "15d488143c30eee6fd07fdd3689144f7118910e62ed44fd677a9f6fd5df1dd40"
+    },
+    {
+      "path": "Jolt/Physics/Collision/CollideConvexVsTriangles.h",
+      "upstream_sha256": "0ce037a3e293489576ec6d088bf5165a07dcc3865a2e2dafa1a99e061531aaca",
+      "vendor_sha256": "0ce037a3e293489576ec6d088bf5165a07dcc3865a2e2dafa1a99e061531aaca"
+    },
+    {
+      "path": "Jolt/Physics/Collision/CollidePointResult.h",
+      "upstream_sha256": "804391fb0feb383effbb5a849e4215e0ee79bb6053c7e20c9526718a7087d960",
+      "vendor_sha256": "804391fb0feb383effbb5a849e4215e0ee79bb6053c7e20c9526718a7087d960"
+    },
+    {
+      "path": "Jolt/Physics/Collision/CollideShape.h",
+      "upstream_sha256": "ee67e461be870819270305eb076a87fb28936874cb60b7b347b001b30def67fa",
+      "vendor_sha256": "ee67e461be870819270305eb076a87fb28936874cb60b7b347b001b30def67fa"
+    },
+    {
+      "path": "Jolt/Physics/Collision/CollideShapeVsShapePerLeaf.h",
+      "upstream_sha256": "d10153130dfd50808c033d14b5045150326fe48ea9c62a1a0763b5d7aac1b945",
+      "vendor_sha256": "d10153130dfd50808c033d14b5045150326fe48ea9c62a1a0763b5d7aac1b945"
+    },
+    {
+      "path": "Jolt/Physics/Collision/CollideSoftBodyVertexIterator.h",
+      "upstream_sha256": "de216aa9e24d82e98f2c35980aeb315385e6970f352aa9af479e47848846cd4f",
+      "vendor_sha256": "de216aa9e24d82e98f2c35980aeb315385e6970f352aa9af479e47848846cd4f"
+    },
+    {
+      "path": "Jolt/Physics/Collision/CollideSoftBodyVerticesVsTriangles.h",
+      "upstream_sha256": "15838aef09889e494a837a299569e16370995b9c63ff37d7e448a433a84f29bb",
+      "vendor_sha256": "15838aef09889e494a837a299569e16370995b9c63ff37d7e448a433a84f29bb"
+    },
+    {
+      "path": "Jolt/Physics/Collision/CollideSphereVsTriangles.cpp",
+      "upstream_sha256": "fbe86c01106183648a6b6d82d49139b2b1f038612367539f355ef9b3c116b543",
+      "vendor_sha256": "fbe86c01106183648a6b6d82d49139b2b1f038612367539f355ef9b3c116b543"
+    },
+    {
+      "path": "Jolt/Physics/Collision/CollideSphereVsTriangles.h",
+      "upstream_sha256": "f262a723f8674010498d93a987a962bf259ebfc4387738f54230b77ffc855120",
+      "vendor_sha256": "f262a723f8674010498d93a987a962bf259ebfc4387738f54230b77ffc855120"
+    },
+    {
+      "path": "Jolt/Physics/Collision/CollisionCollector.h",
+      "upstream_sha256": "f4161442273c7575f0ce161afcb111a7b469c5d23b0d27dc0382f4451afe55b6",
+      "vendor_sha256": "f4161442273c7575f0ce161afcb111a7b469c5d23b0d27dc0382f4451afe55b6"
+    },
+    {
+      "path": "Jolt/Physics/Collision/CollisionCollectorImpl.h",
+      "upstream_sha256": "15fcdca87503846bec5443b1b2a00b135975ea3ff46280667c103df45e74ff5d",
+      "vendor_sha256": "15fcdca87503846bec5443b1b2a00b135975ea3ff46280667c103df45e74ff5d"
+    },
+    {
+      "path": "Jolt/Physics/Collision/CollisionDispatch.cpp",
+      "upstream_sha256": "f8a882e4aac6ec81283c4ef186327c2faa27e834d1cdaf0e558c6901b5fb223f",
+      "vendor_sha256": "f8a882e4aac6ec81283c4ef186327c2faa27e834d1cdaf0e558c6901b5fb223f"
+    },
+    {
+      "path": "Jolt/Physics/Collision/CollisionDispatch.h",
+      "upstream_sha256": "9fb1239d7e9fe3d3ff3ea571eeab58836f2a64204503ecce47152e3fc971f3ad",
+      "vendor_sha256": "9fb1239d7e9fe3d3ff3ea571eeab58836f2a64204503ecce47152e3fc971f3ad"
+    },
+    {
+      "path": "Jolt/Physics/Collision/CollisionGroup.cpp",
+      "upstream_sha256": "4d80820ceb362a50bcdf6b50fc5f748265bb6a0b532e5ec0a63d66a3cc4e41b6",
+      "vendor_sha256": "4d80820ceb362a50bcdf6b50fc5f748265bb6a0b532e5ec0a63d66a3cc4e41b6"
+    },
+    {
+      "path": "Jolt/Physics/Collision/CollisionGroup.h",
+      "upstream_sha256": "1f208975cfc1606c2c1e90f91ea0081e195981523d68cf7f9e63b861737218a7",
+      "vendor_sha256": "1f208975cfc1606c2c1e90f91ea0081e195981523d68cf7f9e63b861737218a7"
+    },
+    {
+      "path": "Jolt/Physics/Collision/ContactListener.h",
+      "upstream_sha256": "5685ce89ef5608682ff9d4bdf5a45b014ca6e328665a328d1a8c6fa55d60553b",
+      "vendor_sha256": "5685ce89ef5608682ff9d4bdf5a45b014ca6e328665a328d1a8c6fa55d60553b"
+    },
+    {
+      "path": "Jolt/Physics/Collision/EstimateCollisionResponse.cpp",
+      "upstream_sha256": "b78ba5c0cf72870235751f86dde5de8582fb3b435b3a830fb0f8bac5348c8e2e",
+      "vendor_sha256": "b78ba5c0cf72870235751f86dde5de8582fb3b435b3a830fb0f8bac5348c8e2e"
+    },
+    {
+      "path": "Jolt/Physics/Collision/EstimateCollisionResponse.h",
+      "upstream_sha256": "b5bf693738aab2cdaf1e6e0b676a9d44c54e8b43b4fa4cd8ae70bf4cda946719",
+      "vendor_sha256": "b5bf693738aab2cdaf1e6e0b676a9d44c54e8b43b4fa4cd8ae70bf4cda946719"
+    },
+    {
+      "path": "Jolt/Physics/Collision/GroupFilter.cpp",
+      "upstream_sha256": "f8bdb2c6c9b666f4adfcae86aaa5b6f927b9cd2f14c4a9ef89423a9e1eb1ccf7",
+      "vendor_sha256": "f8bdb2c6c9b666f4adfcae86aaa5b6f927b9cd2f14c4a9ef89423a9e1eb1ccf7"
+    },
+    {
+      "path": "Jolt/Physics/Collision/GroupFilter.h",
+      "upstream_sha256": "bbcd582a1d6436b60df9d5f55040666071efb045d5f03220d9be74868296df85",
+      "vendor_sha256": "bbcd582a1d6436b60df9d5f55040666071efb045d5f03220d9be74868296df85"
+    },
+    {
+      "path": "Jolt/Physics/Collision/GroupFilterTable.cpp",
+      "upstream_sha256": "35c6617dcec4266d75e7e2fb3d67eebd025be28f8ec8b8d2f372ad1411a866c4",
+      "vendor_sha256": "35c6617dcec4266d75e7e2fb3d67eebd025be28f8ec8b8d2f372ad1411a866c4"
+    },
+    {
+      "path": "Jolt/Physics/Collision/GroupFilterTable.h",
+      "upstream_sha256": "f411f24a91553b411659e4371ecb49ed068cfaf8a2f9115e6cd65a25db6a1327",
+      "vendor_sha256": "f411f24a91553b411659e4371ecb49ed068cfaf8a2f9115e6cd65a25db6a1327"
+    },
+    {
+      "path": "Jolt/Physics/Collision/InternalEdgeRemovingCollector.h",
+      "upstream_sha256": "8031b0d24e237df929feb7ebd4ab6278568852761355faf74cadf7194f10cdab",
+      "vendor_sha256": "8031b0d24e237df929feb7ebd4ab6278568852761355faf74cadf7194f10cdab"
+    },
+    {
+      "path": "Jolt/Physics/Collision/ManifoldBetweenTwoFaces.cpp",
+      "upstream_sha256": "81d7204dc3300b6bb406129f3a0c0040b141d673c977a2fc6cae33b216721d4d",
+      "vendor_sha256": "81d7204dc3300b6bb406129f3a0c0040b141d673c977a2fc6cae33b216721d4d"
+    },
+    {
+      "path": "Jolt/Physics/Collision/ManifoldBetweenTwoFaces.h",
+      "upstream_sha256": "e55c98858904bc1138b7c10a302dfc1da5b63a9794514879b8772927343ea123",
+      "vendor_sha256": "e55c98858904bc1138b7c10a302dfc1da5b63a9794514879b8772927343ea123"
+    },
+    {
+      "path": "Jolt/Physics/Collision/NarrowPhaseQuery.cpp",
+      "upstream_sha256": "0539b72ddbe60d90be73d5c4064a4d1531c218aca6b05495bcbe205dfbedf577",
+      "vendor_sha256": "0539b72ddbe60d90be73d5c4064a4d1531c218aca6b05495bcbe205dfbedf577"
+    },
+    {
+      "path": "Jolt/Physics/Collision/NarrowPhaseQuery.h",
+      "upstream_sha256": "548e528119a50e5723291274f1735bb57065464d455cf4a4d7df30f4e96d6dfc",
+      "vendor_sha256": "548e528119a50e5723291274f1735bb57065464d455cf4a4d7df30f4e96d6dfc"
+    },
+    {
+      "path": "Jolt/Physics/Collision/NarrowPhaseStats.cpp",
+      "upstream_sha256": "1dd006be38f969080decf071481e918b5732d272859945749defd62a124d5449",
+      "vendor_sha256": "1dd006be38f969080decf071481e918b5732d272859945749defd62a124d5449"
+    },
+    {
+      "path": "Jolt/Physics/Collision/NarrowPhaseStats.h",
+      "upstream_sha256": "29a072ae70d130ca5ab5bc458e986eb9805f6f11192c1d7f5df4e3480831472e",
+      "vendor_sha256": "29a072ae70d130ca5ab5bc458e986eb9805f6f11192c1d7f5df4e3480831472e"
+    },
+    {
+      "path": "Jolt/Physics/Collision/ObjectLayer.h",
+      "upstream_sha256": "ec53f05ee9564509b8de2a56f81acdfca9e011949be40bcf9a8a5812ceed72ad",
+      "vendor_sha256": "ec53f05ee9564509b8de2a56f81acdfca9e011949be40bcf9a8a5812ceed72ad"
+    },
+    {
+      "path": "Jolt/Physics/Collision/ObjectLayerPairFilterMask.h",
+      "upstream_sha256": "f1ae70cb0216a56773132241c4a0ca6a104a53c58b67314df12937d13905f73d",
+      "vendor_sha256": "f1ae70cb0216a56773132241c4a0ca6a104a53c58b67314df12937d13905f73d"
+    },
+    {
+      "path": "Jolt/Physics/Collision/ObjectLayerPairFilterTable.h",
+      "upstream_sha256": "20f74f1f9bc40211bbce7e888b0271496dad798607b54ed3396914a20216ca7a",
+      "vendor_sha256": "20f74f1f9bc40211bbce7e888b0271496dad798607b54ed3396914a20216ca7a"
+    },
+    {
+      "path": "Jolt/Physics/Collision/PhysicsMaterial.cpp",
+      "upstream_sha256": "5ae3c45b07263f678e2796e2083ffa86da5973e3f85df23c9765688fbe9143c7",
+      "vendor_sha256": "5ae3c45b07263f678e2796e2083ffa86da5973e3f85df23c9765688fbe9143c7"
+    },
+    {
+      "path": "Jolt/Physics/Collision/PhysicsMaterial.h",
+      "upstream_sha256": "9c9b8bdd47ba0c7ff330248bedfa7d006ba4d59833343941debc7be8cbfe7aa8",
+      "vendor_sha256": "9c9b8bdd47ba0c7ff330248bedfa7d006ba4d59833343941debc7be8cbfe7aa8"
+    },
+    {
+      "path": "Jolt/Physics/Collision/PhysicsMaterialSimple.cpp",
+      "upstream_sha256": "0b924f8bf6fcf9e04ad0a73aec27debf55206c6ca9db8b3ed67a4f02d41b9125",
+      "vendor_sha256": "0b924f8bf6fcf9e04ad0a73aec27debf55206c6ca9db8b3ed67a4f02d41b9125"
+    },
+    {
+      "path": "Jolt/Physics/Collision/PhysicsMaterialSimple.h",
+      "upstream_sha256": "567523b03fd882b13b344e62519fb348e6814fb2d490be3c329cdc9cec424479",
+      "vendor_sha256": "567523b03fd882b13b344e62519fb348e6814fb2d490be3c329cdc9cec424479"
+    },
+    {
+      "path": "Jolt/Physics/Collision/RayCast.h",
+      "upstream_sha256": "5dd87ce68df1dbdf10789734275e39f444265bd25b4abeb2094f6854393f15ad",
+      "vendor_sha256": "5dd87ce68df1dbdf10789734275e39f444265bd25b4abeb2094f6854393f15ad"
+    },
+    {
+      "path": "Jolt/Physics/Collision/Shape/BoxShape.cpp",
+      "upstream_sha256": "90f3ce3a1522b9d4886184757a8694bb05ebe41161cb7a4d4515ca91a48bbfdc",
+      "vendor_sha256": "90f3ce3a1522b9d4886184757a8694bb05ebe41161cb7a4d4515ca91a48bbfdc"
+    },
+    {
+      "path": "Jolt/Physics/Collision/Shape/BoxShape.h",
+      "upstream_sha256": "14a82d0976cead54a6adda21fa14ff631a22ff873ccfb5171c0153ba33f5f3f3",
+      "vendor_sha256": "14a82d0976cead54a6adda21fa14ff631a22ff873ccfb5171c0153ba33f5f3f3"
+    },
+    {
+      "path": "Jolt/Physics/Collision/Shape/CapsuleShape.cpp",
+      "upstream_sha256": "3acefa0928076d7935a1084e0e2d5915cc6639751e6e5b339f7e0cb367976d06",
+      "vendor_sha256": "3acefa0928076d7935a1084e0e2d5915cc6639751e6e5b339f7e0cb367976d06"
+    },
+    {
+      "path": "Jolt/Physics/Collision/Shape/CapsuleShape.h",
+      "upstream_sha256": "d10927dffe9552251d2190888cd91d08cdd2621cc59e63c9901ce319dfd0167c",
+      "vendor_sha256": "d10927dffe9552251d2190888cd91d08cdd2621cc59e63c9901ce319dfd0167c"
+    },
+    {
+      "path": "Jolt/Physics/Collision/Shape/CompoundShape.cpp",
+      "upstream_sha256": "e1e3292ced88f28577626b64951c47a537f3f7f20ab92397aec7f94761fd3d93",
+      "vendor_sha256": "e1e3292ced88f28577626b64951c47a537f3f7f20ab92397aec7f94761fd3d93"
+    },
+    {
+      "path": "Jolt/Physics/Collision/Shape/CompoundShape.h",
+      "upstream_sha256": "009dee5e292afd26d28b522bd2559dc878a91d688f84516b391e06c1de4caf1a",
+      "vendor_sha256": "009dee5e292afd26d28b522bd2559dc878a91d688f84516b391e06c1de4caf1a"
+    },
+    {
+      "path": "Jolt/Physics/Collision/Shape/CompoundShapeVisitors.h",
+      "upstream_sha256": "27b5f6043c891448fe44d7a059d54123a63de71563ad1c9b2aa007a3a0ef0c40",
+      "vendor_sha256": "27b5f6043c891448fe44d7a059d54123a63de71563ad1c9b2aa007a3a0ef0c40"
+    },
+    {
+      "path": "Jolt/Physics/Collision/Shape/ConvexHullShape.cpp",
+      "upstream_sha256": "ae8a9bb804d28b9ba969a7beaee2d8607c26a87fd7acfd1db87bc8d6c294b7db",
+      "vendor_sha256": "ae8a9bb804d28b9ba969a7beaee2d8607c26a87fd7acfd1db87bc8d6c294b7db"
+    },
+    {
+      "path": "Jolt/Physics/Collision/Shape/ConvexHullShape.h",
+      "upstream_sha256": "2a0dee83996177742c65073aa4739c38b77a18e8b307e3e321f27f1df297f194",
+      "vendor_sha256": "2a0dee83996177742c65073aa4739c38b77a18e8b307e3e321f27f1df297f194"
+    },
+    {
+      "path": "Jolt/Physics/Collision/Shape/ConvexShape.cpp",
+      "upstream_sha256": "434b9e3ccf6c7c08c79bb2b1cf069280ff51348561e7117e3a27877619be6009",
+      "vendor_sha256": "434b9e3ccf6c7c08c79bb2b1cf069280ff51348561e7117e3a27877619be6009"
+    },
+    {
+      "path": "Jolt/Physics/Collision/Shape/ConvexShape.h",
+      "upstream_sha256": "4357b65a06ef26dbffb4c4aee75ceec073c1fea42714e60db865d191eb97b3b5",
+      "vendor_sha256": "4357b65a06ef26dbffb4c4aee75ceec073c1fea42714e60db865d191eb97b3b5"
+    },
+    {
+      "path": "Jolt/Physics/Collision/Shape/CylinderShape.cpp",
+      "upstream_sha256": "171bb10bbe9c53740481c84a77626d9f296ad084ba6ad791cde2925ea21b3fba",
+      "vendor_sha256": "171bb10bbe9c53740481c84a77626d9f296ad084ba6ad791cde2925ea21b3fba"
+    },
+    {
+      "path": "Jolt/Physics/Collision/Shape/CylinderShape.h",
+      "upstream_sha256": "28e3a0f2dc4d4e26032aaf97493235e8c9c9c650e040967cdca37752fed2595d",
+      "vendor_sha256": "28e3a0f2dc4d4e26032aaf97493235e8c9c9c650e040967cdca37752fed2595d"
+    },
+    {
+      "path": "Jolt/Physics/Collision/Shape/DecoratedShape.cpp",
+      "upstream_sha256": "0a6e623e2ea5cba34f66403bd981ff5888ef85ce285168e13c78e30de2cf73c1",
+      "vendor_sha256": "0a6e623e2ea5cba34f66403bd981ff5888ef85ce285168e13c78e30de2cf73c1"
+    },
+    {
+      "path": "Jolt/Physics/Collision/Shape/DecoratedShape.h",
+      "upstream_sha256": "97da37c8d61d54b55fd9f3eb0007f22c11d6a1b1a1bad4138c511cf8ca8f2011",
+      "vendor_sha256": "97da37c8d61d54b55fd9f3eb0007f22c11d6a1b1a1bad4138c511cf8ca8f2011"
+    },
+    {
+      "path": "Jolt/Physics/Collision/Shape/EmptyShape.cpp",
+      "upstream_sha256": "61ea0e6dc9e4e28a0ab6f7f105b17c1804279a5ba209262eb25cf2bb87473efc",
+      "vendor_sha256": "61ea0e6dc9e4e28a0ab6f7f105b17c1804279a5ba209262eb25cf2bb87473efc"
+    },
+    {
+      "path": "Jolt/Physics/Collision/Shape/EmptyShape.h",
+      "upstream_sha256": "33ca790068fb8673cb8fd89510ac7b0738ea4c606ae75c919f1791de0a2c65fd",
+      "vendor_sha256": "33ca790068fb8673cb8fd89510ac7b0738ea4c606ae75c919f1791de0a2c65fd"
+    },
+    {
+      "path": "Jolt/Physics/Collision/Shape/GetTrianglesContext.h",
+      "upstream_sha256": "49473a6d387c9b21ff1a4d9949b58f1a50203b542ae1aa5c007bb3260fa47605",
+      "vendor_sha256": "49473a6d387c9b21ff1a4d9949b58f1a50203b542ae1aa5c007bb3260fa47605"
+    },
+    {
+      "path": "Jolt/Physics/Collision/Shape/HeightFieldShape.cpp",
+      "upstream_sha256": "01df66c4d37e109c7b04a076b126c731946501fb0b1a286aacf15c7565f57ed0",
+      "vendor_sha256": "01df66c4d37e109c7b04a076b126c731946501fb0b1a286aacf15c7565f57ed0"
+    },
+    {
+      "path": "Jolt/Physics/Collision/Shape/HeightFieldShape.h",
+      "upstream_sha256": "00634c403920bb7040425ce3a9e22dc37f341da48b1a1d773ddc8f1a3cdb0143",
+      "vendor_sha256": "00634c403920bb7040425ce3a9e22dc37f341da48b1a1d773ddc8f1a3cdb0143"
+    },
+    {
+      "path": "Jolt/Physics/Collision/Shape/MeshShape.cpp",
+      "upstream_sha256": "6fddbb3f9205c66a1550f7a6e1c08facf1bdc0dd3e5e48d9a9fabf395f975043",
+      "vendor_sha256": "6fddbb3f9205c66a1550f7a6e1c08facf1bdc0dd3e5e48d9a9fabf395f975043"
+    },
+    {
+      "path": "Jolt/Physics/Collision/Shape/MeshShape.h",
+      "upstream_sha256": "41e74234697e00fdde1c059265eccfa869ee95d09612d93fa8a07ef482bb390c",
+      "vendor_sha256": "41e74234697e00fdde1c059265eccfa869ee95d09612d93fa8a07ef482bb390c"
+    },
+    {
+      "path": "Jolt/Physics/Collision/Shape/MutableCompoundShape.cpp",
+      "upstream_sha256": "2e210b2a9e82c88bb1007e15692df3a63076ae4d75f292dc43e79609fb057181",
+      "vendor_sha256": "2e210b2a9e82c88bb1007e15692df3a63076ae4d75f292dc43e79609fb057181"
+    },
+    {
+      "path": "Jolt/Physics/Collision/Shape/MutableCompoundShape.h",
+      "upstream_sha256": "8226c20a7a4cb325acb82f1a0eef647ad804c183d99ab6ed8d0f29403af98ecc",
+      "vendor_sha256": "8226c20a7a4cb325acb82f1a0eef647ad804c183d99ab6ed8d0f29403af98ecc"
+    },
+    {
+      "path": "Jolt/Physics/Collision/Shape/OffsetCenterOfMassShape.cpp",
+      "upstream_sha256": "c9a2be687105ee03bd2dc48edb0455f7360172f94a8cd595c0f60c532fef84c4",
+      "vendor_sha256": "c9a2be687105ee03bd2dc48edb0455f7360172f94a8cd595c0f60c532fef84c4"
+    },
+    {
+      "path": "Jolt/Physics/Collision/Shape/OffsetCenterOfMassShape.h",
+      "upstream_sha256": "358464b08c41f7b919f9b64c2f98e2071e267002390d1544bd53bcd5644bf4f0",
+      "vendor_sha256": "358464b08c41f7b919f9b64c2f98e2071e267002390d1544bd53bcd5644bf4f0"
+    },
+    {
+      "path": "Jolt/Physics/Collision/Shape/PlaneShape.cpp",
+      "upstream_sha256": "d2acf108d3d74fe7eae685870dd1c68c40aa5b0a25b44a2ea4551235204c3fa5",
+      "vendor_sha256": "d2acf108d3d74fe7eae685870dd1c68c40aa5b0a25b44a2ea4551235204c3fa5"
+    },
+    {
+      "path": "Jolt/Physics/Collision/Shape/PlaneShape.h",
+      "upstream_sha256": "e5dea98c3c72d3ed788d3fb5b4a5725ff3fa3c5afc8cd1aeb60ff23885fe0be7",
+      "vendor_sha256": "e5dea98c3c72d3ed788d3fb5b4a5725ff3fa3c5afc8cd1aeb60ff23885fe0be7"
+    },
+    {
+      "path": "Jolt/Physics/Collision/Shape/PolyhedronSubmergedVolumeCalculator.h",
+      "upstream_sha256": "5934dd82e07860a867d6a4ab0aed8f2322d588f8c72e9b72b01e4d7210cd4c42",
+      "vendor_sha256": "5934dd82e07860a867d6a4ab0aed8f2322d588f8c72e9b72b01e4d7210cd4c42"
+    },
+    {
+      "path": "Jolt/Physics/Collision/Shape/RotatedTranslatedShape.cpp",
+      "upstream_sha256": "4eadc45f0f88ef09622effdb61870ed1274a9861d926a782f5537878152145a5",
+      "vendor_sha256": "4eadc45f0f88ef09622effdb61870ed1274a9861d926a782f5537878152145a5"
+    },
+    {
+      "path": "Jolt/Physics/Collision/Shape/RotatedTranslatedShape.h",
+      "upstream_sha256": "fa6cb4f4f7b0029dc2c51d118b4e00968d5e6ffb1f665f87ff200ae2c3738d99",
+      "vendor_sha256": "fa6cb4f4f7b0029dc2c51d118b4e00968d5e6ffb1f665f87ff200ae2c3738d99"
+    },
+    {
+      "path": "Jolt/Physics/Collision/Shape/ScaleHelpers.h",
+      "upstream_sha256": "bf5fe6630ca7c82624f4edd07b9947681b80d67bfb3e9e330a95435db4a29542",
+      "vendor_sha256": "bf5fe6630ca7c82624f4edd07b9947681b80d67bfb3e9e330a95435db4a29542"
+    },
+    {
+      "path": "Jolt/Physics/Collision/Shape/ScaledShape.cpp",
+      "upstream_sha256": "d8cc3009e6bdedb68e0399be0288a2976968420c95039895e328b1af4950254b",
+      "vendor_sha256": "d8cc3009e6bdedb68e0399be0288a2976968420c95039895e328b1af4950254b"
+    },
+    {
+      "path": "Jolt/Physics/Collision/Shape/ScaledShape.h",
+      "upstream_sha256": "bb737c1c5bcf812382883d1a757646476aa61b7a1cdf8f425000849442d1ec89",
+      "vendor_sha256": "bb737c1c5bcf812382883d1a757646476aa61b7a1cdf8f425000849442d1ec89"
+    },
+    {
+      "path": "Jolt/Physics/Collision/Shape/Shape.cpp",
+      "upstream_sha256": "cd7c8d3b9f958d78f768f7c9007f780b5e9105e38696445f0956be65da42a07c",
+      "vendor_sha256": "cd7c8d3b9f958d78f768f7c9007f780b5e9105e38696445f0956be65da42a07c"
+    },
+    {
+      "path": "Jolt/Physics/Collision/Shape/Shape.h",
+      "upstream_sha256": "cb3310005d75417e92557138f893237d8490bd20d278e2cdc20ec693755d52bc",
+      "vendor_sha256": "cb3310005d75417e92557138f893237d8490bd20d278e2cdc20ec693755d52bc"
+    },
+    {
+      "path": "Jolt/Physics/Collision/Shape/SphereShape.cpp",
+      "upstream_sha256": "056be319e28021462d6d3e0e16480af509553512bea2574c5dfe5f788763072f",
+      "vendor_sha256": "056be319e28021462d6d3e0e16480af509553512bea2574c5dfe5f788763072f"
+    },
+    {
+      "path": "Jolt/Physics/Collision/Shape/SphereShape.h",
+      "upstream_sha256": "f69ab69f3fe2a7a4911a2787099940ea24974ce80c5e4b4eaa61636c03ac6191",
+      "vendor_sha256": "f69ab69f3fe2a7a4911a2787099940ea24974ce80c5e4b4eaa61636c03ac6191"
+    },
+    {
+      "path": "Jolt/Physics/Collision/Shape/StaticCompoundShape.cpp",
+      "upstream_sha256": "1adc06d023d7375a59804d60e592a9b81157207bc711db107ca54d042da6a80a",
+      "vendor_sha256": "1adc06d023d7375a59804d60e592a9b81157207bc711db107ca54d042da6a80a"
+    },
+    {
+      "path": "Jolt/Physics/Collision/Shape/StaticCompoundShape.h",
+      "upstream_sha256": "c4bbdf21a35083bf6a321e3f82458e3ed6da2135163d6b795900cdc7975ce086",
+      "vendor_sha256": "c4bbdf21a35083bf6a321e3f82458e3ed6da2135163d6b795900cdc7975ce086"
+    },
+    {
+      "path": "Jolt/Physics/Collision/Shape/SubShapeID.h",
+      "upstream_sha256": "7c3062f2499c3c07b6432efaeef7c9e0c9d76ff5b52983f461b05d7a28d14b4f",
+      "vendor_sha256": "7c3062f2499c3c07b6432efaeef7c9e0c9d76ff5b52983f461b05d7a28d14b4f"
+    },
+    {
+      "path": "Jolt/Physics/Collision/Shape/SubShapeIDPair.h",
+      "upstream_sha256": "5a4b951383d27295393513ac0e7df26fcab21ec28de8ca6bcf9bf4e1383d34b5",
+      "vendor_sha256": "5a4b951383d27295393513ac0e7df26fcab21ec28de8ca6bcf9bf4e1383d34b5"
+    },
+    {
+      "path": "Jolt/Physics/Collision/Shape/TaperedCapsuleShape.cpp",
+      "upstream_sha256": "da8631791017bc876e4b43f3cc389c4a30cb004ef0e78ca03771dd018e8c25ae",
+      "vendor_sha256": "da8631791017bc876e4b43f3cc389c4a30cb004ef0e78ca03771dd018e8c25ae"
+    },
+    {
+      "path": "Jolt/Physics/Collision/Shape/TaperedCapsuleShape.gliffy",
+      "upstream_sha256": "72e1587cb2e8d68289649ddec11fd8dd0f1d920b898faa0c27506d710ffff4e7",
+      "vendor_sha256": "72e1587cb2e8d68289649ddec11fd8dd0f1d920b898faa0c27506d710ffff4e7"
+    },
+    {
+      "path": "Jolt/Physics/Collision/Shape/TaperedCapsuleShape.h",
+      "upstream_sha256": "2dab130c084b151cf5e6039dfb057d35c4d83e85d7a7f752e3b571c9f83f29b1",
+      "vendor_sha256": "2dab130c084b151cf5e6039dfb057d35c4d83e85d7a7f752e3b571c9f83f29b1"
+    },
+    {
+      "path": "Jolt/Physics/Collision/Shape/TaperedCylinderShape.cpp",
+      "upstream_sha256": "a4bf0db605c537a814f83d545706aca0b1b90fc4e723a507d816705aec049cb8",
+      "vendor_sha256": "a4bf0db605c537a814f83d545706aca0b1b90fc4e723a507d816705aec049cb8"
+    },
+    {
+      "path": "Jolt/Physics/Collision/Shape/TaperedCylinderShape.h",
+      "upstream_sha256": "7b62be0005ee5dbc6de3feb62ad6ed833e6014f76f82abcc7be40b46641e5e1b",
+      "vendor_sha256": "7b62be0005ee5dbc6de3feb62ad6ed833e6014f76f82abcc7be40b46641e5e1b"
+    },
+    {
+      "path": "Jolt/Physics/Collision/Shape/TriangleShape.cpp",
+      "upstream_sha256": "01380c154b684088e7b2727f8273a0dfde0328a345220ca46a8c45d0ae211299",
+      "vendor_sha256": "01380c154b684088e7b2727f8273a0dfde0328a345220ca46a8c45d0ae211299"
+    },
+    {
+      "path": "Jolt/Physics/Collision/Shape/TriangleShape.h",
+      "upstream_sha256": "b2ab117f354b82377556e5b992673c4fd090cd4fecc7e51a66680e3587660ebe",
+      "vendor_sha256": "b2ab117f354b82377556e5b992673c4fd090cd4fecc7e51a66680e3587660ebe"
+    },
+    {
+      "path": "Jolt/Physics/Collision/ShapeCast.h",
+      "upstream_sha256": "5be713797850517b0497a160cb0c3756e731fea982437c5860a1e45641a7ce1d",
+      "vendor_sha256": "5be713797850517b0497a160cb0c3756e731fea982437c5860a1e45641a7ce1d"
+    },
+    {
+      "path": "Jolt/Physics/Collision/ShapeFilter.h",
+      "upstream_sha256": "d4388615e5ddac5f0b688c3846dff7c65c230147ceff0aef70afe48fcc6c6d2e",
+      "vendor_sha256": "d4388615e5ddac5f0b688c3846dff7c65c230147ceff0aef70afe48fcc6c6d2e"
+    },
+    {
+      "path": "Jolt/Physics/Collision/SimShapeFilter.h",
+      "upstream_sha256": "9e2bb6860db9086c2f8b3138fec26c6a5e18a2d41ac8f01c8d09af9fc3a9d5bc",
+      "vendor_sha256": "9e2bb6860db9086c2f8b3138fec26c6a5e18a2d41ac8f01c8d09af9fc3a9d5bc"
+    },
+    {
+      "path": "Jolt/Physics/Collision/SimShapeFilterWrapper.h",
+      "upstream_sha256": "385040615915568ca865c7882823216690db61ebae798269e54c17e364e8d620",
+      "vendor_sha256": "385040615915568ca865c7882823216690db61ebae798269e54c17e364e8d620"
+    },
+    {
+      "path": "Jolt/Physics/Collision/SortReverseAndStore.h",
+      "upstream_sha256": "16ed2e42fce99a5ba96b74743daf51c714d9b2ed33849edd41fe0ba3fba2a0f6",
+      "vendor_sha256": "16ed2e42fce99a5ba96b74743daf51c714d9b2ed33849edd41fe0ba3fba2a0f6"
+    },
+    {
+      "path": "Jolt/Physics/Collision/TransformedShape.cpp",
+      "upstream_sha256": "9f2eb3a028aa2593caf2cc1c7f9189892c4535ca328a6af8e7460bc84c8f2133",
+      "vendor_sha256": "9f2eb3a028aa2593caf2cc1c7f9189892c4535ca328a6af8e7460bc84c8f2133"
+    },
+    {
+      "path": "Jolt/Physics/Collision/TransformedShape.h",
+      "upstream_sha256": "31c538d99f70f101bf0eb618f5ed3108a09a40aab44704a4520fab2cbb5b56cf",
+      "vendor_sha256": "31c538d99f70f101bf0eb618f5ed3108a09a40aab44704a4520fab2cbb5b56cf"
+    },
+    {
+      "path": "Jolt/Physics/Constraints/CalculateSolverSteps.h",
+      "upstream_sha256": "c0326bd57c2a8ba64dd2ecd4203cb011c772201618b1b4b492d6f4c411ad0130",
+      "vendor_sha256": "c0326bd57c2a8ba64dd2ecd4203cb011c772201618b1b4b492d6f4c411ad0130"
+    },
+    {
+      "path": "Jolt/Physics/Constraints/ConeConstraint.cpp",
+      "upstream_sha256": "dc4f35dc90a437a739ab3db33b70baf738d5b72c8a8a7e08fcb81a8136a204a8",
+      "vendor_sha256": "dc4f35dc90a437a739ab3db33b70baf738d5b72c8a8a7e08fcb81a8136a204a8"
+    },
+    {
+      "path": "Jolt/Physics/Constraints/ConeConstraint.h",
+      "upstream_sha256": "632641e7d4fd40818f2b8067ee82b2825cf211b18775510cc4a467b2a04b0c21",
+      "vendor_sha256": "632641e7d4fd40818f2b8067ee82b2825cf211b18775510cc4a467b2a04b0c21"
+    },
+    {
+      "path": "Jolt/Physics/Constraints/Constraint.cpp",
+      "upstream_sha256": "3e8cce29a375f216f468c854a28d189db9445bc82041added59a5cb20701f22a",
+      "vendor_sha256": "3e8cce29a375f216f468c854a28d189db9445bc82041added59a5cb20701f22a"
+    },
+    {
+      "path": "Jolt/Physics/Constraints/Constraint.h",
+      "upstream_sha256": "3650195859b71e46be8c112766e3ea7818e8b0cbe9d3e53afc6384cfb662c462",
+      "vendor_sha256": "3650195859b71e46be8c112766e3ea7818e8b0cbe9d3e53afc6384cfb662c462"
+    },
+    {
+      "path": "Jolt/Physics/Constraints/ConstraintManager.cpp",
+      "upstream_sha256": "6b2d208bf071441190cfcbb739db5a885b41d7e0c720fe2b481238c2975afe18",
+      "vendor_sha256": "6b2d208bf071441190cfcbb739db5a885b41d7e0c720fe2b481238c2975afe18"
+    },
+    {
+      "path": "Jolt/Physics/Constraints/ConstraintManager.h",
+      "upstream_sha256": "61647d0e6be1bbf9a230c6a40b2b9a8d7f64960f06865538155f747f71824ea7",
+      "vendor_sha256": "61647d0e6be1bbf9a230c6a40b2b9a8d7f64960f06865538155f747f71824ea7"
+    },
+    {
+      "path": "Jolt/Physics/Constraints/ConstraintPart/AngleConstraintPart.h",
+      "upstream_sha256": "ba710312e9a50155b81adb572ca29d14bdde03e369e15b3dd604fb08b5612b08",
+      "vendor_sha256": "ba710312e9a50155b81adb572ca29d14bdde03e369e15b3dd604fb08b5612b08"
+    },
+    {
+      "path": "Jolt/Physics/Constraints/ConstraintPart/AxisConstraintPart.h",
+      "upstream_sha256": "2ee5f89873a166b71e43ba8eb3a282643f55a73fce1d463469a298a0fe55ce90",
+      "vendor_sha256": "2ee5f89873a166b71e43ba8eb3a282643f55a73fce1d463469a298a0fe55ce90"
+    },
+    {
+      "path": "Jolt/Physics/Constraints/ConstraintPart/DualAxisConstraintPart.h",
+      "upstream_sha256": "2eaf703948197249b30643a53a5078d0e01607e390ac020e05ac6c24ae76a069",
+      "vendor_sha256": "2eaf703948197249b30643a53a5078d0e01607e390ac020e05ac6c24ae76a069"
+    },
+    {
+      "path": "Jolt/Physics/Constraints/ConstraintPart/GearConstraintPart.h",
+      "upstream_sha256": "3f4e83b25aacefdf795112ff446ce721b6f94158d41f009209b3ae9ac53097fc",
+      "vendor_sha256": "3f4e83b25aacefdf795112ff446ce721b6f94158d41f009209b3ae9ac53097fc"
+    },
+    {
+      "path": "Jolt/Physics/Constraints/ConstraintPart/HingeRotationConstraintPart.h",
+      "upstream_sha256": "29c54443fde2cd8dc58e07d400b19523983305191ade9bb2082befe52fae6dd5",
+      "vendor_sha256": "29c54443fde2cd8dc58e07d400b19523983305191ade9bb2082befe52fae6dd5"
+    },
+    {
+      "path": "Jolt/Physics/Constraints/ConstraintPart/IndependentAxisConstraintPart.h",
+      "upstream_sha256": "9fc9c6a36cb5d54e516c54d31c9b9cef45c5e3dc63eb4b68405048eef10a4349",
+      "vendor_sha256": "9fc9c6a36cb5d54e516c54d31c9b9cef45c5e3dc63eb4b68405048eef10a4349"
+    },
+    {
+      "path": "Jolt/Physics/Constraints/ConstraintPart/PointConstraintPart.h",
+      "upstream_sha256": "f9e29dce20ab39c83299302c9bfb95406d7c517e4dffa7895a75e859dfa2afed",
+      "vendor_sha256": "f9e29dce20ab39c83299302c9bfb95406d7c517e4dffa7895a75e859dfa2afed"
+    },
+    {
+      "path": "Jolt/Physics/Constraints/ConstraintPart/RackAndPinionConstraintPart.h",
+      "upstream_sha256": "68e7e51ce7086bb98bc8378739c14747d9456fd4637197a8202a2fbeecce89b8",
+      "vendor_sha256": "68e7e51ce7086bb98bc8378739c14747d9456fd4637197a8202a2fbeecce89b8"
+    },
+    {
+      "path": "Jolt/Physics/Constraints/ConstraintPart/RotationEulerConstraintPart.h",
+      "upstream_sha256": "b0de95cc25ff1f84559c737755ff5b566feb430792b757800ceb619e263ec18c",
+      "vendor_sha256": "b0de95cc25ff1f84559c737755ff5b566feb430792b757800ceb619e263ec18c"
+    },
+    {
+      "path": "Jolt/Physics/Constraints/ConstraintPart/RotationQuatConstraintPart.h",
+      "upstream_sha256": "05005a972547ad598203607dece11c02eee3c42cf8e3b51c92e9ce63bf676330",
+      "vendor_sha256": "05005a972547ad598203607dece11c02eee3c42cf8e3b51c92e9ce63bf676330"
+    },
+    {
+      "path": "Jolt/Physics/Constraints/ConstraintPart/SpringPart.h",
+      "upstream_sha256": "1630f29b21a29bbc5bd41a5f547b9a6422b360d7c40d7bad7b9d92a1254811fa",
+      "vendor_sha256": "1630f29b21a29bbc5bd41a5f547b9a6422b360d7c40d7bad7b9d92a1254811fa"
+    },
+    {
+      "path": "Jolt/Physics/Constraints/ConstraintPart/SwingTwistConstraintPart.h",
+      "upstream_sha256": "577a43a23011607aebea4769c524a8695607af91e3431afc415013d73e1a1fbf",
+      "vendor_sha256": "577a43a23011607aebea4769c524a8695607af91e3431afc415013d73e1a1fbf"
+    },
+    {
+      "path": "Jolt/Physics/Constraints/ContactConstraintManager.cpp",
+      "upstream_sha256": "b371721e98935b583d69333f39383e1d2f590e9df43314ee15cd6c34c89fc3ee",
+      "vendor_sha256": "b371721e98935b583d69333f39383e1d2f590e9df43314ee15cd6c34c89fc3ee"
+    },
+    {
+      "path": "Jolt/Physics/Constraints/ContactConstraintManager.h",
+      "upstream_sha256": "b49bc741b15d21d6c9bb20817687ac3f060717899ece2355b22359d789581af2",
+      "vendor_sha256": "b49bc741b15d21d6c9bb20817687ac3f060717899ece2355b22359d789581af2"
+    },
+    {
+      "path": "Jolt/Physics/Constraints/DistanceConstraint.cpp",
+      "upstream_sha256": "7f885cce0749a5c2d409de1fa540d7c77121698f1fa556e5871daae00dac3f76",
+      "vendor_sha256": "7f885cce0749a5c2d409de1fa540d7c77121698f1fa556e5871daae00dac3f76"
+    },
+    {
+      "path": "Jolt/Physics/Constraints/DistanceConstraint.h",
+      "upstream_sha256": "97bb0f2749b1714a91eda4fe016f4ec8c79c97850132dcd45bad1471c938970c",
+      "vendor_sha256": "97bb0f2749b1714a91eda4fe016f4ec8c79c97850132dcd45bad1471c938970c"
+    },
+    {
+      "path": "Jolt/Physics/Constraints/FixedConstraint.cpp",
+      "upstream_sha256": "8b302274dc086257efcc089c773cca8c2dfe35c8a6aa60b82f34537842a9a448",
+      "vendor_sha256": "8b302274dc086257efcc089c773cca8c2dfe35c8a6aa60b82f34537842a9a448"
+    },
+    {
+      "path": "Jolt/Physics/Constraints/FixedConstraint.h",
+      "upstream_sha256": "d7f40745011aa53279ab4478b27e2a781798c273e22df10670ba034cdd9d3cca",
+      "vendor_sha256": "d7f40745011aa53279ab4478b27e2a781798c273e22df10670ba034cdd9d3cca"
+    },
+    {
+      "path": "Jolt/Physics/Constraints/GearConstraint.cpp",
+      "upstream_sha256": "de7a67989bced83c5488b9a41f71009f71cb193a4c7138d1d5284abae0b5bf46",
+      "vendor_sha256": "de7a67989bced83c5488b9a41f71009f71cb193a4c7138d1d5284abae0b5bf46"
+    },
+    {
+      "path": "Jolt/Physics/Constraints/GearConstraint.h",
+      "upstream_sha256": "1b47836948702199c97f2f0ad0682ff44c681d53807e323984291cfe87752d8f",
+      "vendor_sha256": "1b47836948702199c97f2f0ad0682ff44c681d53807e323984291cfe87752d8f"
+    },
+    {
+      "path": "Jolt/Physics/Constraints/HingeConstraint.cpp",
+      "upstream_sha256": "4a0aebbaa59707b2a5cf307309547afe370f0a4dbc94f553d1ef1c6360247b36",
+      "vendor_sha256": "4a0aebbaa59707b2a5cf307309547afe370f0a4dbc94f553d1ef1c6360247b36"
+    },
+    {
+      "path": "Jolt/Physics/Constraints/HingeConstraint.h",
+      "upstream_sha256": "58ef6a5ef8d6c493bad89c3c26790dc9227cb3e2dd59453692b607dd849885a4",
+      "vendor_sha256": "58ef6a5ef8d6c493bad89c3c26790dc9227cb3e2dd59453692b607dd849885a4"
+    },
+    {
+      "path": "Jolt/Physics/Constraints/MotorSettings.cpp",
+      "upstream_sha256": "855c82c84fed7d0483696ce4f913adee02251821665fcf2b29d9bb757d2a111c",
+      "vendor_sha256": "855c82c84fed7d0483696ce4f913adee02251821665fcf2b29d9bb757d2a111c"
+    },
+    {
+      "path": "Jolt/Physics/Constraints/MotorSettings.h",
+      "upstream_sha256": "0626f918a0d7455fd8191545aa89ecfee06b47c301f75f3f08800fa2d84c99fc",
+      "vendor_sha256": "0626f918a0d7455fd8191545aa89ecfee06b47c301f75f3f08800fa2d84c99fc"
+    },
+    {
+      "path": "Jolt/Physics/Constraints/PathConstraint.cpp",
+      "upstream_sha256": "6d52266ff553a16ae5fec1d9c7d22263ccedd66190065292eef3026692b325f6",
+      "vendor_sha256": "6d52266ff553a16ae5fec1d9c7d22263ccedd66190065292eef3026692b325f6"
+    },
+    {
+      "path": "Jolt/Physics/Constraints/PathConstraint.h",
+      "upstream_sha256": "82c88393635443a18e875c84f7c2dd9a78d6944480b7868315db1873e7f36294",
+      "vendor_sha256": "82c88393635443a18e875c84f7c2dd9a78d6944480b7868315db1873e7f36294"
+    },
+    {
+      "path": "Jolt/Physics/Constraints/PathConstraintPath.cpp",
+      "upstream_sha256": "fd95dd9b05c1299392e37e3ec26f62569cc164b65641fba2009b97757a1e1e8f",
+      "vendor_sha256": "fd95dd9b05c1299392e37e3ec26f62569cc164b65641fba2009b97757a1e1e8f"
+    },
+    {
+      "path": "Jolt/Physics/Constraints/PathConstraintPath.h",
+      "upstream_sha256": "fab4bab33d026ff896bd89875b82dd1ca5b2f25c9a891494cdebb23e59e092cd",
+      "vendor_sha256": "fab4bab33d026ff896bd89875b82dd1ca5b2f25c9a891494cdebb23e59e092cd"
+    },
+    {
+      "path": "Jolt/Physics/Constraints/PathConstraintPathHermite.cpp",
+      "upstream_sha256": "c8f99ea25023153705cc8adaf9c698643ba1d3a704927764b32cc5d7cb3f4c62",
+      "vendor_sha256": "c8f99ea25023153705cc8adaf9c698643ba1d3a704927764b32cc5d7cb3f4c62"
+    },
+    {
+      "path": "Jolt/Physics/Constraints/PathConstraintPathHermite.h",
+      "upstream_sha256": "82e7239f1f5453f7cb3baee9755cfc982abfc86a98531ffb35a07e672cf16271",
+      "vendor_sha256": "82e7239f1f5453f7cb3baee9755cfc982abfc86a98531ffb35a07e672cf16271"
+    },
+    {
+      "path": "Jolt/Physics/Constraints/PointConstraint.cpp",
+      "upstream_sha256": "77d992f6d50c890e0ce75404d9822571f141ec94430afb9030b0933b45539787",
+      "vendor_sha256": "77d992f6d50c890e0ce75404d9822571f141ec94430afb9030b0933b45539787"
+    },
+    {
+      "path": "Jolt/Physics/Constraints/PointConstraint.h",
+      "upstream_sha256": "95b2a1763455be9b8d6eb57ce26ff9daf425a8c94efdb6e19d8a69bc30827fa5",
+      "vendor_sha256": "95b2a1763455be9b8d6eb57ce26ff9daf425a8c94efdb6e19d8a69bc30827fa5"
+    },
+    {
+      "path": "Jolt/Physics/Constraints/PulleyConstraint.cpp",
+      "upstream_sha256": "d0534eab6555004c2bf376a9110ea60442c0fcc3254a6dd5ec3bac90c257f2ae",
+      "vendor_sha256": "d0534eab6555004c2bf376a9110ea60442c0fcc3254a6dd5ec3bac90c257f2ae"
+    },
+    {
+      "path": "Jolt/Physics/Constraints/PulleyConstraint.h",
+      "upstream_sha256": "d0bf6f040aba911d19bea78802f3b7b124812eb91388266bf30eff4fc013ad52",
+      "vendor_sha256": "d0bf6f040aba911d19bea78802f3b7b124812eb91388266bf30eff4fc013ad52"
+    },
+    {
+      "path": "Jolt/Physics/Constraints/RackAndPinionConstraint.cpp",
+      "upstream_sha256": "aa7eb8282aab1d62c2e6a71a365d5d4f7ec200954dc6523048af723a212edd27",
+      "vendor_sha256": "aa7eb8282aab1d62c2e6a71a365d5d4f7ec200954dc6523048af723a212edd27"
+    },
+    {
+      "path": "Jolt/Physics/Constraints/RackAndPinionConstraint.h",
+      "upstream_sha256": "7a0df8c9467b55afd686880b64dadb8a412e4ce21047fc6be9a8de6f09a69fa7",
+      "vendor_sha256": "7a0df8c9467b55afd686880b64dadb8a412e4ce21047fc6be9a8de6f09a69fa7"
+    },
+    {
+      "path": "Jolt/Physics/Constraints/SixDOFConstraint.cpp",
+      "upstream_sha256": "b6c825fa553c688abc02f861e43074c28007f1b739c73ce4f246bb8e2e255abb",
+      "vendor_sha256": "b6c825fa553c688abc02f861e43074c28007f1b739c73ce4f246bb8e2e255abb"
+    },
+    {
+      "path": "Jolt/Physics/Constraints/SixDOFConstraint.h",
+      "upstream_sha256": "bdcf74c3e220e955004accb18bcd5cd8c7c2a52a59dffb709dc7be473f53244d",
+      "vendor_sha256": "bdcf74c3e220e955004accb18bcd5cd8c7c2a52a59dffb709dc7be473f53244d"
+    },
+    {
+      "path": "Jolt/Physics/Constraints/SliderConstraint.cpp",
+      "upstream_sha256": "b537c1497bd1f7f0f2d9c4141d0b03ce4f1af919440b119d870633078f55680d",
+      "vendor_sha256": "b537c1497bd1f7f0f2d9c4141d0b03ce4f1af919440b119d870633078f55680d"
+    },
+    {
+      "path": "Jolt/Physics/Constraints/SliderConstraint.h",
+      "upstream_sha256": "3785dcb0e353e8c98d0cd04616ad69d851c773ac578074aeccf1625b10ddfcf8",
+      "vendor_sha256": "3785dcb0e353e8c98d0cd04616ad69d851c773ac578074aeccf1625b10ddfcf8"
+    },
+    {
+      "path": "Jolt/Physics/Constraints/SpringSettings.cpp",
+      "upstream_sha256": "14d206fa85833e8ea839f5a4989742d19e26186951b068f75788f24150f1a41b",
+      "vendor_sha256": "14d206fa85833e8ea839f5a4989742d19e26186951b068f75788f24150f1a41b"
+    },
+    {
+      "path": "Jolt/Physics/Constraints/SpringSettings.h",
+      "upstream_sha256": "be604390ac70eb268cdaf107f72d535daf1c97dbf31f64ac1ada04fc007da4b6",
+      "vendor_sha256": "be604390ac70eb268cdaf107f72d535daf1c97dbf31f64ac1ada04fc007da4b6"
+    },
+    {
+      "path": "Jolt/Physics/Constraints/SwingTwistConstraint.cpp",
+      "upstream_sha256": "cd1b1beab93c99b4695cf836f416f7d43d47b0bdc9e81213f4029b25ce020736",
+      "vendor_sha256": "cd1b1beab93c99b4695cf836f416f7d43d47b0bdc9e81213f4029b25ce020736"
+    },
+    {
+      "path": "Jolt/Physics/Constraints/SwingTwistConstraint.h",
+      "upstream_sha256": "5cd0d8d3c0d20e19624e7578c1faabb01a957f7885481580faf6c44904ddb0fd",
+      "vendor_sha256": "5cd0d8d3c0d20e19624e7578c1faabb01a957f7885481580faf6c44904ddb0fd"
+    },
+    {
+      "path": "Jolt/Physics/Constraints/TwoBodyConstraint.cpp",
+      "upstream_sha256": "089855c0bc0df011b43d472c10bc09985b487655648cc04f0cb8b0ecd9002bb9",
+      "vendor_sha256": "089855c0bc0df011b43d472c10bc09985b487655648cc04f0cb8b0ecd9002bb9"
+    },
+    {
+      "path": "Jolt/Physics/Constraints/TwoBodyConstraint.h",
+      "upstream_sha256": "aeaeab175e1f01917c95e89e56e6d5d90fc9d694b2e1c3b43547ffd798dc9a1a",
+      "vendor_sha256": "aeaeab175e1f01917c95e89e56e6d5d90fc9d694b2e1c3b43547ffd798dc9a1a"
+    },
+    {
+      "path": "Jolt/Physics/DeterminismLog.cpp",
+      "upstream_sha256": "8992a68c7f693179fb218fb3ac3fe441de476a580e1472b7097b8ec596a554bf",
+      "vendor_sha256": "8992a68c7f693179fb218fb3ac3fe441de476a580e1472b7097b8ec596a554bf"
+    },
+    {
+      "path": "Jolt/Physics/DeterminismLog.h",
+      "upstream_sha256": "e082fe450767a0003007b5d6a2366d9bc712a609ac1a0d5de8213f91b25bc0c5",
+      "vendor_sha256": "e082fe450767a0003007b5d6a2366d9bc712a609ac1a0d5de8213f91b25bc0c5"
+    },
+    {
+      "path": "Jolt/Physics/EActivation.h",
+      "upstream_sha256": "eb80cd6371f0d8e80836c2a9c5dce20de9b47609e2a6025b8fc727cf018fc016",
+      "vendor_sha256": "eb80cd6371f0d8e80836c2a9c5dce20de9b47609e2a6025b8fc727cf018fc016"
+    },
+    {
+      "path": "Jolt/Physics/EPhysicsUpdateError.h",
+      "upstream_sha256": "d18eb5b2e3b931418347437192447e5c892b529dab12e9342462cb7c9b9094d8",
+      "vendor_sha256": "d18eb5b2e3b931418347437192447e5c892b529dab12e9342462cb7c9b9094d8"
+    },
+    {
+      "path": "Jolt/Physics/IslandBuilder.cpp",
+      "upstream_sha256": "f7e331acddf294d3c0b3bcc8395b8ad76116a2327adc7617dd6d62a5cd4ebc74",
+      "vendor_sha256": "f7e331acddf294d3c0b3bcc8395b8ad76116a2327adc7617dd6d62a5cd4ebc74"
+    },
+    {
+      "path": "Jolt/Physics/IslandBuilder.h",
+      "upstream_sha256": "61790e16aa4d8acdf1c9d4019137cd31779fe33731b6185e90d64050357a1d93",
+      "vendor_sha256": "61790e16aa4d8acdf1c9d4019137cd31779fe33731b6185e90d64050357a1d93"
+    },
+    {
+      "path": "Jolt/Physics/LargeIslandSplitter.cpp",
+      "upstream_sha256": "1b9b9b92b060caa9e457a75f488f67a15e3a73799a8a5f180b591299ab4e05e4",
+      "vendor_sha256": "1b9b9b92b060caa9e457a75f488f67a15e3a73799a8a5f180b591299ab4e05e4"
+    },
+    {
+      "path": "Jolt/Physics/LargeIslandSplitter.h",
+      "upstream_sha256": "ab061e2a29182f1688da873c562ecba8e5f52466249882c75f368beb09782927",
+      "vendor_sha256": "ab061e2a29182f1688da873c562ecba8e5f52466249882c75f368beb09782927"
+    },
+    {
+      "path": "Jolt/Physics/PhysicsLock.h",
+      "upstream_sha256": "2f446a3af03553429797c1bc4ca4e5dcfe072455a69c7239c49ec99634e7dd48",
+      "vendor_sha256": "2f446a3af03553429797c1bc4ca4e5dcfe072455a69c7239c49ec99634e7dd48"
+    },
+    {
+      "path": "Jolt/Physics/PhysicsScene.cpp",
+      "upstream_sha256": "698394820ae56dfb1e222ab6562cf0c4213dd08326d0963fac430168de212296",
+      "vendor_sha256": "698394820ae56dfb1e222ab6562cf0c4213dd08326d0963fac430168de212296"
+    },
+    {
+      "path": "Jolt/Physics/PhysicsScene.h",
+      "upstream_sha256": "f40e6a194fc75471b48dff9a8961af03e035cc08770532be0c28832f6098a111",
+      "vendor_sha256": "f40e6a194fc75471b48dff9a8961af03e035cc08770532be0c28832f6098a111"
+    },
+    {
+      "path": "Jolt/Physics/PhysicsSettings.h",
+      "upstream_sha256": "3cc953141c6e4c073c2dcbdf67c8f38af0fec38863bf374672df7b980ed388fa",
+      "vendor_sha256": "3cc953141c6e4c073c2dcbdf67c8f38af0fec38863bf374672df7b980ed388fa"
+    },
+    {
+      "path": "Jolt/Physics/PhysicsStepListener.h",
+      "upstream_sha256": "8c8fca84377ad2b77759bcd145ee7eefe95e1668c95b0eb9aa2779180acf548e",
+      "vendor_sha256": "8c8fca84377ad2b77759bcd145ee7eefe95e1668c95b0eb9aa2779180acf548e"
+    },
+    {
+      "path": "Jolt/Physics/PhysicsSystem.cpp",
+      "upstream_sha256": "ddd5917ebf53dc7ac79490240e0f89aec4e9553675b79d4ab05d18cfd2822a00",
+      "vendor_sha256": "ddd5917ebf53dc7ac79490240e0f89aec4e9553675b79d4ab05d18cfd2822a00"
+    },
+    {
+      "path": "Jolt/Physics/PhysicsSystem.h",
+      "upstream_sha256": "3a8aa94120e5086c3ea46aba03a66e087be35da28e6a88a9b91725f7e261bac2",
+      "vendor_sha256": "3a8aa94120e5086c3ea46aba03a66e087be35da28e6a88a9b91725f7e261bac2"
+    },
+    {
+      "path": "Jolt/Physics/PhysicsUpdateContext.cpp",
+      "upstream_sha256": "85a87b2eb177bf1764eeb02c1a4f5b101d09de2a70370738e3bd04bcff53d9f5",
+      "vendor_sha256": "85a87b2eb177bf1764eeb02c1a4f5b101d09de2a70370738e3bd04bcff53d9f5"
+    },
+    {
+      "path": "Jolt/Physics/PhysicsUpdateContext.h",
+      "upstream_sha256": "44add2c870e8a42df0e07d5d6842a70d94be1f256f9f480969f40d77d0a2062c",
+      "vendor_sha256": "44add2c870e8a42df0e07d5d6842a70d94be1f256f9f480969f40d77d0a2062c"
+    },
+    {
+      "path": "Jolt/Physics/Ragdoll/Ragdoll.cpp",
+      "upstream_sha256": "a32fe223e99c2fafc8b3e69f5a4412c032c068c1be3b91ae9c7a07f602f59864",
+      "vendor_sha256": "a32fe223e99c2fafc8b3e69f5a4412c032c068c1be3b91ae9c7a07f602f59864"
+    },
+    {
+      "path": "Jolt/Physics/Ragdoll/Ragdoll.h",
+      "upstream_sha256": "668c798e557ec89d9ea2b5a6adca3f7c4245c4a7d7f9bcbcea02b09789534841",
+      "vendor_sha256": "668c798e557ec89d9ea2b5a6adca3f7c4245c4a7d7f9bcbcea02b09789534841"
+    },
+    {
+      "path": "Jolt/Physics/SoftBody/SoftBodyContactListener.h",
+      "upstream_sha256": "a9f8b02f3cad01e6861793a81471666c82ba507b7c71f0a06c90161f8190e9a7",
+      "vendor_sha256": "a9f8b02f3cad01e6861793a81471666c82ba507b7c71f0a06c90161f8190e9a7"
+    },
+    {
+      "path": "Jolt/Physics/SoftBody/SoftBodyCreationSettings.cpp",
+      "upstream_sha256": "e09be77cc46d6249fcef4e3303ea512f37d963932599a3f1fdfc656b55325713",
+      "vendor_sha256": "e09be77cc46d6249fcef4e3303ea512f37d963932599a3f1fdfc656b55325713"
+    },
+    {
+      "path": "Jolt/Physics/SoftBody/SoftBodyCreationSettings.h",
+      "upstream_sha256": "702381de299c320d6aed169c14e63ac115ea3eacd2367e0f0b9ab377ccffad01",
+      "vendor_sha256": "702381de299c320d6aed169c14e63ac115ea3eacd2367e0f0b9ab377ccffad01"
+    },
+    {
+      "path": "Jolt/Physics/SoftBody/SoftBodyManifold.h",
+      "upstream_sha256": "c74f71b0fcd410f9efc7068fa6355b2c17674d81eebbf02e401fc1efbbe0bfb4",
+      "vendor_sha256": "c74f71b0fcd410f9efc7068fa6355b2c17674d81eebbf02e401fc1efbbe0bfb4"
+    },
+    {
+      "path": "Jolt/Physics/SoftBody/SoftBodyMotionProperties.cpp",
+      "upstream_sha256": "d53fdc03a266bdc0dac6842f8b1023b4c1861256e2b386d639c620f5c0ca0ccf",
+      "vendor_sha256": "d53fdc03a266bdc0dac6842f8b1023b4c1861256e2b386d639c620f5c0ca0ccf"
+    },
+    {
+      "path": "Jolt/Physics/SoftBody/SoftBodyMotionProperties.h",
+      "upstream_sha256": "544b8bdec95b2c79b988a60c051885025dd0abb271e5e80c01719fce9341cd11",
+      "vendor_sha256": "544b8bdec95b2c79b988a60c051885025dd0abb271e5e80c01719fce9341cd11"
+    },
+    {
+      "path": "Jolt/Physics/SoftBody/SoftBodyShape.cpp",
+      "upstream_sha256": "3652f5f15e1de0ec383652a27983a98988d617a95a48924ca9509c859a1d8961",
+      "vendor_sha256": "3652f5f15e1de0ec383652a27983a98988d617a95a48924ca9509c859a1d8961"
+    },
+    {
+      "path": "Jolt/Physics/SoftBody/SoftBodyShape.h",
+      "upstream_sha256": "da7b3deaaddd73ee4f50a3f8985a1f9b2d0381823ab12ae4e97c462ad00e2088",
+      "vendor_sha256": "da7b3deaaddd73ee4f50a3f8985a1f9b2d0381823ab12ae4e97c462ad00e2088"
+    },
+    {
+      "path": "Jolt/Physics/SoftBody/SoftBodySharedSettings.cpp",
+      "upstream_sha256": "3f8d248895eb0e7ee1de7f2c4110d26f7a455da24b7d3002119a7f7b6bba6000",
+      "vendor_sha256": "3f8d248895eb0e7ee1de7f2c4110d26f7a455da24b7d3002119a7f7b6bba6000"
+    },
+    {
+      "path": "Jolt/Physics/SoftBody/SoftBodySharedSettings.h",
+      "upstream_sha256": "ee6617d7014470d0e9375fe3fb1b2ad793f340bebf307c345038b3f4f192b999",
+      "vendor_sha256": "ee6617d7014470d0e9375fe3fb1b2ad793f340bebf307c345038b3f4f192b999"
+    },
+    {
+      "path": "Jolt/Physics/SoftBody/SoftBodyUpdateContext.h",
+      "upstream_sha256": "366a476f9bedc301fd114ac310dc7e226a0af364647fdaa4b6f044ab36a357e9",
+      "vendor_sha256": "366a476f9bedc301fd114ac310dc7e226a0af364647fdaa4b6f044ab36a357e9"
+    },
+    {
+      "path": "Jolt/Physics/SoftBody/SoftBodyVertex.h",
+      "upstream_sha256": "8ce9d6ce6d91422065c5afedb1e166f2a3504c3f9bf3ca579c4830968cf984e3",
+      "vendor_sha256": "8ce9d6ce6d91422065c5afedb1e166f2a3504c3f9bf3ca579c4830968cf984e3"
+    },
+    {
+      "path": "Jolt/Physics/StateRecorder.h",
+      "upstream_sha256": "f5647e3de973da9b45abfbb37fd9cfdc303dfc36a7e52e62298a7d01fb2cb5ee",
+      "vendor_sha256": "f5647e3de973da9b45abfbb37fd9cfdc303dfc36a7e52e62298a7d01fb2cb5ee"
+    },
+    {
+      "path": "Jolt/Physics/StateRecorderImpl.cpp",
+      "upstream_sha256": "3f12a9d71eb1cadfcca17233696b41984f998e6ecbd414c8e6eb2a22229026a5",
+      "vendor_sha256": "3f12a9d71eb1cadfcca17233696b41984f998e6ecbd414c8e6eb2a22229026a5"
+    },
+    {
+      "path": "Jolt/Physics/StateRecorderImpl.h",
+      "upstream_sha256": "196c09c176ff1b85a5333f8c5b50c7c3c78574ac2b9e848d7b3c074cf99e59b0",
+      "vendor_sha256": "196c09c176ff1b85a5333f8c5b50c7c3c78574ac2b9e848d7b3c074cf99e59b0"
+    },
+    {
+      "path": "Jolt/Physics/Vehicle/MotorcycleController.cpp",
+      "upstream_sha256": "7e284b19b668284a64aab7add0e30e67fa09adc192a561120b8562c7ac1aa9b0",
+      "vendor_sha256": "7e284b19b668284a64aab7add0e30e67fa09adc192a561120b8562c7ac1aa9b0"
+    },
+    {
+      "path": "Jolt/Physics/Vehicle/MotorcycleController.h",
+      "upstream_sha256": "2b9de2844f275cc7a871ff650e3fb2d26b076e6ab6a8ae63e0567c8da4291d38",
+      "vendor_sha256": "2b9de2844f275cc7a871ff650e3fb2d26b076e6ab6a8ae63e0567c8da4291d38"
+    },
+    {
+      "path": "Jolt/Physics/Vehicle/TrackedVehicleController.cpp",
+      "upstream_sha256": "780ab68e1be031d6fbffa28ce1d1470b0959fd96c55642c3b1a26704c6743e43",
+      "vendor_sha256": "780ab68e1be031d6fbffa28ce1d1470b0959fd96c55642c3b1a26704c6743e43"
+    },
+    {
+      "path": "Jolt/Physics/Vehicle/TrackedVehicleController.h",
+      "upstream_sha256": "defc241115572a460e4cc8e5661f6419dfe3735ac7cd0dcdd357b0e2b5a632c8",
+      "vendor_sha256": "defc241115572a460e4cc8e5661f6419dfe3735ac7cd0dcdd357b0e2b5a632c8"
+    },
+    {
+      "path": "Jolt/Physics/Vehicle/VehicleAntiRollBar.cpp",
+      "upstream_sha256": "a8490d8e07ff2fb85d3d3a37288ddd595a6a223dddbaee156923be38270a30d4",
+      "vendor_sha256": "a8490d8e07ff2fb85d3d3a37288ddd595a6a223dddbaee156923be38270a30d4"
+    },
+    {
+      "path": "Jolt/Physics/Vehicle/VehicleAntiRollBar.h",
+      "upstream_sha256": "572352e071af3ecfed7b6556f8aa7c4f6f38a92c822e46f59f799afe06a28b7a",
+      "vendor_sha256": "572352e071af3ecfed7b6556f8aa7c4f6f38a92c822e46f59f799afe06a28b7a"
+    },
+    {
+      "path": "Jolt/Physics/Vehicle/VehicleCollisionTester.cpp",
+      "upstream_sha256": "e08f716097454656567169c8385f4cbbaa4207740c8845a87ab6859d27653ef7",
+      "vendor_sha256": "e08f716097454656567169c8385f4cbbaa4207740c8845a87ab6859d27653ef7"
+    },
+    {
+      "path": "Jolt/Physics/Vehicle/VehicleCollisionTester.h",
+      "upstream_sha256": "f921722a5ec89495690db6f5252b3dd03856382df45ff434cdec4a37071152c0",
+      "vendor_sha256": "f921722a5ec89495690db6f5252b3dd03856382df45ff434cdec4a37071152c0"
+    },
+    {
+      "path": "Jolt/Physics/Vehicle/VehicleConstraint.cpp",
+      "upstream_sha256": "9e84a27c79b75c964e57c5421e6bb40ad05b298fc14af50c335ca37ffd31ed93",
+      "vendor_sha256": "9e84a27c79b75c964e57c5421e6bb40ad05b298fc14af50c335ca37ffd31ed93"
+    },
+    {
+      "path": "Jolt/Physics/Vehicle/VehicleConstraint.h",
+      "upstream_sha256": "fdc7c4dd67cb9e90721c3598cb2831f4accf6fd6e4ba14efcf51135dd84f3b8b",
+      "vendor_sha256": "fdc7c4dd67cb9e90721c3598cb2831f4accf6fd6e4ba14efcf51135dd84f3b8b"
+    },
+    {
+      "path": "Jolt/Physics/Vehicle/VehicleController.cpp",
+      "upstream_sha256": "f8c5629f0cc22df582bd934b5b27d821036e1424d362f783858da24d88079155",
+      "vendor_sha256": "f8c5629f0cc22df582bd934b5b27d821036e1424d362f783858da24d88079155"
+    },
+    {
+      "path": "Jolt/Physics/Vehicle/VehicleController.h",
+      "upstream_sha256": "bc2b7266f3c66be4cf42b840815a6c51b7dc660dd240c3d60fa869e28bff8d9d",
+      "vendor_sha256": "bc2b7266f3c66be4cf42b840815a6c51b7dc660dd240c3d60fa869e28bff8d9d"
+    },
+    {
+      "path": "Jolt/Physics/Vehicle/VehicleDifferential.cpp",
+      "upstream_sha256": "b1296832eefb3c20ba2ebda36e1c40f0efb87aaf16f68feedf5c86befc0e21f3",
+      "vendor_sha256": "b1296832eefb3c20ba2ebda36e1c40f0efb87aaf16f68feedf5c86befc0e21f3"
+    },
+    {
+      "path": "Jolt/Physics/Vehicle/VehicleDifferential.h",
+      "upstream_sha256": "eecead798815d308fd5f9bae6b4e0ff7e088e8719d3be77910f7e8fd117d9c80",
+      "vendor_sha256": "eecead798815d308fd5f9bae6b4e0ff7e088e8719d3be77910f7e8fd117d9c80"
+    },
+    {
+      "path": "Jolt/Physics/Vehicle/VehicleEngine.cpp",
+      "upstream_sha256": "999517fd4e1545caf0c381b21d3a65628c96e3625f54ab70f8f63b01635bb4e2",
+      "vendor_sha256": "999517fd4e1545caf0c381b21d3a65628c96e3625f54ab70f8f63b01635bb4e2"
+    },
+    {
+      "path": "Jolt/Physics/Vehicle/VehicleEngine.h",
+      "upstream_sha256": "b118c59d3d8dc61aa27193532aad282aba8030856a7192bda78d4a7cc1432452",
+      "vendor_sha256": "b118c59d3d8dc61aa27193532aad282aba8030856a7192bda78d4a7cc1432452"
+    },
+    {
+      "path": "Jolt/Physics/Vehicle/VehicleTrack.cpp",
+      "upstream_sha256": "30a399a0613e44cdd82531884af8da75fd42e67e055c7c00da62d24723c79460",
+      "vendor_sha256": "30a399a0613e44cdd82531884af8da75fd42e67e055c7c00da62d24723c79460"
+    },
+    {
+      "path": "Jolt/Physics/Vehicle/VehicleTrack.h",
+      "upstream_sha256": "0e2d28247c543f46d32b8a19691f95a34b01da56fbd88936dbaecb167dbdbdb8",
+      "vendor_sha256": "0e2d28247c543f46d32b8a19691f95a34b01da56fbd88936dbaecb167dbdbdb8"
+    },
+    {
+      "path": "Jolt/Physics/Vehicle/VehicleTransmission.cpp",
+      "upstream_sha256": "caf9350ace077ebf09ed91357c5d5c9db62308ca9179a5ddc7759de0596f9d50",
+      "vendor_sha256": "caf9350ace077ebf09ed91357c5d5c9db62308ca9179a5ddc7759de0596f9d50"
+    },
+    {
+      "path": "Jolt/Physics/Vehicle/VehicleTransmission.h",
+      "upstream_sha256": "5f63a899ab5496400bb19ce39863b3a7d107683dba8df5c643b58430a3b5afdb",
+      "vendor_sha256": "5f63a899ab5496400bb19ce39863b3a7d107683dba8df5c643b58430a3b5afdb"
+    },
+    {
+      "path": "Jolt/Physics/Vehicle/Wheel.cpp",
+      "upstream_sha256": "1099cfb858271f294d7a27e736431f3f0c11ce09d2781fe8cfeeacfe8489ebe9",
+      "vendor_sha256": "1099cfb858271f294d7a27e736431f3f0c11ce09d2781fe8cfeeacfe8489ebe9"
+    },
+    {
+      "path": "Jolt/Physics/Vehicle/Wheel.h",
+      "upstream_sha256": "9ecc3c77c6dca9b0c29c325cdb18ebaf01917a742742825b4a215989240e9a99",
+      "vendor_sha256": "9ecc3c77c6dca9b0c29c325cdb18ebaf01917a742742825b4a215989240e9a99"
+    },
+    {
+      "path": "Jolt/Physics/Vehicle/WheeledVehicleController.cpp",
+      "upstream_sha256": "baf82a457dabb439ab24c0146900ded465a78ff3afcfe75f9ef6bc7ddb2c1aaf",
+      "vendor_sha256": "baf82a457dabb439ab24c0146900ded465a78ff3afcfe75f9ef6bc7ddb2c1aaf"
+    },
+    {
+      "path": "Jolt/Physics/Vehicle/WheeledVehicleController.h",
+      "upstream_sha256": "7e3a4e9d4615a9671630369738b1f5a9e4613d97b27924ba22abf23959ec46b7",
+      "vendor_sha256": "7e3a4e9d4615a9671630369738b1f5a9e4613d97b27924ba22abf23959ec46b7"
+    },
+    {
+      "path": "Jolt/RegisterTypes.cpp",
+      "upstream_sha256": "0722b4434addbde9f3e373283bbdae86b9f623a32e635eccf1656e9542343c95",
+      "vendor_sha256": "0722b4434addbde9f3e373283bbdae86b9f623a32e635eccf1656e9542343c95"
+    },
+    {
+      "path": "Jolt/RegisterTypes.h",
+      "upstream_sha256": "8c14ca279309ea904d53b7ab6da82cfed21089b5c2ca248b6b71757f42997830",
+      "vendor_sha256": "8c14ca279309ea904d53b7ab6da82cfed21089b5c2ca248b6b71757f42997830"
+    },
+    {
+      "path": "Jolt/Renderer/DebugRenderer.cpp",
+      "upstream_sha256": "537538b46bb0c50d2ffcecb61ffc588275aa06ad22109938bddf143197daf714",
+      "vendor_sha256": "537538b46bb0c50d2ffcecb61ffc588275aa06ad22109938bddf143197daf714"
+    },
+    {
+      "path": "Jolt/Renderer/DebugRenderer.h",
+      "upstream_sha256": "c3bafd086e782c0cb72dcba27d82408f23220ebe0b03d372efccd2ee4e56b19c",
+      "vendor_sha256": "c3bafd086e782c0cb72dcba27d82408f23220ebe0b03d372efccd2ee4e56b19c"
+    },
+    {
+      "path": "Jolt/Renderer/DebugRendererPlayback.cpp",
+      "upstream_sha256": "92c3500c517f8d14974ea1672f97b9514393959f24af2e3df14826a46c711cc5",
+      "vendor_sha256": "92c3500c517f8d14974ea1672f97b9514393959f24af2e3df14826a46c711cc5"
+    },
+    {
+      "path": "Jolt/Renderer/DebugRendererPlayback.h",
+      "upstream_sha256": "c3792c927c4c36a7006f1dcf5b069ba8cba1b825753637f8815d94b78cc7db98",
+      "vendor_sha256": "c3792c927c4c36a7006f1dcf5b069ba8cba1b825753637f8815d94b78cc7db98"
+    },
+    {
+      "path": "Jolt/Renderer/DebugRendererRecorder.cpp",
+      "upstream_sha256": "cbae9c0ef5f60c67b6a55f9001251c069d695dd036e47ca8a4dc78c82ebd8a05",
+      "vendor_sha256": "cbae9c0ef5f60c67b6a55f9001251c069d695dd036e47ca8a4dc78c82ebd8a05"
+    },
+    {
+      "path": "Jolt/Renderer/DebugRendererRecorder.h",
+      "upstream_sha256": "816c7dc83cdbd5df0413212b4093051f057f140d249a59b9148f2113613e731e",
+      "vendor_sha256": "816c7dc83cdbd5df0413212b4093051f057f140d249a59b9148f2113613e731e"
+    },
+    {
+      "path": "Jolt/Renderer/DebugRendererSimple.cpp",
+      "upstream_sha256": "76d7cb51e3e054ef5700dc72384c108bbf005ef649b6428806344a866d71c05e",
+      "vendor_sha256": "76d7cb51e3e054ef5700dc72384c108bbf005ef649b6428806344a866d71c05e"
+    },
+    {
+      "path": "Jolt/Renderer/DebugRendererSimple.h",
+      "upstream_sha256": "47dd9c183381a9ac52e8ab60b11811db7190cc4ce5583f3e92de5fc89f7c1651",
+      "vendor_sha256": "47dd9c183381a9ac52e8ab60b11811db7190cc4ce5583f3e92de5fc89f7c1651"
+    },
+    {
+      "path": "Jolt/Skeleton/SkeletalAnimation.cpp",
+      "upstream_sha256": "0f5a04bb8a696d1327a8cd51d36a31407361e47d33817716f0029848c081b359",
+      "vendor_sha256": "0f5a04bb8a696d1327a8cd51d36a31407361e47d33817716f0029848c081b359"
+    },
+    {
+      "path": "Jolt/Skeleton/SkeletalAnimation.h",
+      "upstream_sha256": "7e4324d93d08c18926a739b6e38f7ff5f52a964fc1b67fd83983dad7075c60b9",
+      "vendor_sha256": "7e4324d93d08c18926a739b6e38f7ff5f52a964fc1b67fd83983dad7075c60b9"
+    },
+    {
+      "path": "Jolt/Skeleton/Skeleton.cpp",
+      "upstream_sha256": "0588bf274bf911c3e77a3aa437e7b45c566653fd7d55dbb8a4f174f34cd435ee",
+      "vendor_sha256": "0588bf274bf911c3e77a3aa437e7b45c566653fd7d55dbb8a4f174f34cd435ee"
+    },
+    {
+      "path": "Jolt/Skeleton/Skeleton.h",
+      "upstream_sha256": "b15c8d58c47fa0938767e90a91a3808e1b33ca16277afec596fbfa1861ce8ddd",
+      "vendor_sha256": "b15c8d58c47fa0938767e90a91a3808e1b33ca16277afec596fbfa1861ce8ddd"
+    },
+    {
+      "path": "Jolt/Skeleton/SkeletonMapper.cpp",
+      "upstream_sha256": "43765da006b166748a4744fcd5b9ad5e59d8e665ca9e0fa983bec98661bc5227",
+      "vendor_sha256": "43765da006b166748a4744fcd5b9ad5e59d8e665ca9e0fa983bec98661bc5227"
+    },
+    {
+      "path": "Jolt/Skeleton/SkeletonMapper.h",
+      "upstream_sha256": "f397801c093507efe49f64c6a781bb3a8b245eaf1df85bd79d9f6b9009f4712d",
+      "vendor_sha256": "f397801c093507efe49f64c6a781bb3a8b245eaf1df85bd79d9f6b9009f4712d"
+    },
+    {
+      "path": "Jolt/Skeleton/SkeletonPose.cpp",
+      "upstream_sha256": "399c9b38397e675d658204579d0c8be1c50a0786b2e93ced31a7169c03cc2c03",
+      "vendor_sha256": "399c9b38397e675d658204579d0c8be1c50a0786b2e93ced31a7169c03cc2c03"
+    },
+    {
+      "path": "Jolt/Skeleton/SkeletonPose.h",
+      "upstream_sha256": "56892292cf53fa57b57fd167efda994e47b2adb236dff081ef264ca8d0582f1c",
+      "vendor_sha256": "56892292cf53fa57b57fd167efda994e47b2adb236dff081ef264ca8d0582f1c"
+    },
+    {
+      "path": "Jolt/TriangleSplitter/TriangleSplitter.cpp",
+      "upstream_sha256": "599203dc61f5389646f42e90369cb3c60fa11731a16d5cfa0fca2c2edb2f903f",
+      "vendor_sha256": "599203dc61f5389646f42e90369cb3c60fa11731a16d5cfa0fca2c2edb2f903f"
+    },
+    {
+      "path": "Jolt/TriangleSplitter/TriangleSplitter.h",
+      "upstream_sha256": "9f04e218e8bf173c16a6849a67c84bf54d0a63a568efe1e204b9d2f27070ad67",
+      "vendor_sha256": "9f04e218e8bf173c16a6849a67c84bf54d0a63a568efe1e204b9d2f27070ad67"
+    },
+    {
+      "path": "Jolt/TriangleSplitter/TriangleSplitterBinning.cpp",
+      "upstream_sha256": "39200543d3a5d7a64ec78426454be63af8dd5f8fad6b62efe3a5a2cd67493af8",
+      "vendor_sha256": "39200543d3a5d7a64ec78426454be63af8dd5f8fad6b62efe3a5a2cd67493af8"
+    },
+    {
+      "path": "Jolt/TriangleSplitter/TriangleSplitterBinning.h",
+      "upstream_sha256": "3d103a75f89d32ad34b190184a5af69dc54c907ad0f8aa20ad1ee43e5f5ba050",
+      "vendor_sha256": "3d103a75f89d32ad34b190184a5af69dc54c907ad0f8aa20ad1ee43e5f5ba050"
+    },
+    {
+      "path": "Jolt/TriangleSplitter/TriangleSplitterMean.cpp",
+      "upstream_sha256": "22d95e38f9b14870e27030d50b2446c0aa44705f30ddadd815312a39fe0836b7",
+      "vendor_sha256": "22d95e38f9b14870e27030d50b2446c0aa44705f30ddadd815312a39fe0836b7"
+    },
+    {
+      "path": "Jolt/TriangleSplitter/TriangleSplitterMean.h",
+      "upstream_sha256": "2d9d64e760e0640a3bbdda8ab0c8fc75ab4b8399a20e204c0cd34197f37a7775",
+      "vendor_sha256": "2d9d64e760e0640a3bbdda8ab0c8fc75ab4b8399a20e204c0cd34197f37a7775"
+    },
+    {
+      "path": "LICENSE",
+      "upstream_sha256": "800abe35d64ad9defd636ff1ee8c961e06f0ebca3ef8d10083e8aa0e8ef86ac3",
+      "vendor_sha256": "800abe35d64ad9defd636ff1ee8c961e06f0ebca3ef8d10083e8aa0e8ef86ac3"
+    },
+    {
+      "path": "README.md",
+      "upstream_sha256": "ea098afdbcac2146169057174f9442c0dbd79ef73b7b4c96125fdbc8fd13a061",
+      "vendor_sha256": "ea098afdbcac2146169057174f9442c0dbd79ef73b7b4c96125fdbc8fd13a061"
+    }
+  ],
+  "local_files": [
+    {
+      "path": "JOLT_VERSION.txt",
+      "sha256": "446021b40af30ca3b433daf6d490cc64ad06ca94f5d0ac99960fbd33b4b26588"
+    }
+  ],
+  "excluded_local_cache_directory": ".xmake",
+  "patches": []
+}

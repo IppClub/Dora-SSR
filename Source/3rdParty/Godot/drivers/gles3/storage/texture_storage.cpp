@@ -35,6 +35,7 @@
 #include "../effects/copy_effects.h"
 #include "../rasterizer_gles3.h"
 #include "config.h"
+#include "modules/modules_enabled.gen.h"
 #include "utilities.h"
 
 using namespace GLES3;
@@ -1257,6 +1258,25 @@ Ref<Image> TextureStorage::texture_2d_get(RID p_texture) const {
 	}
 #endif
 
+	GLuint readback_texture = texture->tex_id;
+#ifdef MODULE_DORA_BRIDGE_ENABLED
+	// Dora can replace the render target's color attachment with a shared
+	// texture while retaining the original texture for restoration.
+	if (texture->is_render_target && texture->render_target && texture->render_target->fbo) {
+		GLint previous_read = 0;
+		glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &previous_read);
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, texture->render_target->fbo);
+		GLint kind = 0, name = 0;
+		glGetFramebufferAttachmentParameteriv(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE, &kind);
+		if (kind == GL_TEXTURE) {
+			glGetFramebufferAttachmentParameteriv(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME, &name);
+			if (name) {
+				readback_texture = GLuint(name);
+			}
+		}
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, GLuint(previous_read));
+	}
+#endif
 	Ref<Image> image;
 #ifdef GL_API_ENABLED
 	if (RasterizerGLES3::is_gles_over_gl()) {
@@ -1271,7 +1291,7 @@ Ref<Image> TextureStorage::texture_2d_get(RID p_texture) const {
 
 		glActiveTexture(GL_TEXTURE0);
 
-		glBindTexture(texture->target, texture->tex_id);
+		glBindTexture(texture->target, readback_texture);
 
 		glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 
@@ -1333,7 +1353,7 @@ Ref<Image> TextureStorage::texture_2d_get(RID p_texture) const {
 		glDepthFunc(GL_GEQUAL);
 		glColorMask(1, 1, 1, 1);
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texture->tex_id);
+		glBindTexture(GL_TEXTURE_2D, readback_texture);
 
 		glViewport(0, 0, texture->alloc_width, texture->alloc_height);
 		glClearColor(0.0, 0.0, 0.0, 0.0);

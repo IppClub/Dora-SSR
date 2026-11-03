@@ -2,7 +2,7 @@ for _, name in ipairs({"dora-test", "dora-test-deps"}) do
     task(name)
         set_category("plugin")
         set_menu {
-            usage = "xmake " .. name .. " [--suite=contract|engine|ui|web|web-ide|studio|prototype|art] [--case=NAME] [--repo=PATH] [-- ARGS]",
+            usage = "xmake " .. name .. " [--suite=contract|engine|ui|web|web-ide|studio|prototype|art|godot-contract|godot-build] [--case=NAME] [--repo=PATH] [-- ARGS]",
             description = "Run current engine tests from Dora-Example latest default-branch HEAD (or an explicit local checkout)",
             options = {{nil, "suite", "kv", "contract", "Test suite"},
                 {nil, "case", "kv", nil, "Individual test filename without extension"},

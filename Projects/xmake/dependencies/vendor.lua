@@ -29,6 +29,12 @@ for _, target_name in ipairs({
 }) do
     target(target_name)
         set_default(false)
+        if target_name == "ogg" or target_name == "theoradec" then
+            -- Reopening a standalone vendor target does not retain the
+            -- file-scope mode rules. Apply them to the canonical targets so
+            -- Release archives receive optimization and NDEBUG as intended.
+            add_rules("mode.debug", "mode.release")
+        end
         if is_plat("windows") then
             add_cxxflags("/Zc:__cplusplus", "/Zc:preprocessor", {tools = "cl", force = true})
             -- Apply only to C source files; never let MSVC's c99 fallback

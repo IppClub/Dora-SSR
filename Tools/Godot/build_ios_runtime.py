@@ -1,27 +1,95 @@
 #!/usr/bin/env python3
-"""Build a standard-module iOS Metal LibGodot archive."""
-import argparse,hashlib,json,os,subprocess
+"""Build the pinned iOS Metal LibGodot archive with an audited platform profile."""
+import argparse
+import hashlib
+import json
+import os
 from pathlib import Path
-root=Path(__file__).resolve().parents[2]
+import re
+import shutil
+import subprocess
+import sys
+
+ROOT = Path(__file__).resolve().parents[2]
+SOURCE = ROOT / 'Source/3rdParty/Godot'
+
 def digest(path):
- with path.open('rb') as file:return hashlib.file_digest(file,'sha256').hexdigest()
-p=argparse.ArgumentParser();p.add_argument('--device',choices=['simulator','device'],default='simulator');p.add_argument('--jobs',type=int,default=2)
-a=p.parse_args();assert 1<=a.jobs<=16
-build=root/'build/godot-ios'/a.device;build.mkdir(parents=True,exist_ok=True)
-expected='b451eaa16d3abe0c7430e9ce1c4e83b146e5670e5b683dd8995c931fc82b57a0'
-source=root/'Source/3rdParty/Godot'
-for script in ('prepare.py','prepare_ios.py'):subprocess.run(['python3',str(root/'Tools/Godot'/script),str(source)],check=True)
-scons=root/'build/godot-runtime/venv/bin/scons';assert scons.is_file()
-command=[str(scons),'platform=ios','arch=arm64','target=template_debug','library_type=static_library','disable_path_overrides=no','simulator='+('yes' if a.device=='simulator' else 'no'),'metal=yes','vulkan=no','generate_bundle=no','optimize=none','debug_symbols=no','lto=none','-j'+str(a.jobs)]
-report=build/'compilation.json';report.unlink(missing_ok=True)
-with (build/'build.log').open('w') as log:result=subprocess.run(command,cwd=source,stdout=log,stderr=subprocess.STDOUT)
-if result.returncode:raise SystemExit(result.returncode)
-archives=list((source/'bin').glob('libgodot.ios.template_debug.arm64*.a'))
-archives=[path for path in archives if ('.simulator.' in path.name)==(a.device=='simulator')]
-assert len(archives)==1,archives
-sdk_name='iphonesimulator' if a.device=='simulator' else 'iphoneos'
-sdk=subprocess.check_output(['xcrun','--sdk',sdk_name,'--show-sdk-path'],text=True).strip()
-# Keep the archive as the primary compilation artifact. Framework linkage is a
-# separate step so native compile success never implies simulator/GPU acceptance.
-r={'passed':True,'scope':'iOS standard-module Metal LibGodot archive compilation only; no native app boot or GPU acceptance','device':a.device,'architecture':'arm64','sdk':sdk,'source_archive_sha256':expected,'command':command,'archive':str(archives[0]),'archive_sha256':digest(archives[0]),'vendor_validation_sha256':hashlib.sha256((root/'Tools/Godot/vendor_source.py').read_bytes()).hexdigest()}
-report.write_text(json.dumps(r,indent=2)+'\n');print(json.dumps(r,indent=2))
+    with path.open('rb') as file:
+        return hashlib.file_digest(file, 'sha256').hexdigest()
+
+def main():
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument('--device', choices=['simulator', 'device'], default='simulator')
+    p.add_argument('--target', choices=['template_debug', 'template_release'], default='template_debug')
+    p.add_argument('--builder', choices=['auto', 'xmake'], default='xmake',
+                   help='Native xmake; auto is a compatibility alias')
+    p.add_argument('--xmake', default=os.environ.get('DORA_GODOT_XMAKE', 'xmake'))
+    p.add_argument('--build-dir', type=Path)
+    p.add_argument('--jobs', type=int, default=2)
+    a = p.parse_args()
+    if not 1 <= a.jobs <= 16:
+        p.error('jobs must be between 1 and 16')
+    if sys.platform != 'darwin':
+        p.error('iOS builds require macOS and Xcode')
+    a.builder = 'xmake'
+    mode = 'release' if a.target == 'template_release' else 'debug'
+    build = (a.build_dir or ROOT / 'build/godot-ios' / a.device).resolve()
+    build.mkdir(parents=True, exist_ok=True)
+    report = build / 'compilation.json'
+    report.unlink(missing_ok=True)
+    for script in ('prepare.py', 'prepare_ios.py'):
+        subprocess.run([sys.executable, str(ROOT / 'Tools/Godot' / script), str(SOURCE)], check=True)
+    env = os.environ.copy()
+    env['PYTHONDONTWRITEBYTECODE'] = '1'
+    inputs = {}
+    toolchain = None
+    appledev = 'simulator' if a.device == 'simulator' else 'iphoneos'
+    if a.builder == 'xmake':
+        variant = 'ios_simulator_arm64' if a.device == 'simulator' else 'ios_device_arm64'
+        names = [f'Projects/xmake/godot/{variant}_sources.lua',
+                 'Projects/xmake/godot/template_release_ios.json', 'Projects/xmake/godot/ios_link.json',
+                 'Projects/xmake/godot/targets.lua', 'Tools/Godot/generate_xmake_sources.py', 'xmake.lua', 'Projects/xmake/options.lua', 'Projects/xmake/dependencies/host_tools.lua']
+        inputs = {name: digest(ROOT / name) for name in names}
+        xmake = shutil.which(a.xmake)
+        if not xmake:
+            p.error('Configured xmake executable is missing: ' + a.xmake)
+        version = re.search(r'xmake\s+v(\d+)\.', subprocess.check_output([xmake, '--version'], text=True))
+        if not version or int(version[1]) < 3:
+            p.error('Godot xmake migration requires xmake 3.x or newer')
+        env['XMAKE_CONFIGDIR'] = str(build / 'xmake-config')
+        commands = [[xmake, 'f', '-P', str(ROOT), '-c', '-p', 'iphoneos', '-a', 'arm64', '-m', mode,
+                     '--appledev=' + appledev, '--dora_godot_runtime=y','--dora_godot_standalone=y', '--ccache=n', '-y'],
+                    [xmake, 'l', '-P', str(ROOT), 'Projects/xmake/godot/toolchain_info.lua', str(build / 'toolchain.json')],
+                    [xmake, 'build', '-P', str(ROOT), '-j' + str(a.jobs), 'godot-runtime']]
+    (build / 'commands.json').write_text(json.dumps(commands, indent=2) + '\n')
+    with (build / 'build.log').open('w') as log:
+        for command in commands:
+            result = subprocess.run(command, cwd=ROOT,
+                                    env=env, stdout=log, stderr=subprocess.STDOUT)
+            if result.returncode:
+                raise SystemExit(result.returncode)
+    if any(digest(ROOT / name) != value for name, value in inputs.items()):
+        raise RuntimeError('Godot migration inputs changed during build')
+    sdk_name = 'iphonesimulator' if a.device == 'simulator' else 'iphoneos'
+    sdk = subprocess.check_output(['xcrun', '--sdk', sdk_name, '--show-sdk-path'], text=True).strip()
+    if a.builder == 'xmake':
+        toolchain = json.loads((build / 'toolchain.json').read_text())
+        assert toolchain['plat'] == 'iphoneos' and toolchain['arch'] == 'arm64', toolchain
+        assert toolchain['appledev'] == appledev and toolchain['target_minver'] == '14.0', toolchain
+        assert Path(toolchain['sdk']).resolve() == Path(sdk).resolve(), toolchain
+        archive = Path(toolchain['targetfile'])
+        if not archive.is_absolute():
+            archive = ROOT / archive
+    assert archive.is_file(), archive
+    r = {'passed': True, 'scope': 'iOS standard-module Metal archive compilation only; no app boot or GPU acceptance',
+         'device': a.device, 'architecture': 'arm64', 'sdk': sdk, 'build_target': a.target, 'builder': a.builder,
+         'toolchain': toolchain, 'commands': commands, 'command': commands[-1],
+         'source_archive_sha256': 'b451eaa16d3abe0c7430e9ce1c4e83b146e5670e5b683dd8995c931fc82b57a0',
+         'archive': str(archive), 'archive_sha256': digest(archive),
+         'vendor_validation_sha256': digest(ROOT / 'Tools/Godot/vendor_source.py'),
+         'migration_inputs_sha256': inputs}
+    report.write_text(json.dumps(r, indent=2) + '\n')
+    print(json.dumps(r, indent=2))
+
+if __name__ == '__main__':
+    main()

@@ -200,7 +200,7 @@ int bind_targets(void *handle,uint32_t width,uint32_t height,const uint64_t *tex
     for (uint32_t i=0;i<count;++i) {
         auto &slot=runtime.slots[i];
         slot.texture=(__bridge id<MTLTexture>)(void*)(uintptr_t)textures[i];
-        const uint64_t usage=RenderingDevice::TEXTURE_USAGE_SAMPLING_BIT|RenderingDevice::TEXTURE_USAGE_COLOR_ATTACHMENT_BIT;
+        const uint64_t usage=RenderingDevice::TEXTURE_USAGE_SAMPLING_BIT|RenderingDevice::TEXTURE_USAGE_COLOR_ATTACHMENT_BIT|RenderingDevice::TEXTURE_USAGE_CAN_COPY_FROM_BIT;
         slot.rd_texture=RenderingDevice::get_singleton()->texture_create_from_extension(RenderingDevice::TEXTURE_TYPE_2D,
             RenderingDevice::DATA_FORMAT_R8G8B8A8_UNORM,RenderingDevice::TEXTURE_SAMPLES_1,usage,
             textures[i],width,height,1,1,1);

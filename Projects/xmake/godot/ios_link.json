@@ -1,0 +1,10 @@
+{
+  "sdk_include_dirs": [
+    "System/Library/Frameworks/AudioUnit.framework/Headers",
+    "System/Library/Frameworks/Metal.framework/Headers",
+    "System/Library/Frameworks/MetalFX.framework/Headers",
+    "System/Library/Frameworks/OpenGLES.framework/Headers",
+    "System/Library/Frameworks/QuartzCore.framework/Headers",
+    "usr/include"
+  ]
+}

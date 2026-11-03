@@ -1,0 +1,22 @@
+[
+  {
+    "file": "LICENSE_A2",
+    "url": "https://raw.githubusercontent.com/BLAKE3-team/BLAKE3/1.8.2/LICENSE_A2",
+    "sha256": "00fcc7a934ddbc9ece2a7cc063ac788e284b703b1d705ccbba72d462aa97921e"
+  },
+  {
+    "file": "LICENSE_A2LLVM",
+    "url": "https://raw.githubusercontent.com/BLAKE3-team/BLAKE3/1.8.2/LICENSE_A2LLVM",
+    "sha256": "a5695f57ea0c221e0e8b7d784ff774c35e88c3d3270353646a925880bb3492cc"
+  },
+  {
+    "file": "LICENSE_CC0",
+    "url": "https://raw.githubusercontent.com/BLAKE3-team/BLAKE3/1.8.2/LICENSE_CC0",
+    "sha256": "a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499"
+  },
+  {
+    "file": "README.md",
+    "url": "https://raw.githubusercontent.com/BLAKE3-team/BLAKE3/1.8.2/README.md",
+    "sha256": "5062d006aa9b587c0ff1d0fe1582476d8deb0ba1e2194c673720ed83ad29b274"
+  }
+]

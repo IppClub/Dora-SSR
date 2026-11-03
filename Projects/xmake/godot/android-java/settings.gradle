@@ -1,0 +1,11 @@
+pluginManagement {
+    repositories { google(); mavenCentral(); gradlePluginPortal() }
+    plugins {
+        id 'com.android.library' version providers.gradleProperty('dora.godot.agp').get()
+        id 'org.jetbrains.kotlin.android' version providers.gradleProperty('dora.godot.kotlin').get()
+    }
+}
+dependencyResolutionManagement {
+    repositories { google(); mavenCentral() }
+}
+rootProject.name = 'DoraGodotJava'

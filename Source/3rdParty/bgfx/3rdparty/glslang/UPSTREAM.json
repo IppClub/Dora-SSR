@@ -1,0 +1,1212 @@
+{
+  "schema_version": 1,
+  "scope": "Retained-source correspondence with fixed bgfx and equivalent Khronos baseline; original import checkout and patch authorship are not inferred.",
+  "dora_import_commit": "0836aa1d1fc898d712c078a46e2ca9e10b70402e",
+  "bgfx_commit": "f1e0ba4b0bf9eaccf25889392c112ee98aeda272",
+  "bgfx_tree": "012a5e6a5ec269e592f0002b9dcfe9240738cfdf",
+  "bgfx_commit_evidence_sha256": "8d3a2558e491ba0e7964bf9fe6540023e5faa09ac1c277918e4d2eedf570941b",
+  "bgfx_tree_evidence_sha256": "ae18d664bb0ffba08e8cd950f623c806a7a4f39e92ba404467b0ac77f9b05c62",
+  "upstream_repository": "KhronosGroup/glslang",
+  "upstream_commit": "9d764997360b202d2ba7aaad9a401e57d8df56b3",
+  "upstream_archive_url": "https://codeload.github.com/KhronosGroup/glslang/tar.gz/9d764997360b202d2ba7aaad9a401e57d8df56b3",
+  "upstream_archive_sha256": "6119649d365791062cd8c6973a820e4d58cff63cd212962508c84048367a3a43",
+  "upstream_archive_bytes": 4235289,
+  "version": "15.4.0 (CHANGES.md)",
+  "patch": {
+    "path": "patches/bgfx-retained.patch",
+    "sha256": "58b017ff1c382b0a47c27c03c84714626f3267186200911a6b87de6b7567dc32"
+  },
+  "files": [
+    {
+      "path": "LICENSE.txt",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "adb783e734e906d1f46db5df29991dbde84bdb0ceab502ac2febb44fe3c2b5f4",
+      "upstream_sha256": "adb783e734e906d1f46db5df29991dbde84bdb0ceab502ac2febb44fe3c2b5f4",
+      "bgfx_blob_sha1": "054e68a4614e3ee255f13730319b8c7a1fe10182",
+      "mode": "100644"
+    },
+    {
+      "path": "SPIRV/CInterface/spirv_c_interface.cpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "9d0fe5d27fe206996582346449987feebc51b8e29266ca78244d1000435cd2e3",
+      "upstream_sha256": "9d0fe5d27fe206996582346449987feebc51b8e29266ca78244d1000435cd2e3",
+      "bgfx_blob_sha1": "631d19d7999be6ebd2bb564b6e15e79900530f4e",
+      "mode": "100644"
+    },
+    {
+      "path": "SPIRV/GLSL.ext.AMD.h",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "28b306c7d15734d5e91ea771118beb70009a8469d97333964a3f50fb4a877a42",
+      "upstream_sha256": "28b306c7d15734d5e91ea771118beb70009a8469d97333964a3f50fb4a877a42",
+      "bgfx_blob_sha1": "009d2f1cf09bc476e08d1859c34608c87ff6aaa0",
+      "mode": "100644"
+    },
+    {
+      "path": "SPIRV/GLSL.ext.ARM.h",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "8f0b42d1dac85bce425306931eac64bce4b82c10fdf18bb2bf8b7d74ce42969b",
+      "upstream_sha256": "8f0b42d1dac85bce425306931eac64bce4b82c10fdf18bb2bf8b7d74ce42969b",
+      "bgfx_blob_sha1": "eef5b03e10629a4a0ff83f4a2715239a8740efb6",
+      "mode": "100644"
+    },
+    {
+      "path": "SPIRV/GLSL.ext.EXT.h",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "cd0e0214742eca74fc822acd51283eba474032ec2e9e14ec355833e8500cab6f",
+      "upstream_sha256": "cd0e0214742eca74fc822acd51283eba474032ec2e9e14ec355833e8500cab6f",
+      "bgfx_blob_sha1": "748d9c88328f63790922be39da2310374f4b3d7c",
+      "mode": "100644"
+    },
+    {
+      "path": "SPIRV/GLSL.ext.KHR.h",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "4e5557bde001b22c445cad8892be1f5494295b66a8f90f45c7643d6a0029604d",
+      "upstream_sha256": "4e5557bde001b22c445cad8892be1f5494295b66a8f90f45c7643d6a0029604d",
+      "bgfx_blob_sha1": "25dd88ff27f1e946804cfecfa49aea4a1e231a76",
+      "mode": "100644"
+    },
+    {
+      "path": "SPIRV/GLSL.ext.NV.h",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "568ffda977766d5ad510268f20e06595ba41bebf2347b2c4ef400f582f317101",
+      "upstream_sha256": "568ffda977766d5ad510268f20e06595ba41bebf2347b2c4ef400f582f317101",
+      "bgfx_blob_sha1": "4516d2d5467b9154e7eb2a1bb1870878d8e68670",
+      "mode": "100644"
+    },
+    {
+      "path": "SPIRV/GLSL.ext.QCOM.h",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "921865a3779ba09708a9e153915eeb47d5f346ca96aff415ce01bfb805b5730a",
+      "upstream_sha256": "921865a3779ba09708a9e153915eeb47d5f346ca96aff415ce01bfb805b5730a",
+      "bgfx_blob_sha1": "7633d4079f7864209681185524b369c7d7a1369e",
+      "mode": "100644"
+    },
+    {
+      "path": "SPIRV/GLSL.std.450.h",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "5624630f79e4ca38e51c1bec8d8eb835ab4784cfcbd4930ef88cc507f2e4551b",
+      "upstream_sha256": "5624630f79e4ca38e51c1bec8d8eb835ab4784cfcbd4930ef88cc507f2e4551b",
+      "bgfx_blob_sha1": "86d3da80654ed70cf506009c736215e88bd2a679",
+      "mode": "100644"
+    },
+    {
+      "path": "SPIRV/GlslangToSpv.cpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "fd1d58c2244f1b9debe22219bd19ee3f3df24d1ea9a8d669a1d881cd1de4458f",
+      "upstream_sha256": "fd1d58c2244f1b9debe22219bd19ee3f3df24d1ea9a8d669a1d881cd1de4458f",
+      "bgfx_blob_sha1": "b409ba3fbdaa5643fc9cd4cec7ccfae05a0fbbf7",
+      "mode": "100644"
+    },
+    {
+      "path": "SPIRV/GlslangToSpv.h",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "f8285c9ac1e62bc4d74e03f69a5577f2d71c7bcbc78b3d9c27de5e23ccca4fc6",
+      "upstream_sha256": "f8285c9ac1e62bc4d74e03f69a5577f2d71c7bcbc78b3d9c27de5e23ccca4fc6",
+      "bgfx_blob_sha1": "9fb4f3fff7d8e6378568f0774f019bfc8b40a1c5",
+      "mode": "100644"
+    },
+    {
+      "path": "SPIRV/InReadableOrder.cpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "ce78bbc75dd02d663037e850a7031fda7abb84ad343de2d797ef8b26a2d221b2",
+      "upstream_sha256": "ce78bbc75dd02d663037e850a7031fda7abb84ad343de2d797ef8b26a2d221b2",
+      "bgfx_blob_sha1": "18e487d87767550667cda783564d548941b6209a",
+      "mode": "100644"
+    },
+    {
+      "path": "SPIRV/Logger.cpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "86719c99fc5b248601cbff0e444c22c6b0be7b8a7165858785af9db9ed27dd22",
+      "upstream_sha256": "86719c99fc5b248601cbff0e444c22c6b0be7b8a7165858785af9db9ed27dd22",
+      "bgfx_blob_sha1": "48bd4e3ade6260eaf81909f982cd7bb331813202",
+      "mode": "100644"
+    },
+    {
+      "path": "SPIRV/Logger.h",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "0a6a1f0a8c50e8dabb01e0d5c4047e3d0976d3a5a968e26a03224c882d40664f",
+      "upstream_sha256": "0a6a1f0a8c50e8dabb01e0d5c4047e3d0976d3a5a968e26a03224c882d40664f",
+      "bgfx_blob_sha1": "c64a3b8a3659b4888044e4a2786752061adb75ee",
+      "mode": "100644"
+    },
+    {
+      "path": "SPIRV/NonSemanticDebugPrintf.h",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "df2648aced548b7f72a95420406ebe54ad9c6b459c67a5f5222a769ca0c0ca8a",
+      "upstream_sha256": "df2648aced548b7f72a95420406ebe54ad9c6b459c67a5f5222a769ca0c0ca8a",
+      "bgfx_blob_sha1": "3ca7247f2b0eb13cd65731f54ff1a229a9e14b43",
+      "mode": "100644"
+    },
+    {
+      "path": "SPIRV/NonSemanticShaderDebugInfo100.h",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "10cd22eb1eac70cb4eb79cc47eb6bea909f7b0bc7c08836701067f08f0778372",
+      "upstream_sha256": "10cd22eb1eac70cb4eb79cc47eb6bea909f7b0bc7c08836701067f08f0778372",
+      "bgfx_blob_sha1": "f74abcb6466a08d2955cc429863c8c449fc91019",
+      "mode": "100644"
+    },
+    {
+      "path": "SPIRV/SPVRemapper.cpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "739d02ca1ba684ebe49125e35e51ac80464eb3d57616efd2c3d85c9b30fb71a5",
+      "upstream_sha256": "739d02ca1ba684ebe49125e35e51ac80464eb3d57616efd2c3d85c9b30fb71a5",
+      "bgfx_blob_sha1": "02ecb3c534e1f80456a6592f5dd621c57e05ff97",
+      "mode": "100644"
+    },
+    {
+      "path": "SPIRV/SPVRemapper.h",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "308c3bc072cd08b38683157752734e98cb968ee101238c15272b1d7f9df9c886",
+      "upstream_sha256": "308c3bc072cd08b38683157752734e98cb968ee101238c15272b1d7f9df9c886",
+      "bgfx_blob_sha1": "d4c2295c9c025a55bd5af85a8e1b958ef5694e85",
+      "mode": "100644"
+    },
+    {
+      "path": "SPIRV/SpvBuilder.cpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "83ee5f5902bc6b17a65067c9bd7413542a14f83fbe04d629340571bae4370c75",
+      "upstream_sha256": "83ee5f5902bc6b17a65067c9bd7413542a14f83fbe04d629340571bae4370c75",
+      "bgfx_blob_sha1": "5a5affacd4d2bc5658b9de84d46141e3ee1e1622",
+      "mode": "100644"
+    },
+    {
+      "path": "SPIRV/SpvBuilder.h",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "121e9292b5239a79a0e55b325fe11eda76dd3113662f38e196ef3110c7536897",
+      "upstream_sha256": "121e9292b5239a79a0e55b325fe11eda76dd3113662f38e196ef3110c7536897",
+      "bgfx_blob_sha1": "9b5bc9e41adf8d63a4c0d3cf505bf8b2d05aacae",
+      "mode": "100644"
+    },
+    {
+      "path": "SPIRV/SpvPostProcess.cpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "89c905d5939219e748f7754f21a3d69b6306407a2ffa3e3f48d6fbe8279a4828",
+      "upstream_sha256": "89c905d5939219e748f7754f21a3d69b6306407a2ffa3e3f48d6fbe8279a4828",
+      "bgfx_blob_sha1": "4f61864a8af286f289575b4ba044f3d15d434bc2",
+      "mode": "100644"
+    },
+    {
+      "path": "SPIRV/SpvTools.cpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "2f70cbe9ff799b7195bcb6945e5dc21e6039dd9d0a5d7533a043f10ae75595c7",
+      "upstream_sha256": "2f70cbe9ff799b7195bcb6945e5dc21e6039dd9d0a5d7533a043f10ae75595c7",
+      "bgfx_blob_sha1": "d1b411f29a9d43482c0ea58cba0c083a256870e1",
+      "mode": "100644"
+    },
+    {
+      "path": "SPIRV/SpvTools.h",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "4016a66e43c6d016b28393f8eec85cccf69311900b719ac093239cb10954e745",
+      "upstream_sha256": "4016a66e43c6d016b28393f8eec85cccf69311900b719ac093239cb10954e745",
+      "bgfx_blob_sha1": "455857235fca167626dcb08e260bb7aa5d7c0f59",
+      "mode": "100644"
+    },
+    {
+      "path": "SPIRV/bitutils.h",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "82df79b2b848b2aa86cd7f973a7bb076eb4ba4db21a6abe5aca35baf6488bd31",
+      "upstream_sha256": "82df79b2b848b2aa86cd7f973a7bb076eb4ba4db21a6abe5aca35baf6488bd31",
+      "bgfx_blob_sha1": "22e44cec26ea08b08fcbea2fc6e6cb293e3fa50f",
+      "mode": "100644"
+    },
+    {
+      "path": "SPIRV/disassemble.cpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "5a4f92a62f25007b67e3912ce3975d78d944adf93cce623c347c27257658ff72",
+      "upstream_sha256": "5a4f92a62f25007b67e3912ce3975d78d944adf93cce623c347c27257658ff72",
+      "bgfx_blob_sha1": "9b85ff28e053d50c0c1db47ab0e5017854951c6c",
+      "mode": "100644"
+    },
+    {
+      "path": "SPIRV/disassemble.h",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "eac9c7213408196d29fed8517fb97515411e8a2eed2880daafb75bfce578eb1c",
+      "upstream_sha256": "eac9c7213408196d29fed8517fb97515411e8a2eed2880daafb75bfce578eb1c",
+      "bgfx_blob_sha1": "3bded14f2f904aa7c3a3887722dab1f7a4e7e64b",
+      "mode": "100644"
+    },
+    {
+      "path": "SPIRV/doc.cpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "a9792b4f41d081a875145038d093fbd7f9bcc45be4c033ad58c0d99f08d82f41",
+      "upstream_sha256": "a9792b4f41d081a875145038d093fbd7f9bcc45be4c033ad58c0d99f08d82f41",
+      "bgfx_blob_sha1": "b0189a533e29f5893efe92562f596a7120d66c1d",
+      "mode": "100644"
+    },
+    {
+      "path": "SPIRV/doc.h",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "a7da1877d10838a293c71303cbe96bc30af3e0a21a3ea84ef54bcc687e7b4013",
+      "upstream_sha256": "a7da1877d10838a293c71303cbe96bc30af3e0a21a3ea84ef54bcc687e7b4013",
+      "bgfx_blob_sha1": "c818308e2d2b4010660f39c6bcd20c86766208b2",
+      "mode": "100644"
+    },
+    {
+      "path": "SPIRV/hex_float.h",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "81074d68bec213b9ce5862ae10076f9ab9fd77bacec5c01cd11cc90c863ebfac",
+      "upstream_sha256": "81074d68bec213b9ce5862ae10076f9ab9fd77bacec5c01cd11cc90c863ebfac",
+      "bgfx_blob_sha1": "c2259e3f4c59ca287e56c22c727fdff899bf92c2",
+      "mode": "100644"
+    },
+    {
+      "path": "SPIRV/spirv.hpp11",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "32fde28ab20346ac46f0f2c8632e2ef38007b25e495b0e72dcb525b607e0f31f",
+      "upstream_sha256": "32fde28ab20346ac46f0f2c8632e2ef38007b25e495b0e72dcb525b607e0f31f",
+      "bgfx_blob_sha1": "2ad294db8f28e1a014b43d5d5467cc921a2facf9",
+      "mode": "100644"
+    },
+    {
+      "path": "SPIRV/spvIR.h",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "c26deaab08a9f15a9a92822801d1b14baf3659c431641b2ae5eecb8a8a000f7a",
+      "upstream_sha256": "c26deaab08a9f15a9a92822801d1b14baf3659c431641b2ae5eecb8a8a000f7a",
+      "bgfx_blob_sha1": "f1039cfdb3526ef38cacb0c02938c0eea183e8e4",
+      "mode": "100644"
+    },
+    {
+      "path": "SPIRV/spvUtil.h",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "4e68812f192608db6db51c84e3822ee2ab0e607e9285128e8a51309d0287ab62",
+      "upstream_sha256": "4e68812f192608db6db51c84e3822ee2ab0e607e9285128e8a51309d0287ab62",
+      "bgfx_blob_sha1": "d772a30dd433861b6e76eb215ee1f9208ec2d556",
+      "mode": "100644"
+    },
+    {
+      "path": "StandAlone/DirStackFileIncluder.h",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "3cc6be9c97c543f8f60d5ba191e8db43d5afe9863f3ed9ef2602a150f45c5134",
+      "upstream_sha256": "3cc6be9c97c543f8f60d5ba191e8db43d5afe9863f3ed9ef2602a150f45c5134",
+      "bgfx_blob_sha1": "5a33c78fa2081b80b93d3ef8d882ca65af1d0470",
+      "mode": "100644"
+    },
+    {
+      "path": "StandAlone/StandAlone.cpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "64e839721eb35725c238471d0b1b4709dde5f2dc6d1e69b062b4d92019597d55",
+      "upstream_sha256": "64e839721eb35725c238471d0b1b4709dde5f2dc6d1e69b062b4d92019597d55",
+      "bgfx_blob_sha1": "b1853b024b12889b229bc7ec97c3fa4f56f1ca24",
+      "mode": "100644"
+    },
+    {
+      "path": "StandAlone/Worklist.h",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "f010800b4bf21e0f0606c6aa3fe838eeeb1e1f822d1d835ea25f0708d1a10193",
+      "upstream_sha256": "f010800b4bf21e0f0606c6aa3fe838eeeb1e1f822d1d835ea25f0708d1a10193",
+      "bgfx_blob_sha1": "dc726270a5288eff35403bd995714e8562809211",
+      "mode": "100644"
+    },
+    {
+      "path": "StandAlone/spirv-remap.cpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "dc17ddee800634af6170a838d437a00c17c15554bc55e105c0adfd83ecbde911",
+      "upstream_sha256": "dc17ddee800634af6170a838d437a00c17c15554bc55e105c0adfd83ecbde911",
+      "bgfx_blob_sha1": "b1f032664607f8ede25b4b4e864f0a1bbc1351fd",
+      "mode": "100644"
+    },
+    {
+      "path": "build_info.h",
+      "upstream_present": false,
+      "identical": false,
+      "sha256": "da29ba6ee5acd448b6868d4854cdaa7cf9888532eef1162abcf5cc0e1aab6c97",
+      "upstream_sha256": null,
+      "bgfx_blob_sha1": "327c69e25161a8fcfe8d9f5b5361f0506df216a0",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/CInterface/glslang_c_interface.cpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "5e0a78e5b4b0bcd399f693b47b7f3a37c70d40ebf8b9f95f4ec11074e14c5488",
+      "upstream_sha256": "5e0a78e5b4b0bcd399f693b47b7f3a37c70d40ebf8b9f95f4ec11074e14c5488",
+      "bgfx_blob_sha1": "d391c1d0441dd926c023755ab09cb7f7504b55d7",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/ExtensionHeaders/GL_EXT_shader_realtime_clock.glsl",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "158a7f91338df7dfb8b15fba445fcba20f0b34a391634c51dbf55062e74711fb",
+      "upstream_sha256": "158a7f91338df7dfb8b15fba445fcba20f0b34a391634c51dbf55062e74711fb",
+      "bgfx_blob_sha1": "7cf545d94df1f350da8d0d9a482174bd5674efcf",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/GenericCodeGen/CodeGen.cpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "aa12d225b9af8749f8504821c59a3ef34358409b7ae62cb81851a024a6b94a65",
+      "upstream_sha256": "aa12d225b9af8749f8504821c59a3ef34358409b7ae62cb81851a024a6b94a65",
+      "bgfx_blob_sha1": "1ef2449625b95d24a7dd77168e645d12c8073c03",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/GenericCodeGen/Link.cpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "9673b7cb23a15be82fe54d3ae2f5b7b031603110f4cbb183b8e352d93270b2bd",
+      "upstream_sha256": "9673b7cb23a15be82fe54d3ae2f5b7b031603110f4cbb183b8e352d93270b2bd",
+      "bgfx_blob_sha1": "5df39b814a7b91b44f47b21b9bff88373f805de4",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/HLSL/hlslAttributes.cpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "df2b47e09847719e199f72c22ce4d6da9d02c2738d498e7dcd49e2cbd2b3bf11",
+      "upstream_sha256": "df2b47e09847719e199f72c22ce4d6da9d02c2738d498e7dcd49e2cbd2b3bf11",
+      "bgfx_blob_sha1": "973054931c20a8234127fed5d05e192457b01b76",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/HLSL/hlslAttributes.h",
+      "upstream_present": true,
+      "identical": false,
+      "sha256": "1099f40415cac85cec56b5a153070a7ff21bde38c78309879371c132cc10962f",
+      "upstream_sha256": "94a28534961e659d0f5514cf3b98656f0a85ee1f563b98d038538ab305c203c5",
+      "bgfx_blob_sha1": "f25269a83cb6b2c4ba73e1a4a2b08137c7a92462",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/HLSL/hlslGrammar.cpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "7193cec482da32d3d2f30fe373edbbf68fbf2bd5130fc9cfdefda616a92b479e",
+      "upstream_sha256": "7193cec482da32d3d2f30fe373edbbf68fbf2bd5130fc9cfdefda616a92b479e",
+      "bgfx_blob_sha1": "ed32ff0caa1b558c5b4f6f0ab8eb4c0ceb5a1d38",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/HLSL/hlslGrammar.h",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "4da3c69880804ed5911c2931132d1d62129ae5837df6a5a6a022bc1f90944df0",
+      "upstream_sha256": "4da3c69880804ed5911c2931132d1d62129ae5837df6a5a6a022bc1f90944df0",
+      "bgfx_blob_sha1": "cfe294bc0da89a52f0dd94f46027ee5369a01883",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/HLSL/hlslOpMap.cpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "e1a3072adecd80bbae197e6b63a6f34d82533b58d107cf3db0c7bd5bea29b89c",
+      "upstream_sha256": "e1a3072adecd80bbae197e6b63a6f34d82533b58d107cf3db0c7bd5bea29b89c",
+      "bgfx_blob_sha1": "ebe6fbd96cf94c7c6b4bb2272ce5d4a2a3b6a545",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/HLSL/hlslOpMap.h",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "896cad548a57e96340550e368d878e98a96db2e2d88e887874bb74fddb0911a9",
+      "upstream_sha256": "896cad548a57e96340550e368d878e98a96db2e2d88e887874bb74fddb0911a9",
+      "bgfx_blob_sha1": "4e783f3f0c44ce95ed879b3b365de38988213485",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/HLSL/hlslParseHelper.cpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "2fe1aa703a27012a38f0349fe561a25f240b2e56731fc84977c48c34e7cb314d",
+      "upstream_sha256": "2fe1aa703a27012a38f0349fe561a25f240b2e56731fc84977c48c34e7cb314d",
+      "bgfx_blob_sha1": "0732334055e973dbdf287812d5ed1f75a81f81e0",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/HLSL/hlslParseHelper.h",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "f313df5918c7df68a06263d3205fbe85a6453a7c064d55f6eae5cebca4cc4885",
+      "upstream_sha256": "f313df5918c7df68a06263d3205fbe85a6453a7c064d55f6eae5cebca4cc4885",
+      "bgfx_blob_sha1": "97c52d453a1edce2e20b824b73e035541e426e39",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/HLSL/hlslParseables.cpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "f72040b9f00074cee2ad1b2c736d99b5b4fe7cfb610f298e795f0a876654f926",
+      "upstream_sha256": "f72040b9f00074cee2ad1b2c736d99b5b4fe7cfb610f298e795f0a876654f926",
+      "bgfx_blob_sha1": "8fb1d2909c62a7c6856da9a9c27e3e36fe256688",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/HLSL/hlslParseables.h",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "3220743695faf837f90a0edd22dd7f986838e506b651883676c024a81207a54e",
+      "upstream_sha256": "3220743695faf837f90a0edd22dd7f986838e506b651883676c024a81207a54e",
+      "bgfx_blob_sha1": "a4aef6c3e61fa11eadf1abf7f062255f3c2bc810",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/HLSL/hlslScanContext.cpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "350badf6cf4d1e4284500884199bc5359ffb422673d869402adebde688175bd2",
+      "upstream_sha256": "350badf6cf4d1e4284500884199bc5359ffb422673d869402adebde688175bd2",
+      "bgfx_blob_sha1": "e45643e91395753847a8b4dfe6d1423e960d0715",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/HLSL/hlslScanContext.h",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "7aa2a5ce7d26357030b456ec5cccc78263575d6975fadf81c6819a5b3844a4ab",
+      "upstream_sha256": "7aa2a5ce7d26357030b456ec5cccc78263575d6975fadf81c6819a5b3844a4ab",
+      "bgfx_blob_sha1": "3b191e489f583f07c4f50ef3e182ae9b0462816e",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/HLSL/hlslTokenStream.cpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "27f1a79111db236537738a7deea15d87ad3b6dec4548c70f8dacda641b2c1cad",
+      "upstream_sha256": "27f1a79111db236537738a7deea15d87ad3b6dec4548c70f8dacda641b2c1cad",
+      "bgfx_blob_sha1": "5d9311cfd7a59e3a33d9a56800c43fcc9234f9be",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/HLSL/hlslTokenStream.h",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "2b9bdd2a57d7b63adc127bca36a9bc77e61c8c9dc8256f449a132f55aed47df1",
+      "upstream_sha256": "2b9bdd2a57d7b63adc127bca36a9bc77e61c8c9dc8256f449a132f55aed47df1",
+      "bgfx_blob_sha1": "cb6c9e7234fecf23c8069c30c8f6770aefc1523f",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/HLSL/hlslTokens.h",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "4f2ff3a7e2b9f0087a86e2914b0d8cf8a5e477ff91d8e07fb25471a7cf73cb79",
+      "upstream_sha256": "4f2ff3a7e2b9f0087a86e2914b0d8cf8a5e477ff91d8e07fb25471a7cf73cb79",
+      "bgfx_blob_sha1": "a7c129907fb48913b18e070d779b5550407b0e8c",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/HLSL/pch.h",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "2482840ce912d58ef94c2fbe11b8dadefea04ee10e91d0a234fde767e81eb4a8",
+      "upstream_sha256": "2482840ce912d58ef94c2fbe11b8dadefea04ee10e91d0a234fde767e81eb4a8",
+      "bgfx_blob_sha1": "f51efacc6d36c9ef366a9d25660288a3ca7602f3",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/Include/BaseTypes.h",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "11187c876a71ede1699b786be33432426a4eeb0e4146860adf4f7bd5a3320f60",
+      "upstream_sha256": "11187c876a71ede1699b786be33432426a4eeb0e4146860adf4f7bd5a3320f60",
+      "bgfx_blob_sha1": "f0c87142866d503e6ac3da3f261eb97ae348ebad",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/Include/Common.h",
+      "upstream_present": true,
+      "identical": false,
+      "sha256": "58e9a73c40138e67f610cbc149e6824c420cad095d51409ed4a26278f56711fd",
+      "upstream_sha256": "9fabe3a6436367346ce6848f614cb45cbd5311ad2ce0b428ea645049c70ddbd5",
+      "bgfx_blob_sha1": "bf37d96434b7c87440e20266b09c71513bf17a71",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/Include/ConstantUnion.h",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "5744d0c57392c7a40dc189542d2b01a5f30dc531f882029caaf00ca2cb6a95fa",
+      "upstream_sha256": "5744d0c57392c7a40dc189542d2b01a5f30dc531f882029caaf00ca2cb6a95fa",
+      "bgfx_blob_sha1": "bf6b8a88b647958e5eff70088801d5361c1f6956",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/Include/InfoSink.h",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "aea60072e044166fdc400693519886baf5c8a218858e4337b442cb78ddf4f18e",
+      "upstream_sha256": "aea60072e044166fdc400693519886baf5c8a218858e4337b442cb78ddf4f18e",
+      "bgfx_blob_sha1": "262933941d276ab2aeb06274b65e154772b66255",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/Include/InitializeGlobals.h",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "eeac08283179fff8fb2e17ee26d1b7dc97c11b7d3d98d839787258b01436f0f9",
+      "upstream_sha256": "eeac08283179fff8fb2e17ee26d1b7dc97c11b7d3d98d839787258b01436f0f9",
+      "bgfx_blob_sha1": "b7fdd7aabcb0199e157b9cd3b6ddd1416edface7",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/Include/PoolAlloc.h",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "9446856e5dc48b36145c4298ca7b2ea49f0a8f3e27b006cc197f849f2bf7fb05",
+      "upstream_sha256": "9446856e5dc48b36145c4298ca7b2ea49f0a8f3e27b006cc197f849f2bf7fb05",
+      "bgfx_blob_sha1": "8a9284144a2a87e570633f8c37e1b82400382718",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/Include/ResourceLimits.h",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "a8b162ebbbf953334ee86464c5020bb606be7def97e2bc2edc7dbb435c9560af",
+      "upstream_sha256": "a8b162ebbbf953334ee86464c5020bb606be7def97e2bc2edc7dbb435c9560af",
+      "bgfx_blob_sha1": "b36c8d6273b06daaace77062b2d4f6b54a8567af",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/Include/ShHandle.h",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "6ce947e0b96b5bfcc2d5e7534cde20dcd8d989ddadebbff9a2c333d30d5e3b0e",
+      "upstream_sha256": "6ce947e0b96b5bfcc2d5e7534cde20dcd8d989ddadebbff9a2c333d30d5e3b0e",
+      "bgfx_blob_sha1": "dee47c0dfd44eedf75e189e3772d1b8db3e3c8b9",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/Include/SpirvIntrinsics.h",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "f80e06dfee3ee720e17572b35886e85d0b5e457851ca918185d7d4d3cb0df9f5",
+      "upstream_sha256": "f80e06dfee3ee720e17572b35886e85d0b5e457851ca918185d7d4d3cb0df9f5",
+      "bgfx_blob_sha1": "0082a4d4eb325e8d20995080a4e677692f11df7f",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/Include/Types.h",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "5a915fc94a9ce156d2b38b6569f21f510784b0cd1ad6230be2eda8d43ec751e0",
+      "upstream_sha256": "5a915fc94a9ce156d2b38b6569f21f510784b0cd1ad6230be2eda8d43ec751e0",
+      "bgfx_blob_sha1": "faada175dc42812dc55aacfc45c7eba37051d46d",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/Include/arrays.h",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "499b9976d718e2c9fc89c632eefaee212b64e89ae23a7dc7b2f75e0132742b43",
+      "upstream_sha256": "499b9976d718e2c9fc89c632eefaee212b64e89ae23a7dc7b2f75e0132742b43",
+      "bgfx_blob_sha1": "91e1908355daf94f0d58f6b840b3a9a2c91183b7",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/Include/glslang_c_interface.h",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "7826cf1bed2b1ba80272c50218461489270e2bf49478aa5038277387543537e9",
+      "upstream_sha256": "7826cf1bed2b1ba80272c50218461489270e2bf49478aa5038277387543537e9",
+      "bgfx_blob_sha1": "06120219df3f8e2487526dfa22b93fa273c2b784",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/Include/glslang_c_shader_types.h",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "1b70b8bbf97079686a0feb60338f596cf063bc8ceb62f2206308eef4a39665aa",
+      "upstream_sha256": "1b70b8bbf97079686a0feb60338f596cf063bc8ceb62f2206308eef4a39665aa",
+      "bgfx_blob_sha1": "34bfbdb9d3cc1c5fc20b31338a79e547d90c5c7f",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/Include/intermediate.h",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "ffd1f53d2af11215a88b17cd3f76eb5d0748d26e0b83968531365200e72224ed",
+      "upstream_sha256": "ffd1f53d2af11215a88b17cd3f76eb5d0748d26e0b83968531365200e72224ed",
+      "bgfx_blob_sha1": "9508ad770702d766128dbee67e33b8167a23d3e8",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/Include/visibility.h",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "21389faded378509bf950fd9630c9cd6acc7e8126f29afafeb06f463dbabd52a",
+      "upstream_sha256": "21389faded378509bf950fd9630c9cd6acc7e8126f29afafeb06f463dbabd52a",
+      "bgfx_blob_sha1": "9bb8f3faaa2c774639290141fd06e4771bc9c1ed",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/MachineIndependent/Constant.cpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "f6035a2f96a6af9b4d206e8b1b49037d624b0a76d7ae1e745a6110f1e44a8e58",
+      "upstream_sha256": "f6035a2f96a6af9b4d206e8b1b49037d624b0a76d7ae1e745a6110f1e44a8e58",
+      "bgfx_blob_sha1": "d6528b7354a6e054582eddcb5e973dab641c3597",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/MachineIndependent/InfoSink.cpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "9a985aa95af8c21246db0fd3a396764154e7ec4a1608196275def1a78927963c",
+      "upstream_sha256": "9a985aa95af8c21246db0fd3a396764154e7ec4a1608196275def1a78927963c",
+      "bgfx_blob_sha1": "d00c4225666e5a82e6a71f2daf0252936efde925",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/MachineIndependent/Initialize.cpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "75969c58409c0d3ddc84c5123604610dd7468dbacd61e3306ce49fd900919166",
+      "upstream_sha256": "75969c58409c0d3ddc84c5123604610dd7468dbacd61e3306ce49fd900919166",
+      "bgfx_blob_sha1": "6242963686596c9bbd1cbf9bdaa39b1a27df60a5",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/MachineIndependent/Initialize.h",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "41644d0782f291d3a4080a1fd5c79f50b3145767c61e2dc2c286a73414107f65",
+      "upstream_sha256": "41644d0782f291d3a4080a1fd5c79f50b3145767c61e2dc2c286a73414107f65",
+      "bgfx_blob_sha1": "42c32ddbb7f79fb5e320ba946beebd7748d5d2a3",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/MachineIndependent/IntermTraverse.cpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "3f4e1b844b3458077c53b0e86a26ef7803a3f4498eceb137e0d46238684570a6",
+      "upstream_sha256": "3f4e1b844b3458077c53b0e86a26ef7803a3f4498eceb137e0d46238684570a6",
+      "bgfx_blob_sha1": "553b1b5ff837151431d5bd644ba595332ed10142",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/MachineIndependent/Intermediate.cpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "7cc7fb02728599d6c08ed53ed93e8e2a672628959b11c94271fc18432bb148f4",
+      "upstream_sha256": "7cc7fb02728599d6c08ed53ed93e8e2a672628959b11c94271fc18432bb148f4",
+      "bgfx_blob_sha1": "203430e959054c191df19550936b48b1342d52b0",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/MachineIndependent/LiveTraverser.h",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "3ae2dcf4df6825b50803fe6f384b84926d76e4f7c0fb9e805de7449a0ce3a440",
+      "upstream_sha256": "3ae2dcf4df6825b50803fe6f384b84926d76e4f7c0fb9e805de7449a0ce3a440",
+      "bgfx_blob_sha1": "0e9d748ca44a9bce2526f7fc512c212e49ce033a",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/MachineIndependent/ParseContextBase.cpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "e9cd17bc5e2f235dcf2501db2dc33db1c9b15c1bbbef378d180d678e88a677c5",
+      "upstream_sha256": "e9cd17bc5e2f235dcf2501db2dc33db1c9b15c1bbbef378d180d678e88a677c5",
+      "bgfx_blob_sha1": "95c7f0053d3329d30098065c5fd22f0b2ca367ea",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/MachineIndependent/ParseHelper.cpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "2f6bad375109333450d91744bee3fd9a1fb407ab44ff06e13c4c0caf0d32d8c8",
+      "upstream_sha256": "2f6bad375109333450d91744bee3fd9a1fb407ab44ff06e13c4c0caf0d32d8c8",
+      "bgfx_blob_sha1": "845020afa2cd1374eaa6875fb4926a1fda99389e",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/MachineIndependent/ParseHelper.h",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "8167d721aebeb61c7dca23ecab180581a74c60cf9d77c0897a45cf5d4c585618",
+      "upstream_sha256": "8167d721aebeb61c7dca23ecab180581a74c60cf9d77c0897a45cf5d4c585618",
+      "bgfx_blob_sha1": "2bb82ebc294770e138af21eca175def2498d45f0",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/MachineIndependent/PoolAlloc.cpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "9eba9c5fa4f46b875568a6b5e9805a4fca5b53ba74aceed1337d1db3739b3a4d",
+      "upstream_sha256": "9eba9c5fa4f46b875568a6b5e9805a4fca5b53ba74aceed1337d1db3739b3a4d",
+      "bgfx_blob_sha1": "93a3b0d12f277aacd89e300ad98bfa010fb35e0d",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/MachineIndependent/RemoveTree.cpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "49a63761b9ce172e958c63f9de69147b05041888b6584a46f9ed7a9e03937697",
+      "upstream_sha256": "49a63761b9ce172e958c63f9de69147b05041888b6584a46f9ed7a9e03937697",
+      "bgfx_blob_sha1": "1d33bfd2035a1307adf61e6c155481933ebfa7c2",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/MachineIndependent/RemoveTree.h",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "6dce992fb1571f40c4142c62e5eb8f134fe48528cdfc042a87e6f7aa1bdf418a",
+      "upstream_sha256": "6dce992fb1571f40c4142c62e5eb8f134fe48528cdfc042a87e6f7aa1bdf418a",
+      "bgfx_blob_sha1": "1ed015626b8f3708d76e032d37fab62ac6dd472c",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/MachineIndependent/Scan.cpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "612a5f7cae809f7215a933559706efe80dfe5c62e8452275bfba5b8ef343c614",
+      "upstream_sha256": "612a5f7cae809f7215a933559706efe80dfe5c62e8452275bfba5b8ef343c614",
+      "bgfx_blob_sha1": "28b1fe13bb28aabc5b8c19dfbea10b8ae5216122",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/MachineIndependent/Scan.h",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "d0862d8bf5ffc9cce435f18b5135883dda3b15e104729d7e4b2e9ac14d1d25ca",
+      "upstream_sha256": "d0862d8bf5ffc9cce435f18b5135883dda3b15e104729d7e4b2e9ac14d1d25ca",
+      "bgfx_blob_sha1": "24b75cf7ca659fe52a9bcee7af4deaf17651c02b",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/MachineIndependent/ScanContext.h",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "187be3c15b964cc5f109b0c5ba66670d0115ed901d67da5377ec3461e3580248",
+      "upstream_sha256": "187be3c15b964cc5f109b0c5ba66670d0115ed901d67da5377ec3461e3580248",
+      "bgfx_blob_sha1": "ce2145eb99d8154c3f1b0ae271cf430aacf5f7a2",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/MachineIndependent/ShaderLang.cpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "668e16335af27401555726df13eada5f9c7f69d88db8f7f4641941fb6be7d4cc",
+      "upstream_sha256": "668e16335af27401555726df13eada5f9c7f69d88db8f7f4641941fb6be7d4cc",
+      "bgfx_blob_sha1": "62d72535b2bd5cff39fd1425641aa912fcae7297",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/MachineIndependent/SpirvIntrinsics.cpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "0ae0548b38780d97438083bbc571c2212a3ba9d677f62d60bf2c5548727f0135",
+      "upstream_sha256": "0ae0548b38780d97438083bbc571c2212a3ba9d677f62d60bf2c5548727f0135",
+      "bgfx_blob_sha1": "1d08797ac2ef6754a5572a24801eab9630974c7a",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/MachineIndependent/SymbolTable.cpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "081800267c92f06842c84070a5a38b85089999b99bdfde36c159e9dd68f29dd9",
+      "upstream_sha256": "081800267c92f06842c84070a5a38b85089999b99bdfde36c159e9dd68f29dd9",
+      "bgfx_blob_sha1": "dbcd575ece0d3eeca10a59f776257303c590a450",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/MachineIndependent/SymbolTable.h",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "2a51885a6d8f8dcf5623362a1b0af7b04f8926a2a7ed7154d8096c2fe3f29850",
+      "upstream_sha256": "2a51885a6d8f8dcf5623362a1b0af7b04f8926a2a7ed7154d8096c2fe3f29850",
+      "bgfx_blob_sha1": "c2f5ccf15ace87f001b7d62015e25275738b4606",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/MachineIndependent/Versions.cpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "92c966565721873461a9ebb70b51abb0e4289e864f14e93b5f91c93dc601cbf6",
+      "upstream_sha256": "92c966565721873461a9ebb70b51abb0e4289e864f14e93b5f91c93dc601cbf6",
+      "bgfx_blob_sha1": "59628b74268d005063abd2d81c99886664a7da55",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/MachineIndependent/Versions.h",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "30182ce48f9377023ae38fdd30538db11290ab6a704adf8c5ebac12764bf8d44",
+      "upstream_sha256": "30182ce48f9377023ae38fdd30538db11290ab6a704adf8c5ebac12764bf8d44",
+      "bgfx_blob_sha1": "8bc4f713293cdd40ae42f55d8b263680d87ec32b",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/MachineIndependent/attribute.cpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "cf9ccaea3ac0c714efb58a4de30a1662c4206a4b23b82f440b42454b644f6855",
+      "upstream_sha256": "cf9ccaea3ac0c714efb58a4de30a1662c4206a4b23b82f440b42454b644f6855",
+      "bgfx_blob_sha1": "19e8faac335af948886f9b2a51a1b47a134a4c54",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/MachineIndependent/attribute.h",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "5e34e8f5937d80bce7eb88e553a0256b3495d40c17decae86778ebc5836d2b39",
+      "upstream_sha256": "5e34e8f5937d80bce7eb88e553a0256b3495d40c17decae86778ebc5836d2b39",
+      "bgfx_blob_sha1": "3b480c6f0389c9864aca7d3e47fdf35c4ae45063",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/MachineIndependent/gl_types.h",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "f5f31cbb457a6ae11eb42dd14773c5ab6d39fe06dc6bbab52df5f663f1c5cdba",
+      "upstream_sha256": "f5f31cbb457a6ae11eb42dd14773c5ab6d39fe06dc6bbab52df5f663f1c5cdba",
+      "bgfx_blob_sha1": "d6c939374a847b6e54b01d1bfffafad644fee887",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/MachineIndependent/glslang.y",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "38bdbe4c2c2782a322698dc7295f4d211b7c9f20fe6142bda9157c95bdbac92e",
+      "upstream_sha256": "38bdbe4c2c2782a322698dc7295f4d211b7c9f20fe6142bda9157c95bdbac92e",
+      "bgfx_blob_sha1": "e9b1aac1593bc64b235e25d2f7e67cad5dc76e3d",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/MachineIndependent/glslang_tab.cpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "2db4d68463c01be056c78ec80b62a3e814cd573128cf9a7be9b0f5aa417781e9",
+      "upstream_sha256": "2db4d68463c01be056c78ec80b62a3e814cd573128cf9a7be9b0f5aa417781e9",
+      "bgfx_blob_sha1": "a08410bc4720b40d745180205e0ee1a3ea9854b4",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/MachineIndependent/glslang_tab.cpp.h",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "12d516759f0e24d59dafc61f4ca8e5405f4bce2066092308f6c4c8b5d91f7891",
+      "upstream_sha256": "12d516759f0e24d59dafc61f4ca8e5405f4bce2066092308f6c4c8b5d91f7891",
+      "bgfx_blob_sha1": "b92ddec03cc343784a856304fea2d372710e48e5",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/MachineIndependent/intermOut.cpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "e15d7fa1bb069515d4f8b32fc0cc4d596ab265d5c85368ca57cef2eef37f6f23",
+      "upstream_sha256": "e15d7fa1bb069515d4f8b32fc0cc4d596ab265d5c85368ca57cef2eef37f6f23",
+      "bgfx_blob_sha1": "b28da23f8746ff53980aadf9f06a8af9112dedaf",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/MachineIndependent/iomapper.cpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "1d2ee9772f6a34f1a8cd89e6d61e14d261067003e8bf1f752441802d0d3f2aa2",
+      "upstream_sha256": "1d2ee9772f6a34f1a8cd89e6d61e14d261067003e8bf1f752441802d0d3f2aa2",
+      "bgfx_blob_sha1": "26c3eaa62bcdaeda6b85b9fbd09171eb849ddd8e",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/MachineIndependent/iomapper.h",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "2b821398566a049c950d40cb48ad5b9b00f61f766d137a669737140c978f4a6e",
+      "upstream_sha256": "2b821398566a049c950d40cb48ad5b9b00f61f766d137a669737140c978f4a6e",
+      "bgfx_blob_sha1": "ef513d9a609192b9f3b6226e06183e114eb88e77",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/MachineIndependent/limits.cpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "e1b90c274890e2c9daca2f8985628062f196419de634ad326622fa6a13fb2d9e",
+      "upstream_sha256": "e1b90c274890e2c9daca2f8985628062f196419de634ad326622fa6a13fb2d9e",
+      "bgfx_blob_sha1": "4404beca4f43690f3b3fd5bb54b76a085ecb526d",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/MachineIndependent/linkValidate.cpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "c57f0935b43eb71e184a60f5d6e55556196ed6e700ab9a029828d97ff1f46826",
+      "upstream_sha256": "c57f0935b43eb71e184a60f5d6e55556196ed6e700ab9a029828d97ff1f46826",
+      "bgfx_blob_sha1": "3fd647796d20b0f029a1ef4c259c2b60b5550494",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/MachineIndependent/localintermediate.h",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "34807ca8dba62bbd38763efd1bce0a11a3ec45e6be8a1e7ade86b50bcb00f46d",
+      "upstream_sha256": "34807ca8dba62bbd38763efd1bce0a11a3ec45e6be8a1e7ade86b50bcb00f46d",
+      "bgfx_blob_sha1": "0d299bda2f75068b00c6088fb2c8a162a0c252dc",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/MachineIndependent/parseConst.cpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "58d56254edc9a8a3155f1ab47cf1892ab9b8130308f457810963929ec074175d",
+      "upstream_sha256": "58d56254edc9a8a3155f1ab47cf1892ab9b8130308f457810963929ec074175d",
+      "bgfx_blob_sha1": "835097234ea5a66b21560a6ba7f87395864dd203",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/MachineIndependent/parseVersions.h",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "51908d05ef6eb259f6b24546cfd6492d1a4c43bdd87e4df8daf6dd7ee0802f3a",
+      "upstream_sha256": "51908d05ef6eb259f6b24546cfd6492d1a4c43bdd87e4df8daf6dd7ee0802f3a",
+      "bgfx_blob_sha1": "81f5f59b809fab43ebb400f157a967a68f10faef",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/MachineIndependent/pch.h",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "c67ca4f0988c3dfb7f805b68e69734d5eabdb038ee4c2645e263d14d69bdbf69",
+      "upstream_sha256": "c67ca4f0988c3dfb7f805b68e69734d5eabdb038ee4c2645e263d14d69bdbf69",
+      "bgfx_blob_sha1": "6ea3761ea1acb25332925a07d2a31d2dfaaa5189",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/MachineIndependent/preprocessor/Pp.cpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "643167091970612c644f475956977ace28bd8630a04fc9d70d5509ac0142b679",
+      "upstream_sha256": "643167091970612c644f475956977ace28bd8630a04fc9d70d5509ac0142b679",
+      "bgfx_blob_sha1": "5b44b1304e6f7e6ff50201313c94bbc3aae53009",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/MachineIndependent/preprocessor/PpAtom.cpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "8e4a98e95edf1987f61bef44585cd4fade98132f44300b6d192ffd041e880694",
+      "upstream_sha256": "8e4a98e95edf1987f61bef44585cd4fade98132f44300b6d192ffd041e880694",
+      "bgfx_blob_sha1": "06c2333ef1048a7a008b0a2dcbb85d9a37021a12",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/MachineIndependent/preprocessor/PpContext.cpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "6670a5ef8ce268b8e0af4ba7b72523bd7936a06d469a27b2a73c7c47e7eafb27",
+      "upstream_sha256": "6670a5ef8ce268b8e0af4ba7b72523bd7936a06d469a27b2a73c7c47e7eafb27",
+      "bgfx_blob_sha1": "f27204bc4a6aba76ec2426f9382955bdc95fcd60",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/MachineIndependent/preprocessor/PpContext.h",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "669203daa13810b0934225905477a2a73a9f8f0a6d22e9882cb69360f78af66a",
+      "upstream_sha256": "669203daa13810b0934225905477a2a73a9f8f0a6d22e9882cb69360f78af66a",
+      "bgfx_blob_sha1": "3446f1e1c9c58d9324a6587adfa6aea0d3f81d9c",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/MachineIndependent/preprocessor/PpScanner.cpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "6b6c0db257f8d19eebcc2f6b67c0fdd9ba846f9078f88df60154f73995408d1f",
+      "upstream_sha256": "6b6c0db257f8d19eebcc2f6b67c0fdd9ba846f9078f88df60154f73995408d1f",
+      "bgfx_blob_sha1": "df64b7bd5f80545122a582dd6b695fabca99725f",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/MachineIndependent/preprocessor/PpTokens.cpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "cc8d0019194b5ed4ca609ad69c3270e70d41705b89cea4cdf43621e7cc0d5eaf",
+      "upstream_sha256": "cc8d0019194b5ed4ca609ad69c3270e70d41705b89cea4cdf43621e7cc0d5eaf",
+      "bgfx_blob_sha1": "e6ee64cf9e79dfc59fd7d36af7ee5717c6bda501",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/MachineIndependent/preprocessor/PpTokens.h",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "ca7b6eb90e315180c6fba8914ff710e4ba09a2e6f7dfb63f29cd3492d233f7fc",
+      "upstream_sha256": "ca7b6eb90e315180c6fba8914ff710e4ba09a2e6f7dfb63f29cd3492d233f7fc",
+      "bgfx_blob_sha1": "7b0f815500c607c66b1a267da1f5ba63003ec0bd",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/MachineIndependent/propagateNoContraction.cpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "c3654bee0d98d86a9eed801c2c744944c8e500d0c31162d94ac0f7a5e24ef37f",
+      "upstream_sha256": "c3654bee0d98d86a9eed801c2c744944c8e500d0c31162d94ac0f7a5e24ef37f",
+      "bgfx_blob_sha1": "600541f6133820e8a498ec19103c7369ac7e13d7",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/MachineIndependent/propagateNoContraction.h",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "88163075bf358ca0a98640ae7ee7c3ebe522da8076dcc2dcd3c3ad38cee79250",
+      "upstream_sha256": "88163075bf358ca0a98640ae7ee7c3ebe522da8076dcc2dcd3c3ad38cee79250",
+      "bgfx_blob_sha1": "d849be837f5a860664a8b0ffd1f7695bdfa8d697",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/MachineIndependent/reflection.cpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "d38a12b9039972a16830edc8ccecabd4a2108468325a2e8ee3efe05bde51abea",
+      "upstream_sha256": "d38a12b9039972a16830edc8ccecabd4a2108468325a2e8ee3efe05bde51abea",
+      "bgfx_blob_sha1": "3afbe3d8cb57e53083d97b7a30760c6ae78e9ef4",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/MachineIndependent/reflection.h",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "77b6e4968d6d602becb036b5079fcb59b4aa7474442a60d341bc5675f36001a6",
+      "upstream_sha256": "77b6e4968d6d602becb036b5079fcb59b4aa7474442a60d341bc5675f36001a6",
+      "bgfx_blob_sha1": "dccb991754e5350cf317445573cf3a98274f9bbc",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/MachineIndependent/span.h",
+      "upstream_present": true,
+      "identical": false,
+      "sha256": "db3e4cb14df1bca3071bd807c1dc5e7365b1b9520747034bb0d1eeee21745cfd",
+      "upstream_sha256": "0e378a8a47857fcbb2ae96d80fc33143fc1971ec9f3ec622891da6ec802ec1c0",
+      "bgfx_blob_sha1": "c8bc0828465e85380256f30bc1589c65593276cd",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/OSDependent/Unix/ossource.cpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "e280f86cc0539bbd718a07975041da2f7c76cb33272c24de4f4d5f62ddea8d83",
+      "upstream_sha256": "e280f86cc0539bbd718a07975041da2f7c76cb33272c24de4f4d5f62ddea8d83",
+      "bgfx_blob_sha1": "fbb51f7bd113ff947cd63dd944ee7cecca7fff7f",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/OSDependent/Windows/ossource.cpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "13d42cab609705bb0b3451bb3701c66e30d7ab5380ffdfd1684d9d005bae3793",
+      "upstream_sha256": "13d42cab609705bb0b3451bb3701c66e30d7ab5380ffdfd1684d9d005bae3793",
+      "bgfx_blob_sha1": "d7f89f71b64b504f41ab5e8a4094736edf108991",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/OSDependent/osinclude.h",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "e5ce75f34c3c122b437d4e6e360a26268639138a337257a71af5016043cd6fc2",
+      "upstream_sha256": "e5ce75f34c3c122b437d4e6e360a26268639138a337257a71af5016043cd6fc2",
+      "bgfx_blob_sha1": "da1c4f69564a5cc9ff95b0622bd21c3cf42c2f9e",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/Public/ResourceLimits.h",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "addf6ae69ffe48712320011beb8375d3f912461709709e2bad2fe1c8a7b8cda7",
+      "upstream_sha256": "addf6ae69ffe48712320011beb8375d3f912461709709e2bad2fe1c8a7b8cda7",
+      "bgfx_blob_sha1": "8245e12d7a2c550595b99d4cb09974959155d3b5",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/Public/ShaderLang.h",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "af49c45fa810bcf1b758e40dc4b89b22d77f7ad3fbed45f5d409ea4276fa4699",
+      "upstream_sha256": "af49c45fa810bcf1b758e40dc4b89b22d77f7ad3fbed45f5d409ea4276fa4699",
+      "bgfx_blob_sha1": "0536cc58f7ee35778c52a900e1cc0c174036d174",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/Public/resource_limits_c.h",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "5ece6b272f3300ce3ff81d3f1e345deebfaa3dfe7e4680a909ce3451b7cc5e32",
+      "upstream_sha256": "5ece6b272f3300ce3ff81d3f1e345deebfaa3dfe7e4680a909ce3451b7cc5e32",
+      "bgfx_blob_sha1": "3cf7442f45465358701001eb402726588aca10e1",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/ResourceLimits/ResourceLimits.cpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "8573f763876aeda33c6b4f7de9fe9f584dcf989329abaffc7165851c8084e92e",
+      "upstream_sha256": "8573f763876aeda33c6b4f7de9fe9f584dcf989329abaffc7165851c8084e92e",
+      "bgfx_blob_sha1": "79a1b3a6d75b8efd91494f81556c8b6c566e0582",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/ResourceLimits/resource_limits_c.cpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "00d64998d3e9854b2dde0ee8bb98077866d0584c9a71044e6ed201bbb76f0536",
+      "upstream_sha256": "00d64998d3e9854b2dde0ee8bb98077866d0584c9a71044e6ed201bbb76f0536",
+      "bgfx_blob_sha1": "8909d9ef5e3635276a87e38bc034d571b2b2f106",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/stub.cpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "63cb977d0c4f1358d794230d607fa9dc6b2aa98415591337d9c37fb71ae470ee",
+      "upstream_sha256": "63cb977d0c4f1358d794230d607fa9dc6b2aa98415591337d9c37fb71ae470ee",
+      "bgfx_blob_sha1": "9c286fb9096b663d392802e619aa8e038b19dd45",
+      "mode": "100644"
+    },
+    {
+      "path": "glslang/updateGrammar",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "2899008d86d3d22fabb3f8fd5b63fd9591211aa417005b43533f73c7b4606ea7",
+      "upstream_sha256": "2899008d86d3d22fabb3f8fd5b63fd9591211aa417005b43533f73c7b4606ea7",
+      "bgfx_blob_sha1": "a15dc24b309be0038a594416605fe08d43198991",
+      "mode": "100755"
+    }
+  ],
+  "generated_build_info": {
+    "path": "build_info.h",
+    "template": "build_info.h.tmpl",
+    "version_source": "CHANGES.md",
+    "replacements": {
+      "major": "15",
+      "minor": "4",
+      "patch": "0",
+      "flavor": ""
+    },
+    "method": "literal @variable@ substitution of the fixed template; no upstream code executed"
+  }
+}

@@ -34,7 +34,10 @@ int dora_gl_can_produce(void *transport, uint32_t slot, uint64_t last_read);
 int dora_gl_can_advance(void *transport, uint32_t slot, uint64_t last_read);
 uint64_t dora_gl_copy(void *transport, uint32_t source, uint32_t slot, uint64_t last_read);
 uint64_t dora_gl_copy_async(void *transport, uint32_t source, uint32_t slot, uint64_t last_read);
-// The producer rendered directly into the borrowed slot texture. Publish only
+// Producer context: enqueue the last consumer's GPU wait before any write to
+// the borrowed slot. queued uses the same admission check as copy_async.
+int dora_gl_begin_direct(void *transport, uint32_t slot, uint64_t last_read, int queued);
+// After begin_direct and rendering into the borrowed slot texture, publish only
 // a completion fence; unlike dora_gl_copy*, this performs no framebuffer blit.
 uint64_t dora_gl_publish(void *transport, uint32_t slot, uint64_t last_read);
 uint64_t dora_gl_publish_async(void *transport, uint32_t slot, uint64_t last_read);

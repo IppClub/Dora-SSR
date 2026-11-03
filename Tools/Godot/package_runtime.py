@@ -9,8 +9,8 @@ parser.add_argument('--source',type=Path,required=True)
 parser.add_argument('--library',type=Path,required=True)
 parser.add_argument('--output',type=Path,required=True)
 parser.add_argument('--library-name',help='Preserve a platform-required library basename, e.g. Android Java JNI loader')
-parser.add_argument('--build-target',choices=['template_debug','template_release'],help='Actual SCons target used to produce this library')
-parser.add_argument('--architecture',action='append',choices=['arm64','x86_64','x64'],default=[],help='Architecture slice present in the packaged library; repeat for universal libraries')
+parser.add_argument('--build-target',choices=['template_debug','template_release'],help='Actual Godot target used to produce this library')
+parser.add_argument('--architecture',action='append',choices=['arm64','arm32','x86_64','x64'],default=[],help='Architecture slice present in the packaged library; repeat for universal libraries')
 parser.add_argument('--graphics-backend',choices=['metal','egl','wgl','d3d12','webgl2'],help='Graphics backend implemented by this runtime package')
 parser.add_argument('--extra-directory',type=Path,action='append',default=[],help='Include a dependency tree under its basename, e.g. Android jni/')
 parser.add_argument('--license-file',type=Path,action='append',default=[],help='Additional dependency notice, copied by basename and included in license inventory')
@@ -31,6 +31,14 @@ for directory in args.extra_directory:
     assert directory.is_dir() and directory.name not in ('.','..',''), 'Invalid dependency directory'
     assert not args.output.resolve().is_relative_to(directory.resolve()), 'Dependency tree contains output directory'
     shutil.copytree(directory,args.output/directory.name,dirs_exist_ok=True)
+dependency_provenance = []
+if args.graphics_backend == 'd3d12':
+    notices = Path(__file__).parent / 'licenses/nir-25.3.1-1'
+    args.license_file.append(notices / 'GODOT-NIR-THIRD-PARTY-NOTICES.txt')
+    provenance = notices / 'GODOT-NIR-PROVENANCE.json'
+    assert json.loads(provenance.read_text()).get('schema') == 2, 'Regenerate current NIR notices before packaging D3D12'
+    shutil.copy2(provenance, args.output / provenance.name)
+    dependency_provenance.append(provenance.name)
 for notice in args.license_file:
     assert notice.is_file() and not (args.output/notice.name).exists(), 'Notice missing or basename collides'
     shutil.copy2(notice,args.output/notice.name)
@@ -49,6 +57,7 @@ if metal_driver.is_file():
     manifest['metal_driver_source_sha256'] = hashlib.sha256(metal_driver.read_bytes()).hexdigest()
     if '// Dora embedded Metal: no asynchronous library compilation past shutdown.' in metal_driver.read_text():
         manifest['embedded_metal_shader_loading'] = 'lazy'
+if dependency_provenance:manifest['dependency_provenance']=dependency_provenance
 if args.build_target:manifest['build_target']=args.build_target
 if args.architecture:manifest['architectures']=sorted(set(args.architecture))
 if args.graphics_backend:manifest['graphics_backend']=args.graphics_backend

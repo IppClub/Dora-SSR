@@ -10,6 +10,7 @@ import json
 import os
 import shutil
 import sys
+import tempfile
 from pathlib import Path
 
 
@@ -193,10 +194,15 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", type=Path, default=ROOT / "build/godot-xmake/generated")
     parser.add_argument("--profile", type=Path, default=DEFAULT_PROFILE)
+    parser.add_argument("--disable-module", action="append", default=[])
     args = parser.parse_args()
     output = args.output.resolve()
     profile_path = args.profile.resolve()
     profile = json.loads(profile_path.read_text(encoding="utf-8"))
+    for name in args.disable_module:
+        if name not in profile["enabled_modules"]:
+            parser.error("Cannot disable unknown module: " + name)
+        profile["enabled_modules"].remove(name)
     inputs = [Path(__file__), profile_path]
     inputs += [path for path in GODOT.rglob("*.py") if path.is_file()]
     inputs += [path for suffix in ("*.glsl", "*.svg") for path in GODOT.rglob(suffix)]
@@ -219,10 +225,22 @@ def main() -> None:
             print(f"Godot xmake codegen unchanged: {len(expected)} outputs")
             return
 
-    if output.exists():
-        shutil.rmtree(output)
-    output.mkdir(parents=True)
-    outputs = generate(output, profile)
+    output.mkdir(parents=True, exist_ok=True)
+    # Generate off-tree and publish only changed bytes. Changing the generator
+    # without changing its output must not invalidate every compiler receipt.
+    outputs = []
+    changed = 0
+    with tempfile.TemporaryDirectory(prefix=".godot-codegen-", dir=output.parent) as temporary:
+        staging = Path(temporary)
+        for generated in generate(staging, profile):
+            target = output / generated.relative_to(staging)
+            if target.is_symlink():
+                raise RuntimeError("Generated output must not be a symlink: " + str(target))
+            if not target.is_file() or target.read_bytes() != generated.read_bytes():
+                target.parent.mkdir(parents=True, exist_ok=True)
+                os.replace(generated, target)
+                changed += 1
+            outputs.append(target)
     payload = {
         "fingerprint": fingerprint,
         "generator": "Tools/Godot/generate_xmake_sources.py",
@@ -231,7 +249,7 @@ def main() -> None:
         "outputs": [path.relative_to(output).as_posix() for path in outputs],
     }
     state.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    print(f"Godot xmake codegen generated: {len(outputs)} outputs")
+    print(f"Godot xmake codegen generated: {len(outputs)} outputs, {changed} changed")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "scope": "Two retained files exactly correspond to fixed bimg and syoyo commits. No original import checkout or complete upstream dependency inventory is inferred.",
+  "dora_import_commit": "0836aa1d1fc898d712c078a46e2ca9e10b70402e",
+  "upstream_commit": "834c4ce7955f2ae61edc802c697332baae2488c3",
+  "upstream_tree": "2725bd2abc0d0e9a593f8e1093dbee95144f1dc9",
+  "upstream_url": "https://github.com/syoyo/tinyexr",
+  "version": "unversioned fixed snapshot; not inferred from Godot",
+  "upstream_commit_response_sha256": "56b7b152360b72ca6383cac1d86aeae8a945f6af78426ace7465feb6052a93a3",
+  "upstream_tree_response_sha256": "d472b15f107c64a0a02152a88c6df2cca1b91c1a39eeb2f9bd9155759ffb00b0",
+  "bimg_commit": "98a40e85334721446bbc2efe7bd4576d37952136",
+  "bimg_archive_sha256": "86436cc057405031ae5bd4ed092f666f9f79341c5288fddf95a702fb71e51b75",
+  "bimg_subtree": "3rdparty/tinyexr",
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "d9dc6df6bdd3828b715b18091ff2d6fe8c7a7739f1b02b0276135530d3efac63",
+      "git_blob_sha1": "b570c4567ffc2231b957d3b183ea0b31898c6a00"
+    },
+    {
+      "path": "tinyexr.h",
+      "sha256": "ab08a72b907e8572b6c36037dd225326ba7a29f32f12aaafa15513becd152983",
+      "git_blob_sha1": "b8ecad20ec58b6cdd0d7af03aa6df4df59486eb9"
+    }
+  ],
+  "patches": []
+}

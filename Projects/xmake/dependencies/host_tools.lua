@@ -3,6 +3,7 @@ local dora_host_arch = os.arch()
 -- executable/toolchain packages against its process host architecture, so
 -- an emulated x64 xmake cannot select ARM64 Rust via add_requires.arch.
 
+if not has_config("dora_godot_standalone") then
 add_requires("go", {
     alias = "dora_go",
     host = true,
@@ -27,6 +28,8 @@ add_requires("rustup", {
     arch = dora_host_arch
 })
 
+end
+
 if is_plat("wasm") then
     add_requires("dora-emscripten", {
         alias = "dora_emscripten",
@@ -37,6 +40,8 @@ if is_plat("wasm") then
         arch = os.host() == "windows" and "x64" or dora_host_arch
     })
 end
+
+if has_config("dora_godot_standalone") then return end
 
 target("dora-host-tools")
     -- See the root dora-build-info target: IDE generation needs a product

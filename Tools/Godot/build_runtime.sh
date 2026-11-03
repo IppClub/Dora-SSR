@@ -17,25 +17,14 @@ SOURCE="$ROOT/Source/3rdParty/Godot"
 python3 "$ROOT/Tools/Godot/prepare.py" "$SOURCE"
 build_arch() {
     local build_arch="$1" build_log="$2"
-    if [[ "$TARGET" == template_release ]]; then
-        local config="$ROOT/build/godot-xmake/macos-config"
-        XMAKE_CONFIGDIR="$config" xmake f -c -p macosx -a "$build_arch" -m release \
-            --target_minver=11.0 --dora_godot_runtime=y >> "$build_log" 2>&1
-        XMAKE_CONFIGDIR="$config" xmake build -j"${JOBS:-3}" godot-runtime >> "$build_log" 2>&1
-        LIBRARY="$ROOT/build/godot-xmake/lib/libdora_godot.dylib"
-        return
-    fi
-    if [[ ! -x "$BUILD/venv/bin/scons" ]]; then
-        python3 -m venv "$BUILD/venv"
-        "$BUILD/venv/bin/pip" install scons==4.11.1
-    fi
-    # Keep standard Godot runtime modules: real projects may use physics,
-    # importers, text shaping and codecs omitted from the first probe.
-    (cd "$SOURCE" && "$BUILD/venv/bin/scons" platform=macos arch="$build_arch" target="$TARGET" \
-        library_type=shared_library linkflags=-Wl,-exported_symbols_list,dora_bridge.exports \
-        disable_path_overrides=no vulkan=no opengl3=no metal=yes \
-        optimize="$OPTIMIZE" debug_symbols=no use_lto=no -j"${JOBS:-3}") >> "$build_log" 2>&1
-    LIBRARY="$SOURCE/bin/libgodot.macos.$TARGET.$build_arch.dylib"
+    local mode=debug suffix=/debug
+    if [[ "$TARGET" == template_release ]]; then mode=release; suffix=; fi
+    local config="$ROOT/build/godot-xmake/macos-config-$mode"
+    local xmake="${DORA_GODOT_XMAKE:-${DORA_XMAKE:-xmake}}"
+    XMAKE_CONFIGDIR="$config" "$xmake" f -P "$ROOT" -c -p macosx -a "$build_arch" -m "$mode" \
+        --target_minver=11.0 --dora_godot_runtime=y --dora_godot_standalone=y >> "$build_log" 2>&1
+    XMAKE_CONFIGDIR="$config" "$xmake" build -P "$ROOT" -j"${JOBS:-3}" godot-runtime >> "$build_log" 2>&1
+    LIBRARY="$ROOT/build/godot-xmake${suffix}/lib/libdora_godot.dylib"
 }
 
 : > "$LOG"

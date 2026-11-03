@@ -1,0 +1,4 @@
+/*
+ * Copyright © 2024 Collabora Ltd. and Red Hat Inc.
+ * SPDX-License-Identifier: MIT
+ */

@@ -17,6 +17,8 @@
 #include "core/input/input_event.h"
 #include "core/os/keyboard.h"
 #include "core/os/os.h"
+#include "core/os/semaphore.h"
+#include "core/string/print_string.h"
 #include "scene/main/scene_tree.h"
 #include "scene/main/window.h"
 #include "servers/audio/audio_driver_dummy.h"
@@ -54,11 +56,15 @@ struct Runtime {
     ID3D12CommandQueue *queue=nullptr;
     ID3D12Fence *fence=nullptr;
     HANDLE event_handle=nullptr;
+    ID3D12CommandQueue *host_queue=nullptr;
+    ID3D12Fence *host_fence=nullptr;
+    HANDLE host_event=nullptr;
     std::array<Slot,DORA_GODOT_MAX_BUFFERS> slots{};
     RID direct_render_target;
     std::string project,scene,error;
     uint32_t width=0,height=0,buffers=0;
     uint64_t sequence=0,completed=0,fence_value=0,cpu_waits=0;
+    uint64_t host_fence_value=0,host_cpu_waits=0;
     bool active=false,paused=false,terminated=false,targets_bound=false;
 } runtime;
 DoraGodotOutput output;
@@ -87,6 +93,17 @@ bool wait_queue() {
         }
     }
     ++runtime.cpu_waits;return true;
+}
+bool wait_host_queue() {
+    if (!runtime.host_queue) return true;
+    const uint64_t value=++runtime.host_fence_value;
+    if (FAILED(runtime.host_queue->Signal(runtime.host_fence,value)) ||
+        (runtime.host_fence->GetCompletedValue()<value &&
+            (FAILED(runtime.host_fence->SetEventOnCompletion(value,runtime.host_event)) ||
+                WaitForSingleObject(runtime.host_event,10000)!=WAIT_OBJECT_0))) {
+        runtime.error="Dora D3D12 consumer queue CPU fence failed";return false;
+    }
+    ++runtime.host_cpu_waits;return true;
 }
 void prepare_output() {
     auto *rs=RenderingServer::get_singleton();
@@ -143,6 +160,19 @@ bool prepare_device(void *host_device) {
     }
     runtime.event_handle=CreateEventW(nullptr,FALSE,FALSE,nullptr);
     if (!runtime.event_handle) { runtime.error="Godot D3D12 bridge event creation failed";return false; }
+    // Diagnostic isolation of consumer/producer overlap. bgfx publishes its
+    // queue on the host device; this remains a conservative CPU wait.
+    if (OS::get_singleton()->get_environment("DORA_GODOT_D3D12_CPU_READERS")=="1") {
+        UINT size=sizeof(runtime.host_queue);
+        if (FAILED(host->GetPrivateData(IID_ID3D12CommandQueue,&size,&runtime.host_queue)) ||
+            !runtime.host_queue || size!=sizeof(runtime.host_queue) ||
+            FAILED(host->CreateFence(0,D3D12_FENCE_FLAG_NONE,IID_PPV_ARGS(&runtime.host_fence)))) {
+            runtime.error="Dora D3D12 consumer synchronization objects unavailable";return false;
+        }
+        runtime.host_event=CreateEventW(nullptr,FALSE,FALSE,nullptr);
+        if (!runtime.host_event) { runtime.error="Dora D3D12 consumer event creation failed";return false; }
+        print_line("DORA_GODOT_D3D12_CPU_READERS enabled");
+    }
     std::fprintf(stderr,"DORA_GODOT_D3D12_CPU prepare_device ready\n");
     return true;
 }
@@ -169,13 +199,19 @@ void *open(const DoraGodotConfig *config) {
         std::error_code path_error;
         const char *project_argument=std::filesystem::is_directory(std::filesystem::u8path(runtime.project),path_error)?"--path":"--main-pack";
         char executable[]="Dora-Godot";
-        char *args[]={executable,(char*)project_argument,(char*)runtime.project.c_str(),(char*)"--display-driver",(char*)"windows",
+        char *args[]={executable,(char*)project_argument,(char*)runtime.project.c_str(),(char*)"--display-driver",(char*)"dora-d3d12",
             (char*)"--rendering-driver",(char*)"d3d12",(char*)"--rendering-method",(char*)"mobile",
             (char*)"--audio-driver",(char*)"Dummy",(char*)"--render-thread",(char*)"safe",
             (char*)"--disable-render-loop",(char*)"--disable-crash-handler",(char*)"--resolution",(char*)resolution.c_str()};
         runtime.instance=(GodotInstance*)libgodot_create_godot_instance(sizeof(args)/sizeof(args[0]),args,extension_init);
         if (!runtime.instance) { runtime.error="LibGodot D3D12 initialization failed";return nullptr; }
         if (OS::get_singleton()->get_environment("DORA_GODOT_D3D12_WARP")=="1") {
+            const String cache=OS::get_singleton()->get_environment("DORA_GODOT_D3D12_WARP_SHADER_CACHE");
+            if (!cache.is_empty()) {
+                if (cache!="0" && cache!="1") { runtime.error="DORA_GODOT_D3D12_WARP_SHADER_CACHE must be 0 or 1";return nullptr; }
+                ProjectSettings::get_singleton()->set("rendering/shader_compiler/shader_cache/enabled",cache=="1");
+                print_line(vformat("DORA_GODOT_D3D12_WARP shader_cache=%d",int(cache=="1")));
+            }
             // Current Windows 11 ARM64 WARP crashes in Forward Mobile's
             // fragment shadow-receiver path. Keep per-pixel diffuse, specular
             // and ambient lighting, but compile shadows out in the default
@@ -189,8 +225,8 @@ void *open(const DoraGodotConfig *config) {
             }
             if (force_vertex) ProjectSettings::get_singleton()->set("rendering/shading/overrides/force_vertex_shading",true);
             if (force_disable_shadows) ProjectSettings::get_singleton()->set("rendering/shading/overrides/force_disable_shadows",true);
-            std::fprintf(stderr,"DORA_GODOT_D3D12_WARP compat=%s force_disable_shadows=%d force_vertex_shading=%d\n",
-                compat.utf8().get_data(),force_disable_shadows,force_vertex);
+            print_line(vformat("DORA_GODOT_D3D12_WARP compat=%s force_disable_shadows=%d force_vertex_shading=%d",
+                compat,int(force_disable_shadows),int(force_vertex)));
         }
         if (!runtime.scene.empty()) ProjectSettings::get_singleton()->set("application/run/main_scene",String::utf8(runtime.scene.c_str()));
         if (!runtime.instance->start()) { runtime.error="Godot D3D12 project startup failed";return nullptr; }
@@ -239,7 +275,7 @@ int bind_targets(void *handle,uint32_t width,uint32_t height,const uint64_t *han
         if (!slot.rd_texture.is_valid()) { runtime.error="Godot D3D12 external texture import failed";clear_targets();return 0; }
     }
     runtime.width=width;runtime.height=height;runtime.targets_bound=true;
-    std::fprintf(stderr,"DORA_GODOT_D3D12_CPU enabled buffers=%u size=%ux%u shared=1\n",count,width,height);
+    print_line(vformat("DORA_GODOT_D3D12_CPU enabled buffers=%d size=%dx%d shared=1",int(count),int(width),int(height)));
     return 1;
 }
 int output_size(void *handle,DoraGodotOutputSize *size) {
@@ -253,6 +289,7 @@ int get_slot(void *handle,uint32_t index,DoraGodotSlot *slot) {
 }
 uint64_t advance(void *handle,uint32_t index,uint64_t) {
     if (!valid(handle) || !runtime.targets_bound || index>=runtime.buffers) return 0;
+    if (!wait_host_queue()) return 0;
     auto &slot=runtime.slots[index];
     if (!select_target(index)) return 0;
     output_pending=false;
@@ -271,6 +308,7 @@ void close(void *handle,DoraGodotStats *stats) {
     if (stats && stats->size>=sizeof(*stats)) *stats={sizeof(*stats),runtime.sequence,runtime.completed,0,runtime.cpu_waits};
     std::fprintf(stderr,"DORA_GODOT_D3D12_CPU completed frames=%llu waits=%llu\n",
         (unsigned long long)runtime.sequence,(unsigned long long)runtime.cpu_waits);
+    if (runtime.host_queue) print_line(vformat("DORA_GODOT_D3D12_CPU_READERS completed waits=%d",runtime.host_cpu_waits));
     clear_targets();release_inputs();runtime.tree->set_pause(true);runtime.active=false;
     DoraGodotRenderTiming::reset();DoraGodotIME::reset();
 }
@@ -279,6 +317,9 @@ void shutdown() {
     if (runtime.instance) { output.close(runtime.root);libgodot_destroy_godot_instance(runtime.instance); }
     runtime.instance=nullptr;runtime.tree=nullptr;runtime.root=nullptr;
     if (runtime.fence) runtime.fence->Release();if (runtime.event_handle) CloseHandle(runtime.event_handle);
+    if (runtime.host_fence) runtime.host_fence->Release();if (runtime.host_event) CloseHandle(runtime.host_event);
+    if (runtime.host_queue) runtime.host_queue->Release();
+    runtime.host_queue=nullptr;runtime.host_fence=nullptr;runtime.host_event=nullptr;
     runtime.fence=nullptr;runtime.event_handle=nullptr;
     runtime.device=nullptr;runtime.queue=nullptr;runtime.terminated=true;
 }

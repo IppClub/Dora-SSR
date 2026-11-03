@@ -128,25 +128,33 @@ class D3D12Session final : public GodotSession,public std::enable_shared_from_th
         slots.clear();
     }
     void discardSlots(std::vector<SharedSlot> &slots) {
+        std::vector<bgfx::TextureHandle> wrappers;
         for (auto &slot:slots) {
             if (slot.handle) CloseHandle(slot.handle);
             if (slot.resource) slot.resource->Release();
-            if (bgfx::isValid(slot.wrapper)) bgfx::destroy(slot.wrapper);
+            if (bgfx::isValid(slot.wrapper)) wrappers.push_back(slot.wrapper);
         }
         slots.clear();
+        // A resource-frame job runs inside bgfx encoding, while its API thread
+        // can hold the resource mutex waiting for this frame. Destroy wrappers
+        // on the logic/API thread so cancellation cannot deadlock that wait.
+        SharedApplication.invokeInLogic([wrappers=std::move(wrappers)] {
+            for (auto wrapper:wrappers) bgfx::destroy(wrapper);
+        });
     }
     void retireShared() { retireSlots(_slots); }
     bool queryIME(DoraGodotIMEState &state) {
         state={sizeof(state),0,0,0,0};
         return imeAPI.get_state && imeAPI.get_state(_handle,&state) && acceptIMEState(state);
     }
-    bool produce(uint32_t slot) {
+    bool produce(uint32_t slot,bool publishToLogic=true) {
         const uint64_t sequence=api.advance(_handle,slot,0);
         if (!sequence) return false;
         // The simultaneous-access texture decays to COMMON after Godot's list.
         // Re-applying the pointer resets bgfx's private state tracker.
         if (bgfx::overrideInternal(_slots[slot].wrapper,(uintptr_t)_slots[slot].resource)!=(uintptr_t)_slots[slot].resource)
             return false;
+        if (!publishToLogic) return true;
         DoraGodotIMEState ime{};const bool imeChanged=queryIME(ime);
         auto self=shared_from_this();
         SharedApplication.invokeInLogic([self,slot,ime,imeChanged] {
@@ -177,16 +185,18 @@ class D3D12Session final : public GodotSession,public std::enable_shared_from_th
             fail("Godot D3D12 shared resource import failed: "+std::string(api.last_error(_handle)));return;
         }
         api.set_paused(_handle,_paused.load());
-        if (!produce(0)) { fail(api.last_error(_handle));return; }
+        if (!produce(0,false)) { fail(api.last_error(_handle));return; }
+        DoraGodotIMEState initialIME{};const bool hasInitialIME=queryIME(initialIME);
         if (audioAPI.read_pcm && !_audio.configure(audioAPI,_handle)) { fail("Godot D3D12 audio configuration failed");return; }
         auto self=shared_from_this();
-        SharedApplication.invokeInLogic([self] {
+        SharedApplication.invokeInLogic([self,initialIME,hasInitialIME] {
             if (self->_closing) return;
             auto *target=self->node();if (!target) { self->close();return; }
             bgfx::TextureInfo info{};bgfx::calcTextureSize(info,self->_width,self->_height,1,false,false,1,bgfx::TextureFormat::RGBA8);
             for (auto &slot:self->_slots) self->_textures.emplace_back(Texture2D::create(slot.wrapper,info,BGFX_SAMPLER_U_CLAMP|BGFX_SAMPLER_V_CLAMP));
             self->_ready=true;self->_next=1%self->_buffers;
             target->setTexture(self->_textures[0]);target->setTextureRect({0,0,float(self->_width),float(self->_height)});
+            if (hasInitialIME) self->applyIME(initialIME);
             if (!self->_audio.start()) { self->fail("Dora host audio mixer could not start Godot D3D12 stream");return; }
             self->_started=true;self->running(true);
         });
@@ -223,39 +233,44 @@ public:
             next.push_back({nullptr,nullptr,wrapper});
         }
         _ready=false;const uint32_t generation=++_generation;
+        const uint32_t resourceFrame=SharedApplication.getFrame()+1;
         auto self=shared_from_this();
-        SharedApplication.invokeInRender([self,next=std::move(next),width,height,generation]() mutable {
-            if (self->_closing || self->_generation!=generation) { self->discardSlots(next);return; }
-            auto *device=reinterpret_cast<ID3D12Device *>(bgfx::getInternalData()->context);
-            if (!device || !self->allocateShared(device,next,width,height)) {
-                self->discardSlots(next);self->fail("resized D3D12 shared texture allocation failed");return;
-            }
-            for (auto &slot:next) {
-                if (bgfx::overrideInternal(slot.wrapper,(uintptr_t)slot.resource)!=(uintptr_t)slot.resource) {
-                    self->discardSlots(next);self->fail("resized bgfx D3D12 texture override failed");return;
+        SharedApplication.invokeInRender([self,next=std::move(next),width,height,generation,resourceFrame]() mutable {
+            // As at boot, wait until bgfx has executed the wrappers' create
+            // commands before overriding their native resources.
+            bootQueue.schedule(resourceFrame,[self,next=std::move(next),width,height,generation]() mutable {
+                if (self->_closing || self->_generation!=generation) { self->discardSlots(next);return; }
+                auto *device=reinterpret_cast<ID3D12Device *>(bgfx::getInternalData()->context);
+                if (!device || !self->allocateShared(device,next,width,height)) {
+                    self->discardSlots(next);self->fail("resized D3D12 shared texture allocation failed");return;
                 }
-            }
-            auto previous=std::move(self->_slots);
-            const uint32_t previousWidth=self->_width,previousHeight=self->_height;
-            self->_slots=std::move(next);self->_width=width;self->_height=height;
-            uint64_t handles[DORA_GODOT_MAX_BUFFERS]{};
-            for (uint32_t i=0;i<self->_buffers;++i) handles[i]=(uint64_t)(uintptr_t)self->_slots[i].handle;
-            if (!targetsAPI.bind(self->_handle,width,height,handles,self->_buffers) || !self->produce(0)) {
-                auto failed=std::move(self->_slots);self->_slots=std::move(previous);
-                self->_width=previousWidth;self->_height=previousHeight;self->discardSlots(failed);
-                self->fail("resized Godot D3D12 target binding failed: "+std::string(api.last_error(self->_handle)));return;
-            }
-            self->retireSlots(previous);
-            SharedApplication.invokeInLogic([self,width,height,generation] {
-                if (self->_closing || self->_generation!=generation) return;
-                bgfx::TextureInfo info{};bgfx::calcTextureSize(info,width,height,1,false,false,1,bgfx::TextureFormat::RGBA8);
-                std::vector<Ref<Texture2D>> textures;textures.reserve(self->_buffers);
-                for (auto &slot:self->_slots) textures.emplace_back(Texture2D::create(slot.wrapper,info,BGFX_SAMPLER_U_CLAMP|BGFX_SAMPLER_V_CLAMP));
-                self->_textures=std::move(textures);self->_next=1%self->_buffers;self->_ready=true;
-                if (auto *target=self->node()) {
-                    target->setTexture(self->_textures[0]);self->resized(width,height);
+                for (auto &slot:next) {
+                    if (bgfx::overrideInternal(slot.wrapper,(uintptr_t)slot.resource)!=(uintptr_t)slot.resource) {
+                        self->discardSlots(next);self->fail("resized bgfx D3D12 texture override failed");return;
+                    }
                 }
-                Info("GodotRuntime resized: width={}, height={}, generation={}",width,height,generation);
+                auto previous=std::move(self->_slots);
+                const uint32_t previousWidth=self->_width,previousHeight=self->_height;
+                self->_slots=std::move(next);self->_width=width;self->_height=height;
+                uint64_t handles[DORA_GODOT_MAX_BUFFERS]{};
+                for (uint32_t i=0;i<self->_buffers;++i) handles[i]=(uint64_t)(uintptr_t)self->_slots[i].handle;
+                if (!targetsAPI.bind(self->_handle,width,height,handles,self->_buffers) || !self->produce(0)) {
+                    auto failed=std::move(self->_slots);self->_slots=std::move(previous);
+                    self->_width=previousWidth;self->_height=previousHeight;self->discardSlots(failed);
+                    self->fail("resized Godot D3D12 target binding failed: "+std::string(api.last_error(self->_handle)));return;
+                }
+                self->retireSlots(previous);
+                SharedApplication.invokeInLogic([self,width,height,generation] {
+                    if (self->_closing || self->_generation!=generation) return;
+                    bgfx::TextureInfo info{};bgfx::calcTextureSize(info,width,height,1,false,false,1,bgfx::TextureFormat::RGBA8);
+                    std::vector<Ref<Texture2D>> textures;textures.reserve(self->_buffers);
+                    for (auto &slot:self->_slots) textures.emplace_back(Texture2D::create(slot.wrapper,info,BGFX_SAMPLER_U_CLAMP|BGFX_SAMPLER_V_CLAMP));
+                    self->_textures=std::move(textures);self->_next=1%self->_buffers;self->_ready=true;
+                    if (auto *target=self->node()) {
+                        target->setTexture(self->_textures[0]);self->resized(width,height);
+                    }
+                    Info("GodotRuntime resized: width={}, height={}, generation={}",width,height,generation);
+                });
             });
         });
         return true;
@@ -263,7 +278,7 @@ public:
     void step() override {}
     void encode(bool end) {
         if (end) { tryClose();return; }
-        if (_ready && !_closing && !_paused && _handle) {
+        if (_ready && !_closing && _handle) {
             const uint32_t slot=_next;_next=(_next+1)%_buffers;
             if (!produce(slot)) fail(api.last_error(_handle));
         }

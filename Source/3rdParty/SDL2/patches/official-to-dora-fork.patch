@@ -1,0 +1,108 @@
+--- a/include/SDL_config_android.h
++++ b/include/SDL_config_android.h
+@@ -145,7 +145,7 @@
+ /* Enable various audio drivers */
+ #define SDL_AUDIO_DRIVER_ANDROID    1
+ #define SDL_AUDIO_DRIVER_OPENSLES   1
+-#define SDL_AUDIO_DRIVER_AAUDIO     1
++#define SDL_AUDIO_DRIVER_AAUDIO     0
+ #define SDL_AUDIO_DRIVER_DUMMY  1
+ 
+ /* Enable various input drivers */
+@@ -174,8 +174,8 @@
+ #define SDL_VIDEO_OPENGL_ES 1
+ #define SDL_VIDEO_OPENGL_ES2 1
+ #define SDL_VIDEO_OPENGL_EGL 1
+-#define SDL_VIDEO_RENDER_OGL_ES 1
+-#define SDL_VIDEO_RENDER_OGL_ES2    1
++#define SDL_VIDEO_RENDER_OGL_ES 0
++#define SDL_VIDEO_RENDER_OGL_ES2    0
+ 
+ /* Enable Vulkan support */
+ /* Android does not support Vulkan in native code using the "armeabi" ABI. */
+--- a/include/SDL_config_iphoneos.h
++++ b/include/SDL_config_iphoneos.h
+@@ -173,14 +173,6 @@
+ #define SDL_VIDEO_DRIVER_UIKIT  1
+ #define SDL_VIDEO_DRIVER_DUMMY  1
+ 
+-/* Enable OpenGL ES */
+-#if !TARGET_OS_MACCATALYST
+-#define SDL_VIDEO_OPENGL_ES2 1
+-#define SDL_VIDEO_OPENGL_ES 1
+-#define SDL_VIDEO_RENDER_OGL_ES 1
+-#define SDL_VIDEO_RENDER_OGL_ES2    1
+-#endif
+-
+ /* Metal supported on 64-bit devices running iOS 8.0 and tvOS 9.0 and newer
+    Also supported in simulator from iOS 13.0 and tvOS 13.0
+  */
+@@ -191,7 +183,7 @@
+ #endif
+ 
+ #if SDL_PLATFORM_SUPPORTS_METAL
+-#define SDL_VIDEO_RENDER_METAL  1
++#define SDL_VIDEO_RENDER_METAL  0
+ #endif
+ 
+ #if SDL_PLATFORM_SUPPORTS_METAL
+--- a/include/SDL_config_macosx.h
++++ b/include/SDL_config_macosx.h
+@@ -207,11 +207,11 @@
+ #endif
+ 
+ #ifndef SDL_VIDEO_RENDER_OGL
+-#define SDL_VIDEO_RENDER_OGL    1
++#define SDL_VIDEO_RENDER_OGL    0
+ #endif
+ 
+ #ifndef SDL_VIDEO_RENDER_OGL_ES2
+-#define SDL_VIDEO_RENDER_OGL_ES2 1
++#define SDL_VIDEO_RENDER_OGL_ES2 0
+ #endif
+ 
+ /* Metal only supported on 64-bit architectures with 10.11+ */
+@@ -222,11 +222,7 @@
+ #endif
+ 
+ #ifndef SDL_VIDEO_RENDER_METAL
+-#if SDL_PLATFORM_SUPPORTS_METAL
+-#define SDL_VIDEO_RENDER_METAL    1
+-#else
+ #define SDL_VIDEO_RENDER_METAL    0
+-#endif
+ #endif
+ 
+ /* Enable OpenGL support */
+--- a/include/SDL_config_windows.h
++++ b/include/SDL_config_windows.h
+@@ -290,13 +290,13 @@
+ #define SDL_VIDEO_DRIVER_WINDOWS    1
+ 
+ #ifndef SDL_VIDEO_RENDER_D3D
+-#define SDL_VIDEO_RENDER_D3D    1
++#define SDL_VIDEO_RENDER_D3D    0
+ #endif
+ #if !defined(SDL_VIDEO_RENDER_D3D11) && defined(HAVE_D3D11_H)
+-#define SDL_VIDEO_RENDER_D3D11  1
++#define SDL_VIDEO_RENDER_D3D11  0
+ #endif
+ #if !defined(SDL_VIDEO_RENDER_D3D12) && defined(HAVE_D3D12_H)
+-#define SDL_VIDEO_RENDER_D3D12  1
++#define SDL_VIDEO_RENDER_D3D12  0
+ #endif
+ 
+ /* Enable OpenGL support */
+@@ -307,10 +307,10 @@
+ #define SDL_VIDEO_OPENGL_WGL    1
+ #endif
+ #ifndef SDL_VIDEO_RENDER_OGL
+-#define SDL_VIDEO_RENDER_OGL    1
++#define SDL_VIDEO_RENDER_OGL    0
+ #endif
+ #ifndef SDL_VIDEO_RENDER_OGL_ES2
+-#define SDL_VIDEO_RENDER_OGL_ES2    1
++#define SDL_VIDEO_RENDER_OGL_ES2    0
+ #endif
+ #ifndef SDL_VIDEO_OPENGL_ES2
+ #define SDL_VIDEO_OPENGL_ES2    1

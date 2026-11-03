@@ -12,6 +12,9 @@ on:
 permissions:
   contents: read
 
+env:
+  DORA_ENGINE_ROOT: ${{ github.workspace }}
+
 concurrency:
   group: godot-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -29,10 +32,17 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.13'
+      - uses: xmake-io/github-action-setup-xmake@v1
+        with:
+          xmake-version: '3.1.1'
+      - name: Resolve Dora-Example tests once
+        run: xmake dora-test-deps --env-file="$GITHUB_ENV"
       - name: ABI, ownership, timing, PCM and embedded shader contracts
-        run: bash Tools/Godot/tests/protocol.sh
+        run: bash "$DORA_TEST_REPO/Test/Godot/tests/protocol.sh"
       - name: Runtime package positive and negative checks
-        run: python3 Tools/Godot/tests/package_integrity.py
+        run: python3 "$DORA_TEST_REPO/Test/Godot/tests/package_integrity.py"
+      - name: Standalone xmake entrypoints and native source variants
+        run: python3 "$DORA_TEST_REPO/Test/Godot/test_xmake_only.py"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -63,6 +73,8 @@ jobs:
       - uses: xmake-io/github-action-setup-xmake@v1
         with:
           xmake-version: '3.1.1'
+      - name: Resolve Dora-Example tests once
+        run: xmake dora-test-deps --env-file="$GITHUB_ENV"
       - name: Install build and headless EGL dependencies
         run: |
           sudo apt-get update
@@ -73,26 +85,28 @@ jobs:
             libgl1-mesa-dev libgles2-mesa-dev libwayland-dev libwayland-bin wayland-protocols \
             libxkbcommon-dev libdecor-0-dev weston mesa-utils
           python3 -m pip install Pillow==12.1.0
+      - name: Native object variants, archive merging and incremental rebuild
+        run: python3 "$DORA_TEST_REPO/Test/Godot/test_xmake_native_variants.py" --output build/godot-native-variants-ci
       - name: Build runtime/hosts, run failure recovery, EGL matrix, cycles and ordinary-app checks
-        run: python3 Tools/Godot/tests/ci_linux.py --jobs 2
+        run: python3 "$DORA_TEST_REPO/Test/Godot/tests/ci_linux.py" --jobs 2
       - name: Repeated Web vendor validation preserves source bytes
         run: >-
-          python3 Tools/Godot/tests/test_prepare_web.py
+          python3 "$DORA_TEST_REPO/Test/Godot/tests/test_prepare_web.py"
           > build/godot-runtime/ci-linux/prepare-web-regression.log
       - name: Optimized ordinary Release shutdown and fallback checks
-        run: python3 Tools/Godot/tests/ci_linux_release.py --jobs 2
+        run: python3 "$DORA_TEST_REPO/Test/Godot/tests/ci_linux_release.py" --jobs 2
       - name: Wasm initializer trap releases exported Object references
         run: >-
-          python3 Tools/Godot/tests/with_weston.py
+          python3 "$DORA_TEST_REPO/Test/Godot/tests/with_weston.py"
           --logs build/godot-runtime/ci-ownership-trap/weston --
-          python3 Tools/Godot/tests/bindings/run_object_ownership_trap.py
+          python3 "$DORA_TEST_REPO/Test/Godot/tests/bindings/run_object_ownership_trap.py"
           --binary build/godot-runtime/dora/Dora --asset-source Assets
           --output build/godot-runtime/ci-ownership-trap/case
       - name: Runtime glTF animation and spatial shader project
         run: >-
-          python3 Tools/Godot/tests/with_weston.py
+          python3 "$DORA_TEST_REPO/Test/Godot/tests/with_weston.py"
           --logs build/godot-runtime/ci-project-3d/weston --
-          python3 Tools/Godot/tests/run_project_3d_native.py
+          python3 "$DORA_TEST_REPO/Test/Godot/tests/run_project_3d_native.py"
           --binary build/linux/x86_64/release/Dora
           --library build/godot-linux/package/libdora_godot.so
           --asset-source Assets --output build/godot-runtime/ci-project-3d/case

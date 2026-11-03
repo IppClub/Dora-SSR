@@ -1,0 +1,62 @@
+--- a/ogg.h
++++ b/ogg.h
+@@ -21,7 +21,7 @@
+ #endif
+ 
+ #include <stddef.h>
+-#include <ogg/os_types.h>
++#include "os_types.h"
+ 
+ typedef struct {
+   void *iov_base;
+--- a/src/bitwise.c
++++ b/src/bitwise.c
+@@ -20,7 +20,7 @@
+ #include <string.h>
+ #include <stdlib.h>
+ #include <limits.h>
+-#include <ogg/ogg.h>
++#include "../ogg.h"
+ 
+ #define BUFFER_INCREMENT 256
+ 
+@@ -967,7 +967,7 @@
+     for(j=1;j<40;j++)
+       if(j&0x7)
+         copytest(j,i);
+-  
++
+   fprintf(stderr,"ok.      \n");
+ 
+ 
+@@ -1077,7 +1077,7 @@
+     for(j=1;j<40;j++)
+       if(j&0x7)
+         copytestB(j,i);
+-  
++
+   fprintf(stderr,"ok.      \n\n");
+ 
+   return(0);
+--- a/src/framing.c
++++ b/src/framing.c
+@@ -26,7 +26,7 @@
+ #include <stdlib.h>
+ #include <limits.h>
+ #include <string.h>
+-#include <ogg/ogg.h>
++#include "../ogg.h"
+ 
+ /* A complete description of Ogg framing exists in docs/framing.html */
+ 
+--- a/src/crctable.h
++++ b/src/crctable.h
+@@ -10,7 +10,7 @@
+  *                                                                  *
+  ********************************************************************/
+ 
+-#include <ogg/os_types.h>
++#include "../os_types.h"
+ 
+ static const ogg_uint32_t crc_lookup[8][256]={
+ {0x00000000,0x04c11db7,0x09823b6e,0x0d4326d9,0x130476dc,0x17c56b6b,0x1a864db2,0x1e475005,

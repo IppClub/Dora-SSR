@@ -33,6 +33,7 @@
 #include "../effects/copy_effects.h"
 #include "../framebuffer_cache_rd.h"
 #include "material_storage.h"
+#include "modules/modules_enabled.gen.h"
 #include "servers/rendering/renderer_rd/renderer_scene_render_rd.h"
 
 using namespace RendererRD;
@@ -1500,7 +1501,15 @@ Ref<Image> TextureStorage::texture_2d_get(RID p_texture) const {
 		return tex->image_cache_2d;
 	}
 #endif
-	Vector<uint8_t> data = RD::get_singleton()->texture_get_data(tex->rd_texture, 0);
+	RID readback_texture = tex->rd_texture;
+#ifdef MODULE_DORA_BRIDGE_ENABLED
+	// Direct rendering writes into the selected host-owned color target. The
+	// viewport's original allocation is retained for restoration, not updated.
+	if (tex->render_target && tex->render_target->overridden.color.is_valid()) {
+		readback_texture = tex->render_target->overridden.color;
+	}
+#endif
+	Vector<uint8_t> data = RD::get_singleton()->texture_get_data(readback_texture, 0);
 	ERR_FAIL_COND_V(data.is_empty(), Ref<Image>());
 	Ref<Image> image;
 

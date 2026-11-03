@@ -20,6 +20,10 @@ target("dora-tolua")
         set_toolchains("xcode", {
             plat = os.host(), arch = os.arch(), appledev = "macosx"
         })
+    elseif is_host("linux") then
+        -- The generator executes on the build host. An explicit cross --cc
+        -- must not compile its objects for the application's architecture.
+        set_toolchains("gcc", {plat = os.host(), arch = os.arch()})
     end
     -- Keep the generator's Lua 5.1/LFS sources in a real C mode on every
     -- host. MSVC supports C11 directly; using c99 makes xmake fall back to

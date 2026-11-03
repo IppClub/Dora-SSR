@@ -1,14 +1,19 @@
 # GodotNode：共享 GPU 纹理集成实验
 
+
+测试、验证与诊断程序已迁至 Dora-Example 的 `Test/Godot`，旧 Metal 原型位于 `Test/LibGodotMetalProbe`。生产构建与包/SDK完整性校验仍由本目录维护。运行本文测试命令前，先从引擎根目录执行 `xmake dora-test-deps --env-file=/path/to/test-env`，或设置 `DORA_TEST_REPO=/absolute/path/to/Dora-Example`；Python/Shell 测试使用 `DORA_ENGINE_ROOT` 指向当前引擎，未设置时从引擎工作目录解析。统一轻量入口为 `xmake dora-test --repo=/path/to/Dora-Example --suite=godot-contract`。
+
+第三方依赖采用完整独立LibGodot模式：保留Godot各平台原有依赖实现，Dora分别构建自己的版本；库共享开关和codec函数表实验已移除，历史见[归档](history/2026-11-03-library-sharing-removed/README.md)。
+
 将固定版本 Godot 4.6 的项目离屏输出作为 Dora Sprite 使用。Apple Silicon macOS 上，Dora/bgfx 已可创建 2–4 张 host-owned Metal render target，Godot 导入后直接渲染，双向 GPU event 同步且稳态零 blit。Linux ARM64 EGL、Windows WGL、Android EGL 与 WebGL2 也已通过各自记录范围内的 direct-target 节点测试。LibGodot、Godot 场景树与渲染器实际运行在 Dora 进程内。
 
 直接运行的2D/3D项目与简明操作步骤见 [示例快速开始](examples/README.md)。
 
-当前平台状态、产品决策和待办任务统一维护在 [`TRACKING.md`](TRACKING.md)。`PLAN.md` 保留详细实验过程，不作为当前任务状态的唯一依据。
+当前平台状态、产品决策和待办任务统一维护在 [`TRACKING.md`](TRACKING.md)。阶段安排见 [`PLAN.md`](PLAN.md)，源码升级、可选包和排障见 [维护指南](MAINTENANCE.md)，详细实验过程保留在 [历史归档](history/2026-11-02-vendor-xmake-progress/README.md)。
 
-iOS 兼容策略：普通 Dora 保持 Apple2 GPU Family；可选 GodotNode 要求 Apple4 GPU Family，不满足时可查询原因并安全拒绝。Metal host-owned targets 扩展已编入并导出于 iOS simulator runtime/framework，宿主也已完成链接与签名；当前模拟器只暴露 Apple2，因此验证结果是启动前安全拒绝，不能作为 Apple4+ 共享画面、物理 GPU、真实触摸或真实音频证据。详见 TRACKING.md 的 DIRECT-04 与其他未覆盖边界。
+iOS 兼容策略：普通 Dora 保持 Apple2 GPU Family；可选 GodotNode 要求 Apple4 GPU Family，不满足时可查询原因并安全拒绝。Metal host-owned targets 扩展已编入并导出于 iOS simulator runtime/framework，宿主也已完成链接与签名；当前模拟器只暴露 Apple2，因此验证结果是启动前安全拒绝，不能作为 Apple4+ 共享画面、物理 GPU、真实触摸或真实音频证据。原整合证据见 [DIRECT-04 历史](history/2026-11-02-pre-vendor-xmake/TRACKING.md)，当前迁移缺口见 [XMAKE-08](TRACKING.md)。
 
-Web PCM 更新（2026-10-29）：宿主与 Godot 运行在同一 window 线程时，PCM 在宿主请求时按需混音；不启动 PCM 生产 pthread，不预填充 lookahead 队列。此路径用于避免 Firefox ScriptProcessor 突发回调耗尽异步队列，原生平台继续使用后台生产队列。包含 Web 排空记账修正的新运行库已通过 Chrome/Firefox/Playwright WebKit 的 2/3/4 缓冲矩阵；实际设备输出、长期复杂混音及端到端延迟仍待验收，详见 TRACKING.md 的 WEB-01/02。
+Web PCM 更新（2026-10-29）：宿主与 Godot 运行在同一 window 线程时，PCM 在宿主请求时按需混音；不启动 PCM 生产 pthread，不预填充 lookahead 队列。此路径用于避免 Firefox ScriptProcessor 突发回调耗尽异步队列，原生平台继续使用后台生产队列。包含 Web 排空记账修正的新运行库已通过 Chrome/Firefox/Playwright WebKit 的 2/3/4 缓冲矩阵；实际设备输出、长期复杂混音及端到端延迟仍待验收，历史证据见 [原整合清单](history/2026-11-02-pre-vendor-xmake/TRACKING.md)，当前迁移状态见 [XMAKE-07](TRACKING.md)。
 
 ## 构建和验证
 
@@ -18,7 +23,7 @@ Web PCM 更新（2026-10-29）：宿主与 Godot 运行在同一 window 线程�
 的项目交给普通 macOS Release 宿主：
 
 ```sh
-python3 Tools/Godot/tests/run_dodge_the_creeps_macos.py \
+python3 $DORA_TEST_REPO/Test/Godot/tests/run_dodge_the_creeps_macos.py \
   --app build/macosx/arm64/release/Dora.app \
   --library build/godot-runtime/release/package/libdora_godot.dylib \
   --project /absolute/path/to/imported/dodge_the_creeps \
@@ -35,7 +40,7 @@ python3 Tools/Godot/tests/run_dodge_the_creeps_macos.py \
 Linux 自动回归入口：
 
 ```sh
-python3 Tools/Godot/tests/ci_linux.py --jobs 2
+python3 $DORA_TEST_REPO/Test/Godot/tests/ci_linux.py --jobs 2
 ```
 
 系统依赖见 `.github/workflows/godot.yml`。入口依次构建运行库与 Dora 测试宿主，检查着色器构建失败后的立即退出/同进程恢复，再执行 EGL 2/3/4 缓冲矩阵和同进程 100 轮创建/销毁，最后构建普通宿主并执行项目拒绝/恢复、随包加载及缺库退化。测试宿主、普通宿主与运行库分别保存哈希，普通构建不能覆盖测试产物；全部阶段通过后才写聚合 verification.json，初始化失败/普通宿主报告索引分别位于 init_failure_reports、ordinary_reports。新增阶段的独立运行与新版聚合入口验收分开记录，详见 TRACKING.md。
@@ -43,7 +48,7 @@ python3 Tools/Godot/tests/ci_linux.py --jobs 2
 优化普通 Linux Release 的自动回归另有入口，复用已构建且清单校验通过的 Godot 运行库，不重编 LibGodot：
 
 ```sh
-python3 Tools/Godot/tests/ci_linux_release.py --jobs 2
+python3 $DORA_TEST_REPO/Test/Godot/tests/ci_linux_release.py --jobs 2
 ```
 
 该入口构建普通优化宿主、从编译命令检查优化标志和 NDEBUG，然后执行 2/3/4 缓冲活动退出、创建后立即退出、随包/缺库退化。报告位于 `build/godot-runtime/ci-linux-release/`；Godot 工作流在原 Debug/循环回归后执行本入口并上传两组结果。本地复现可显式指定 `--source-root`、`--library`、`--output`；`--prebuilt-receipt` 仅用于原产物与完整 source-audit.json 均存在、源码/二进制哈希未变的复现，报告会标明跳过构建。该模式不能证明本轮重新编译或远程 CI 已通过。Ubuntu ARM64 VM/llvmpipe 与 SDL dummy 音频的边界见 TRACKING。
@@ -53,8 +58,8 @@ python3 Tools/Godot/tests/ci_linux_release.py --jobs 2
 原生初始化失败回归（要求 `DORA_BUILD_GODOT_NODE_TEST=1` 构建的测试宿主）：
 
 ```sh
-python3 Tools/Godot/tests/run_init_failure.py --binary /absolute/path/to/test/Dora --library /absolute/path/to/libdora_godot.dylib --output /absolute/path/to/fresh-failure-results --mode exit
-python3 Tools/Godot/tests/run_init_failure.py --binary /absolute/path/to/test/Dora --library /absolute/path/to/libdora_godot.dylib --output /absolute/path/to/fresh-recovery-results --mode recover
+python3 $DORA_TEST_REPO/Test/Godot/tests/run_init_failure.py --binary /absolute/path/to/test/Dora --library /absolute/path/to/libdora_godot.dylib --output /absolute/path/to/fresh-failure-results --mode exit
+python3 $DORA_TEST_REPO/Test/Godot/tests/run_init_failure.py --binary /absolute/path/to/test/Dora --library /absolute/path/to/libdora_godot.dylib --output /absolute/path/to/fresh-recovery-results --mode recover
 ```
 
 Linux 使用 `.so`，无显示会话时由 `tests/with_weston.py` 包裹。测试宿主向实际编译器传入缺少入口的无效源码，要求 Lua 构造拒绝。exit 用例在首帧前正常退出，并检查 SpriteRenderer 在 bgfx 设备之前释放；recover 在同一进程撤销故障注入后完成 1000 帧、15 截图和完整输入/控制器、resize/cancel、别名、音频及排空。原始日志完整保留；只对明确标记的预期故障区间作单独验证，恢复阶段继续使用原有严格校验器。注入入口仅编译进专用测试宿主，普通 Release 不包含该入口或注入标记。
@@ -62,7 +67,7 @@ Linux 使用 `.so`，无显示会话时由 `tests/with_weston.py` 包裹。测�
 真实 Safari 的 WebDriver 入口（要求 Safari 已启用“允许远程自动化”）：
 
 ```sh
-python3 Tools/Godot/tests/web/run_safari.py --package /absolute/path/to/prepared-node-player --buffers 3 --output /absolute/path/to/fresh-results
+python3 $DORA_TEST_REPO/Test/Godot/tests/web/run_safari.py --package /absolute/path/to/prepared-node-player --buffers 3 --output /absolute/path/to/fresh-results
 ```
 
 输入包需由 `tests/web/prepare_node_game.py` 准备。脚本使用已安装的 `/usr/bin/safaridriver`，不修改 Safari 设置，复用严格像素/GPU/PCM 校验器；它只在所服务的测试页面加载公共采集脚本，不修改运行库文件。Playwright 与 Safari 共用 `acceptance_init.js`。原生Safari26.6.2的DPR2矩阵现已通过，当前范围见WEB-02。默认WebDriver端口0由系统选择空闲端口；显式端口不可bind时在启动前失败，不附着他人服务。
@@ -70,7 +75,7 @@ python3 Tools/Godot/tests/web/run_safari.py --package /absolute/path/to/prepared
 macOS 普通应用的项目边界回归：
 
 ```sh
-python3 Tools/Godot/tests/run_project_boundary_macos.py --app /absolute/path/to/ordinary/Dora.app --library /absolute/path/to/libdora_godot.dylib --output /absolute/path/to/fresh-results
+python3 $DORA_TEST_REPO/Test/Godot/tests/run_project_boundary_macos.py --app /absolute/path/to/ordinary/Dora.app --library /absolute/path/to/libdora_godot.dylib --output /absolute/path/to/fresh-results
 ```
 
 验证项目 A 动画、关闭、不同路径项目 B 明确拒绝、A 再次创建与动画，以及成功/失败客户端的 GPU 清理。此项不提供多项目切换或运行库卸载能力。
@@ -78,17 +83,17 @@ python3 Tools/Godot/tests/run_project_boundary_macos.py --app /absolute/path/to/
 Linux 对应入口（需先构建不带 `DORA_BUILD_GODOT_NODE_TEST` 的普通宿主）：
 
 ```sh
-python3 Tools/Godot/tests/with_weston.py --logs /absolute/path/to/weston-logs -- \
-  python3 Tools/Godot/tests/run_project_boundary_linux.py --binary /absolute/path/to/ordinary/Dora --library /absolute/path/to/package/libdora_godot.so --output /absolute/path/to/fresh-results
+python3 $DORA_TEST_REPO/Test/Godot/tests/with_weston.py --logs /absolute/path/to/weston-logs -- \
+  python3 $DORA_TEST_REPO/Test/Godot/tests/run_project_boundary_linux.py --binary /absolute/path/to/ordinary/Dora --library /absolute/path/to/package/libdora_godot.so --output /absolute/path/to/fresh-results
 ```
 
-入口复用公共图像/排空校验，记录 GL 实际渲染器；普通 Debug 宿主已在 Ubuntu ARM64 VM / Mesa llvmpipe 通过此用例，详细证据见 TRACKING.md 的 RUNTIME-01。普通宿主与原生测试宿主的结果分别记录。
+入口复用公共图像/排空校验，记录 GL 实际渲染器；普通 Debug 宿主已在 Ubuntu ARM64 VM / Mesa llvmpipe 通过此用例，历史证据见 [迁移前整合记录](history/2026-11-02-pre-vendor-xmake/README.md)。普通宿主与原生测试宿主的结果分别记录。
 
 Linux 普通宿主的随包加载和缺库退化回归：
 
 ```sh
-python3 Tools/Godot/tests/with_weston.py --logs /absolute/path/to/weston-logs -- \
-  python3 Tools/Godot/tests/run_ordinary_linux.py --binary /absolute/path/to/ordinary/Dora --library /absolute/path/to/package/libdora_godot.so --output /absolute/path/to/fresh-results
+python3 $DORA_TEST_REPO/Test/Godot/tests/with_weston.py --logs /absolute/path/to/weston-logs -- \
+  python3 $DORA_TEST_REPO/Test/Godot/tests/run_ordinary_linux.py --binary /absolute/path/to/ordinary/Dora --library /absolute/path/to/package/libdora_godot.so --output /absolute/path/to/fresh-results
 ```
 
 两项用例各有独立资产树，检查相对路径 GodotProject、默认资产目录中的运行库加载、Godot 动画、Dora 图形运动和退出；缺库项实际移除 `.so`，确认 Godot 未启动而 Dora 内容继续。Godot 许可复制到 `GodotNotices/`，保留 Dora 原有的 `LICENSES` 文件。Ubuntu VM / llvmpipe 两项已通过，正式安装/升级、Release 与物理硬件范围仍待验收。
@@ -97,15 +102,15 @@ python3 Tools/Godot/tests/with_weston.py --logs /absolute/path/to/weston-logs --
 
 ```sh
 python3 Tools/Godot/verify_package.py /absolute/path/to/runtime-package
-python3 Tools/Godot/tests/package_integrity.py
+python3 $DORA_TEST_REPO/Test/Godot/tests/package_integrity.py
 ```
 
-macOS Release 运行库使用 `DORA_GODOT_TARGET=template_release Tools/Godot/build_runtime.sh`，由原生 xmake 目标以 `-O3`、Metal、macOS 11 最低版本构建，输出至 `build/godot-runtime/release/package`，日志为 `build-release.log`；默认 Debug 包暂保留 SCons 开发回退，不属于 Release 生产路径。`test_macos.sh` 同样接受该变量选择运行库。Release 运行库与 Release Dora 宿主需分别确认，不能仅凭运行库 target 推断宿主构建模式。
+macOS Release 运行库使用 `DORA_GODOT_TARGET=template_release Tools/Godot/build_runtime.sh`，由原生 xmake 目标以 `-O3`、Metal、macOS 11 最低版本构建，输出至 `build/godot-runtime/release/package`，日志为 `build-release.log`；默认 Debug 包也使用原生 xmake，启用调试宏/符号并关闭优化，输出至 `build/godot-runtime/package`。`test_macos.sh` 同样接受该变量选择运行库。Release 运行库与 Release Dora 宿主需分别确认，不能仅凭运行库 target 推断宿主构建模式。
 
 已构建的独立 macOS 测试宿主可直接指定运行库验收：
 
 ```sh
-python3 Tools/Godot/tests/run_macos_node.py --app build/godot-runtime/release-host/Dora.app --library build/godot-runtime/release/package/libdora_godot.dylib --results build/godot-runtime/release-node-3 --host-mode release --buffers 3 --audio --controller --resize --aliases
+python3 $DORA_TEST_REPO/Test/Godot/tests/run_macos_node.py --app build/godot-runtime/release-host/Dora.app --library build/godot-runtime/release/package/libdora_godot.dylib --results build/godot-runtime/release-node-3 --host-mode release --buffers 3 --audio --controller --resize --aliases
 ```
 
 该入口不会重建或修改宿主包，要求宿主已启用 `DORA_BUILD_GODOT_NODE_TEST=1`；报告记录双端 SHA-256。`--host-mode` 只记录声明，实际模式以对应 xmake 构建配置/日志为准。
@@ -115,11 +120,11 @@ python3 Tools/Godot/tests/run_macos_node.py --app build/godot-runtime/release-ho
 在仓库根目录运行：
 
 ```sh
-Tools/Godot/test_macos.sh
-Tools/LibGodotMetalProbe/test_matrix.sh
+$DORA_TEST_REPO/Test/Godot/test_macos.sh
+$DORA_TEST_REPO/Test/LibGodotMetalProbe/test_matrix.sh
 ```
 
-需要 Xcode、xmake、Python 3 和 Pillow。首次构建下载并校验固定源码；依赖、动态库和测试包全部位于 `build/`。第一个命令构建完整标准模块的 Godot 运行时和可选 Dora 测试入口，开启 Metal API Validation，检查动画、暂停/恢复、输入、场景重载和节点移除后重建。第二个命令对原始条码原型执行 2/3/4 缓冲的真实 GPU 回归，包含消费者积压。
+需要 Xcode、xmake、Python 3 和 Pillow。运行库从 `Source/3rdParty/Godot` 的固定 vendor 源码构建，prepare 入口只读校验；构建依赖缓存、动态库和测试包位于 `build/`（外部 SDK/工具链保持原安装位置）。第一个命令构建完整标准模块的 Godot 运行时和可选 Dora 测试入口，开启 Metal API Validation，检查动画、暂停/恢复、输入、场景重载和节点移除后重建。第二个命令对原始条码原型执行 2/3/4 缓冲的真实 GPU 回归，包含消费者积压。
 
 报告分别位于：
 
@@ -131,13 +136,13 @@ Tools/LibGodotMetalProbe/test_matrix.sh
 结果目录的 `abi-preboot/verification.json`，明确不代表 GPU 通过。也可单独运行：
 
 ```sh
-python3 Tools/Godot/tests/runtime_abi.py --library build/godot-runtime/package/libdora_godot.dylib --backend Metal --output build/godot-runtime/abi-native-macos
+python3 $DORA_TEST_REPO/Test/Godot/tests/runtime_abi.py --library build/godot-runtime/package/libdora_godot.dylib --backend Metal --output build/godot-runtime/abi-native-macos
 ```
 
 每次启动测试先删除该轮旧报告，失败不会保留旧的成功标记。截图用于检查最终 Dora 合成结果；共享传图不经过 CPU 像素读回或上传。
 
 单独运行截图验证器也会先清除旧报告。可运行
-`python3 Tools/Godot/tests/verifier_failures.py`，检查缺失日志和错误日志均不能残留
+`python3 $DORA_TEST_REPO/Test/Godot/tests/verifier_failures.py`，检查缺失日志和错误日志均不能残留
 成功报告；这项检查不启动引擎，也不代表 GPU 验证通过。
 
 ## GL direct-target 验收
@@ -152,7 +157,7 @@ direct 会在绑定阶段失败。未设置变量时，已验收且声明 direct
 Linux EGL 还可用同一生产场景做交替顺序的 direct/blit 对照：
 
 ```sh
-python3 Tools/Godot/tests/run_gl_ab_linux.py \
+python3 $DORA_TEST_REPO/Test/Godot/tests/run_gl_ab_linux.py \
   --binary build/godot-direct01-linux/host/Dora \
   --library build/godot-direct01-linux/runtime/package/libdora_godot.so \
   --output build/godot-direct06-linux-ab --repetitions 2
@@ -173,7 +178,7 @@ Chrome context-loss/页面重载恢复；重启后的系统 Safari 26.6.2 也已
 系统重启后，原生 Safari direct-target 的完整矩阵使用全新输出目录运行：
 
 ```sh
-python3 Tools/Godot/tests/web/run_safari_matrix.py \
+python3 $DORA_TEST_REPO/Test/Godot/tests/web/run_safari_matrix.py \
   --package build/godot-web/dora-player \
   --runtime-package build/godot-web/package \
   --output build/godot-web/direct-node-safari-matrix-after-reboot \
@@ -186,7 +191,7 @@ python3 Tools/Godot/tests/web/run_safari_matrix.py \
 Linux 预构建宿主和运行库的完整矩阵入口为：
 
 ```sh
-python3 Tools/Godot/tests/run_direct_linux.py \
+python3 $DORA_TEST_REPO/Test/Godot/tests/run_direct_linux.py \
   --binary build/godot-direct01-linux/host/Dora \
   --library build/godot-direct01-linux/runtime/package/libdora_godot.so \
   --output build/godot-direct01-linux/direct-matrix
@@ -225,9 +230,9 @@ Apple4 共享输出。其负向能力报告为
 
 ```sh
 DORA_BUILD_GODOT_NODE_TEST=1 xmake build -j2 Dora
-python3 Tools/Godot/tests/run_particles.py --results build/godot-runtime/particles-local
+python3 $DORA_TEST_REPO/Test/Godot/tests/run_particles.py --results build/godot-runtime/particles-local
 # Linux 无显示会话时：
-python3 Tools/Godot/tests/with_weston.py --logs build/godot-runtime/particles-weston -- python3 Tools/Godot/tests/run_particles.py --results build/godot-runtime/particles-local
+python3 $DORA_TEST_REPO/Test/Godot/tests/with_weston.py --logs build/godot-runtime/particles-weston -- python3 $DORA_TEST_REPO/Test/Godot/tests/run_particles.py --results build/godot-runtime/particles-local
 ```
 
 可用 `--library` 指定运行库；Windows 必须在实际图形用户会话中运行。
@@ -317,7 +322,7 @@ Linux ARM64 EGL 和 Windows WGL 的三缓冲别名检查也已通过各 720 帧�
 `build/godot-windows/alias-gl2-results/verification.json`。
 
 ```sh
-DORA_GODOT_TEST_AUDIO=1 DORA_GODOT_TEST_ALIASES=1 Tools/Godot/test_macos.sh
+DORA_GODOT_TEST_AUDIO=1 DORA_GODOT_TEST_ALIASES=1 $DORA_TEST_REPO/Test/Godot/test_macos.sh
 # 使用 DORA_GODOT_TEST_BUFFERS=2 或 4 选择其他缓冲数；默认 3。
 ```
 
@@ -327,10 +332,37 @@ Android 优化运行库使用独立输出，不覆盖默认 Debug 包：
 python3 Tools/Godot/build_android_runtime.py --sdk "$ANDROID_HOME" --target template_release --arch arm64 --jobs 2
 ```
 
+Android arm64 Release 默认使用原生 xmake；可隔离原生包与日志：
+
+```sh
+python3 Tools/Godot/build_android_runtime.py --sdk "$ANDROID_HOME" \
+  --target template_release --arch arm64 --jobs 4 \
+  --build-dir build/godot-android-xmake/release-arm64
+```
+
+该入口要求 xmake 3.x、NDK 28.1.13356709，固定 API 28 和共享 libc++；可用
+`--xmake /absolute/path/to/xmake` 指定工具。对象、库与生成物位于
+`build/godot-xmake/android/arm64-v8a`，不写回 vendor 源码。当前已通过
+原生构建、JNI 导出对照、封包、vendor Java/AAR、普通 Release 模拟器矩阵及未修改官方 Dodge 项目。
+Debug / Release 和 arm64、arm32、x86_64 均使用原生 xmake；`auto` 仅为 xmake 别名，不再提供 SCons 入口。ARM32 按上游限制关闭 raycast/Embree。任务状态见 [TRACKING.md](TRACKING.md)。
+
+Java/resources 默认从 vendor 源码构建，使用固定上游 Gradle/AGP/Kotlin 配置，不触发 SCons 或原生编译：
+
+```sh
+python3 Tools/Godot/prepare_android_aar.py --sdk "$ANDROID_HOME" \
+  --vendor-build-dir build/godot-android-xmake/vendor-java \
+  --output build/godot-android-xmake/java
+```
+
+需要 Java 17；可用 `--java-home` 显式选择。独立构建目录保存命令、源码哈希、日志与 AAR 清单；
+输出包移除 JNI 条目并改用 Dora 的 FileProvider。应用通过
+`-Pdora.godot.javaAar=<生成的 godot-java-4.6.0.stable.aar 绝对路径>` 选择此包。
+未覆盖 Java 路径时应用使用 `build/godot-android/java/godot-java-4.6.0.stable.aar`；准备脚本可从 `ANDROID_HOME` 或 `ANDROID_SDK_ROOT` 获取 SDK。`--builder maven` 保留固定哈希的上游 AAR 对照。
+
 包位于 `build/godot-android/release/arm64/package`。Gradle 可通过
 `-Pdora.godot.runtimePackage=<包的绝对路径>` 选择 JNI 运行库，通过
 `-Pdora.godot.buildDir=<独立目录>` 隔离应用构建产物。测试驱动
-`Tools/Godot/tests/android/run_node.py --runtime-package <同一包路径>`
+`$DORA_TEST_REPO/Test/Godot/tests/android/run_node.py --runtime-package <同一包路径>`
 先验证封存清单，再核对 APK 内运行库哈希；构建通过不表示模拟器或真机运行通过。
 Godot 4.6 Java AAR含Kotlin 2.1元数据：启用Godot时固定R8 8.6.17；Gradle命令同时传`-Pandroid.experimental.lint.version=8.9.3`，使用能读取该元数据的Lint。普通Dora沿用AGP自带R8。依据见[Android兼容表](https://developer.android.com/build/kotlin-support)和[独立Lint说明](https://googlesamples.github.io/android-custom-lint-rules/user-guide.html#configuring-the-lint-version)。
 启用Godot时，Gradle按运行库清单核对并将Godot/第三方/NDK许可写入APK的`assets/GodotRuntimeNotices/`，不改源Assets。
@@ -339,7 +371,7 @@ Godot 4.6 Java AAR含Kotlin 2.1元数据：启用Godot时固定R8 8.6.17；Gradl
 debuggable 并使用开发调试签名，以便 run-as 导出原生报告；普通 Release 包不受影响。
 此验收验证优化代码，不代表最终生产签名或分发包验收。
 
-普通 macOS 应用验收入口为 `Tools/Godot/tests/run_ordinary_macos.py`，显式指定
+普通 macOS 应用验收入口为 `$DORA_TEST_REPO/Test/Godot/tests/run_ordinary_macos.py`，显式指定
 `--app`、`--library`、全新 `--output`。它拒绝含原生测试入口的宿主，复制应用后
 执行真实 Lua 启动和默认资源目录加载，再移除可选库检查退化。测试副本使用本地
 ad-hoc 签名；这不替代最终分发签名、安装和升级验收。
@@ -347,7 +379,7 @@ ad-hoc 签名；这不替代最终分发签名、安装和升级验收。
 同进程循环与资源验收使用新增模式的原生测试宿主：
 
 ```sh
-python3 Tools/Godot/tests/run_cycles_macos.py --app /absolute/path/Dora.app \
+python3 $DORA_TEST_REPO/Test/Godot/tests/run_cycles_macos.py --app /absolute/path/Dora.app \
   --library /absolute/path/libdora_godot.dylib --output /absolute/path/new-results \
   --cycles 100 --buffers 3 --warmup 5 --max-metal-growth-bytes 0
 ```
@@ -361,7 +393,7 @@ python3 Tools/Godot/tests/run_cycles_macos.py --app /absolute/path/Dora.app \
 退出测试需保留正在运行的 GodotNode 和每个共享纹理槽的 Sprite 别名，再调用公开 App.shutdown。预先移除节点的正常退出用例不能覆盖这个路径。使用未编入 Godot 测试入口的 macOS Release 应用：
 
 ```sh
-python3 Tools/Godot/tests/run_active_stop_macos.py --app /absolute/path/to/ordinary/Dora.app --library /absolute/path/to/libdora_godot.dylib --output /absolute/path/to/fresh-results --buffers 3
+python3 $DORA_TEST_REPO/Test/Godot/tests/run_active_stop_macos.py --app /absolute/path/to/ordinary/Dora.app --library /absolute/path/to/libdora_godot.dylib --output /absolute/path/to/fresh-results --buffers 3
 ```
 
 分别使用 2/3/4 缓冲和全新的输出目录。入口封存产物哈希、开启 Metal 验证、截取两张图像，并在节点和所有别名仍存活时请求停止。严格校验器要求动画条码推进、各别名槽内容不同、GPU 生产/消费排空且无错误、PCM 零欠载及 48kHz 双声道音调。execution.json 只证明子进程执行记录；仅当全部验收通过才生成 verification.json。异常时保留原日志，超时不自动重启仍活动的进程。
@@ -371,7 +403,7 @@ python3 Tools/Godot/tests/run_active_stop_macos.py --app /absolute/path/to/ordin
 Linux 的对应入口使用普通宿主可执行文件，并在隔离 Weston 中运行：
 
 ```sh
-python3 Tools/Godot/tests/with_weston.py --logs /absolute/path/to/fresh-weston-logs -- python3 Tools/Godot/tests/run_active_stop_linux.py --binary /absolute/path/to/ordinary/Dora --library /absolute/path/to/libdora_godot.so --output /absolute/path/to/fresh-results --buffers 3
+python3 $DORA_TEST_REPO/Test/Godot/tests/with_weston.py --logs /absolute/path/to/fresh-weston-logs -- python3 $DORA_TEST_REPO/Test/Godot/tests/run_active_stop_linux.py --binary /absolute/path/to/ordinary/Dora --library /absolute/path/to/libdora_godot.so --output /absolute/path/to/fresh-results --buffers 3
 ```
 
 同样分别执行 2/3/4 缓冲。校验包含实际 Godot OpenGL 渲染器字符串、条码/别名、GPU 和 PCM 排空。虚拟机、软件 EGL 和 SDL dummy 音频仅证明对应接口路径，不能替代物理 GPU/音频输出验收。Linux Dora 宿主的 release 模式需启用 mode.release 规则；本地新增构建规则后，还需从实际编译命令确认优化标志及 NDEBUG，不能只依据输出目录名。
@@ -379,7 +411,7 @@ python3 Tools/Godot/tests/with_weston.py --logs /absolute/path/to/fresh-weston-l
 macOS 启动中退出另有入口，在创建节点后、节点尚未 running 时立刻调用 App.shutdown：
 
 ```sh
-python3 Tools/Godot/tests/run_early_stop_macos.py --app /absolute/path/to/ordinary/Dora.app --library /absolute/path/to/libdora_godot.dylib --output /absolute/path/to/fresh-results
+python3 $DORA_TEST_REPO/Test/Godot/tests/run_early_stop_macos.py --app /absolute/path/to/ordinary/Dora.app --library /absolute/path/to/libdora_godot.dylib --output /absolute/path/to/fresh-results
 ```
 
 校验要求实际引擎清理日志。若 Godot 在退出事件处理前已启动，仍必须有完整 GPU/PCM 排空；若尚未启动，则不应产生客户端排空记录。此用例不代替持续动画或设备丢失测试。
@@ -387,9 +419,9 @@ python3 Tools/Godot/tests/run_early_stop_macos.py --app /absolute/path/to/ordina
 Windows 对应入口如下（新增，实际验收进度见 TRACKING.md）：
 
 ```powershell
-py -3.12 Tools/Godot/tests/run_active_stop_windows.py --binary C:/path/to/ordinary/Dora.exe --library C:/path/to/dora_godot.dll --output C:/path/to/fresh-active-results --buffers 3
-py -3.12 Tools/Godot/tests/run_early_stop_windows.py --binary C:/path/to/ordinary/Dora.exe --library C:/path/to/dora_godot.dll --output C:/path/to/fresh-early-results
-py -3.12 Tools/Godot/tests/run_ordinary_windows.py --binary C:/path/to/ordinary/Dora.exe --library C:/path/to/package/dora_godot.dll --output C:/path/to/fresh-bundle-results
+py -3.12 $DORA_TEST_REPO/Test/Godot/tests/run_active_stop_windows.py --binary C:/path/to/ordinary/Dora.exe --library C:/path/to/dora_godot.dll --output C:/path/to/fresh-active-results --buffers 3
+py -3.12 $DORA_TEST_REPO/Test/Godot/tests/run_early_stop_windows.py --binary C:/path/to/ordinary/Dora.exe --library C:/path/to/dora_godot.dll --output C:/path/to/fresh-early-results
+py -3.12 $DORA_TEST_REPO/Test/Godot/tests/run_ordinary_windows.py --binary C:/path/to/ordinary/Dora.exe --library C:/path/to/package/dora_godot.dll --output C:/path/to/fresh-bundle-results
 ```
 
 使用普通 Release EXE，编译时不要启用 DORA_BUILD_GODOT_NODE_TEST 或 DORA_BUILD_CSHARP_NATIVE。Windows target 同样需启用 mode.release，并从实际编译命令确认优化和 NDEBUG；运行入口设置 DORA_GODOT_WINDOWS_GL=1，选择待测 WGL 路径。活动退出的公共严格校验器沿用 verify_active_stop_linux.py，Windows 入口传入 --platform windows 以正确记录平台；像素、GPU 与 PCM 阈值相同。需要 Pillow；虚拟机和 SDL dummy 的限制同上。
@@ -401,8 +433,8 @@ py -3.12 Tools/Godot/tests/run_ordinary_windows.py --binary C:/path/to/ordinary/
 以下入口使用普通 macOS Release 宿主、真实 Wasm3 和生成绑定，分别检查缺少可选库、Godot 场景启动失败时的 lastError/running，以及错误后的 Dora 动画和正常退出：
 
 ```sh
-python3 Tools/Godot/tests/bindings/run_async_error_macos.py --app /absolute/path/to/ordinary/Dora.app --library /absolute/path/to/libdora_godot.dylib --source-root /absolute/path/to/binding-source --output /absolute/path/to/fresh-results --language Rust --case missing-library
-python3 Tools/Godot/tests/bindings/verify_async_error.py /absolute/path/to/fresh-results
+python3 $DORA_TEST_REPO/Test/Godot/tests/bindings/run_async_error_macos.py --app /absolute/path/to/ordinary/Dora.app --library /absolute/path/to/libdora_godot.dylib --source-root /absolute/path/to/binding-source --output /absolute/path/to/fresh-results --language Rust --case missing-library
+python3 $DORA_TEST_REPO/Test/Godot/tests/bindings/verify_async_error.py /absolute/path/to/fresh-results
 ```
 
 分别使用 Rust / Wa 和 missing-library / missing-scene，在全新目录执行四项。运行器需要 Rust wasm32-wasip1 / Wa 编译器及 Pillow；source-root 指定实际参与编译的绑定源码，宿主和 LibGodot 可复用封存产物，不能因此称为重新构建整套源码。execution.json 只记录实际执行；严格诊断、截图、清理和产物哈希均通过后，校验器才生成 verification.json。
@@ -428,12 +460,12 @@ Godot 整合 1.0 不提供 C# GodotNode 绑定，也不启用 Godot .NET/Mono �
 可用以下命令验证实际 Godot 测试音到宿主混音源回调的路径：
 
 ```sh
-DORA_GODOT_TEST_AUDIO=1 Tools/Godot/test_macos.sh
+DORA_GODOT_TEST_AUDIO=1 $DORA_TEST_REPO/Test/Godot/test_macos.sh
 # 注入两次 250 ms 渲染停顿，并追加 12,000 帧动画；每 300 帧采样检查冻结/撕裂。
 DORA_GODOT_TEST_AUDIO=1 DORA_GODOT_TEST_AUDIO_STALL=1 DORA_GODOT_TEST_ALIASES=1 \
-  DORA_GODOT_TEST_SOAK_FRAMES=12000 Tools/Godot/test_macos.sh
-DORA_GODOT_TEST_AUDIO=1 Tools/Godot/test_linux.sh
-python Tools/Godot/test_windows.py --audio
+  DORA_GODOT_TEST_SOAK_FRAMES=12000 $DORA_TEST_REPO/Test/Godot/test_macos.sh
+DORA_GODOT_TEST_AUDIO=1 $DORA_TEST_REPO/Test/Godot/test_linux.sh
+python $DORA_TEST_REPO/Test/Godot/test_windows.py --audio
 ```
 
 测试项目产生左声道 440 Hz、右声道 660 Hz 信号；验证器检查两个节点生命周期的
@@ -449,21 +481,21 @@ Godot 对象泄漏警告。Linux EGL 与 Windows WGL 的音频 ABI 2 实际运�
 
 当前支持单运行时、单个活动 GodotNode、同一项目移除后重建；运行时驻留到进程退出。不同项目不能在该进程内切换；节点移除不卸载运行库，最终 shutdown 后不承诺再次初始化。GL 运行时还要求重建时缓冲数一致，内部目标模式需保持尺寸一致；外部目标尺寸协商另行处理。设备丢失恢复、多项目并行、完整 IME、物理控制器热插拔/震动及最终分发仍待完成。
 
-`tests/protocol.sh` 的 macOS/Linux 结果证明共享的 C ABI、缓冲所有权 CPU 协议，以及内嵌着色器源码的有界长度。`tests/embedded_shader.py` 使用全新字节列表，覆盖带/不带末尾零与带/不带末尾逗号的四种组合，编译实际 string_view 封装头，检查长度和与上游源码的逐字节一致性，避免旧生成头掩盖干净构建缺陷。`tests/abi_targets.sh` 只证明目标头文件可编译，均不等于平台 GPU 测试。实验历史见 [PLAN.md](PLAN.md)，当前任务状态见 [TRACKING.md](TRACKING.md)。
+`tests/protocol.sh` 的 macOS/Linux 结果证明共享的 C ABI、缓冲所有权 CPU 协议，以及内嵌着色器源码的有界长度。`tests/embedded_shader.py` 使用全新字节列表，覆盖带/不带末尾零与带/不带末尾逗号的四种组合，编译实际 string_view 封装头，检查长度和与上游源码的逐字节一致性，避免旧生成头掩盖干净构建缺陷。`tests/abi_targets.sh` 只证明目标头文件可编译，均不等于平台 GPU 测试。实验历史见 [迁移实施历史](history/2026-11-02-vendor-xmake-progress/MIGRATION_LOG.md)，当前任务状态见 [TRACKING.md](TRACKING.md)。
 
 ## Linux EGL 验证
 
 在 Linux 主机安装 C++20 编译器、EGL/GLES3 开发头文件和 Python 3/venv 后运行：
 
 ```sh
-Tools/Godot/tests/gl/run.sh
+$DORA_TEST_REPO/Test/Godot/tests/gl/run.sh
 Tools/Godot/build_linux_runtime.sh
-Tools/Godot/test_linux.sh
+$DORA_TEST_REPO/Test/Godot/test_linux.sh
 ```
 
 第一条只验证独立共享 EGL 上下文、GPU 纹理 blit、GLsync 和生产背压，不启动 Godot 或 Dora。Linux ARM64 / Mesa virgl 的 2/3/4 缓冲实际测试已通过 3,600 个消费帧和 99 个抽样帧，报告为 `build/godot-runtime/gl-transport-linux-arm64.json`。
 
-无桌面的测试环境可用 `python3 Tools/Godot/tests/with_weston.py -- Tools/Godot/test_linux.sh` 启动隔离的 GL Weston，测试后自动清理。该模式依赖 Weston 12+，实际驱动仍以报告为准。
+无桌面的测试环境可用 `python3 $DORA_TEST_REPO/Test/Godot/tests/with_weston.py -- $DORA_TEST_REPO/Test/Godot/test_linux.sh` 启动隔离的 GL Weston，测试后自动清理。该模式依赖 Weston 12+，实际驱动仍以报告为准。
 
 Linux ARM64 已通过完整 GodotNode 720 帧测试及导入资源 PCK 测试。归档报告为 `build/godot-runtime/node-linux-arm64/verification.json` 和 `build/godot-runtime/node-imported-pck-linux-arm64/verification.json`。实际设备为 Mesa virgl (Apple M1 Pro Compat)。当前源码也已交叉构建 x86_64 LibGodot 与 Dora 宿主；在 ARM64 Ubuntu 虚拟机的 Rosetta 转译环境中，ANGLE／SwiftShader 独立消费者通过 360 帧共享 GPU 纹理、动画暂停／恢复及零 GPU 错误验证。完整 Dora 节点路径分别受 Rosetta 对 Mesa LLVM AOT 的限制和 ANGLE 启动期终止阻断，因此仍未验证 Linux x86_64 原生硬件上的完整节点输出。报告为 `build/godot-runtime/linux-x64-rosetta-report.json`；该结果不能替代原生 x86_64 GPU 验收。
 
@@ -480,7 +512,7 @@ Web最终停止（含启动失败）会先停止WebTaskQueue并释放排队捕�
 真实浏览器回归使用`tests/web/bootstrap_failure.lua`作为测试包init.lua：先排入日志任务再主动报错。复制普通Player到独立输出目录，使用`Projects/xmake/tools/web/package_web_game.mjs`打包该脚本，然后运行：
 
 ```sh
-DORA_PLAYWRIGHT_MODULE=/absolute/path/to/node_modules/playwright node Tools/Godot/tests/web/run_bootstrap_failure.cjs /path/to/failure-player /path/to/fresh-results
+DORA_PLAYWRIGHT_MODULE=/absolute/path/to/node_modules/playwright node $DORA_TEST_REPO/Test/Godot/tests/web/run_bootstrap_failure.cjs /path/to/failure-player /path/to/fresh-results
 ```
 
 依赖Playwright1.62.1（Node>=20）及浏览器；`DORA_BROWSER_ENGINE`可选chromium/firefox/webkit。脚本要求预期Lua错误、faulted状态、已释放输入/IME服务、无Wasm/JS异常或GL错误。Linux Web CI会安装Chromium并在真实Player上执行此项；只有该job实际通过才记为远程通过。该故障用例本身不证明Godot GPU输出，正常共享输出仍须另外运行node矩阵。
@@ -493,10 +525,10 @@ DORA_PLAYWRIGHT_MODULE=/absolute/path/to/node_modules/playwright node Tools/Godo
 GPU 传输协议，后端支持范围与 Lua 一致。
 
 ```sh
-python3 Tools/Godot/tests/bindings/generate.py
-python3 Tools/Godot/tests/bindings/build.py
+python3 $DORA_TEST_REPO/Test/Godot/tests/bindings/generate.py
+python3 $DORA_TEST_REPO/Test/Godot/tests/bindings/build.py
 DORA_BUILD_GODOT_NODE_TEST=1 xmake build -j2 Dora
-python3 Tools/Godot/tests/bindings/run.py
+python3 $DORA_TEST_REPO/Test/Godot/tests/bindings/run.py
 ```
 
 生成需要 Yue；编译需要 Rust `wasm32-wasip1` 目标和 Wa；只编译某些语言时
@@ -512,7 +544,7 @@ Rust / Wa 测试在真实 Wasm3 中创建节点，并通过生成的函数转发
 视口尺寸回归可用以下命令执行（固定三缓冲）：
 
 ```sh
-python3 Tools/Godot/tests/bindings/run.py --resize --cancel-resize --aliases --audio --audio-stall --reservation
+python3 $DORA_TEST_REPO/Test/Godot/tests/bindings/run.py --resize --cancel-resize --aliases --audio --audio-stall --reservation
 ```
 
 该模式由语言模块实际调用 `viewportSize` / `resizeViewport` 对应接口，覆盖
@@ -524,15 +556,15 @@ python3 Tools/Godot/tests/bindings/run.py --resize --cancel-resize --aliases --a
 Wa 的 GodotNode → Sprite 转换可单独启用，要求原生宿主注册 `object_to_sprite`；每个生命周期检查转换保留同一原生对象、普通 Node 转换返回 nil。其余 GPU/音频条件保持与上述完整矩阵相同：
 
 ```sh
-python3 Tools/Godot/tests/bindings/build.py --output build/godot-bindings-wa-sprite-cast --languages Wa --sprite-cast
-python3 Tools/Godot/tests/bindings/run.py --output build/godot-bindings-wa-sprite-cast --languages Wa --sprite-cast --app /path/to/test/Dora.app --library /path/to/libdora_godot.dylib --resize --cancel-resize --aliases --audio --audio-stall --reservation
+python3 $DORA_TEST_REPO/Test/Godot/tests/bindings/build.py --output build/godot-bindings-wa-sprite-cast --languages Wa --sprite-cast
+python3 $DORA_TEST_REPO/Test/Godot/tests/bindings/run.py --output build/godot-bindings-wa-sprite-cast --languages Wa --sprite-cast --app /path/to/test/Dora.app --library /path/to/libdora_godot.dylib --resize --cancel-resize --aliases --audio --audio-stall --reservation
 ```
 
 构造错误与恢复可在独立目录验证。Rust/Wa 使用真实Wasm3：
 
 ```sh
-python3 Tools/Godot/tests/bindings/build.py --output build/godot-bindings-constructor-rejections --languages Rust Wa --constructor-rejections
-python3 Tools/Godot/tests/bindings/run.py --output build/godot-bindings-constructor-rejections --languages Rust Wa --constructor-rejections --app /path/to/test/Dora.app --library /path/to/libdora_godot.dylib --resize --cancel-resize --aliases --audio --audio-stall --reservation
+python3 $DORA_TEST_REPO/Test/Godot/tests/bindings/build.py --output build/godot-bindings-constructor-rejections --languages Rust Wa --constructor-rejections
+python3 $DORA_TEST_REPO/Test/Godot/tests/bindings/run.py --output build/godot-bindings-constructor-rejections --languages Rust Wa --constructor-rejections --app /path/to/test/Dora.app --library /path/to/libdora_godot.dylib --resize --cancel-resize --aliases --audio --audio-stall --reservation
 ```
 
 每轮通过真实生成绑定检查零宽、零高、过大宽度、1/5缓冲及缺失项目返回 None/nil，再创建正常节点。两轮共12次拒绝后，仍要求完整1000帧/15截图回归。原始run.log保留全部预期错误；单独recovered/run.log只移除精确匹配的10条尺寸/缓冲错误及2条缺失项目错误，其他错误继续由原严格校验器拒绝。共同的constructor_rejections.py要求全部错误诊断精确匹配预期消息与次数；非预期错误、critical或warning均拒绝。该模式不能替代运行库缺失、异步启动失败或其他错误面的验收。
@@ -540,8 +572,8 @@ python3 Tools/Godot/tests/bindings/run.py --output build/godot-bindings-construc
 无效项目与 Wasm 初始化失败的退出回归可单独运行：
 
 ```sh
-python3 Tools/Godot/tests/bindings/build.py --languages Rust --output build/godot-bindings/invalid --project /dora-godot-intentionally-missing-project
-python3 Tools/Godot/tests/bindings/failure.py --module build/godot-bindings/invalid/rust/target/wasm32-wasip1/debug/godot-bindings.wasm --output build/godot-bindings/invalid-results
+python3 $DORA_TEST_REPO/Test/Godot/tests/bindings/build.py --languages Rust --output build/godot-bindings/invalid --project /dora-godot-intentionally-missing-project
+python3 $DORA_TEST_REPO/Test/Godot/tests/bindings/failure.py --module build/godot-bindings/invalid/rust/target/wasm32-wasip1/debug/godot-bindings.wasm --output build/godot-bindings/invalid-results
 ```
 
 该测试故意触发 Wasm 初始化失败；通过条件是宿主返回测试失败码 2，同时没有崩溃、
@@ -550,6 +582,12 @@ GPU 句柄泄漏或延迟销毁的 C++ 对象。GodotNode 在构造 Sprite 前�
 使用 `with_weston.py` 包装运行命令。
 
 ## Windows WGL 构建与验证
+
+运行库脚本启用 `--dora_godot_standalone=y`，不安装 Dora 的 Go/Rust 工具。PCRE2 16/32、JPEG 8/12 直接以四个原生 object 目标编译同一上游源码，不新增 wrapper C 或 codec 动态库。
+
+2026-11-04 已完成13种架构/后端配置的 Debug/Release 串行构建、链接和封包（共26项），自有 SCons 入口及依赖已移除，上游构建文件保留。动态验收缺口仍见 [TRACKING.md](TRACKING.md)；本次新记录按要求暂存 `build/godot-xmake-only-v1/PROGRESS-DRAFT.md`。
+
+原生 xmake 编译要求 vendor 输入树没有 SCons 生成物。编译前会检查源码旁的 `.gen.*`、`.sconsign*` 与 `bin/obj`；发现残留时先归档到源码树以外，再重试。SCons 对照请使用独立 checkout；`godot-codegen` 本身也执行干净输入检查，可在独立输出目录中用于生成物等价比较。
 
 Windows 使用独立 WGL 上下文、同一像素格式和 share group，与 bgfx 共享 OpenGL
 纹理和 GLsync。Godot 仍在进程内使用原生 Compatibility 渲染器。它与 Linux EGL
@@ -573,7 +611,37 @@ Metal 驱动提供。Windows Dora 节点的源码项目与导入 PCK 两组测�
 
 ```powershell
 python Tools/Godot/build_windows_runtime.py
-python Tools/Godot/test_windows.py --skip-build
+python $DORA_TEST_REPO/Test/Godot/test_windows.py --skip-build
+```
+
+WGL x64 Release 默认选择原生 xmake 构建入口。
+Linux 交叉构建示例（需要 xmake 3.x 和 MinGW-w64 SDK；旧版 xmake 会在配置前被明确拒绝，可用 `--xmake /path/to/xmake` 指定工具）：
+
+```sh
+python3 Tools/Godot/build_windows_runtime.py \
+  --target template_release --backend WGL --arch x86_64 \
+  --xmake-sdk /usr --xmake-cross x86_64-w64-mingw32-
+```
+
+日志与密封包仍位于`build/godot-windows`；独立对象与DLL位于
+`build/godot-xmake/windows/x86_64/wgl`。WGL x64 Release 默认使用原生 xmake / MinGW；
+其他受支持 profile 也使用原生 xmake；SCons 构建选项与回退已移除，
+`--builder xmake` 可强制选择并检查支持范围。Windows 本地验收使用 Parallels 虚拟 GPU，
+DLL构建和封包与实际运行验收分别记录。
+
+测试宿主和密封包就绪后，可统一执行WGL 2/3/4缓冲功能矩阵及独立时钟测试：
+
+```powershell
+python $DORA_TEST_REPO/Test/Godot/tests/run_windows_runtime_matrix.py --runtime-package build/godot-windows/package --results build/godot-windows/xmake-matrix --environment virtual-machine
+```
+
+`--results`必须是新目录；物理机运行时将`--environment`设为`native`。
+报告中的环境声明不能替代实际渲染器、截图和GPU计数证据。
+
+普通WGL宿主另有待取消await的退出清理回归：子节点销毁和场景退出时各保留一个600秒计时器，要求零对象泄漏和零孤立StringName。夹具不修改官方游戏工程。
+
+```powershell
+python $DORA_TEST_REPO/Test/Godot/tests/run_await_cleanup_windows.py --binary C:/path/to/ordinary/Dora.exe --library C:/path/to/package/dora_godot.dll --asset-root Assets --output C:/path/to/fresh-await-results
 ```
 
 Windows ARM64 上应使用原生 ARM64 xmake，以便正确选择宿主 Rust/Go 工具链；
@@ -587,7 +655,7 @@ Dora 和 Godot 的目标架构仍为 x64。有完整工具包但不在 PATH 时�
 因此不能替代短路径实体副本。
 
 上面的 `--skip-build` 需要事先构建测试宿主；也可直接运行
-`python Tools/Godot/test_windows.py`，由它构建运行库和测试宿主，并设置需要的
+`python $DORA_TEST_REPO/Test/Godot/test_windows.py`，由它构建运行库和测试宿主，并设置需要的
 渲染器环境。验证导入 PCK 时使用 `--project 路径/project.pck --fixture 路径/fixture.json`。
 测试结果只有在真实 Windows 进程、最终 Dora 截图和 GPU 计数检查
 通过后才写入 `build/godot-runtime/node-windows-results/verification.json`。
@@ -606,12 +674,22 @@ python Tools/Godot/build_windows_runtime.py --backend D3D12 `
   --mesa-libs C:\path\to\godot-nir --arch x86_64
 ```
 
+D3D12 也只通过原生 xmake 构建；本轮不做 D3D12 动态渲染验收：
+
+```powershell
+python Tools/Godot/build_windows_runtime.py --backend D3D12 `
+  --builder xmake --target template_release --arch x86_64 `
+  --mesa-libs C:\path\to\godot-nir
+```
+
+NIR SDK 必须匹配固定的410项文件清单；D3D12 包自动附带组件通知和来源清单，缺失或摘要不匹配会被拒绝。复现说明见 [NIR 通知材料](licenses/nir-25.3.1-1/README.md)。
+
 运行库清单记录`graphics_backend=d3d12`。`test_windows.py --runtime-package`会在加载DLL或
 启动GPU前核对清单后端，拒绝把WGL运行库交给D3D12宿主。已有宿主与运行库可生成物理机
 验收包：
 
 ```powershell
-python Tools/Godot/package_windows_d3d12_test.py `
+python $DORA_TEST_REPO/Test/Godot/package_windows_d3d12_test.py `
   --host-dir build/godot-d3d12-physical/host `
   --runtime-package build/godot-d3d12-physical/runtime-package `
   --output build/godot-d3d12-physical/DoraGodot-D3D12-Physical-x64
@@ -620,10 +698,30 @@ python Tools/Godot/package_windows_d3d12_test.py `
 解压ZIP后先运行`setup-python.cmd`，再在原生x64 Windows和支持Shader Model 6的物理GPU
 上运行`run-d3d12-2.cmd`。只有双缓冲CPU fence基线通过，才运行
 `run-d3d12-matrix.cmd`验证2/3/4缓冲。物理机缺失时，当前跟踪口径允许使用虚拟机/WARP
-推进功能验收，但报告必须保留软件适配器、虚拟设备和非物理GPU边界。Windows ARM64 可用
-`test_windows.py --arch arm64 --backend D3D12 --warp --mesa-libs C:\path\to\godot-nir`
-构建同架构运行库与宿主并运行；这用于避开
-x64 `xtajit64se` 翻译层，不得把仅有 ARM64 Rust/Wa 产物或 ABI 检查写成共享渲染通过。
+推进功能验收，但报告必须保留软件适配器、虚拟设备和非物理GPU边界。本轮仅验证 x64 Windows 产物，不新增 ARM64 Windows 目标验收；若在 ARM Windows VM 执行 x64，报告须保留翻译层边界。
+
+交接包还提供 `run-d3d12-full-matrix.cmd`，包含2/3/4缓冲功能、音频、输入、resize/cancel、所有权、别名、soak及独立timing；每次使用新结果目录。生成 WARP 包时指定 `--acceptance-mode virtual-warp`。在现有 Windows 测试工作树中也可直接执行：
+
+```powershell
+python $DORA_TEST_REPO/Test/Godot/tests/run_windows_runtime_matrix.py --backend D3D12 --warp `
+  --environment virtual-machine --runtime-package C:\path\to\runtime `
+  --results C:\path\to\new-results
+```
+
+该矩阵需要已构建的 x64 D3D12 Dora 测试宿主；运行命令存在不代表测试通过，未修改真实项目的验收仍独立记录。
+
+普通 D3D12 宿主的随包加载、缺库回退可独立验证（使用不含测试入口的宿主）：
+
+```powershell
+python $DORA_TEST_REPO/Test/Godot/tests/run_ordinary_windows.py --backend D3D12 --warp `
+  --environment virtual-machine --binary C:\path\to\ordinary\Dora.exe `
+  --library C:\path\to\runtime\dora_godot.dll --output C:\path\to\new-ordinary-results
+```
+
+加 `--backend-mismatch-only` 时，测试使用 Dora 默认渲染器并要求 D3D12 桥安全拒绝，
+不启动 Godot。成功渲染用例要求 CPU fence 排空且与 client 生产帧一致，不用 GL reader
+计数代替 D3D12 同步证据。省略 `--backend` 时保留 WGL 验收入口；`--warp` 仅适用于
+D3D12。Windows 测试宿主构建可通过 `DORA_GODOT_TEST_TARGETDIR` 隔离输出。
 
 自动 IME 宿主改动后，Windows 11 交互会话中的当前 Dora 源码重新用 MSVC 编译，
 并配合先前已验证的 ABI-2 WGL DLL 完成 720 帧、三缓冲、别名和宿主 PCM 回归；GPU
@@ -655,12 +753,12 @@ Linux 上可用 MinGW 交叉编译运行库：
 
 ```sh
 python3 Tools/Godot/build_windows_runtime.py --jobs 2
-python3 Tools/Godot/tests/wgl/build.py --godot-source Source/3rdParty/Godot --dora-objects
+python3 $DORA_TEST_REPO/Test/Godot/tests/wgl/build.py --godot-source Source/3rdParty/Godot --dora-objects
 ```
 
 第二步编译两个真实 Windows 测试程序，以及 Dora 的节点和 DLL 加载器对象。
 它使用固定 Godot 源码中的 GLAD。将 `transport.exe`、`runtime.exe`、运行库包和
-测试项目放到 Windows 后，运行 `python Tools/Godot/tests/wgl/run.py`，可分别验证
+测试项目放到 Windows 后，运行 `python $DORA_TEST_REPO/Test/Godot/tests/wgl/run.py`，可分别验证
 共享上下文传输和真正的 LibGodot 输出；两者均不能替代 Dora 节点的最终合成测试。
 交叉编译报告的 `gpu_tested` 始终为 false。Windows 运行库保留标准模块，关闭
 原生窗口辅助功能 AccessKit；宿主音频、动态 Viewport 尺寸等边界与其他后端一致。
@@ -673,7 +771,7 @@ python3 Tools/Godot/tests/wgl/build.py --godot-source Source/3rdParty/Godot --do
 准备好当前代码的测试宿主后，可运行：
 
 ```powershell
-python Tools/Godot/tests/unicode_windows.py --library build/godot-windows/package/dora_godot.dll --fixture build/godot-runtime/imported-fixture/fixture.json
+python $DORA_TEST_REPO/Test/Godot/tests/unicode_windows.py --library build/godot-windows/package/dora_godot.dll --fixture build/godot-runtime/imported-fixture/fixture.json
 ```
 
 驱动创建包含中文和 `🚀` 的运行库、项目、截图及 PCK 目录，每种情况运行完整节点测试。提供 `--fixture` 时包含三组；不提供时只包含运行库和源码项目两组。只有实际 Windows 进程与图像／GPU 计数都通过，才生成 `build/godot-windows/unicode-results/verification.json`。CLI 帮助或语法检查不代表这些用例已通过。
@@ -713,7 +811,7 @@ Rust／Wa 的尺寸接口已完成实际运行验收，见语言绑定章节。
 
 ```sh
 DORA_GODOT_TEST_AUDIO=1 DORA_GODOT_TEST_ALIASES=1 DORA_GODOT_TEST_RESIZE=1 \
-  DORA_GODOT_TEST_CANCEL_RESIZE=1 Tools/Godot/test_macos.sh
+  DORA_GODOT_TEST_CANCEL_RESIZE=1 $DORA_TEST_REPO/Test/Godot/test_macos.sh
 ```
 
 macOS 的 2／3／4 缓冲尺寸切换均已通过 Lua 实际运行测试，各 1,000 帧、15 张截图。
@@ -732,11 +830,11 @@ macOS 的 2／3／4 缓冲尺寸切换均已通过 Lua 实际运行测试，各 
 切换中取消。原始报告汇总：`build/godot-runtime/reservation-desktop.json`。
 
 ```sh
-DORA_GODOT_TEST_RESERVATION=1 DORA_GODOT_TEST_AUDIO=1 DORA_GODOT_TEST_ALIASES=1 Tools/Godot/test_macos.sh
-DORA_GODOT_TEST_RESERVATION=1 DORA_GODOT_TEST_AUDIO=1 DORA_GODOT_TEST_ALIASES=1 Tools/Godot/test_linux.sh
-python Tools/Godot/test_windows.py --reservation --audio --aliases
+DORA_GODOT_TEST_RESERVATION=1 DORA_GODOT_TEST_AUDIO=1 DORA_GODOT_TEST_ALIASES=1 $DORA_TEST_REPO/Test/Godot/test_macos.sh
+DORA_GODOT_TEST_RESERVATION=1 DORA_GODOT_TEST_AUDIO=1 DORA_GODOT_TEST_ALIASES=1 $DORA_TEST_REPO/Test/Godot/test_linux.sh
+python $DORA_TEST_REPO/Test/Godot/test_windows.py --reservation --audio --aliases
 # 对实际通过的日志副本注入错误，验证竞争创建与场景数量检查不能被跳过。
-python Tools/Godot/tests/reservation_verifier_failures.py --results build/godot-runtime/node-reservation-fixed-macos
+python $DORA_TEST_REPO/Test/Godot/tests/reservation_verifier_failures.py --results build/godot-runtime/node-reservation-fixed-macos
 ```
 
 ### Godot 项目主动改尺寸与内容拉伸
@@ -761,7 +859,7 @@ Dora 输入来源使用鼠标事件或 SDL 鼠标转换对应的触摸事件，�
 
 ```sh
 DORA_BUILD_GODOT_NODE_TEST=1 xmake build -j2 Dora
-python3 Tools/Godot/tests/run_output.py --startup --results build/godot-runtime/output-local
+python3 $DORA_TEST_REPO/Test/Godot/tests/run_output.py --startup --results build/godot-runtime/output-local
 # 无显示会话的 Linux 使用 tests/with_weston.py 包装同一命令。
 ```
 
@@ -809,9 +907,9 @@ Windows 使用 Parallels Windows 11 ARM64 的 x64 进程；这些结果不代表
 报告：`build/godot-runtime/timing-desktop.json`。
 
 ```sh
-DORA_GODOT_TEST_TIMING=1 DORA_GODOT_TEST_PROJECT="$PWD/Tools/Godot/tests/timing_project" Tools/Godot/test_macos.sh
-DORA_GODOT_TEST_TIMING=1 DORA_GODOT_TEST_PROJECT="$PWD/Tools/Godot/tests/timing_project" Tools/Godot/test_linux.sh
-python Tools/Godot/test_windows.py --timing --project Tools/Godot/tests/timing_project
+DORA_GODOT_TEST_TIMING=1 DORA_GODOT_TEST_PROJECT="$PWD/$DORA_TEST_REPO/Test/Godot/tests/timing_project" $DORA_TEST_REPO/Test/Godot/test_macos.sh
+DORA_GODOT_TEST_TIMING=1 DORA_GODOT_TEST_PROJECT="$PWD/$DORA_TEST_REPO/Test/Godot/tests/timing_project" $DORA_TEST_REPO/Test/Godot/test_linux.sh
+python $DORA_TEST_REPO/Test/Godot/test_windows.py --timing --project $DORA_TEST_REPO/Test/Godot/tests/timing_project
 ```
 
 修复前的真实 GPU 采样保留在 `timing-before-fix-macos`：正常阶段材质时钟仅推进
@@ -829,12 +927,12 @@ SDL/EGL、主循环和音频设备。Godot 不创建 Android 渲染视图，双�
 
 ```sh
 python3 Tools/Godot/prepare_android_aar.py
-python3 Tools/Godot/prepare_android_test_assets.py
+python3 $DORA_TEST_REPO/Test/Godot/prepare_android_test_assets.py
 python3 Tools/Godot/build_android_runtime.py --sdk "$ANDROID_HOME" --jobs 2
 Projects/Android/Dora/gradlew -p Projects/Android/Dora :app:assembleDebug \
   -Pdora.godot=true -Pandroid.experimental.lint.version=8.9.3 -Pdora.godot.test=true -Pdora.android.abis=arm64-v8a \
   -Pdora.android.jobs=2 --max-workers=2 --no-daemon
-python3 Tools/Godot/tests/android/run_node.py --serial emulator-5554 \
+python3 $DORA_TEST_REPO/Test/Godot/tests/android/run_node.py --serial emulator-5554 \
   --sdk "$ANDROID_HOME" \
   --apk build/godot-android/gradle-app/outputs/apk/debug/app-debug.apk \
   --output build/godot-runtime/android-node-local --case lifecycle --buffers 3
@@ -843,7 +941,7 @@ python3 Tools/Godot/tests/android/run_node.py --serial emulator-5554 \
 Android EGL direct-target 的 2/3/4 聚合入口为：
 
 ```sh
-python3 Tools/Godot/tests/android/run_direct.py --serial DEVICE_SERIAL \
+python3 $DORA_TEST_REPO/Test/Godot/tests/android/run_direct.py --serial DEVICE_SERIAL \
   --sdk "$ANDROID_HOME" \
   --apk build/godot-android/gradle-app/outputs/apk/debug/app-debug.apk \
   --runtime-package build/godot-android/package \
@@ -858,7 +956,7 @@ nondebuggable Release验收；聚合报告始终保持`direct02_physical_device_
 Dora 安装。驱动校验 APK 包名、隔离入口和运行库哈希；超时会保留原生进程与所有权记录，
 供继续检查。可选择 `--buffers 2/3/4`、`--resize --cancel-resize --aliases`、
 `--audio --audio-stall --reservation --ime --controller`，或 `--case timing/particles/output`。
-这些选项表示可运行的验证入口，实际通过范围以 `PLAN.md` 和对应报告为准。
+这些选项表示可运行的验证入口，实际通过范围以 `TRACKING.md` 和对应报告为准。
 
 已通过 API35 ARM64 模拟器的 2／3／4 缓冲、共 3,000 帧／45 张截图，包含尺寸切换、
 纹理别名、生命周期和宿主音频检查。报告：`build/godot-runtime/android-node.json`。尚不代表 Android
@@ -887,14 +985,29 @@ SHA-256 为 `20af7feb71feee0c2c1f943cc71deec70f1017f5aa7fb214d64b69bc53d9f389`�
 
 普通非debuggable Release验收使用独立资源树（`-Pdora.godot.assets=...`）与`dora.godot.test=false`，不含原生Godot测试入口。Android中的Godot项目需要先用Content.copy从APK资源解包到真实可写目录；公开Lua验收夹具见`tests/android/ordinary_release.lua`。
 
+普通 Release QA 资源可用以下入口完整准备（包含两个 Godot 夹具、公开 Lua 控制器及真实 Object 所有权 trap Wasm）：
+
+```sh
+python3 $DORA_TEST_REPO/Test/Godot/tests/android/prepare_ordinary_assets.py \
+  --output build/godot-android/ordinary-assets
+```
+
+应用构建时传入 `-Pdora.godot.assets=<上述资源目录绝对路径>`，准备脚本要求新目录以保留旧证据。
+
+可给准备入口增加 `--dodge-project <已导入的官方工程目录>` 和
+`--dodge-baseline <已审计上游 artifacts.json>`，将源码与生成缓存打包到同一 QA APK。
+工程的非缓存文件必须与基线逐字节一致；控制器在设备端解压，退出后重新计算哈希。
+运行 `run_ordinary_release.py` 时增加 `--dodge-manifest <资源目录/GodotDodge.json>`，
+使用三缓冲默认 direct 模式，可验收角色移动、暂停/恢复、原始 OGG 音频和完整退出。
+
 普通包的生命周期控制器单独构建，不加入交付应用：
 
 ```sh
-Projects/Android/Dora/gradlew -p Tools/Godot/tests/android/lifecycle :app:assembleDebug --no-daemon
-python3 Tools/Godot/tests/android/run_ordinary_release.py \
+Projects/Android/Dora/gradlew -p $DORA_TEST_REPO/Test/Godot/tests/android/lifecycle :app:assembleDebug --no-daemon
+python3 $DORA_TEST_REPO/Test/Godot/tests/android/run_ordinary_release.py \
   --sdk "$ANDROID_HOME" --serial emulator-5580 --owned-avd DoraGodotRC1_local \
   --apk /path/to/locally-signed-release.apk --runtime-package /path/to/runtime-package \
-  --lifecycle-apk Tools/Godot/tests/android/lifecycle/app/build/outputs/apk/debug/app-debug.apk \
+  --lifecycle-apk $DORA_TEST_REPO/Test/Godot/tests/android/lifecycle/app/build/outputs/apk/debug/app-debug.apk \
   --output /path/to/new-evidence --buffers 3
 ```
 
@@ -903,10 +1016,10 @@ python3 Tools/Godot/tests/android/run_ordinary_release.py \
 普通Release direct-target的2/3/4缓冲完整验收使用聚合入口：
 
 ```sh
-python3 Tools/Godot/tests/android/run_direct_release.py \
+python3 $DORA_TEST_REPO/Test/Godot/tests/android/run_direct_release.py \
   --sdk "$ANDROID_HOME" --serial DEVICE_SERIAL --physical-device \
   --apk /path/to/locally-signed-release.apk --runtime-package /path/to/runtime-package \
-  --lifecycle-apk Tools/Godot/tests/android/lifecycle/app/build/outputs/apk/debug/app-debug.apk \
+  --lifecycle-apk $DORA_TEST_REPO/Test/Godot/tests/android/lifecycle/app/build/outputs/apk/debug/app-debug.apk \
   --output /path/to/fresh-direct-evidence
 ```
 
@@ -919,9 +1032,9 @@ python3 Tools/Godot/tests/android/run_direct_release.py \
 需要搬到另一台真机主机时，可生成带完整哈希、同证书检查和ZIP CRC的自校验包：
 
 ```sh
-python3 Tools/Godot/package_android_direct_test.py \
+python3 $DORA_TEST_REPO/Test/Godot/package_android_direct_test.py \
   --sdk "$ANDROID_HOME" --apk /path/to/locally-signed-release.apk \
-  --lifecycle-apk Tools/Godot/tests/android/lifecycle/app/build/outputs/apk/debug/app-debug.apk \
+  --lifecycle-apk $DORA_TEST_REPO/Test/Godot/tests/android/lifecycle/app/build/outputs/apk/debug/app-debug.apk \
   --runtime-package /path/to/runtime-package --output /path/to/new-physical-test-bundle
 ```
 
@@ -944,12 +1057,35 @@ iOS 原型保留 Godot 的 `OS_IOS` 服务，由 Dora 拥有 UIKit 应用、Meta
 运行库使用签名的 `DoraGodot.framework`，从应用 `Frameworks` 目录加载，只导出版本化
 Dora ABI。标准 Godot 模块保持启用；当前包没有额外的 iOS 原生导出插件。
 
+iOS Debug / Release 均使用原生 xmake，不把 archive/framework 构建成功作为动态渲染通过：
+
+```sh
+python3 Tools/Godot/build_ios_runtime.py --device simulator --target template_release \
+  --builder xmake --jobs 4 --build-dir build/godot-ios-xmake/simulator
+python3 Tools/Godot/link_ios_runtime.py --device simulator \
+  --build-dir build/godot-ios-xmake/simulator
+```
+
+设备构建将两处 `--device` 改为 `device` 并使用独立目录。两种 SDK 的源码清单、
+生成物及对象隔离；最终静态库合并全部子库，framework 继续只导出 Dora C ABI。
+`tests/ios/run_runtime_abi.py --udid UDID --framework PATH --output FRESH_DIR`
+在已启动的专用模拟器内检查实际 framework 的版本、ABI 表、边界 canary、无效参数与关闭状态，
+不初始化 Godot/GPU，也不启动或关闭模拟器。设备 archive 不能用模拟器执行。
+
+升级源码或 SDK 后，用 `xmake project -k compile_commands -t TARGET OUTPUT_DIR`
+分别导出十一个 Godot 编译子目标（七个子系统及四个 codec object 目标）的实际编译参数；`audit_ios_include_order.py` 接受
+`--baseline`（隔离 SCons 的 compile_commands.json）、`--xmake-db`（十一份 JSON）、
+`--generated-root` 和新 `--output`，核对源码数量及逐文件 include 顺序。
+SDK 路径逐文件展开，重复 include 保留首次位置；该检查不代替其他编译选项、ABI 或 GPU 验收。
+
+xmake Debug 构建和宿主用例：
+
 ```sh
 python3 Tools/Godot/build_ios_runtime.py --device simulator --jobs 2
 python3 Tools/Godot/link_ios_runtime.py --device simulator
-python3 Tools/Godot/build_ios_host.py --device simulator --jobs 2
+python3 $DORA_TEST_REPO/Test/Godot/build_ios_host.py --device simulator --jobs 2
 # 从 xcrun simctl list 中选择已启动的专用测试模拟器 UDID。
-python3 Tools/Godot/tests/ios/run_node.py --udid YOUR_TEST_SIMULATOR_UDID \
+python3 $DORA_TEST_REPO/Test/Godot/tests/ios/run_node.py --udid YOUR_TEST_SIMULATOR_UDID \
   --app build/godot-ios/host/simulator/arm64/debug/Dora.app \
   --framework build/godot-ios/simulator/package/DoraGodot.framework \
   --output build/godot-runtime/ios-node-local --case lifecycle --buffers 3
@@ -967,7 +1103,7 @@ iOS 原生运行库启用 `disable_path_overrides=no`，支持宿主传入项目
 当前编译、framework 链接和签名检查已通过。实际探针确认当前 iOS 模拟器最高仅提供
 Apple2，立方体数组纹理被 Metal 拒绝；Godot Metal 驱动要求 Apple4，因而模拟器
 尚未通过 Godot GPU 共享验收。能力诊断：`build/godot-runtime/ios-metal-capabilities`。
-实际范围以 `PLAN.md` 与对应运行报告为准，不以编译成功代替 GPU 测试。
+实际范围以 `TRACKING.md` 与对应运行报告为准，不以编译成功代替 GPU 测试。
 
 根据硬件能力分别检查，Dora iOS 最低要求保持 Apple2 GPU 家族，并拒绝 Metal
 初始化失败后的 Noop 回退。模拟器保留 Dora 可支持的宿主测试，GodotNode 则在加载
@@ -995,7 +1131,7 @@ Node.js、Playwright 和已安装的 Chrome。Playwright 可通过 `DORA_PLAYWRI
 指定模块路径，默认使用 Node 的 `playwright` 包。
 
 ```sh
-python3 Tools/Godot/tests/web/run_transport.py
+python3 $DORA_TEST_REPO/Test/Godot/tests/web/run_transport.py
 ```
 
 测试使用临时本地 HTTP 端口，退出时关闭浏览器和服务；报告记录源文件、WASM 和 JS
@@ -1017,17 +1153,36 @@ Godot 双引擎上验收。该全量状态探针也未做性能验收。
 
 ### 真实 LibGodot Web 运行库
 
+Debug / Release 均使用原生 xmake；不安装或调用 SCons：
+
 ```sh
-python3 Tools/Godot/build_web_runtime.py --jobs 2
-python3 Tools/Godot/tests/web/run_runtime.py --buffers 2 --output build/godot-web/runtime-matrix-2
-python3 Tools/Godot/tests/web/run_runtime.py --buffers 3 --output build/godot-web/runtime-matrix-3
-python3 Tools/Godot/tests/web/run_runtime.py --buffers 4 --output build/godot-web/runtime-matrix-4
-python3 Tools/Godot/tests/web/run_runtime.py --buffers 3 --pack --output build/godot-web/runtime-pck-3
+python3 Tools/Godot/build_web_runtime.py --target template_release \
+  --jobs 4 --build-dir build/godot-web-xmake/release
 ```
 
-需要前节的浏览器工具链、SCons（复用 `build/godot-runtime/venv/bin/scons`）；PCK 用例
+该入口要求 xmake 3.x；使用 Dora 管理的 Emscripten SDK，报告记录目标实际编译器，
+不采用调用端 PATH 的版本推测。对象/生成物/JS/WASM 位于独立 `build/godot-xmake/web/wasm32`，
+封包放在指定目录的 `package`。允许上游 Python 生成器，不调用 SCons 编译。
+当前源码及链接已接入，构建和浏览器验收状态以 [TRACKING.md](TRACKING.md) 为准。
+排查原生 Wasm trap 时可设置 `DORA_GODOT_WEB_PROFILE_FUNCTIONS=1` 保留函数名；
+这会使用诊断链接设置。正常构建不设置该变量，诊断包与验收候选分开保存。
+原始模块化工厂须给 `initConfig` 传入 `godotPoolSize:4` 等上游初始化项；桥接已补齐，
+不要求游戏改写默认线程配置。
+
+
+以下为 xmake Debug 构建和独立消费端用例：
+
+```sh
+python3 Tools/Godot/build_web_runtime.py --jobs 2
+python3 $DORA_TEST_REPO/Test/Godot/tests/web/run_runtime.py --buffers 2 --output build/godot-web/runtime-matrix-2
+python3 $DORA_TEST_REPO/Test/Godot/tests/web/run_runtime.py --buffers 3 --output build/godot-web/runtime-matrix-3
+python3 $DORA_TEST_REPO/Test/Godot/tests/web/run_runtime.py --buffers 4 --output build/godot-web/runtime-matrix-4
+python3 $DORA_TEST_REPO/Test/Godot/tests/web/run_runtime.py --buffers 3 --pack --output build/godot-web/runtime-pck-3
+```
+
+需要前节的浏览器工具链及 xmake 管理的 Emscripten；PCK 用例
 还需要 Godot 编辑器，默认查找 `godot` 命令或 macOS 的 `/Applications/Godot.app`。
-可用 `--godot-editor` 指定路径。当前测试工具链是 Emscripten5.0.5-git、Chrome156、
+可用 `--godot-editor` 指定路径。早期独立消费端验收工具链为 Emscripten5.0.5-git、Chrome156、
 ANGLE Metal／Apple M1 Pro。PCKPacker 由本机 Godot4.4.1 执行，包由4.6运行库消费；
 这是简单 GDScript/TSCN 资源包，不代表完整 Web 导出包或导入纹理覆盖。
 
@@ -1087,7 +1242,7 @@ DORA_WEB_BUILD_DIR="$PWD/build/godot-web/dora-build" \
 DORA_WEB_PACKAGE_DIR="$PWD/build/godot-web/dora-probe" \
 DORA_WEB_PLAYER_PACKAGE_DIR="$PWD/build/godot-web/dora-player" \
 DORA_WEB_BUILD_LOVE_PROBE=0 xmake dora-web --mode=debug --profile=core --jobs=2
-python3 Tools/Godot/tests/web/run_node_matrix.py
+python3 $DORA_TEST_REPO/Test/Godot/tests/web/run_node_matrix.py
 ```
 
 `DORA_WEB_GODOT` 默认关闭；开启后打包匹配的 Godot JS／WASM 和桥接模块，画布与
@@ -1149,7 +1304,7 @@ WebGL2 context 确认进入 lost 状态，页面显示明确的“重启运行�
 复现当前故障注入（第一个参数必须是已打包的节点验收 Player）：
 
 ```sh
-node Tools/Godot/tests/web_context_loss.mjs \
+node $DORA_TEST_REPO/Test/Godot/tests/web_context_loss.mjs \
   build/godot-web/node-controller-teardown/player-3 \
   build/godot-web/context-loss-reload-recovery \
   --reload-recovery
@@ -1175,8 +1330,8 @@ PCK单独复现：复制已构建的 Player到独立目录，运行
 
 ```sh
 cp -R build/godot-web/dora-player build/godot-web/dom-player
-python3 Tools/Godot/tests/web/prepare_dom_game.py
-DORA_DOM_HEADED=1 node Tools/Godot/tests/web/run_dom_input.cjs \
+python3 $DORA_TEST_REPO/Test/Godot/tests/web/prepare_dom_game.py
+DORA_DOM_HEADED=1 node $DORA_TEST_REPO/Test/Godot/tests/web/run_dom_input.cjs \
   build/godot-web/dom-player build/godot-web/dom-input-acceptance
 ```
 
@@ -1225,7 +1380,7 @@ Metal 完整节点回归中通过，报告：
 代表性 3D 项目可通过普通 macOS 宿主运行（必须没有原生测试入口）。该 fixture 运行时解析 glTF 网格与两条动画，加载空间着色器，严格验证实际图像中的运动、暂停、恢复、移除和 GPU 排空：
 
 ```sh
-python3 Tools/Godot/tests/run_project_3d_macos.py --app /path/to/ordinary/Dora.app --library /path/to/libdora_godot.dylib --output build/godot-project-3d
+python3 $DORA_TEST_REPO/Test/Godot/tests/run_project_3d_macos.py --app /path/to/ordinary/Dora.app --library /path/to/libdora_godot.dylib --output build/godot-project-3d
 ```
 
 每次使用新输出目录，保留执行来源、原始日志与六张截图；失败不会保留成功报告。此用例不覆盖大型场景、PCK、插件/GDExtension或其他平台，也不验证音频内容。
@@ -1234,9 +1389,9 @@ Windows/Linux 普通宿主共用同一项目、图像和GPU条件（Linux命令�
 
 ```sh
 # Windows: use an ordinary x64 EXE and its original asset tree.
-python Tools/Godot/tests/run_project_3d_windows.py --binary C:/path/to/Dora.exe --library C:/path/to/dora_godot.dll --asset-source C:/path/to/Assets --output build/godot-project-3d-windows
+python $DORA_TEST_REPO/Test/Godot/tests/run_project_3d_windows.py --binary C:/path/to/Dora.exe --library C:/path/to/dora_godot.dll --asset-source C:/path/to/Assets --output build/godot-project-3d-windows
 # Linux: run one isolated headless EGL compositor.
-python3 Tools/Godot/tests/with_weston.py --logs build/godot-project-3d-linux-weston -- python3 Tools/Godot/tests/run_project_3d_native.py --binary /path/to/Dora --library /path/to/libdora_godot.so --asset-source /path/to/Assets --output build/godot-project-3d-linux
+python3 $DORA_TEST_REPO/Test/Godot/tests/with_weston.py --logs build/godot-project-3d-linux-weston -- python3 $DORA_TEST_REPO/Test/Godot/tests/run_project_3d_native.py --binary /path/to/Dora --library /path/to/libdora_godot.so --asset-source /path/to/Assets --output build/godot-project-3d-linux
 ```
 
 结果记录原生渲染器、实际宿主/运行库/启动/资源字节。虚拟机WGL转换、llvmpipe软件渲染须与物理GPU验收区分；只更换后端标签和渲染器诊断检查，模型、运动、暂停、移除和排空判据相同。
@@ -1248,17 +1403,124 @@ python3 Tools/Godot/tests/with_weston.py --logs build/godot-project-3d-linux-wes
 下列测试不需要 Rust/Wa 编译器，生成极小的可审计 Wasm：创建 Node、retain两次、release一次，再执行 unreachable。使用启用 DORA_BUILD_GODOT_NODE_TEST 的宿主：
 
 ```sh
-python3 Tools/Godot/tests/bindings/run_object_ownership_trap.py --app /path/to/test/Dora.app --output /path/to/fresh-results
+python3 $DORA_TEST_REPO/Test/Godot/tests/bindings/run_object_ownership_trap.py --app /path/to/test/Dora.app --output /path/to/fresh-results
 # Linux：由 tests/with_weston.py 包裹，并改用 --binary /path/to/test/Dora --asset-source Assets
 ```
 
 真实 GodotNode 的 Wa 失败路径另有重复引用用例：
 
 ```sh
-python3 Tools/Godot/tests/bindings/build.py --languages Wa --ownership-failure --output build/godot-owned-failure
-python3 Tools/Godot/tests/bindings/run_ownership_failure_macos.py --app /path/to/test/Dora.app --module build/godot-owned-failure/wa.wasm --library /path/to/libdora_godot.dylib --output /path/to/fresh-results
+python3 $DORA_TEST_REPO/Test/Godot/tests/bindings/build.py --languages Wa --ownership-failure --output build/godot-owned-failure
+python3 $DORA_TEST_REPO/Test/Godot/tests/bindings/run_ownership_failure_macos.py --app /path/to/test/Dora.app --module build/godot-owned-failure/wa.wasm --library /path/to/libdora_godot.dylib --output /path/to/fresh-results
 ```
 
 预期模块失败码为2，必须完成原生生命周期清理且无对象泄漏、GPU错误或pending；GUI既有实例激活、崩溃或缺少预期故障均不算通过。Wa用例故意将Sprite转换导入改为缺失名称，触发创建节点之后的懒链接失败。
 
 macOS嵌入运行库对dora-metal显示后端固定使用Godot已有的lazy着色器库加载：首次使用时同步编译，避免初始化故障快速退出后仍遗留Metal库编译回调。iOS本来采用该策略。渲染能力不减少，首次使用着色器的耗时可能改变；这不是修复Godot所有异步编译路径的声明。prepare.py与包清单记录该配置及实际驱动源码哈希。
+
+### Linux 显式转译下的功能回归
+
+`tests/run_await_cleanup_linux.py` 使用普通 Linux EGL 宿主检查 pending await 的节点销毁和退出清理；参数与 Windows 入口相同，另可指定 `--emulator /path/to/qemu-x86_64-static`。用 `tests/with_weston.py --logs /fresh/weston -- python3 ...` 提供独立 Wayland compositor。实际渲染器以日志为准，软件渲染/转译不能替代原生硬件性能证据。
+
+官方项目入口 `tests/run_dodge_the_creeps_linux.py` 也支持显式 `--emulator`；此时必须同时给出目标架构的 `--abi-python` 和 `--abi-python-home`，使 ctypes ABI 检查也实际运行在目标架构进程内。宿主、运行库、emulator、ABI Python及生成的测试控制器摘要分别记录。只有显式转译模式将控制器墙钟超时保护从45秒延长到180秒；仍要求原455控制tick、9截图及完整图像/音频/资源检查。转译执行不记为原生性能通过。
+
+对于慢速运行中已结束并返回标题页的官方Dodge工程，可显式加`--restart-before-pause`。驱动仅通过公共Start按钮在动画和暂停测试前重新进入游戏，并用按钮区域变化作前置检查；官方工程源码不变，原455控制tick和所有图像/资源阈值保留。该模式多一张before-pause截图，共10张；默认仍9张。
+
+Linux矩阵可用`tests/run_linux_runtime_matrix.py --binary /path/to/test/Dora --runtime-package /path/to/package --results /fresh/results --environment virtual-machine`，执行2/3/4功能、独立soak与timing。显式转译时同样传`--emulator`、`--abi-python`、`--abi-python-home`；目标ABI检查实际执行，不使用跳过ABI选项。脚本记录实际宿主/库/转译器摘要；官方项目及普通宿主回退另行验收。
+
+Android pending await最小清理入口：先以`tests/android/prepare_ordinary_assets.py --await-cleanup --output /fresh/assets`准备普通Release的QA assets，将指定密封包嵌入APK并按通常流程构建/签名；实际APK必须含相同的入口和4份Godot源码。执行：
+
+```sh
+python3 $DORA_TEST_REPO/Test/Godot/tests/android/run_await_cleanup.py --sdk /path/to/sdk --serial emulator-5554 --owned-avd DoraGodotRC1_example --apk /path/to/ordinary.apk --runtime-package /path/to/package --lifecycle-apk /path/to/lifecycle-controller.apk --output /fresh/results
+```
+
+该入口只允许专用AVD的全新测试安装，使用与目标相同测试证书签名的独立生命周期控制器（构建方式见Android普通Release验收）。Lua完成后由控制器调用Activity.finish，要求Godot全局停止和native Logger析构；移除root task不保证完整执行onDestroy，不能用作清理通过依据。Android的App.shutdown本身不会结束Activity，Java缓存进程不等于native引擎仍在运行。测试失败/超时保留原进程和证据，先检查而非重启；通过后再清理本任务APK和模拟器。
+
+Web pending await 清理回归使用同一四文件夹具。在独立目录复制普通 Web Player 后执行：
+
+```sh
+python3 $DORA_TEST_REPO/Test/Godot/tests/web/prepare_await_cleanup.py --package /fresh/player --runtime-package /sealed/web-runtime --stage /fresh/fixture
+node $DORA_TEST_REPO/Test/Godot/tests/web/run_node.cjs /fresh/player /fresh/results --await-cleanup
+python3 $DORA_TEST_REPO/Test/Godot/tests/web/verify_await_cleanup.py /fresh/results
+```
+
+用 `DORA_BROWSER_ENGINE=firefox` 或 `webkit` 选择对应 Playwright 引擎。原生 Safari 使用 `run_safari.py --package /fresh/player --output /fresh/results --buffers 3 --await-cleanup`，需已有远程自动化权限。驱动观察正常 App/LibGodot 停止，核对两个 FS 的夹具摘要、两次 await 取消、零泄漏与 GPU 排空；关闭页面不算通过。
+
+原生 Safari 完整音频矩阵要求专用窗口在前台，并实际取得可信画布指针和完整音频 oracle。窗口聚焦或自动化会话失败不能记作图形回归通过。
+
+追赶上限时的时钟验证：`run_timing_cap_native.py`（与await入口同样的binary/library/asset-root/output参数，可选Linux emulator）运行同一 `timing_cap_project`，`verify_timing_cap.py`检查实际显示帧的TIME、受限脚本delta和独立墙钟。原版Godot4.6及Metal/EGL ARM64/x64四份结果可用 `make_timing_cap_reference.py --help` 的必填参数生成带摘要引用的对照报告。原64步场景用 `verify_timing.py --physics-catchup-reference /path/to/reference.json ...`明确选择上游追赶契约；Linux矩阵同样接受该参数。未指定时保持严格脚本/Shader parity；不能用提高物理追赶上限替代原场景验收。
+
+官方Dodge在慢速模拟环境可显式加`--real-time-input --restart-before-pause`，按真实时间公开持键采样并在活动场景暂停；仍要求48份原源码一致、455tick、完整像素/角色位移/音频/GPU排空断言。默认控制不改变。
+
+原生Metal/EGL/WGL的Godot CPU读回入口（通过范围见清单）：给 `tests/run_timing_cap_native.py` 加 `--engine-readback --buffers 2 --resize`（另跑3/4缓冲）。夹具直接验证Godot get_image生成的两张PNG与640×360→800×450尺寸，透明背景合法；不以宿主截图替代该API。默认无engine-readback选项仍验证宿主实际显示纹理；Windows须在已登录交互桌面运行，工具显式选择WGL。跨平台通过范围见DIRECT-READBACK-01及后续GL/RD回归任务。
+
+Web 的 Godot CPU 读回使用独立入口：先复制普通 Web Player 到自有输出目录，用 `tests/web/prepare_timing_cap.py --package /path/to/player --runtime-package /path/to/runtime --stage /path/to/new-stage --buffers 2` 封包，再运行 `node tests/web/run_timing_cap.cjs /path/to/player /path/to/new-results` 和 `python3 tests/verify_timing_cap.py /path/to/new-results --engine-readback --web-execution --buffers 2`；另跑3/4。浏览器由 `DORA_BROWSER_ENGINE=chromium|firefox|webkit` 选择，Playwright模块沿用其他Web测试配置。原生Safari不由WebKit结果替代。
+
+该入口保留规范 `timing_cap_project` 三份源码不变，附加继承场景设置普通Godot环境变量；直接从Godot独立heap导出get_image的PNG，通过host FS小标记触发resize，图像不会被宿主截图替代。退出观察器计数真实 `_dora_web_shutdown` 调用及完成。默认先让节点清理30帧，再由Web stop退出；`prepare_timing_cap.py --host-shutdown` 单独检查同帧移除节点后Lua `App.shutdown()`，其异步Info日志可能未全部输出，此时验证器显式加 `--cabi-observer` 检查原生产C ABI的close/reader计数、pending和错误；默认仍保留日志检查，像素/时间/尺寸/零blit门槛相同。
+
+Linux矩阵可通过 `run_linux_runtime_matrix.py --scenarios 3 4 soak timing ...` 显式续验部分用例，默认仍跑全部2/3/4/soak/timing。报告只声明实际选择的用例；需要与保留的原始通过项分别核对，不能将部分报告当完整矩阵。
+
+
+Android 的 Godot CPU 读回使用普通非 debuggable Release APK：先运行
+`tests/android/prepare_ordinary_assets.py --engine-readback --output /fresh/assets`，
+按 Android 普通包流程嵌入指定密封运行库及此资源树，再开发签名。构建独立生命周期控制器后执行：
+
+```sh
+python3 $DORA_TEST_REPO/Test/Godot/tests/android/run_ordinary_release.py \
+  --sdk /path/to/sdk --serial emulator-5554 --owned-avd DoraGodotRC1_example \
+  --apk /path/to/ordinary-readback.apk --runtime-package /path/to/package \
+  --lifecycle-apk /path/to/lifecycle-controller.apk \
+  --engine-readback --buffers 2 --output /fresh/readback-2
+```
+
+另跑3/4缓冲，每次使用新的结果目录。夹具保留规范Godot计时源码，仅添加Android继承场景与输出路径配置；
+使用Godot自身get_image生成PNG，Lua触发640×360→800×450 resize，独立验证条码、墙钟、实际尺寸及零blit。
+控制器在完成后调用Activity.finish，验证Godot停止、Logger析构后才清理Java缓存进程。
+结果可用`tests/verify_timing_cap.py /fresh/readback-2 --engine-readback --android-execution --buffers 2`复查。
+当前通过范围为专用SwiftShader模拟器的冷安装；保留缓存重启的shader binary告警仍单列待办，不关闭缓存或放宽默认告警门槛。
+
+独立检查模拟器GLES program binary可使用同一控制器APK的独立Instrumentation（目标是控制器自身，不启动Dora/LibGodot）：
+
+```sh
+adb -s emulator-5554 shell am instrument -w \
+  org.dora.godotrc1.lifecycle/org.dora.godotrc1.ShaderBinaryProbe
+adb -s emulator-5554 pull \
+  /sdcard/Android/media/org.dora.godotrc1.lifecycle/dora-shader-binary-probe.json /fresh/probe.json
+```
+
+探针的`complete`表示执行完成；是否支持二进制恢复需分别检查`same_context/new_context.linked`及像素，不能仅据Instrumentation结束码判断通过。
+
+
+Android 暖缓存排查可在上述普通驱动增加`--cache-audit`，控制器将启动前与native退出后的
+`files/shader_cache`文件摘要写入controller.json，不修改或清空该缓存。连续启动使用相同APK的
+`install -r`，必须核对下一次before与前一次after相等，不能只凭第二次启动就认定缓存已保留。
+
+对已由独立GLES探针复现的二进制缓存告警，可生成补充诊断：
+
+```sh
+python3 $DORA_TEST_REPO/Test/Godot/tests/verify_timing_cap.py /fresh/warm-results \
+  --engine-readback --android-execution --buffers 3 \
+  --diagnose-android-shader-cache /path/to/independent-gles-probe.json
+```
+
+该命令要求日志仅出现指定缓存告警、探针renderer/version匹配且同/新context恢复均失败，
+仍执行全部像素、时钟、尺寸、GPU与退出检查。成功完成诊断也**返回1**，输出
+`shader-cache-diagnostic.json`的`passed=false`、`pixel_contract_passed=true`，
+不会写成严格验收通过，不覆盖`verification.json`；默认验收继续拒绝任何Godot告警。
+
+
+原生 Safari 的 Godot CPU 读回使用上述已由`tests/web/prepare_timing_cap.py`准备的独立包：
+
+```sh
+python3 $DORA_TEST_REPO/Test/Godot/tests/web/run_timing_cap_safari.py \
+  --package /path/to/prepared-player --output /fresh/native-safari-readback-2 --buffers 2
+```
+
+另跑3/4缓冲，每次使用新结果目录。要求已获授权的Safari远程自动化权限；入口不改变偏好设置。
+测试通过原生Safari WebDriver读取独立Godot heap中的get_image PNG，在host/Godot两侧核对夹具摘要，
+观察实际LibGodot shutdown调用/完成，并运行同一严格像素/时钟/GPU验证器；不以WebKit结果或宿主截图替代。
+配套完整显示矩阵继续使用`tests/web/run_safari.py --package ... --output /fresh/... --buffers 2 --cabi-observer`；
+该入口要求实际可信画布点击及音频解锁，Mac锁定时保持失败，不降低门槛。
+
+
+原生计时上限夹具的宿主截图模式会临时设置640×480窗口，退出前恢复原窗口大小；Godot CPU读回模式不改变窗口。`captureGameAsync`会对超过1280像素的buffer缩小输出，因此宿主像素条码用例记录每张图的`*.source.json`并核对PNG与源buffer尺寸相同；不对图像后处理、不放宽条码几何/时钟门槛。原大窗口与视口变化继续由独立完整功能矩阵覆盖。

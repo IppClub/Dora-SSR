@@ -86,9 +86,12 @@ void timer_poll(Transport *t) {
         // TIME_ELAPSED (several seconds for a single 512x512 blit). Reject that
         // driver rather than publishing a plausible-looking bogus GPU metric.
         constexpr GLuint64 max_plausible_blit_ns=1000000000ULL;
-        if (disjoint || elapsed>max_plausible_blit_ns || !t->gpu_timer_reliable) {
+        // Some virtual drivers expose the query extension but return only
+        // zero-duration copies. These are not usable GPU timing measurements.
+        const bool invalid_elapsed=elapsed==0 || elapsed>max_plausible_blit_ns;
+        if (disjoint || invalid_elapsed || !t->gpu_timer_reliable) {
             ++t->blit_gpu_rejected;
-            if (elapsed>max_plausible_blit_ns) t->gpu_timer_reliable=false;
+            if (invalid_elapsed) t->gpu_timer_reliable=false;
         } else {
             t->blit_gpu_time_ns+=elapsed; ++t->blit_gpu_samples;
         }

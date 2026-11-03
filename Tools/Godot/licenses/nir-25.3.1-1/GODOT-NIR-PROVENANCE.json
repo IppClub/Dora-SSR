@@ -1,0 +1,5186 @@
+{
+  "schema": 2,
+  "godot_nir_tag": "25.3.1-1",
+  "mesa_commit": "5005a50879b11b953ade113fccd13a208f706ba0",
+  "mesa_source_sha256": "15a688666aca976d1479c8bd43d319a55613da9a91aaf42a07691daec96ba7be",
+  "nir_source_sha256": "21ba3c0532caa580b50c530aefc851686b747b41d7984c228bcc0cef7ef5db82",
+  "object_sources": [
+    {
+      "object": "threads_win32.windows.x86_64.o",
+      "source": "mesa/src/c11/impl/threads_win32.c"
+    },
+    {
+      "object": "time.windows.x86_64.o",
+      "source": "mesa/src/c11/impl/time.c"
+    },
+    {
+      "object": "glsl_types.windows.x86_64.o",
+      "source": "mesa/src/compiler/glsl_types.c"
+    },
+    {
+      "object": "nir.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir.c"
+    },
+    {
+      "object": "nir_builder.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_builder.c"
+    },
+    {
+      "object": "nir_builtin_builder.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_builtin_builder.c"
+    },
+    {
+      "object": "nir_clone.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_clone.c"
+    },
+    {
+      "object": "nir_control_flow.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_control_flow.c"
+    },
+    {
+      "object": "nir_deref.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_deref.c"
+    },
+    {
+      "object": "nir_divergence_analysis.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_divergence_analysis.c"
+    },
+    {
+      "object": "nir_dominance.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_dominance.c"
+    },
+    {
+      "object": "nir_dominance_lca.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_dominance_lca.c"
+    },
+    {
+      "object": "nir_fixup_is_exported.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_fixup_is_exported.c"
+    },
+    {
+      "object": "nir_format_convert.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_format_convert.c"
+    },
+    {
+      "object": "nir_from_ssa.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_from_ssa.c"
+    },
+    {
+      "object": "nir_functions.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_functions.c"
+    },
+    {
+      "object": "nir_gather_info.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_gather_info.c"
+    },
+    {
+      "object": "nir_gather_output_deps.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_gather_output_deps.c"
+    },
+    {
+      "object": "nir_gather_tcs_info.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_gather_tcs_info.c"
+    },
+    {
+      "object": "nir_gather_types.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_gather_types.c"
+    },
+    {
+      "object": "nir_gather_xfb_info.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_gather_xfb_info.c"
+    },
+    {
+      "object": "nir_gs_count_vertices.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_gs_count_vertices.c"
+    },
+    {
+      "object": "nir_inline_sysval.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_inline_sysval.c"
+    },
+    {
+      "object": "nir_inline_uniforms.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_inline_uniforms.c"
+    },
+    {
+      "object": "nir_instr_set.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_instr_set.c"
+    },
+    {
+      "object": "nir_io_add_const_offset_to_base.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_io_add_const_offset_to_base.c"
+    },
+    {
+      "object": "nir_io_add_xfb_info.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_io_add_xfb_info.c"
+    },
+    {
+      "object": "nir_legacy.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_legacy.c"
+    },
+    {
+      "object": "nir_linking_helpers.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_linking_helpers.c"
+    },
+    {
+      "object": "nir_liveness.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_liveness.c"
+    },
+    {
+      "object": "nir_loop_analyze.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_loop_analyze.c"
+    },
+    {
+      "object": "nir_lower_alpha.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_alpha.c"
+    },
+    {
+      "object": "nir_lower_alu.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_alu.c"
+    },
+    {
+      "object": "nir_lower_alu_width.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_alu_width.c"
+    },
+    {
+      "object": "nir_lower_amul.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_amul.c"
+    },
+    {
+      "object": "nir_lower_array_deref_of_vec.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_array_deref_of_vec.c"
+    },
+    {
+      "object": "nir_lower_atomics.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_atomics.c"
+    },
+    {
+      "object": "nir_lower_atomics_to_ssbo.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_atomics_to_ssbo.c"
+    },
+    {
+      "object": "nir_lower_bit_size.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_bit_size.c"
+    },
+    {
+      "object": "nir_lower_bitmap.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_bitmap.c"
+    },
+    {
+      "object": "nir_lower_blend.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_blend.c"
+    },
+    {
+      "object": "nir_lower_bool_to_bitsize.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_bool_to_bitsize.c"
+    },
+    {
+      "object": "nir_lower_bool_to_float.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_bool_to_float.c"
+    },
+    {
+      "object": "nir_lower_bool_to_int32.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_bool_to_int32.c"
+    },
+    {
+      "object": "nir_lower_calls_to_builtins.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_calls_to_builtins.c"
+    },
+    {
+      "object": "nir_lower_cl_images.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_cl_images.c"
+    },
+    {
+      "object": "nir_lower_clamp_color_outputs.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_clamp_color_outputs.c"
+    },
+    {
+      "object": "nir_lower_clip.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_clip.c"
+    },
+    {
+      "object": "nir_lower_clip_cull_distance_array_vars.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_clip_cull_distance_array_vars.c"
+    },
+    {
+      "object": "nir_lower_clip_disable.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_clip_disable.c"
+    },
+    {
+      "object": "nir_lower_clip_halfz.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_clip_halfz.c"
+    },
+    {
+      "object": "nir_lower_const_arrays_to_uniforms.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_const_arrays_to_uniforms.c"
+    },
+    {
+      "object": "nir_lower_continue_constructs.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_continue_constructs.c"
+    },
+    {
+      "object": "nir_lower_convert_alu_types.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_convert_alu_types.c"
+    },
+    {
+      "object": "nir_lower_cooperative_matrix.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_cooperative_matrix.c"
+    },
+    {
+      "object": "nir_lower_discard_if.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_discard_if.c"
+    },
+    {
+      "object": "nir_lower_double_ops.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_double_ops.c"
+    },
+    {
+      "object": "nir_lower_explicit_io.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_explicit_io.c"
+    },
+    {
+      "object": "nir_lower_fb_read.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_fb_read.c"
+    },
+    {
+      "object": "nir_lower_flatshade.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_flatshade.c"
+    },
+    {
+      "object": "nir_lower_flrp.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_flrp.c"
+    },
+    {
+      "object": "nir_lower_fp16_conv.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_fp16_conv.c"
+    },
+    {
+      "object": "nir_lower_frag_coord_to_pixel_coord.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_frag_coord_to_pixel_coord.c"
+    },
+    {
+      "object": "nir_lower_fragcolor.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_fragcolor.c"
+    },
+    {
+      "object": "nir_lower_fragcoord_wtrans.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_fragcoord_wtrans.c"
+    },
+    {
+      "object": "nir_lower_frexp.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_frexp.c"
+    },
+    {
+      "object": "nir_lower_global_vars_to_local.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_global_vars_to_local.c"
+    },
+    {
+      "object": "nir_lower_goto_ifs.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_goto_ifs.c"
+    },
+    {
+      "object": "nir_lower_gs_intrinsics.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_gs_intrinsics.c"
+    },
+    {
+      "object": "nir_lower_halt_to_return.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_halt_to_return.c"
+    },
+    {
+      "object": "nir_lower_helper_writes.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_helper_writes.c"
+    },
+    {
+      "object": "nir_lower_idiv.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_idiv.c"
+    },
+    {
+      "object": "nir_lower_image.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_image.c"
+    },
+    {
+      "object": "nir_lower_image_atomics_to_global.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_image_atomics_to_global.c"
+    },
+    {
+      "object": "nir_lower_indirect_derefs.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_indirect_derefs.c"
+    },
+    {
+      "object": "nir_lower_input_attachments.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_input_attachments.c"
+    },
+    {
+      "object": "nir_lower_int64.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_int64.c"
+    },
+    {
+      "object": "nir_lower_int_to_float.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_int_to_float.c"
+    },
+    {
+      "object": "nir_lower_interpolation.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_interpolation.c"
+    },
+    {
+      "object": "nir_lower_io.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_io.c"
+    },
+    {
+      "object": "nir_lower_io_array_vars_to_elements.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_io_array_vars_to_elements.c"
+    },
+    {
+      "object": "nir_lower_io_indirect_loads.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_io_indirect_loads.c"
+    },
+    {
+      "object": "nir_lower_io_to_scalar.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_io_to_scalar.c"
+    },
+    {
+      "object": "nir_lower_io_vars_to_scalar.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_io_vars_to_scalar.c"
+    },
+    {
+      "object": "nir_lower_io_vars_to_temporaries.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_io_vars_to_temporaries.c"
+    },
+    {
+      "object": "nir_lower_is_helper_invocation.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_is_helper_invocation.c"
+    },
+    {
+      "object": "nir_lower_load_const_to_scalar.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_load_const_to_scalar.c"
+    },
+    {
+      "object": "nir_lower_locals_to_regs.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_locals_to_regs.c"
+    },
+    {
+      "object": "nir_lower_mediump.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_mediump.c"
+    },
+    {
+      "object": "nir_lower_mem_access_bit_sizes.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_mem_access_bit_sizes.c"
+    },
+    {
+      "object": "nir_lower_memcpy.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_memcpy.c"
+    },
+    {
+      "object": "nir_lower_memory_model.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_memory_model.c"
+    },
+    {
+      "object": "nir_lower_multiview.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_multiview.c"
+    },
+    {
+      "object": "nir_lower_non_uniform_access.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_non_uniform_access.c"
+    },
+    {
+      "object": "nir_lower_packing.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_packing.c"
+    },
+    {
+      "object": "nir_lower_passthrough_edgeflags.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_passthrough_edgeflags.c"
+    },
+    {
+      "object": "nir_lower_patch_vertices.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_patch_vertices.c"
+    },
+    {
+      "object": "nir_lower_phis_to_scalar.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_phis_to_scalar.c"
+    },
+    {
+      "object": "nir_lower_pntc_ytransform.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_pntc_ytransform.c"
+    },
+    {
+      "object": "nir_lower_point_size.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_point_size.c"
+    },
+    {
+      "object": "nir_lower_point_smooth.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_point_smooth.c"
+    },
+    {
+      "object": "nir_lower_poly_line_smooth.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_poly_line_smooth.c"
+    },
+    {
+      "object": "nir_lower_printf.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_printf.c"
+    },
+    {
+      "object": "nir_lower_readonly_images_to_tex.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_readonly_images_to_tex.c"
+    },
+    {
+      "object": "nir_lower_reg_intrinsics_to_ssa.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_reg_intrinsics_to_ssa.c"
+    },
+    {
+      "object": "nir_lower_returns.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_returns.c"
+    },
+    {
+      "object": "nir_lower_robust_access.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_robust_access.c"
+    },
+    {
+      "object": "nir_lower_sample_shading.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_sample_shading.c"
+    },
+    {
+      "object": "nir_lower_samplers.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_samplers.c"
+    },
+    {
+      "object": "nir_lower_scratch.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_scratch.c"
+    },
+    {
+      "object": "nir_lower_scratch_to_var.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_scratch_to_var.c"
+    },
+    {
+      "object": "nir_lower_shader_calls.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_shader_calls.c"
+    },
+    {
+      "object": "nir_lower_single_sampled.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_single_sampled.c"
+    },
+    {
+      "object": "nir_lower_ssbo.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_ssbo.c"
+    },
+    {
+      "object": "nir_lower_subgroups.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_subgroups.c"
+    },
+    {
+      "object": "nir_lower_system_values.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_system_values.c"
+    },
+    {
+      "object": "nir_lower_sysvals_to_varyings.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_sysvals_to_varyings.c"
+    },
+    {
+      "object": "nir_lower_task_shader.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_task_shader.c"
+    },
+    {
+      "object": "nir_lower_terminate_to_demote.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_terminate_to_demote.c"
+    },
+    {
+      "object": "nir_lower_tess_coord_z.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_tess_coord_z.c"
+    },
+    {
+      "object": "nir_lower_tex.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_tex.c"
+    },
+    {
+      "object": "nir_lower_tex_shadow.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_tex_shadow.c"
+    },
+    {
+      "object": "nir_lower_texcoord_replace.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_texcoord_replace.c"
+    },
+    {
+      "object": "nir_lower_texcoord_replace_late.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_texcoord_replace_late.c"
+    },
+    {
+      "object": "nir_lower_two_sided_color.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_two_sided_color.c"
+    },
+    {
+      "object": "nir_lower_ubo_vec4.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_ubo_vec4.c"
+    },
+    {
+      "object": "nir_lower_undef_to_zero.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_undef_to_zero.c"
+    },
+    {
+      "object": "nir_lower_uniforms_to_ubo.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_uniforms_to_ubo.c"
+    },
+    {
+      "object": "nir_lower_var_copies.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_var_copies.c"
+    },
+    {
+      "object": "nir_lower_variable_initializers.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_variable_initializers.c"
+    },
+    {
+      "object": "nir_lower_vars_to_ssa.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_vars_to_ssa.c"
+    },
+    {
+      "object": "nir_lower_vec3_to_vec4.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_vec3_to_vec4.c"
+    },
+    {
+      "object": "nir_lower_vec_to_regs.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_vec_to_regs.c"
+    },
+    {
+      "object": "nir_lower_view_index_to_device_index.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_view_index_to_device_index.c"
+    },
+    {
+      "object": "nir_lower_viewport_transform.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_viewport_transform.c"
+    },
+    {
+      "object": "nir_lower_wpos_center.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_wpos_center.c"
+    },
+    {
+      "object": "nir_lower_wpos_ytransform.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_wpos_ytransform.c"
+    },
+    {
+      "object": "nir_lower_wrmasks.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_lower_wrmasks.c"
+    },
+    {
+      "object": "nir_metadata.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_metadata.c"
+    },
+    {
+      "object": "nir_mod_analysis.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_mod_analysis.c"
+    },
+    {
+      "object": "nir_move_output_stores_to_end.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_move_output_stores_to_end.c"
+    },
+    {
+      "object": "nir_move_vec_src_uses_to_dest.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_move_vec_src_uses_to_dest.c"
+    },
+    {
+      "object": "nir_normalize_cubemap_coords.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_normalize_cubemap_coords.c"
+    },
+    {
+      "object": "nir_opt_access.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_opt_access.c"
+    },
+    {
+      "object": "nir_opt_barriers.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_opt_barriers.c"
+    },
+    {
+      "object": "nir_opt_call.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_opt_call.c"
+    },
+    {
+      "object": "nir_opt_clip_cull_const.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_opt_clip_cull_const.c"
+    },
+    {
+      "object": "nir_opt_combine_stores.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_opt_combine_stores.c"
+    },
+    {
+      "object": "nir_opt_comparison_pre.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_opt_comparison_pre.c"
+    },
+    {
+      "object": "nir_opt_constant_folding.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_opt_constant_folding.c"
+    },
+    {
+      "object": "nir_opt_copy_prop_vars.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_opt_copy_prop_vars.c"
+    },
+    {
+      "object": "nir_opt_copy_propagate.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_opt_copy_propagate.c"
+    },
+    {
+      "object": "nir_opt_cse.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_opt_cse.c"
+    },
+    {
+      "object": "nir_opt_dce.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_opt_dce.c"
+    },
+    {
+      "object": "nir_opt_dead_cf.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_opt_dead_cf.c"
+    },
+    {
+      "object": "nir_opt_dead_write_vars.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_opt_dead_write_vars.c"
+    },
+    {
+      "object": "nir_opt_find_array_copies.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_opt_find_array_copies.c"
+    },
+    {
+      "object": "nir_opt_frag_coord_to_pixel_coord.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_opt_frag_coord_to_pixel_coord.c"
+    },
+    {
+      "object": "nir_opt_fragdepth.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_opt_fragdepth.c"
+    },
+    {
+      "object": "nir_opt_gcm.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_opt_gcm.c"
+    },
+    {
+      "object": "nir_opt_generate_bfi.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_opt_generate_bfi.c"
+    },
+    {
+      "object": "nir_opt_group_loads.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_opt_group_loads.c"
+    },
+    {
+      "object": "nir_opt_idiv_const.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_opt_idiv_const.c"
+    },
+    {
+      "object": "nir_opt_if.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_opt_if.c"
+    },
+    {
+      "object": "nir_opt_intrinsics.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_opt_intrinsics.c"
+    },
+    {
+      "object": "nir_opt_large_constants.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_opt_large_constants.c"
+    },
+    {
+      "object": "nir_opt_licm.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_opt_licm.c"
+    },
+    {
+      "object": "nir_opt_load_skip_helpers.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_opt_load_skip_helpers.c"
+    },
+    {
+      "object": "nir_opt_load_store_vectorize.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_opt_load_store_vectorize.c"
+    },
+    {
+      "object": "nir_opt_loop.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_opt_loop.c"
+    },
+    {
+      "object": "nir_opt_loop_unroll.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_opt_loop_unroll.c"
+    },
+    {
+      "object": "nir_opt_memcpy.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_opt_memcpy.c"
+    },
+    {
+      "object": "nir_opt_move.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_opt_move.c"
+    },
+    {
+      "object": "nir_opt_move_discards_to_top.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_opt_move_discards_to_top.c"
+    },
+    {
+      "object": "nir_opt_move_to_top.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_opt_move_to_top.c"
+    },
+    {
+      "object": "nir_opt_mqsad.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_opt_mqsad.c"
+    },
+    {
+      "object": "nir_opt_non_uniform_access.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_opt_non_uniform_access.c"
+    },
+    {
+      "object": "nir_opt_offsets.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_opt_offsets.c"
+    },
+    {
+      "object": "nir_opt_peephole_select.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_opt_peephole_select.c"
+    },
+    {
+      "object": "nir_opt_phi_precision.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_opt_phi_precision.c"
+    },
+    {
+      "object": "nir_opt_phi_to_bool.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_opt_phi_to_bool.c"
+    },
+    {
+      "object": "nir_opt_preamble.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_opt_preamble.c"
+    },
+    {
+      "object": "nir_opt_ray_queries.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_opt_ray_queries.c"
+    },
+    {
+      "object": "nir_opt_reassociate.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_opt_reassociate.c"
+    },
+    {
+      "object": "nir_opt_reassociate_bfi.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_opt_reassociate_bfi.c"
+    },
+    {
+      "object": "nir_opt_rematerialize_compares.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_opt_rematerialize_compares.c"
+    },
+    {
+      "object": "nir_opt_remove_phis.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_opt_remove_phis.c"
+    },
+    {
+      "object": "nir_opt_shrink_stores.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_opt_shrink_stores.c"
+    },
+    {
+      "object": "nir_opt_shrink_vectors.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_opt_shrink_vectors.c"
+    },
+    {
+      "object": "nir_opt_sink.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_opt_sink.c"
+    },
+    {
+      "object": "nir_opt_undef.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_opt_undef.c"
+    },
+    {
+      "object": "nir_opt_uniform_atomics.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_opt_uniform_atomics.c"
+    },
+    {
+      "object": "nir_opt_uniform_subgroup.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_opt_uniform_subgroup.c"
+    },
+    {
+      "object": "nir_opt_varyings.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_opt_varyings.c"
+    },
+    {
+      "object": "nir_opt_vectorize.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_opt_vectorize.c"
+    },
+    {
+      "object": "nir_opt_vectorize_io.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_opt_vectorize_io.c"
+    },
+    {
+      "object": "nir_opt_vectorize_io_vars.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_opt_vectorize_io_vars.c"
+    },
+    {
+      "object": "nir_passthrough_gs.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_passthrough_gs.c"
+    },
+    {
+      "object": "nir_passthrough_tcs.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_passthrough_tcs.c"
+    },
+    {
+      "object": "nir_phi_builder.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_phi_builder.c"
+    },
+    {
+      "object": "nir_print.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_print.c"
+    },
+    {
+      "object": "nir_propagate_invariant.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_propagate_invariant.c"
+    },
+    {
+      "object": "nir_range_analysis.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_range_analysis.c"
+    },
+    {
+      "object": "nir_recompute_io_bases.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_recompute_io_bases.c"
+    },
+    {
+      "object": "nir_remove_dead_variables.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_remove_dead_variables.c"
+    },
+    {
+      "object": "nir_remove_tex_shadow.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_remove_tex_shadow.c"
+    },
+    {
+      "object": "nir_repair_ssa.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_repair_ssa.c"
+    },
+    {
+      "object": "nir_scale_fdiv.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_scale_fdiv.c"
+    },
+    {
+      "object": "nir_schedule.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_schedule.c"
+    },
+    {
+      "object": "nir_search.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_search.c"
+    },
+    {
+      "object": "nir_serialize.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_serialize.c"
+    },
+    {
+      "object": "nir_shader_bisect.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_shader_bisect.c"
+    },
+    {
+      "object": "nir_split_64bit_vec3_and_vec4.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_split_64bit_vec3_and_vec4.c"
+    },
+    {
+      "object": "nir_split_conversions.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_split_conversions.c"
+    },
+    {
+      "object": "nir_split_per_member_structs.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_split_per_member_structs.c"
+    },
+    {
+      "object": "nir_split_var_copies.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_split_var_copies.c"
+    },
+    {
+      "object": "nir_split_vars.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_split_vars.c"
+    },
+    {
+      "object": "nir_sweep.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_sweep.c"
+    },
+    {
+      "object": "nir_to_lcssa.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_to_lcssa.c"
+    },
+    {
+      "object": "nir_trivialize_registers.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_trivialize_registers.c"
+    },
+    {
+      "object": "nir_unlower_io_to_vars.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_unlower_io_to_vars.c"
+    },
+    {
+      "object": "nir_use_dominance.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_use_dominance.c"
+    },
+    {
+      "object": "nir_validate.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_validate.c"
+    },
+    {
+      "object": "nir_worklist.windows.x86_64.o",
+      "source": "mesa/src/compiler/nir/nir_worklist.c"
+    },
+    {
+      "object": "shader_enums.windows.x86_64.o",
+      "source": "mesa/src/compiler/shader_enums.c"
+    },
+    {
+      "object": "gl_spirv.windows.x86_64.o",
+      "source": "mesa/src/compiler/spirv/gl_spirv.c"
+    },
+    {
+      "object": "spirv_info.windows.x86_64.o",
+      "generated_source": "src/compiler/spirv/spirv_info.c",
+      "generator": "mesa/src/compiler/spirv/spirv_info_gen.py",
+      "command": "spirv_info_gen.py --json spirv.core.grammar.json --out-h $OUTDIR/spirv_info.h --out-c $OUTDIR/spirv_info.c",
+      "command_origin": "update_mesa.sh"
+    },
+    {
+      "object": "spirv_to_nir.windows.x86_64.o",
+      "source": "mesa/src/compiler/spirv/spirv_to_nir.c"
+    },
+    {
+      "object": "vtn_alu.windows.x86_64.o",
+      "source": "mesa/src/compiler/spirv/vtn_alu.c"
+    },
+    {
+      "object": "vtn_amd.windows.x86_64.o",
+      "source": "mesa/src/compiler/spirv/vtn_amd.c"
+    },
+    {
+      "object": "vtn_cfg.windows.x86_64.o",
+      "source": "mesa/src/compiler/spirv/vtn_cfg.c"
+    },
+    {
+      "object": "vtn_cmat.windows.x86_64.o",
+      "source": "mesa/src/compiler/spirv/vtn_cmat.c"
+    },
+    {
+      "object": "vtn_debug.windows.x86_64.o",
+      "source": "mesa/src/compiler/spirv/vtn_debug.c"
+    },
+    {
+      "object": "vtn_gather_types.windows.x86_64.o",
+      "generated_source": "src/compiler/spirv/vtn_gather_types.c",
+      "generator": "mesa/src/compiler/spirv/vtn_gather_types_c.py",
+      "command": "vtn_gather_types_c.py spirv.core.grammar.json $OUTDIR/vtn_gather_types.c",
+      "command_origin": "update_mesa.sh"
+    },
+    {
+      "object": "vtn_glsl450.windows.x86_64.o",
+      "source": "mesa/src/compiler/spirv/vtn_glsl450.c"
+    },
+    {
+      "object": "vtn_opencl.windows.x86_64.o",
+      "source": "mesa/src/compiler/spirv/vtn_opencl.c"
+    },
+    {
+      "object": "vtn_structured_cfg.windows.x86_64.o",
+      "source": "mesa/src/compiler/spirv/vtn_structured_cfg.c"
+    },
+    {
+      "object": "vtn_subgroup.windows.x86_64.o",
+      "source": "mesa/src/compiler/spirv/vtn_subgroup.c"
+    },
+    {
+      "object": "vtn_variables.windows.x86_64.o",
+      "source": "mesa/src/compiler/spirv/vtn_variables.c"
+    },
+    {
+      "object": "dxil_buffer.windows.x86_64.o",
+      "source": "mesa/src/microsoft/compiler/dxil_buffer.c"
+    },
+    {
+      "object": "dxil_container.windows.x86_64.o",
+      "source": "mesa/src/microsoft/compiler/dxil_container.c"
+    },
+    {
+      "object": "dxil_dump.windows.x86_64.o",
+      "source": "mesa/src/microsoft/compiler/dxil_dump.c"
+    },
+    {
+      "object": "dxil_enums.windows.x86_64.o",
+      "source": "mesa/src/microsoft/compiler/dxil_enums.c"
+    },
+    {
+      "object": "dxil_function.windows.x86_64.o",
+      "source": "mesa/src/microsoft/compiler/dxil_function.c"
+    },
+    {
+      "object": "dxil_module.windows.x86_64.o",
+      "source": "mesa/src/microsoft/compiler/dxil_module.c"
+    },
+    {
+      "object": "dxil_nir.windows.x86_64.o",
+      "source": "mesa/src/microsoft/compiler/dxil_nir.c"
+    },
+    {
+      "object": "dxil_nir_lower_int_cubemaps.windows.x86_64.o",
+      "source": "mesa/src/microsoft/compiler/dxil_nir_lower_int_cubemaps.c"
+    },
+    {
+      "object": "dxil_nir_lower_int_samplers.windows.x86_64.o",
+      "source": "mesa/src/microsoft/compiler/dxil_nir_lower_int_samplers.c"
+    },
+    {
+      "object": "dxil_nir_lower_vs_vertex_conversion.windows.x86_64.o",
+      "source": "mesa/src/microsoft/compiler/dxil_nir_lower_vs_vertex_conversion.c"
+    },
+    {
+      "object": "dxil_nir_tess.windows.x86_64.o",
+      "source": "mesa/src/microsoft/compiler/dxil_nir_tess.c"
+    },
+    {
+      "object": "dxil_signature.windows.x86_64.o",
+      "source": "mesa/src/microsoft/compiler/dxil_signature.c"
+    },
+    {
+      "object": "dxil_validator.windows.x86_64.o",
+      "source": "mesa/src/microsoft/compiler/dxil_validator.cpp"
+    },
+    {
+      "object": "nir_to_dxil.windows.x86_64.o",
+      "source": "mesa/src/microsoft/compiler/nir_to_dxil.c"
+    },
+    {
+      "object": "dxil_spirv_nir.windows.x86_64.o",
+      "source": "mesa/src/microsoft/spirv_to_dxil/dxil_spirv_nir.c"
+    },
+    {
+      "object": "dxil_spirv_nir_lower_bindless.windows.x86_64.o",
+      "source": "mesa/src/microsoft/spirv_to_dxil/dxil_spirv_nir_lower_bindless.c"
+    },
+    {
+      "object": "spirv_to_dxil.windows.x86_64.o",
+      "source": "mesa/src/microsoft/spirv_to_dxil/spirv_to_dxil.c"
+    },
+    {
+      "object": "bitscan.windows.x86_64.o",
+      "source": "mesa/src/util/bitscan.c"
+    },
+    {
+      "object": "blake3.windows.x86_64.o",
+      "source": "mesa/src/util/blake3/blake3.c"
+    },
+    {
+      "object": "blake3_dispatch.windows.x86_64.o",
+      "source": "mesa/src/util/blake3/blake3_dispatch.c"
+    },
+    {
+      "object": "blake3_portable.windows.x86_64.o",
+      "source": "mesa/src/util/blake3/blake3_portable.c"
+    },
+    {
+      "object": "blob.windows.x86_64.o",
+      "source": "mesa/src/util/blob.c"
+    },
+    {
+      "object": "double.windows.x86_64.o",
+      "source": "mesa/src/util/double.c"
+    },
+    {
+      "object": "float8.windows.x86_64.o",
+      "source": "mesa/src/util/float8.c"
+    },
+    {
+      "object": "u_format.windows.x86_64.o",
+      "source": "mesa/src/util/format/u_format.c"
+    },
+    {
+      "object": "u_format_bptc.windows.x86_64.o",
+      "source": "mesa/src/util/format/u_format_bptc.c"
+    },
+    {
+      "object": "u_format_etc.windows.x86_64.o",
+      "source": "mesa/src/util/format/u_format_etc.c"
+    },
+    {
+      "object": "u_format_fxt1.windows.x86_64.o",
+      "source": "mesa/src/util/format/u_format_fxt1.c"
+    },
+    {
+      "object": "u_format_latc.windows.x86_64.o",
+      "source": "mesa/src/util/format/u_format_latc.c"
+    },
+    {
+      "object": "u_format_other.windows.x86_64.o",
+      "source": "mesa/src/util/format/u_format_other.c"
+    },
+    {
+      "object": "u_format_rgtc.windows.x86_64.o",
+      "source": "mesa/src/util/format/u_format_rgtc.c"
+    },
+    {
+      "object": "u_format_s3tc.windows.x86_64.o",
+      "source": "mesa/src/util/format/u_format_s3tc.c"
+    },
+    {
+      "object": "u_format_tests.windows.x86_64.o",
+      "source": "mesa/src/util/format/u_format_tests.c"
+    },
+    {
+      "object": "u_format_unpack_neon.windows.x86_64.o",
+      "source": "mesa/src/util/format/u_format_unpack_neon.c"
+    },
+    {
+      "object": "u_format_yuv.windows.x86_64.o",
+      "source": "mesa/src/util/format/u_format_yuv.c"
+    },
+    {
+      "object": "u_format_zs.windows.x86_64.o",
+      "source": "mesa/src/util/format/u_format_zs.c"
+    },
+    {
+      "object": "half_float.windows.x86_64.o",
+      "source": "mesa/src/util/half_float.c"
+    },
+    {
+      "object": "hash_table.windows.x86_64.o",
+      "source": "mesa/src/util/hash_table.c"
+    },
+    {
+      "object": "log.windows.x86_64.o",
+      "source": "mesa/src/util/log.c"
+    },
+    {
+      "object": "memstream.windows.x86_64.o",
+      "source": "mesa/src/util/memstream.c"
+    },
+    {
+      "object": "mesa-blake3.windows.x86_64.o",
+      "source": "mesa/src/util/mesa-blake3.c"
+    },
+    {
+      "object": "mesa-sha1.windows.x86_64.o",
+      "source": "mesa/src/util/mesa-sha1.c"
+    },
+    {
+      "object": "os_misc.windows.x86_64.o",
+      "source": "mesa/src/util/os_misc.c"
+    },
+    {
+      "object": "ralloc.windows.x86_64.o",
+      "source": "mesa/src/util/ralloc.c"
+    },
+    {
+      "object": "range_minimum_query.windows.x86_64.o",
+      "source": "mesa/src/util/range_minimum_query.c"
+    },
+    {
+      "object": "rb_tree.windows.x86_64.o",
+      "source": "mesa/src/util/rb_tree.c"
+    },
+    {
+      "object": "rgtc.windows.x86_64.o",
+      "source": "mesa/src/util/rgtc.c"
+    },
+    {
+      "object": "set.windows.x86_64.o",
+      "source": "mesa/src/util/set.c"
+    },
+    {
+      "object": "sha1.windows.x86_64.o",
+      "source": "mesa/src/util/sha1/sha1.c"
+    },
+    {
+      "object": "simple_mtx.windows.x86_64.o",
+      "source": "mesa/src/util/simple_mtx.c"
+    },
+    {
+      "object": "softfloat.windows.x86_64.o",
+      "source": "mesa/src/util/softfloat.c"
+    },
+    {
+      "object": "string_buffer.windows.x86_64.o",
+      "source": "mesa/src/util/string_buffer.c"
+    },
+    {
+      "object": "strndup.windows.x86_64.o",
+      "source": "mesa/src/util/strndup.c"
+    },
+    {
+      "object": "u_call_once.windows.x86_64.o",
+      "source": "mesa/src/util/u_call_once.c"
+    },
+    {
+      "object": "u_cpu_detect.windows.x86_64.o",
+      "source": "mesa/src/util/u_cpu_detect.c"
+    },
+    {
+      "object": "u_debug.windows.x86_64.o",
+      "source": "mesa/src/util/u_debug.c"
+    },
+    {
+      "object": "u_dynarray.windows.x86_64.o",
+      "source": "mesa/src/util/u_dynarray.c"
+    },
+    {
+      "object": "u_printf.windows.x86_64.o",
+      "source": "mesa/src/util/u_printf.c"
+    },
+    {
+      "object": "u_qsort.windows.x86_64.o",
+      "source": "mesa/src/util/u_qsort.cpp"
+    },
+    {
+      "object": "u_thread.windows.x86_64.o",
+      "source": "mesa/src/util/u_thread.c"
+    },
+    {
+      "object": "u_vector.windows.x86_64.o",
+      "source": "mesa/src/util/u_vector.c"
+    },
+    {
+      "object": "u_worklist.windows.x86_64.o",
+      "source": "mesa/src/util/u_worklist.c"
+    },
+    {
+      "object": "nir_constant_expressions.windows.x86_64.o",
+      "generated_source": "src/compiler/nir/nir_constant_expressions.c",
+      "generator": "mesa/src/compiler/nir/nir_constant_expressions.py",
+      "command": "nir_constant_expressions.py > %s/nir_constant_expressions.c",
+      "command_origin": "SConstruct"
+    },
+    {
+      "object": "nir_intrinsics.windows.x86_64.o",
+      "generated_source": "src/compiler/nir/nir_intrinsics.c",
+      "generator": "mesa/src/compiler/nir/nir_intrinsics_c.py",
+      "command": "nir_intrinsics_c.py --out %s/nir_intrinsics.c",
+      "command_origin": "SConstruct"
+    },
+    {
+      "object": "nir_opcodes.windows.x86_64.o",
+      "generated_source": "src/compiler/nir/nir_opcodes.c",
+      "generator": "mesa/src/compiler/nir/nir_opcodes_c.py",
+      "command": "nir_opcodes_c.py > %s/nir_opcodes.c",
+      "command_origin": "SConstruct"
+    },
+    {
+      "object": "nir_opt_algebraic.windows.x86_64.o",
+      "generated_source": "src/compiler/nir/nir_opt_algebraic.c",
+      "generator": "mesa/src/compiler/nir/nir_opt_algebraic.py",
+      "command": "nir_opt_algebraic.py --out %s/nir_opt_algebraic.c",
+      "command_origin": "SConstruct"
+    },
+    {
+      "object": "dxil_nir_algebraic.windows.x86_64.o",
+      "generated_source": "src/microsoft/compiler/dxil_nir_algebraic.c",
+      "generator": "mesa/src/microsoft/compiler/dxil_nir_algebraic.py",
+      "command": "dxil_nir_algebraic.py -p ../../../src/compiler/nir > %s/dxil_nir_algebraic.c",
+      "command_origin": "SConstruct"
+    },
+    {
+      "object": "format_srgb.windows.x86_64.o",
+      "generated_source": "src/util/format_srgb.c",
+      "generator": "mesa/src/util/format_srgb.py",
+      "command": "format_srgb.py > %s/format_srgb.c",
+      "command_origin": "SConstruct"
+    },
+    {
+      "object": "u_format_table.windows.x86_64.o",
+      "generated_source": "src/util/format/u_format_table.c",
+      "generator": "mesa/src/util/format/u_format_table.py",
+      "command": "u_format_table.py u_format.yaml > %s/u_format_table.c",
+      "command_origin": "SConstruct"
+    },
+    {
+      "object": "builtin_types.windows.x86_64.o",
+      "generated_source": "src/compiler/builtin_types.c",
+      "generator": "mesa/src/compiler/builtin_types_c.py",
+      "command": "builtin_types_c.py %s/builtin_types.c",
+      "command_origin": "SConstruct"
+    }
+  ],
+  "object_mapping_scope": "All 309 static archive members matched by unique source basename or literal upstream generator metadata; not a full rebuild or final-link contribution proof",
+  "blake3_license_sources": [
+    {
+      "file": "LICENSE_A2",
+      "url": "https://raw.githubusercontent.com/BLAKE3-team/BLAKE3/1.8.2/LICENSE_A2",
+      "sha256": "00fcc7a934ddbc9ece2a7cc063ac788e284b703b1d705ccbba72d462aa97921e"
+    },
+    {
+      "file": "LICENSE_A2LLVM",
+      "url": "https://raw.githubusercontent.com/BLAKE3-team/BLAKE3/1.8.2/LICENSE_A2LLVM",
+      "sha256": "a5695f57ea0c221e0e8b7d784ff774c35e88c3d3270353646a925880bb3492cc"
+    },
+    {
+      "file": "LICENSE_CC0",
+      "url": "https://raw.githubusercontent.com/BLAKE3-team/BLAKE3/1.8.2/LICENSE_CC0",
+      "sha256": "a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499"
+    },
+    {
+      "file": "README.md",
+      "url": "https://raw.githubusercontent.com/BLAKE3-team/BLAKE3/1.8.2/README.md",
+      "sha256": "5062d006aa9b587c0ff1d0fe1582476d8deb0ba1e2194c673720ed83ad29b274"
+    }
+  ],
+  "patch_sha256": "7a2df1bf99947ee490866e01353346e3713ffba2cf64d0e47140745591b336f5",
+  "sdk_matching_headers": 397,
+  "sdk_generated_headers": [
+    "bin/git_sha1.h",
+    "generated/src/compiler/builtin_types.h",
+    "generated/src/compiler/ir_expression_operation.h",
+    "generated/src/compiler/nir/nir_builder_opcodes.h",
+    "generated/src/compiler/nir/nir_intrinsics.h",
+    "generated/src/compiler/nir/nir_intrinsics_indices.h",
+    "generated/src/compiler/nir/nir_opcodes.h",
+    "generated/src/compiler/spirv/vtn_generator_ids.h",
+    "generated/src/util/format/u_format_gen.h",
+    "generated/src/util/format/u_format_pack.h",
+    "src/compiler/spirv/spirv_info.h"
+  ],
+  "notice_sha256": "9ed27a3de278994520bfba5a5bb216bbf5a51af791542212b8cc28903702abfc",
+  "files": [
+    {
+      "path": "mesa/VERSION",
+      "sha256": "cce61a5c7233a3e05e40c16a9a9b59b2f5c91d98f3a4cf3aa7a83a961e68dc54",
+      "notice_blocks": 0
+    },
+    {
+      "path": "mesa/bin/git_sha1_gen.py",
+      "sha256": "472666d4a41de23d698b54bd8218ff100cd5915719cb76c8271befd6fad1da87",
+      "notice_blocks": 0
+    },
+    {
+      "path": "mesa/include/GL/gl.h",
+      "sha256": "f09313b53505928802f07d1b7fa9d40e7abe7728db389ec8fab348778073e4f1",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/include/GL/glcorearb.h",
+      "sha256": "087622fc4b933fc0e5e4f7aa6071111720acd085de039159de0f2d06b91d7486",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/include/GL/glext.h",
+      "sha256": "e7d514287e81e5403c14b02c2bab9d870589353642a8748da4213b9a55dbf56f",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/include/GL/glx.h",
+      "sha256": "253068af8ea6c3a8f1043d174457d003a48ecf40bed6663f4d21eb0e0d566de0",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/include/GL/glxext.h",
+      "sha256": "3ded5604e6d7643632a6f50133e15d52603d1cd95399a7781d0a49d153ade8e9",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/include/GL/mesa_glinterop.h",
+      "sha256": "734db9ffd4089a48970028c920e839fd065306f5b9f8164f1d2c960902ecb026",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/include/GL/wglext.h",
+      "sha256": "b8f828a41bf545195268aedd6677cc621a5fd87054762eb535b4304de84c2bf2",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/include/GLES/egl.h",
+      "sha256": "6f27d0fbd2190b179cad9df81cea0eb9524281543fdfb86134c06175009db092",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/include/GLES/gl.h",
+      "sha256": "6b576206efbee73c0ba9716f8bbeb23496de17e735d0aa9e5eb00d73976db185",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/include/GLES/glext.h",
+      "sha256": "f9d9dc4d8006925c5a0dd37a7f91a0fb87d066ba5b057384f6dea8ffeac79dbe",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/include/GLES/glplatform.h",
+      "sha256": "c6bcc0caaf56609c494efb327e8e9e2845630f6b58641ddde71eacd2c2790d21",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/include/GLES2/gl2.h",
+      "sha256": "80f2c16d6543bc5ed3f9431c21fd4825d29af1dd82beab2edf31e377e6e70995",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/include/GLES2/gl2ext.h",
+      "sha256": "4530230062731e45cd7ea0c931eec6f846434e0295a618b8761f09c972d3c669",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/include/GLES2/gl2platform.h",
+      "sha256": "f5da0747540a50be5f44aad264aae45bdf157a192c40f17487dd9a2f99c71b6c",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/include/GLES3/gl3.h",
+      "sha256": "c61394d5166fc7f92db132d4cda66517d3e5e8c14b88267f0529ef298c2333d1",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/include/GLES3/gl31.h",
+      "sha256": "612fc3a3c483baa3b04dfa6be3cb44217ad5ebb92c3af05531dcac2c159b177a",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/include/GLES3/gl32.h",
+      "sha256": "e580e7db6bfc6b86860ae6b02fa27eb9acfe6726bab71f9c268568cdbf80baea",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/include/GLES3/gl3ext.h",
+      "sha256": "5730da902cec04b86f93152a219b379eabbf4eac97387f271fb8141fdfe4c5c5",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/include/GLES3/gl3platform.h",
+      "sha256": "a9e060dae5a2b11c5a889b679692b7089a10a7e03ebfbb6cf28217f6e322fb08",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/include/KHR/khrplatform.h",
+      "sha256": "7b1e01aaa7ad8f6fc34b5c7bdf79ebf5189bb09e2c4d2e79fc5d350623d11e83",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/include/c99_alloca.h",
+      "sha256": "96ffde34c6cabd17e41df0ea8b79b034ce8f406a60ef58fe8f068af406d8b194",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/include/c99_compat.h",
+      "sha256": "92445314d5fb3eff3a12eaf4cc864f9b459862a99594403b36ea79dfe149d267",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/include/kopper_interface.h",
+      "sha256": "3cfa795139ed06414f2f451dcea436156cbbbfc5c9a6331c7c6679262590664d",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/include/no_extern_c.h",
+      "sha256": "60883a8d2b2978b861ef686c5a9afb41cf91ffec7c56baca89c626e7fea2d385",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/include/renderdoc_app.h",
+      "sha256": "e5bd7ac1d07870d703e57c4a4e31b2e6bf980aa201fffa4a4f10b41ae1c23b72",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/c11/impl/threads_win32.c",
+      "sha256": "84617965b5639e982d240c2e344bdafecb216f23aaccd957f046c00287d98594",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/c11/impl/threads_win32.h",
+      "sha256": "cdb500d3edff56f8fc7c795188b07aee577442c83e6761454bdaffecd862809c",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/c11/impl/time.c",
+      "sha256": "b357df16c4214767b79405c9874294bb5fff7834d5d74d08993b05025435ae79",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/c11/threads.h",
+      "sha256": "c8ef5862985f8dd6bc11b0c7ff3ee7f54389b40c078dd7be5e70f6e51d4e6486",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/c11/time.h",
+      "sha256": "2206f6ba6f339b9574f20c26ad21473f0094cbef4df6ef20c3824c47422039bb",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/builtin_types.py",
+      "sha256": "27da11ba307da3c0c9d235815e5dafe9c17be7e99c19f6be76ca5c1b05863369",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/builtin_types_c.py",
+      "sha256": "203d991fa9893d18e156425f334faf1dc6ccd92c364224244c260fe77d90f36c",
+      "notice_blocks": 2
+    },
+    {
+      "path": "mesa/src/compiler/builtin_types_h.py",
+      "sha256": "13d2d66c5b9c7a7f3299c4ab4c0047ee3cb639190f440e8e68b320d4ccb2714a",
+      "notice_blocks": 2
+    },
+    {
+      "path": "mesa/src/compiler/glsl/ast.h",
+      "sha256": "f47991a806b0d38246eda896af82701daa0c5013e70ae5b7a3ca08c7df47922c",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/glsl/builtin_functions.h",
+      "sha256": "f31d2568a0f8714ad07a19f05b3fd3ff5a59e6cacc8a4c784042de96c3d220b7",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/glsl/gl_nir.h",
+      "sha256": "507d2e7a26b1f6f2ae3a9b7daadebb5e85833f62a208e10f7b7dcf0ddcb0bc42",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/glsl/gl_nir_link_varyings.h",
+      "sha256": "cdee9df88a6eb2817f4fd5ca3b85022bfd01fd7d967f75c46fe0af04908e52f8",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/glsl/gl_nir_linker.h",
+      "sha256": "225ae49101f073ea5932273ed68204fac995e15087d2eb928dcf3c7f21e4ae3a",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/glsl/glsl_parser_extras.h",
+      "sha256": "200c0c897a3736e23216eb69d3009a0a7cf94bdcdd95b2c049ebff666969c799",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/glsl/glsl_symbol_table.h",
+      "sha256": "5d2ed5c125826e084079b2534f060434b1235d0a0b78c131acdc52d4a51ee34c",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/glsl/glsl_to_nir.h",
+      "sha256": "02a817fd1519ca921136431288a1251e9ca6e9cdb8c0439181d83af7ef63631e",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/glsl/ir.h",
+      "sha256": "2156a4ac11bc4e82018f4531896e60e233b7386edd9e1e10e0fa7a7b5213bf61",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/glsl/ir_basic_block.h",
+      "sha256": "490455e950832e3ad1626e808aa21f873e8caa2da0da5d7fe66046b677e4dcad",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/glsl/ir_builder.h",
+      "sha256": "7a7fec5f317b025f8862f2b75d50ced4f567441a8c73758b87ad75230ed6829c",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/glsl/ir_expression_flattening.h",
+      "sha256": "c4819ca0a72c9194b01d7d3c0ff3609044b2c67a71dbc913d4d70eccf75ba2cb",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/glsl/ir_expression_operation.py",
+      "sha256": "ec30988884eb99d4c37dfeb37995eef974b237af023bf94460fcaa4a19c4f37a",
+      "notice_blocks": 2
+    },
+    {
+      "path": "mesa/src/compiler/glsl/ir_hierarchical_visitor.h",
+      "sha256": "20089091945db8bf95c94c834216aff6c1625dfcae836f315500db0544e803f5",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/glsl/ir_list.h",
+      "sha256": "301f348321c70d7fb8ce42e62e7e29527418cda2e9b87ea8a4c502e876ada714",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/glsl/ir_optimization.h",
+      "sha256": "b38fc895344338848f91d9ac99eb4e266fef14700e84bf9fd4ac08f7d86648a3",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/glsl/ir_print_visitor.h",
+      "sha256": "d8a8702da038ac87bb3ad217813cb4bd8d2aaafb2d3bce22f25146d0fe86659a",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/glsl/ir_rvalue_visitor.h",
+      "sha256": "fd8c561b71085d3211fff85ed514fecb299d8ce19a04bc063419a55b6d840525",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/glsl/ir_variable_refcount.h",
+      "sha256": "dda342c4c1c5e4f50c55ee84d004088bcc209fb834e1536ff5c2720f722330cf",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/glsl/ir_visitor.h",
+      "sha256": "ce5a63bb0a0931c8102a36e6c7bc0234f5fc3656c7ca78be22bbbc247bc467a1",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/glsl/linker_util.h",
+      "sha256": "ab983e41ed76b7519f18c140d0a933509d438b8c5403134ac2fb9b6f14ff00eb",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/glsl/serialize.h",
+      "sha256": "57425732eba1233d928e5f07f88b623ce65af46b3bb034bf147f0a4b7f94f9a1",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/glsl/shader_cache.h",
+      "sha256": "9217164d8d7f54aca0fe5922c7187095a6ae0cb703b196b79805aeef07a7e697",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/glsl/standalone.h",
+      "sha256": "84296ed82d3e99a7595db1c0d55e0be41523267def68ca4f42e19812bd1bfdde",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/glsl/standalone_scaffolding.h",
+      "sha256": "9d21a8e8dedf8bc746fdc2569ee0ef6f2b6d533531f6db55586cb6f1654ffd49",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/glsl/string_to_uint_map.h",
+      "sha256": "673b6f02046530d906110af629bcfc3cd244b89d6d1b4c30be63c4ac6e408c74",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/glsl_types.c",
+      "sha256": "b5a6565ea431dc13caa1591fdafdb3752957f0bbe22a65786e1b79551d4cddb0",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/glsl_types.h",
+      "sha256": "e14dce1243acc1b7d2b4ef87a71b2feba0af89dd3879df4d68c9d441e441ed0e",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/list.h",
+      "sha256": "9fd48602bc7237c32d2ecb2af1f9ea7138d3ec0fb2e6b6b280596536cc22a352",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir.c",
+      "sha256": "36af2f192cd6e1bfbd5c34ac11e082ec479fec55abd8c800dcd7f4145e0f0e6f",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir.h",
+      "sha256": "d55e5995967cda8595c760a0448ffa7600d3ec79b4bc8866e29fbd4d024f819b",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_algebraic.py",
+      "sha256": "16adf24a009c66880631381376f20e9c54e285c34bf1ba3116e51452c0c28882",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_builder.c",
+      "sha256": "5c888d30ae1e0853574742cc4009dd4da58ab0549ed856159608ae7b0fda4142",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_builder.h",
+      "sha256": "4c365878b6bec347f5a323eed4cac885e487e45a160800ff7ab519a459e0ed88",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_builder_opcodes_h.py",
+      "sha256": "b7371d4eb9647cc7c8105229d5761f911315f9b728579b9c1dcead9689c8f8de",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_builtin_builder.c",
+      "sha256": "872a25c9ca7273e862c5446dd2b592fbb4b6aad6569048f5827b0846413dfb19",
+      "notice_blocks": 2
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_builtin_builder.h",
+      "sha256": "15d741c8f2a30ad13ef968fd8dce70a45b7fefaf1fb2dc4c60c828acfcb0c223",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_clone.c",
+      "sha256": "e640477e2390f94769e89f27e903c4f918913260087dc18d50b73ced844fb02d",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_constant_expressions.h",
+      "sha256": "ae02a4e7636a306254dfd2e830cde8382df4ff62ee1c523c97f388ceb9ed97d9",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_constant_expressions.py",
+      "sha256": "830e94329f45219a8b29428235dcf7e3e72edd0179143cbb5177ef1025915de0",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_control_flow.c",
+      "sha256": "2188ec955cb136ec416315381ed099d3f953be7f007bab0aeef5da268ca43965",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_control_flow.h",
+      "sha256": "580200e53d156685b8a591a2d59b2a2ecdf49a19c188c21b7b301ade9ff1de30",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_control_flow_private.h",
+      "sha256": "fcce95a195a2d5ac1cf27741fa5ee57c5094ef0656153fbff7c2933cc1f0ed84",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_conversion_builder.h",
+      "sha256": "5af65da4221ae9985988c4cd28ec1da609b28ef5eaf3708985b2429ad47c8bbf",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_defines.h",
+      "sha256": "dd97eaa216e2f78cfef8fb18f8177a71a98d4e72a328621a2d44ea64a1354730",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_deref.c",
+      "sha256": "f0b12bfa05e961c56098963f9795e998b6fbaac9864aecdf475d1445772e2225",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_deref.h",
+      "sha256": "f81adaf9d7e3de4a4b6b4112a9669f08b63f25e3f6f13ab554c8cd414231e8b1",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_divergence_analysis.c",
+      "sha256": "d63fba0b071b3021dc0926e8eedd954c5241cd7b16e54088006d31913b41c854",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_dominance.c",
+      "sha256": "26322b54fc4751ede7040187293e34312edf04db4295380141e45db6e74e5773",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_dominance_lca.c",
+      "sha256": "f7d0669b4b08e27003f077b21c2d3edb69f3d176b95d4584d4350052db7798e1",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_fixup_is_exported.c",
+      "sha256": "601b8f05976b5ae0b679bae54e5d0806ab27533f175962d7b8106c95fa0d1064",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_format_convert.c",
+      "sha256": "cef523bea3c27d8204a08f639e30db49f8e46a49e781104b29ad94a0196e389e",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_format_convert.h",
+      "sha256": "0c48db0555ce882cebe0b386a68c7c688df0b1463cec4a53159a22e49a26c2a0",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_from_ssa.c",
+      "sha256": "d0cb5c63416261f57342e9f1bd4597ac7b01f8e85cd05fab00d1ec996f70aec3",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_functions.c",
+      "sha256": "649379fca27d574d1ec1ad52aaf5335d9ecf86a5f88b7b44f8f092bba9c83abf",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_gather_info.c",
+      "sha256": "8b768435e34c555dcd590e473091fe4c13e992057199b7a2eba74842e15c79e0",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_gather_output_deps.c",
+      "sha256": "f2de999fa15e47bb4c70477eca862d92a41dd6215c3dc471951614939a9e405a",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_gather_tcs_info.c",
+      "sha256": "8bf8a4f8747594c57d04745c750d73ecb950f315f2a370595bfebf7d07f35c29",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_gather_types.c",
+      "sha256": "7b02b644e2a4ffa6d304d81fceb07a0e0673cb11abb8b4d53d0a3b7ca9171e7e",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_gather_xfb_info.c",
+      "sha256": "1d160ec97aa883eff89629b079e0ede1660673e84bca6de3c912a9a73596ae64",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_gs_count_vertices.c",
+      "sha256": "d0959850bafc2e2fe127570317d060e7de2c4ffa986644e6ab148e559bb0ef23",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_inline_helpers.h",
+      "sha256": "c2caf5337b034eb161096be409f8bb70c27557f29c68a0561bc57a08fdb58b7e",
+      "notice_blocks": 0
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_inline_sysval.c",
+      "sha256": "f497ac97d366be10e06f4da8691822cf0663b1d3919cb1d061ee562a267934ae",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_inline_uniforms.c",
+      "sha256": "8f97db52f6ee26cfe9b06051c084456f9fec88ba94cdb1c00ea4b230116021fc",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_instr_set.c",
+      "sha256": "059dac999a27baf009390c5c4104021347e955ea3f83897c18fc4a93e2b92783",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_instr_set.h",
+      "sha256": "0ffe2f5a283ca93cf3f42ce516bd91cbf07331e8ce02f6b524c53d48580ab39d",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_intrinsics.py",
+      "sha256": "ba364b0a217aa8ef08dbafc62a5f2340118b44078ab6c03f5d7b4a801df9bded",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_intrinsics_c.py",
+      "sha256": "391168fc76908894b90c708e1c08333eec548860dcfa1cf2c7ea4823e3e8bf7e",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_intrinsics_h.py",
+      "sha256": "dac1cce28f9d706e5d9019778c4c493b57e0730f93491d2d0740c372169bb4a3",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_intrinsics_indices_h.py",
+      "sha256": "90df7ad32d21be4517f58457c8a6e478846dbc7bba05789c7ba4e0b13544ef04",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_io_add_const_offset_to_base.c",
+      "sha256": "3c7ff0ac75e940c6254abe07bb184bb46d7e413a21c205ea92876ab8a31aaf43",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_io_add_xfb_info.c",
+      "sha256": "e4c9b64ab16fcc3da3f04b35f423785dcddf9120a3491d6c0791d8e33dee2f8b",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_legacy.c",
+      "sha256": "8a4bc9ef8b9cad9db29ebfaf5b38b4df68c8839dba28b7b1136a11b024ae7962",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_legacy.h",
+      "sha256": "454ae4caa9263c00148d98b4d060458fc33b9c7545ade5c05f520728e0d6f6f9",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_linking_helpers.c",
+      "sha256": "92ea1f63375484aeb99da7419442b9f5a3dfbcc6f9d3fbb177741a17f1c6c206",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_liveness.c",
+      "sha256": "d4baddbac0462ce398394f8bdeba09b8adc5a6be649a523e1300630d0406ef5e",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_loop_analyze.c",
+      "sha256": "81ac21a8ca843a91b5bb2d00d3e46bc879defaa7c98c25b94e31dbe132b644e1",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_loop_analyze.h",
+      "sha256": "7d338abd4fa57d6c885784430cdfc5c2fff1b2f06ac7ff29efacee67e73d3b0f",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_alpha.c",
+      "sha256": "6db2f6bfb836c794333a8c30d255890a804f4a322a476d193d61588470f46b78",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_alu.c",
+      "sha256": "31995ba472cf1e024e17f0ae020c62d7dfeab208c473cc99ce062b3eff721c68",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_alu_width.c",
+      "sha256": "51cffb011122a96b0c9889466dfb18d0194442f722b9b8bbde502f6149435136",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_amul.c",
+      "sha256": "2fbed10b3f8a588d76ac0ddd92cd47f0580f6f6be5fefd969d01f03087033dd1",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_array_deref_of_vec.c",
+      "sha256": "2ab63e40ca894d75891a74c7a2da044f80216ee06081df9d5f0dc3b6c95c0541",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_atomics.c",
+      "sha256": "a033e55623d257d8f50a1dda323161ffd808093c509ff876575c9fdb59ec35a1",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_atomics_to_ssbo.c",
+      "sha256": "990baf1a1e7d4224af29fbc5b26842cadfa2b53bf63b9614e44f7c7eee7948aa",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_bit_size.c",
+      "sha256": "18bbb43940f85adc7a17b1ee1a136b00606bd3b7d38900c872914e2528543400",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_bitmap.c",
+      "sha256": "845c9fee62d0cd364384e10345fd165ba47af69cb6a72e9e6b5695e2146b3605",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_blend.c",
+      "sha256": "de74db515214751f545fd881bcfe8e5d5f0ff33f2abd80b7fcbad94823cc62d8",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_blend.h",
+      "sha256": "017a03ef69a728eb2b76b63b75323ae56c403407bcb8e716df18781edd2d2fb4",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_bool_to_bitsize.c",
+      "sha256": "5a03446dd28bd41e545b2d3ab88dae2a193209391b2d666ff9180c2e479cbe59",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_bool_to_float.c",
+      "sha256": "6921503ad5cc21729283014ca3989519d487511b9d60c1a1910c2e2816a9c95c",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_bool_to_int32.c",
+      "sha256": "05d2645110a5fdfcfc2d45865efcab295e8bb65230d03a7eebdfc9892e2911b5",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_calls_to_builtins.c",
+      "sha256": "cdc6adb65bff1c3e465fd9c31ee199fbe737246aec27776487be0ff6e5ccb085",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_cl_images.c",
+      "sha256": "1a3b16bec248faa927eb130a0e515a1772b6f1556fdfa4115e59f1062dcea7ff",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_clamp_color_outputs.c",
+      "sha256": "8df88be08e0b4740e13f7b70e60b81554b0b5b55e44469c7d2908decf4a9c125",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_clip.c",
+      "sha256": "1b1d34826456587232429760147732d4b15aa88cf3b430cf61d08d9b5d9b6ef7",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_clip_cull_distance_array_vars.c",
+      "sha256": "66f8a60708b433d4e4df1e929b45fcc7f40cd1126edf8adc92a2f787bae226c3",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_clip_disable.c",
+      "sha256": "e28128d558da3b08ca5f42962222d64cdeed4690a3b40621805321c1a6d7a4a5",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_clip_halfz.c",
+      "sha256": "5e6f71c3d7ef564d96775521c5e35cd52bc5546cc32656e46adfa3ee001d4cba",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_const_arrays_to_uniforms.c",
+      "sha256": "63091ad3c7b4aefaa98a99cff8960866a6db7373ebab82d7f9d75f7ade201e5f",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_continue_constructs.c",
+      "sha256": "0e49f78b88158d73dda14b1b3b562a373fbb11080b72cb044623a9509d86b123",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_convert_alu_types.c",
+      "sha256": "2e1ac4ebf68b35d49d44b4e5c7866c63ed7fb219ac2d995531830cb503520e99",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_cooperative_matrix.c",
+      "sha256": "960932293edf722d5cfc5bf627be5a242c84b7fe816a27b7cee22ba32767edf6",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_discard_if.c",
+      "sha256": "54967e982a04be4b4b9cb633e7f0221435142f1cf70e3f50329b6e58383c3065",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_double_ops.c",
+      "sha256": "358f7fbd7e2ead3942c34933ecd1f576d39543dc9b76034e99530e5dd2abe33d",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_explicit_io.c",
+      "sha256": "548fa349d2b95f68242fb684bb09038bd36fbb51e3f8d1c6fb0d304b64faf5b7",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_fb_read.c",
+      "sha256": "4cfe6c5b8dca3e7a1f491992e241037e51e0cd40b2603e9c6d626f008106bd04",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_flatshade.c",
+      "sha256": "e19b05fe8411769e3c06966b7a45aa1022d8b2625344e6234827b45c086129e7",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_flrp.c",
+      "sha256": "cdd9701fb4f62d02b6988decfc667cce0115b6b1d18652e5e1f91b4f04e34608",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_fp16_conv.c",
+      "sha256": "b1e90db1de2c6839bcd78e2aa65118409660d853ab17fe7de3808ecffc5cc7a4",
+      "notice_blocks": 2
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_frag_coord_to_pixel_coord.c",
+      "sha256": "86f2d757e8a54dc3d62aba172c8aecaf7e44a7f7aa5ac3eabf102635aa2546c7",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_fragcolor.c",
+      "sha256": "bb4c7377f054c26f4f09cc73808238d41f69ccbf6f5d2aa18fdf5703a12eb324",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_fragcoord_wtrans.c",
+      "sha256": "630efbeae392dc586ca8617dafb7a50ee9424d22c9d2ebf227f607fc448cc3c4",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_frexp.c",
+      "sha256": "7b69d750f5cd0573c8db88d207f6068a877baf768429cc126f0078b0f62eba44",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_global_vars_to_local.c",
+      "sha256": "57c42a3ef38ed704136bd5c0e0ec7217b64b5300ce3e49920cadf837c57675bb",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_goto_ifs.c",
+      "sha256": "2e4c3c1c048bc015b6639dbf102dcda54150f623bb479787ee49d209a3d027a7",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_gs_intrinsics.c",
+      "sha256": "d2c4be5710dd40164692065ef35bbb0035f8fcdc13d25741d27ad250d6286053",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_halt_to_return.c",
+      "sha256": "07b001d5e5fbd2ca182f23358330d837305c83fd8c1a102d6923c8d0e57097d8",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_helper_writes.c",
+      "sha256": "5de3dba872e30cc0ee96c98361c6ec0d8fccca7dca6b3450920f6ba3694a2c77",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_idiv.c",
+      "sha256": "5882ef003f429104ce25a3c6ddb8607b9330fe6d02b4be5197d90e90dc448a1c",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_image.c",
+      "sha256": "b08e6127f3bf3265a9fd22a8df9414cd162b2d73f8b199ddabc3be308ee95e0c",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_image_atomics_to_global.c",
+      "sha256": "c52b31235105e4be84dc9fd3b38a08023b8809deff56a56117f2a071b299e95d",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_indirect_derefs.c",
+      "sha256": "123d2cf11442affebb536af6fdc0d734f071eb87a677cfa0109df03a2520cb40",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_input_attachments.c",
+      "sha256": "b8018f347c9ff4995c08be2925bfbb996c001da7a0b4a7ebc6cbe4ba18805ab0",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_int64.c",
+      "sha256": "a38222d7cd2fbc9fdd7b1a19f4d49ff88663c22755f7b33ccec812033c03173b",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_int_to_float.c",
+      "sha256": "1ca9cc42c381c6241007a18a42fee76129d3e5ed0b7d2dc82d886a44162473e4",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_interpolation.c",
+      "sha256": "f700858695c9fb133a252c36ba77f81208943ebb3af07bef7ef19c94ef297543",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_io.c",
+      "sha256": "a89f3476ef8d980cfd3ce195ff52b57a7c472643c4d9e7769d45cb838421a1cf",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_io_array_vars_to_elements.c",
+      "sha256": "00a84fd75b2c82b06cf785282abc4480d2b1888a455b1bdde2f325a0d3dce0d4",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_io_indirect_loads.c",
+      "sha256": "bcee0bc9c263d7f9198f5da857ec6373eaf2aa76bd8b0423067ee5a19b68761d",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_io_to_scalar.c",
+      "sha256": "6a13b57e38c2a0a130ce052ec3d52f2aa8d7f185d0460b24b0e36e36ff448c6a",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_io_vars_to_scalar.c",
+      "sha256": "f00eef3dd38275ea17ff662acc7fe711155ddbee2edf86399ce9ec00b1673620",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_io_vars_to_temporaries.c",
+      "sha256": "4a5f217e273d884ad0a74d1a890e648d24462bc88d001180f081514c1b191f50",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_is_helper_invocation.c",
+      "sha256": "7d3150e35dc7c1943dd4750aa5a090ccc375d11af77b4101213a556026f930d0",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_load_const_to_scalar.c",
+      "sha256": "c23dd2c644a221f235b686063705a9850683458c5757f5c8add90fcfe219631c",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_locals_to_regs.c",
+      "sha256": "2849be0ae0203ea571b639036126e777fd4bfd7f05967b87a56c95a727cc43a7",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_mediump.c",
+      "sha256": "0d9ebffc457161368273db31be153494188c2ed985804ce750a8adede7a7ae2c",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_mem_access_bit_sizes.c",
+      "sha256": "2d23a6d03246ecb9dcf9fee7fbedc575d6ae8a08af8fe0263c6f2b7fcfe0bc44",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_memcpy.c",
+      "sha256": "5499a716bf8b9173bca340de257690777d746bec8802432df0427157a170a2fc",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_memory_model.c",
+      "sha256": "f7a2eadcaf7eed1291fbf00d434d1d3ecc1931dbc6f0fc8d734e85e9d9387e09",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_multiview.c",
+      "sha256": "12a1fa172757ef89e07fd2bacc8735c85bb1784f25d12de642657967396e4868",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_non_uniform_access.c",
+      "sha256": "db4013e97b51d2e2225a9910d400b35286de5611395a73bc528e4fadc899cccb",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_packing.c",
+      "sha256": "d00cba28403a900de6437c0d5b4d6d83ab54e5e3fa3cae6491d4621f1d5ba9c1",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_passthrough_edgeflags.c",
+      "sha256": "3e55b704a655bec8cf8da17b592dfc5d49c0cc2f3d13715d6b6c573dcae895b7",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_patch_vertices.c",
+      "sha256": "7110ebc9a09d66b48dc8d8830ec416a9734d1a9635626dd5f03ccf6b4f14a470",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_phis_to_scalar.c",
+      "sha256": "f0ff1fd6ba6dc3667f78b3a3df90c69d460ffd908b85c88e7612b82e58b9aa7d",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_pntc_ytransform.c",
+      "sha256": "9b75c4964b66cdc5e39b3ee5d5459148f138602a6b044eda88f288da32d21b89",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_point_size.c",
+      "sha256": "930925b0e737069a2b8495ec375a2043b33d651034f96290a181d5100fc71fb3",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_point_smooth.c",
+      "sha256": "ce56763f5239db6ebc85dfc8aeb82d9c989c6fb817a7007236f6d43a3d175659",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_poly_line_smooth.c",
+      "sha256": "487490e4ed4abb4f48cfd5e4eb2ab69958e2efe9efc07a3e0367ea5f5ad88dfa",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_printf.c",
+      "sha256": "2b36813e814968f87126b3426dc80d845123aeacc757da5935d14f56ac7143da",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_readonly_images_to_tex.c",
+      "sha256": "9ce6fb524c5aa876375053d0d75682a1178f798f87fa26546fdd7071339b5345",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_reg_intrinsics_to_ssa.c",
+      "sha256": "8760bc0472f77af3a48dd6845f9791bcee0a24ef152de95186004b23b179af14",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_returns.c",
+      "sha256": "afa0c83824a678ce19c5acd78ec34d8879e819298ccec2e6d67efb23d4d8eb50",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_robust_access.c",
+      "sha256": "e4f3e23c5388871d634a2db69c9b92235d79147647217ceecbdb35968d4382af",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_sample_shading.c",
+      "sha256": "6c09904cab629f850bd54c8147d0c1d6d1b692cedc1dd499e660c7b48e86fdbf",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_samplers.c",
+      "sha256": "80f0e6056bb10557d567b331f5bb3ffd1690b0d72589e2975c0455c364ce03b2",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_scratch.c",
+      "sha256": "c48d2687a5f700783fb11ef5467266e483062fa2ee763c3d34355460d3e3a3ac",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_scratch_to_var.c",
+      "sha256": "912949a5cc831cc5627e52e3d7d76cc204130ceaf38fbb632f40bcf8d264f492",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_shader_calls.c",
+      "sha256": "cdf1abbaa586a61658915f7eaf5dccd0a2cb64afd135dcf7a8f2230b9082213a",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_single_sampled.c",
+      "sha256": "f0e79b68b8efcbc5c4bcc15a6b84907af64812695907149047439f0752a7e68b",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_ssbo.c",
+      "sha256": "4a90537516f4439a4ad568ce3e0f4bf2eafda9d73576309aa11a6380c724a72c",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_subgroups.c",
+      "sha256": "e893fb2a31cbdc0b44109a7bf4824566f20cd2d9bb3751169862616103b131f5",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_system_values.c",
+      "sha256": "d7c1780e84a4cf1b8ada7aee10b3f5670dacf80060ffbc0dc85b725e659b3b5f",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_sysvals_to_varyings.c",
+      "sha256": "820d50eaedc8c654ba51753c8148290b231991317df9b82c488ab68b97dddd66",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_task_shader.c",
+      "sha256": "58077a51791a9f1c467147dc85ccd8c6aa7bd325ceca39fc2217ea6a86b8f01f",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_terminate_to_demote.c",
+      "sha256": "41dd2d9f567245a50a91f613c7e12896af0ebb48fdb1373581f0c1631c64d8a0",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_tess_coord_z.c",
+      "sha256": "e27c305a692ed00012aad24ec6916762924961e2e364eeec563e4d8476b4c729",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_tex.c",
+      "sha256": "3b5e43b876398ac9ead033d02d99ac6bf512a20df848f700993c2c32393ee2ce",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_tex_shadow.c",
+      "sha256": "2f9d8a9c108126f9708b1aa4a541cb1494571e9fa26aa28df2c874501ff3beea",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_texcoord_replace.c",
+      "sha256": "423c8997bdc2be6349b25609f9690e88cf2783dc6d1e2897f69f348dae4c6a57",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_texcoord_replace_late.c",
+      "sha256": "9595eb50286427c42a71e09a7f4c8d1cc84cff152abcb0a8af7dd7d8b290a28d",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_two_sided_color.c",
+      "sha256": "3f103d659096190d11674931768dc9c06689c15e4dd052310be9fd0955522d27",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_ubo_vec4.c",
+      "sha256": "160b81683cf2fcd20e8ec7fbb761d16a8979426b28c84c53d878ae2d84abab5d",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_undef_to_zero.c",
+      "sha256": "d354f4570f38e8bae5518f14aaede1ab685490ae4086b677060112a51fb1f735",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_uniforms_to_ubo.c",
+      "sha256": "0ec181f28aaf832ff12418672619e589f022d13f57307d5737a918d311295c7b",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_var_copies.c",
+      "sha256": "1e03ce1f6cb6d1cc32c69d7c642e1e04c0d605cbba9a311065ecfb94a20b05f8",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_variable_initializers.c",
+      "sha256": "13fcd957f8d6fd030d57656a3794e73e66d03d767e74daaffeff331b2a0dc1a9",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_vars_to_ssa.c",
+      "sha256": "e798684ad553a8d2627bfc9a2627564e7c39b99351e5f66b28e3b7553ba6d3d1",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_vec3_to_vec4.c",
+      "sha256": "9c596c656387696d153fffffbeeea781f77162930a03220d44f441877423ab93",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_vec_to_regs.c",
+      "sha256": "3d1220a5fa665d80fd5be4ff5945df537ac430990cb7762f2729548680338709",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_view_index_to_device_index.c",
+      "sha256": "e531ae04de3e917af9eec64f2f98cd394cdaafe0ed3c85bfa8003c2442f415fd",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_viewport_transform.c",
+      "sha256": "322e1aff9513511a2ab91917800a712988b47cd3658c1f100d0755c213157935",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_wpos_center.c",
+      "sha256": "7dbe78d1e841346ee390435a066cdbafe52d733b68cfbd070c374c0d3e5d8c84",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_wpos_ytransform.c",
+      "sha256": "967d5be0a3431d17084dbc0b8f9e2d7c20dfa93f416fdcc75b506ed42fee9def",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_lower_wrmasks.c",
+      "sha256": "0e13ae313b8e527df286b30c589cf2e13e059916c9c12e80758b7a32e8ad9379",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_metadata.c",
+      "sha256": "d2fc5e88b4d95452d2fc635f1eb889a70acd37d1363edf8f232f6d25bd0693cb",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_mod_analysis.c",
+      "sha256": "8984c861556031a2a8f2c2f9c8088f80334315b94b202dd891b345144d2416b7",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_move_output_stores_to_end.c",
+      "sha256": "ac225b3a79b0b945e0220016863f48c2ccbed80e221f4c1cc702f88cf82005ef",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_move_vec_src_uses_to_dest.c",
+      "sha256": "ff1903da7dbb95f7f7ddfa676857b5da4fa44696734adb944a0758451a2baa35",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_normalize_cubemap_coords.c",
+      "sha256": "0daab71673aeb5c418899b1cbbf29b35e2087ff9ce75275590710ad29d4f1c4c",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_opcodes.py",
+      "sha256": "61c3a3a108c4dc1c947c4db48b1f7681eccd087a050f9996434a568bf561f061",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_opcodes_c.py",
+      "sha256": "acd8f2cbe118f1fb3f0a43aabdf2d06ca9ac0ea771bbe673c618b5c8e6f69388",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_opcodes_h.py",
+      "sha256": "a0ccc45ab6c58d7bf5bf7b06508efa924cffb3011ec60294de790633e87667b9",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_opt_access.c",
+      "sha256": "e07ae851a0efa62586c708fa4a6a1960fc24956c267c023f1dad5c6bcfe403fe",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_opt_algebraic.py",
+      "sha256": "022bccae226bf6ecae90ca98ea083d4036dde78ad6ef5dcd438ed80dedefe944",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_opt_barriers.c",
+      "sha256": "14ecb95135feb038e03e26491bea05642641fae2e2e854162262b7df338ff577",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_opt_call.c",
+      "sha256": "e2de2f47cc66ed6cd0718a34c59f5503ddaab8e3c1de96d7de35098c54e4c4c1",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_opt_clip_cull_const.c",
+      "sha256": "5926240403f21b1cb881795ffa85655478b449ae72225d96a1ed41e7f60a4266",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_opt_combine_stores.c",
+      "sha256": "96f2678726f253f3b0d4f72667fa95880aaba4ae091ecb86223b47dc952093b9",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_opt_comparison_pre.c",
+      "sha256": "d63766449014a35c84bcb252a3e566e9812a3de6d703fdf8753ff46c25239249",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_opt_constant_folding.c",
+      "sha256": "b66c776cc78a85c86008fa24a1c3580c744ee7af9a8e8be5a3afa8cdc915019e",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_opt_copy_prop_vars.c",
+      "sha256": "04a9bc67009616d60fdf7d959c252d60587b31b5cdf7637cf794b5fefa9f6875",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_opt_copy_propagate.c",
+      "sha256": "3ce79923645cdcf554aa4e61355f85689c75f72145b474dadecf6bc01add1334",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_opt_cse.c",
+      "sha256": "b3038bd6f3b1d3a3a4e66b9a46c33f59bb8ec1fc7f04ece24ec84c1dfd6bbc3f",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_opt_dce.c",
+      "sha256": "4847654707d69827245799b70e8e7e6581835f92ab8c5abd0add0a21bd1b1919",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_opt_dead_cf.c",
+      "sha256": "c5d9e373ea26f2ed16e8ba15e9c53f8e31be5b20899663fffcc69336670cc588",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_opt_dead_write_vars.c",
+      "sha256": "91004f324d0e2b16ccb0fbda868689d028c558db3209e34ad6e7542cf89ce22c",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_opt_find_array_copies.c",
+      "sha256": "336b7c96396888c698bdb029204f487ce9a650e7a92bfcc962774ca34ec8bd1e",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_opt_frag_coord_to_pixel_coord.c",
+      "sha256": "a44204c233668cc80a15705345abe8cc337f963ddf0c923e14bde7c9315b65bf",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_opt_fragdepth.c",
+      "sha256": "578536ffc4861e3a8e264c9f2cdd1d538c832b031dd4cbd5b823bf05ba9ee1a8",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_opt_gcm.c",
+      "sha256": "7e8b010bb2ec1dd231d36efd34b07db67a2b82d2362a2a48e2b4200fb1c4149f",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_opt_generate_bfi.c",
+      "sha256": "3ebae6b6cbb6075fa5983a8cc460668e6e5271c6f5352fb33829486995f461df",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_opt_group_loads.c",
+      "sha256": "1884df6f610638a0b9a05ec755d10cab9e1c9f2165d214fa6b523b4cc8b3ddf5",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_opt_idiv_const.c",
+      "sha256": "687ce46f8b68adb80217b06329aa165cd52e43280b603b3578a90e46cf401606",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_opt_if.c",
+      "sha256": "9f9fdb8a2314fe090376928fc7e9811389efd97d7821b44b447d3d8502f52004",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_opt_intrinsics.c",
+      "sha256": "cfa24a1f954bab6225c90a6a0bc6549ebd8d5451f6d46d69a7e8441d0b53c26f",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_opt_large_constants.c",
+      "sha256": "534d526c6a3d89482540ac6d06b56d650e33fedbbf07df2a1e8c1157e2d2970d",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_opt_licm.c",
+      "sha256": "8786846e9c7a8b7b8a983a9a28b5102314e8a49aa72644ebb0cb523aa556df30",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_opt_load_skip_helpers.c",
+      "sha256": "8d3a0e66aec9339d04199fa06c8abfc2c6140792723f22f2dade41011e38b5f2",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_opt_load_store_vectorize.c",
+      "sha256": "f0daf0bbc22f6ab0a82f5514eeca24d9d39efa80ba2f94f7369b7de93e75a004",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_opt_loop.c",
+      "sha256": "6fecc59b40c90c18f7e1517c7a380449cf10cdf9c5b0a02b1a35a2f72f33bd97",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_opt_loop_unroll.c",
+      "sha256": "9ae2998e46e095179e6b8410a2f9edcb86ce737c6d3d4c5173e6fc001190f563",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_opt_memcpy.c",
+      "sha256": "3bbb34ec98e6e26e481016927c5fae118030708bfc3419dd2ecba73ab1b5aff4",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_opt_move.c",
+      "sha256": "4d83c2c915ef92b7c428ed5360bbec085eb7f1c730234d469724e0a22a9d130a",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_opt_move_discards_to_top.c",
+      "sha256": "700e9af89e39164a644b5b13b7c72adb04bfa7931dd83a09a5f01f3c6d109e93",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_opt_move_to_top.c",
+      "sha256": "f4d669e900e82b1e1a0727bc0549a71bb66440bdc3ad2ff01a6b9b3504dc59e8",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_opt_mqsad.c",
+      "sha256": "64fc9eafc3fe78da286e6328838c1339ffb527e2e288519afb34ca456c0c164d",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_opt_non_uniform_access.c",
+      "sha256": "22c147d49307f93fb5965ff6bd1e55c8a13f717a286d8e102f293fb2b36a80b4",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_opt_offsets.c",
+      "sha256": "82e4f1108fd5a59898c3bd27dff1324936acec8a010a9c5e9f66c5044e5d203c",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_opt_peephole_select.c",
+      "sha256": "01f4892df9f67c646654f43b861cc8263f0b3c24f04f0d62e8b6a87bef12dd22",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_opt_phi_precision.c",
+      "sha256": "0acc6701e51425f732c8d9e2268cb3e2d0621444f64aa001f4255e72c296df15",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_opt_phi_to_bool.c",
+      "sha256": "7b5f94b87d9c98beaf51be68b7ee15d21be0a8943c57208e8976746258cd2ea3",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_opt_preamble.c",
+      "sha256": "98295d7bcc925884ebe463a5eea5afe3cea8312993609dd9917c324592ea8702",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_opt_ray_queries.c",
+      "sha256": "eb76a015864fa0c98b54bb8f83649082f58c25b51b7aabd36cf65dde5e2c9bd7",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_opt_reassociate.c",
+      "sha256": "085cf3e4510073fab2f3221fe8f567458f6be86868911257fe9266eb409a2cdc",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_opt_reassociate_bfi.c",
+      "sha256": "92fd613879359365c5ab792b764a19df4dc2cd72f19dddd9d65f136033a96dd8",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_opt_rematerialize_compares.c",
+      "sha256": "b73f8e2957e6b270048a33553639b5efcb5d3bbcd659be7833dad7bf29bffed0",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_opt_remove_phis.c",
+      "sha256": "4446907723dd4652d88942094f540926abedb7007edeae4a2c0c63831ee6221d",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_opt_shrink_stores.c",
+      "sha256": "c66675a4e24e4c4754cb7efad4d1164ae65af8704b4b0e059b206c09e140ad15",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_opt_shrink_vectors.c",
+      "sha256": "e32889f9025bc5386960684bdbe5c0d82de1c0703e9263d66507fe93a2a761e9",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_opt_sink.c",
+      "sha256": "a1865dfc377220fa66ccfdcd1458cb41142e7c08cd4678b35bfde8801ec06224",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_opt_undef.c",
+      "sha256": "abe098851e03b3a7c6b7ff9e136643585d0d2aa726e4feb42570510a41f0b2cf",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_opt_uniform_atomics.c",
+      "sha256": "c85de5edcfe3c2a49fb0206319355377f02154b361c3f94d7a7ac21d5a78ca47",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_opt_uniform_subgroup.c",
+      "sha256": "0a296042cf0f130caa41f2deec5349e16112bb05cdd6f24b1b0c1cfd7fa297ac",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_opt_varyings.c",
+      "sha256": "fe743092af3825d4c9c60307570f1444bdd5adbb4eda74abb1f6d2f75c35ce41",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_opt_vectorize.c",
+      "sha256": "7b8f6071223b46ec153fcaad51b821bfd95c66f085ef009a7b4d7a6b3a1476bc",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_opt_vectorize_io.c",
+      "sha256": "6a7e957a1304979f93fd0c3eeaf080db001b6b3dbb233c3204e48b8a78dbd485",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_opt_vectorize_io_vars.c",
+      "sha256": "a0aaf3ed6fd0a2491a5ac5103c178e0b973401c78b737578ad4dacbcc302ddf4",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_passthrough_gs.c",
+      "sha256": "30c1dcd5641ccca6f3e755ffbf043e47488245155765e8a22db8dabed3ea13a1",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_passthrough_tcs.c",
+      "sha256": "0ffc110ede3f30f12d56ba3952bb833ad945639ff82aa28921212e07f00ea9c5",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_phi_builder.c",
+      "sha256": "81b8bf9c671f90a87f5f837538525a9cf9586a85a56f61f9b0a059bcaf5ecaed",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_phi_builder.h",
+      "sha256": "7c9a7445b9c803e7d9d8287fe32782b53e479540d1cf32f3f5bfbc597480a28c",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_precompiled.h",
+      "sha256": "9bd2256caed62d8f5159d6ce8a86fdcfc806114cec70a6d1efb91f1c240b6bd1",
+      "notice_blocks": 2
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_print.c",
+      "sha256": "db7a19ace9fa5917dddbdca6605fe4f6b9f98bc788552578ba932af9bc4e7a3f",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_propagate_invariant.c",
+      "sha256": "ed14e87f88a5177ec87b77635ed4f928e0d68bd33a30907646a08300fec225a4",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_range_analysis.c",
+      "sha256": "8a4c3ec61683880d2bd4665de2ed750bc38de52e2950a5609ba81d94ca7915c0",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_range_analysis.h",
+      "sha256": "0b7cc12dc0fe7fe8e33486414a8ffcfd26bcfed0bdf5f860a068a8ab64310d0d",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_recompute_io_bases.c",
+      "sha256": "24b65b607c8de7d624d30d7deee5c7a611c197f71bb8e8e1cd9785e98d6e437a",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_remove_dead_variables.c",
+      "sha256": "ba893d73f5294c2b4ba096a0ba01bfa984b5dad4a6de98e2e2551ad6a0e68000",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_remove_tex_shadow.c",
+      "sha256": "9a16018c920ff1174005fe13b02333b702b1b6098656aa683524a5ffc06fdf51",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_repair_ssa.c",
+      "sha256": "375bbaffb9b0254ff3e056a8bcd6a629cec5907c11ef4db6e81890f0222408fb",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_scale_fdiv.c",
+      "sha256": "48464de5c9ef1dbf7e12abe2506c5ffeda6e2bfc6cc08472f88df88f26e685d1",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_schedule.c",
+      "sha256": "a22d39efa584fcace661717d1dd0906d0279a839a182e476a89f238bcb45a4e9",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_schedule.h",
+      "sha256": "9d2d2338406fee85e1c7e6c49808b3d8049c03028140085658800ee6837deafc",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_search.c",
+      "sha256": "72a7a5db0ec4d144af52168a5f92955530d247073e3e99255ca66dbb017ff165",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_search.h",
+      "sha256": "cbcba50c4979e94e7ae038aaf7d7646d6069a6fb28d88315ca5b26e78059d3b9",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_search_helpers.h",
+      "sha256": "515007a15f4d0851a8bc1f572b816b135b09dc0c99506ed868ad9d0e47130bea",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_serialize.c",
+      "sha256": "07e2baa71896b95c47858a8793f7ba51ae66a49cd52e724d6b209e63539dc4d8",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_serialize.h",
+      "sha256": "f73fa670b315c19fb5c9083c76412ba082816b52afdbf5a6a129681bd8fd1339",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_shader_bisect.c",
+      "sha256": "bc32bd8d7a1da8b9d5b272c892be86325b7668016b43eb0d115a1c8e781cce31",
+      "notice_blocks": 0
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_shader_compiler_options.h",
+      "sha256": "e3f223849465c1b671527ccd6ae2d83c6a8a5f25a75a1af5586130f36efaeb17",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_split_64bit_vec3_and_vec4.c",
+      "sha256": "346672a94f5e597a623b201b369394b11f91820a94bae45e822d49219cba9af9",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_split_conversions.c",
+      "sha256": "9ba1a5dae2c8c3fef05b0a37aa9f0c9bf515168b172b9884d6da694dc8e46f82",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_split_per_member_structs.c",
+      "sha256": "8d6ee7ca6cb4ff61395143ef74e2338273e81271ea586cc37687d8fb247f643e",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_split_var_copies.c",
+      "sha256": "25089c98413a26ecadd5c9b2fcbe292953cef118115f8225be8d251f494be5b2",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_split_vars.c",
+      "sha256": "01f1f57d462d6a2510e4a6027801a338645d13a1aa88f1353cba6c0f6ae38339",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_sweep.c",
+      "sha256": "085a332a74214b8b8a8b28af62066e0cc21de366b246e5f9bc01cea2b66cbc37",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_tcs_info.h",
+      "sha256": "2483e6ab87af87adf0ffb198d22cf7d1e1ee3481628eb7613035a2f5a7934fb6",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_to_lcssa.c",
+      "sha256": "112b13eafbee60e57796a70ce829acf87eb5b59acc40cde01b8bbf9307cd9075",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_trivialize_registers.c",
+      "sha256": "845793bbd13d706f58dab8e92d04fe3a749a6567fe249a0789cd84b39450a8ab",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_unlower_io_to_vars.c",
+      "sha256": "73b6ebab595fd5212e69e059af4829259f22c1d8716d64a6f6f1e885ea9caab8",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_use_dominance.c",
+      "sha256": "a2208c3becfd6c0a82ad6683355dac92915fe4c3abe1224ad97ea1a479b246ae",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_validate.c",
+      "sha256": "01af612cbc3b4b23a22b15ff880fd2cfdefc2139cf5f9b624a02761b0f1e17af",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_vla.h",
+      "sha256": "ba736ab99c1969e07fb28259d0d13540e741bc0c685d61d38bcb6cbc98732a0b",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_worklist.c",
+      "sha256": "ee8120fa9c9c76f64c57822a2911e22804de9d2ed18f21f622b98a09a3e85473",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_worklist.h",
+      "sha256": "8149738ec5378eb458dcc11f863ab13b118bd5e5147a362478f8096a6922695e",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/nir/nir_xfb_info.h",
+      "sha256": "707aadf995df46e0cda3a3ad64b449dd092a9760a7203e0fd79735b4e8c06b3d",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/shader_enums.c",
+      "sha256": "a63518488f4986bc684f3b27c3bd5365c4e3e70d0c28a40bf216f3ce9dc1fe50",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/shader_enums.h",
+      "sha256": "8743df01fda2a9338d3db79ef01d35c99fa389907d4d873db5c3485a3e299aac",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/shader_info.h",
+      "sha256": "692b2f972e222a7c00292c746d6b1780cb40d32c9a8f37166bd59597becea0e0",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/spirv/GLSL.ext.AMD.h",
+      "sha256": "28b306c7d15734d5e91ea771118beb70009a8469d97333964a3f50fb4a877a42",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/spirv/GLSL.std.450.h",
+      "sha256": "d18a932ee97c268a57e33134651d554dbe71a5654b975e89e9e9487fa59ac9df",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/spirv/NonSemanticShaderDebugInfo100.h",
+      "sha256": "324d769f18e568b70b6a4b4359c4838c929b337759c43691f1cec49ea03bcad1",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/spirv/OpenCL.std.h",
+      "sha256": "7cf7a4aa83fef2e12580783c8b5f2b1be0babf1cc4cce8199540ec2c3c3182d3",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/spirv/gl_spirv.c",
+      "sha256": "407c4eb64eb03eea93e4d5f90d65d13efb96b79bc536f2e91559d1cc66398e98",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/spirv/nir_spirv.h",
+      "sha256": "740132a3b30f292ceeff1ba40f84bf2ada39a657c00c62fbbc96d45908982b14",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/spirv/spir-v.xml",
+      "sha256": "42bf7a6c8aef0f171beb12897d2fa2e75da9947d4f31da65c05ce231a8042664",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/spirv/spirv.core.grammar.json",
+      "sha256": "e219ecfbb419cf23369ef3e803b3771080bf244a5ef431402e807692a91f9e72",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/spirv/spirv.h",
+      "sha256": "b60baad097d4e36d7718337e81c986f57c10d630e181e58d4f609229b4a824aa",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/spirv/spirv_info_gen.py",
+      "sha256": "fe2363a561e448dd202d5a59c2d1f75261d6b51649fe109edbf5fd62aa0342ff",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/spirv/spirv_to_nir.c",
+      "sha256": "b4dc36b51a8da17d9ab0c348ee2d3135cf92ef4b895562c726cf8c259b7c381a",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/spirv/vtn_alu.c",
+      "sha256": "1d9fdec61476f70ed4d8c7273c9b94e57a914f48703b88df1cce67fff4fafc3c",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/spirv/vtn_amd.c",
+      "sha256": "9815dc319eec7acbc06b268dec42c2ebcf74252434f8c6ef4b6d38afa3d6d55e",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/spirv/vtn_cfg.c",
+      "sha256": "2addb23205d2e191328807022bc9ab1d93105858eb12d3fdbd201cc3c4577167",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/spirv/vtn_cmat.c",
+      "sha256": "9f64b5db18053a0bef83243a4e9755d4afd93d2a19ddf9ffe42d48f9f5d245a9",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/spirv/vtn_debug.c",
+      "sha256": "9438f1a28ca6b27482ad53ad7e55de4749a879218d40d7d8eca4340522722d5d",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/spirv/vtn_gather_types_c.py",
+      "sha256": "69c14a758f7f144b75262ff765bbefb59d0d99ecdad14a73824aeb8161750462",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/spirv/vtn_generator_ids_h.py",
+      "sha256": "1f08743541100986ce87752cd789758c2bf1ab449f2473a29b72e4ad3173f614",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/spirv/vtn_glsl450.c",
+      "sha256": "4bbe0b22ff2f1cd1629748c072209d42b442dd7cb468526aef6714edb1888fae",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/spirv/vtn_opencl.c",
+      "sha256": "64a6d3dcbf5479757daa6af342765ee1dd85374945950c20e1c5f78abfac52fe",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/spirv/vtn_private.h",
+      "sha256": "124e341bcba233d40ce88eebdfa17fe18184c344b3732311a2c0f8c56dba6f5c",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/spirv/vtn_structured_cfg.c",
+      "sha256": "7c75ed7b640956908281f72e068273b00b7b3197d4248f902bdc98863b0e38f2",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/spirv/vtn_subgroup.c",
+      "sha256": "4b687d89c54e6bec4e1ce71a4bcc542d5498f488cda574c49ffc736e3065aef2",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/compiler/spirv/vtn_variables.c",
+      "sha256": "e7482e45b9de29074da75fa265dffb0087e729ee3d4f260dd39bcc8e2451b221",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/gallium/include/pipe/p_context.h",
+      "sha256": "2fedbf1c6a6c64a565a0cf49dfef0a499b361c2a80e8711f67ac31cef12b2392",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/gallium/include/pipe/p_defines.h",
+      "sha256": "0e2406b9882a121179e0a7538bcba7cdf78e3f6940684c1f2a8b80dfa7181de8",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/gallium/include/pipe/p_screen.h",
+      "sha256": "c09323070861cef413b3febed4d35ce1c3e7c9a9f1a120e1a0fbb0dab5a0e8f7",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/gallium/include/pipe/p_shader_tokens.h",
+      "sha256": "01a569584127309a97a0ca8a995c8b5ed8190c4924061de1c29cdb0b3cc14449",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/gallium/include/pipe/p_state.h",
+      "sha256": "00f0dfa0b9d2c50bc57928f98d40c66edb604f642da8a42e8dc98a400ceb86f9",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/gallium/include/pipe/p_video_codec.h",
+      "sha256": "0afc9e134434cd6552fb41f98edc436572c484534674b75d299954a376269856",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/gallium/include/pipe/p_video_enums.h",
+      "sha256": "f6ff60cb75b2065f8ba16de2cbc71d2821c489954bbcbf0053aad1ea70e6c3b5",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/gallium/include/pipe/p_video_state.h",
+      "sha256": "a5e2404a241b17cdb6c02d55096e7ee69d80106dcf09ca5475022e3985a5d631",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/accum.h",
+      "sha256": "83be312a5104acefb466a92386ea8fa1eb72baed01e870cd35ada5240b261796",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/api_arrayelt.h",
+      "sha256": "ac163695583c94ee09fd9754e9afda60913497e93376ff108b8ddead11d8ca34",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/arrayobj.h",
+      "sha256": "b869ed5af589e3bc9632f5cf15d74e0c80caed49340c76b8154ad72e37b48833",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/atifragshader.h",
+      "sha256": "c5b8c74cf812dec5a9dde9a8566a20032a1fcf6f458924c660fc516c93d8b6e8",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/attrib.h",
+      "sha256": "403cc85f5a6dab30d02da4fe45c3d04714b46801a468c3ebaf29e03637113cf0",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/bbox.h",
+      "sha256": "7a3f61c63a64969ce3f1ffee199747cde08f505741008905bb3e61a51a604e90",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/blend.h",
+      "sha256": "81024ea27b4e458f918c38ab568ece54048dad3a369ff02b526edc82f1773c6d",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/blit.h",
+      "sha256": "6676a7b1e430b059c9f6a04c6dffd8e918675301dc9244aa32784c8b3f0a6f11",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/bufferobj.h",
+      "sha256": "576ba8d8b63deaa7e8b90ecec3360716ed1e9925e67ee58911bf7599f0070949",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/buffers.h",
+      "sha256": "33b0db6b20402492be37be60980cc4e42605fb3a4061c4a3141515dd0ad6edd8",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/clip.h",
+      "sha256": "481c47cb757b221048d75401900ae66bee127018e6c797293e3f23d8e6306113",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/colormac.h",
+      "sha256": "743ab6593823a1361a8507428b6240863c06d46c00b167386e8fb03ea85709e3",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/condrender.h",
+      "sha256": "94d1294a38ffd7253cb481bcbe38fad7b6238c488577fb2cf8722745cc6f4bb8",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/config.h",
+      "sha256": "e2a10fa35c477818c1822978b4a789df4ef30f84e570aed8bb5ae830e23bf9f4",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/conservativeraster.h",
+      "sha256": "74600cfc340558da2c38dbc4d37ee4d03158944760e33f5ccb7c2619ab3b380e",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/consts_exts.h",
+      "sha256": "8b800aab4a1f5b06ca038a0d0a2db72e6c6373e05e45d930965712f7abebda48",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/context.h",
+      "sha256": "a54e396ea7b8446ce4e79fa89ec9cb88e2ce2e5e86156ab66200716dd5eb6d31",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/dd.h",
+      "sha256": "8d4487742bf5e9c5bd1970c3cec37a91ebdbc6656408e45b7d5cb016c9169a22",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/debug.h",
+      "sha256": "a17ee83c4089db32a00833c868de6b8b119f3571e2c225a3f57107fe5092a22f",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/debug_output.h",
+      "sha256": "6f6af5ace27edb02a263bc36e1ed725f6436e1e639831695cf4a1734ae1c1789",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/depth.h",
+      "sha256": "afb61eb8787cc454267ee939f985ec6d60078ff2a49032151ed7859c66bb924f",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/dlist.h",
+      "sha256": "efa09682e0ee4856402f90d9f9d5261a676e4e97c18ad7ce1b8734ca26b52ed7",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/draw.h",
+      "sha256": "eccfd99499b09037e073c137765fdd06e066c29374aa37ca839ce508c754d47a",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/draw_validate.h",
+      "sha256": "a33e893744d79f5bb0045bce8e41810e463709f09866ab0428594aeb6b429267",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/enable.h",
+      "sha256": "cb56ccb1f2fd74f562da07486b7f626cf0baab61c64b9f18f79c8899f425c340",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/enums.h",
+      "sha256": "87d562a6764f51c014a2274fa7c3aca17c04441537ddd56b2554f13c6fffea92",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/errors.h",
+      "sha256": "fd655b45dd85d221250be4c2849a32b98c6abeae5902714ec706f75264ffda2b",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/eval.h",
+      "sha256": "639bbae01e41caedaf3eb1e859dda81ad80700a686b54f9c4fdb14f335e16eb1",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/extensions.h",
+      "sha256": "8ecb6e6748088f4981f4fefa45cda49ac95d0cdfb503a0ef8f2d8c6e981b98cf",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/extensions_table.h",
+      "sha256": "37a72ed68492432dbe117f5d581395b0750d645b8abf510f62bba24a81b7f189",
+      "notice_blocks": 0
+    },
+    {
+      "path": "mesa/src/mesa/main/externalobjects.h",
+      "sha256": "6375bbe43eceaa234393c3929113eb7b8a69139e4bb82f118be431941f77b002",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/fbobject.h",
+      "sha256": "2b7693234e65a0303f9fbd36c6d86958bf3faf4bf4f57dc8fc336b7cfb836ae1",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/feedback.h",
+      "sha256": "2daae17b014b9765aedccd285800b2b1a7e3a259a156a0aabe615567102b35bb",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/ffvertex_prog.h",
+      "sha256": "d2180cc8f683fbb2c758c779c8a6d5ebf60bb17549dbfce9f1876a3eba63d224",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/fog.h",
+      "sha256": "ca710f8f5193ce7843b2fe75429665df85f375ba4b205c8ad9a903d76c3044ff",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/format_pack.h",
+      "sha256": "e98d82153c93f5174d159083019f61b0e451a30b51d8b1e9dd6a30dc975a7aad",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/format_unpack.h",
+      "sha256": "01539f0f26847303e33be274a1c82057c9a285983f5e4530f1fa54511f45f12d",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/format_utils.h",
+      "sha256": "8649757804d5c88f9b2c350a08185f7864d133e530f0466921544ca1636c5a38",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/formatquery.h",
+      "sha256": "1035c4a14f055ac8a06b9b1fa678bfb0f98030f2c2952503f862546a032e67b0",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/formats.h",
+      "sha256": "ea62482e98f3124b668d69bd38ce9d7db04a484a7500847c8ec5708f14d40c55",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/framebuffer.h",
+      "sha256": "af304207693d1a256ad369a647aa475bf25bf61d3b2df45679a036d36a2e8867",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/genmipmap.h",
+      "sha256": "b291b636d54e25d3c0ac5d972861d26f84b03c2455798e232033f123c02e4d8e",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/get.h",
+      "sha256": "74328c2fef21569d36c62774c88a411d15dc2f43a0758142a2f1cc60be79a0ad",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/glconfig.h",
+      "sha256": "709478e94be7a9d1419bd2fd22e88c209dea64c82f0ad83704c522df443d116d",
+      "notice_blocks": 0
+    },
+    {
+      "path": "mesa/src/mesa/main/glformats.h",
+      "sha256": "15a0b5174bce6aecdf4a273f2d936dee8280bd65690bc68e48821ae6a3318983",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/glspirv.h",
+      "sha256": "2cef12d06e5832c6172b4a7c23ff9082bfc30944cd13f3c14999ed0248ee1896",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/glthread.h",
+      "sha256": "9a07d647bcbfdb8aa45ce2fed78f17e255de1823fcbf2d99dea48982714aa4bc",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/glthread_marshal.h",
+      "sha256": "96aad6eca6483539c7f21857e9960539dffc8118f4788438838bbc93e045a4a5",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/hash.h",
+      "sha256": "75458f9ff6b69d699b6da2f6be3fbc85763e3525291158b287ffbbb52153f9b7",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/hint.h",
+      "sha256": "fd2fe714d50eaa8f38410865022d4e00907ba6f75a01c1ad6216d8379d13b7e0",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/image.h",
+      "sha256": "afbb70a592ff98137e1057d4c7fad054df485e5934bf25aaf4c1cb1544de304b",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/light.h",
+      "sha256": "a48e8e288f945662c8d29397affcd6ff01ee255e5c26c33029ecf8956af28a0b",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/lines.h",
+      "sha256": "3be34ebcf7d0b7c3bf31a52801434fa030c4d36ec68c59b293f3f1f2b8ddd888",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/macros.h",
+      "sha256": "7e4300a4304f97a4309d4571a3c6336cad340942790a0672c964adc6fe183e7c",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/matrix.h",
+      "sha256": "01385124da789b7f08a6005f176ce44fd1bc58f7c958baf70a4d3b69c1f41d6e",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/menums.h",
+      "sha256": "2da9cfdea83b93b46ac370a258275893eb75b64fff4e59452207165a0aeb378d",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/mesa_private.h",
+      "sha256": "22f2d030074b06f93f7ec0fdb83881baabb072bb2d2014ba776ac9f05461cede",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/mipmap.h",
+      "sha256": "53c857ae2a76b2a380bd68f1b668f6fb2ecffd0208bc76e9e74d87adbadc3f83",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/mtypes.h",
+      "sha256": "c316c305f457aea3e02e6374d902a40c58bdd4479223eb5d1fd64cdf7cb848c4",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/multisample.h",
+      "sha256": "5949a3b5bfb49abb3ecb1d26232ba16e141e37de611331e233fb598ac94c5172",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/pack.h",
+      "sha256": "2e2867bec591ae6631c0d71fd2117d3013ae1e3076d0d001c7124ab635027fa2",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/pbo.h",
+      "sha256": "a4f02c80730ffe61bba8190e3b02480b15283b931be8bbf114d16fcd497cc16c",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/performance_monitor.h",
+      "sha256": "0af7d6800caf952f646781000f1733ed4cb9b2d76d8afea74bd35f951afd681f",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/performance_query.h",
+      "sha256": "d993c4c9df9603fd5fcedecec0094fba8024031db1f0926ef5e43fffa4f81435",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/pipelineobj.h",
+      "sha256": "5993048bec9139704395527981b85c84f9f51f7549a1501a9cd346e407d2b3af",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/pixel.h",
+      "sha256": "e9b0b111d5adf128537e554955d2dd6b95caa6836ef56704c0550b533bed2686",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/pixelstore.h",
+      "sha256": "b6da416aa459924214e7c8092ab3164252a39d894dd1f6adcb456ca598e1884d",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/pixeltransfer.h",
+      "sha256": "785e349d9a417935b0e788277128bcd5cb4aaf75087e9f9a8db112714f602142",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/points.h",
+      "sha256": "a6ba27d05e00dfcadfbf9726c616294486b53ff37f974265eab66ef7a4139738",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/polygon.h",
+      "sha256": "292317bbbdc16063b540c30bd8f09728f703b78425ce42900f9d2156bf9be679",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/program_binary.h",
+      "sha256": "e4b0a5072dce691c9c16a43e98588891ba4ceba65aa6160ebed8edbb74962acb",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/queryobj.h",
+      "sha256": "4b6347422159ae368022684ac5649bb610e621861b4a2de05ecbd804b5b48084",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/rastpos.h",
+      "sha256": "1202337a6d950e84bb0a51577da0456ba6a435cc085604615fe2d9ee67ead5c8",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/readpix.h",
+      "sha256": "d301419063f3046e02d3b4a1d2ef70049cc8eca8c94bffef5e4295de54ac962e",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/renderbuffer.h",
+      "sha256": "cec15174bd9267c1b85154dda257b0a2af22acd7f44abe8c3fc8334846525998",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/samplerobj.h",
+      "sha256": "d516acf071e5de05bd15980fd87048b682d79816094f33bc7d7e43690d08720a",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/scissor.h",
+      "sha256": "7f948b8fc2f76d2d222c842e371abd7d5f0aee977dbd4539eece8f40115d9bf9",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/shader_types.h",
+      "sha256": "bf4b11955b708a8e5ad1f7faa256f88c68b623edb705fe5856df65509a96bd0d",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/shaderapi.h",
+      "sha256": "774a728605b59f8d69e118f11728bc6b6f67dde9195ea72c16460d43d13336a2",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/shaderimage.h",
+      "sha256": "9f8d5bf46ea480d7b93fe0f95c73778a45a239a317f7f73a61aa4ca3c3177fc0",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/shaderobj.h",
+      "sha256": "ed3e66cc6d5b41a2112d94ec3399092ea302d95a621e3c6a048c4cd4ceea473a",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/shared.h",
+      "sha256": "866ada9f2ac004409d3d255bf48790ab685de7402c8061a6e6829b0a462935cc",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/spirv_capabilities.h",
+      "sha256": "9dc8fff0b11c66ccab9225100304d9b996053938e20209ac17a657e5770b5ce6",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/spirv_extensions.h",
+      "sha256": "ad4c36b4a9222187e819d42b9f7d52362cae14fee7116469cba31ecdc0c3ecb7",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/sse_minmax.h",
+      "sha256": "7caa0de89cdde4d36e4e00db8ef42315aa7b6f2397a292719e76044d7d470963",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/state.h",
+      "sha256": "eb981be6e087a1a3abeae7235392e6b69fbdb12e40435f988fa1fbdc22bb9aca",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/stencil.h",
+      "sha256": "c0bd7a26e75c20e553a59a7d9ff515dd26ee44205f768ca2bcf209191d7e6cbb",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/syncobj.h",
+      "sha256": "e7cca5f4a35bbbc8bb515bde3c11e6c733a543306ca54912938e00f5ee075b80",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/texcompress.h",
+      "sha256": "8ab6de24d992165716734fcbb382057aab673db3910c07cc25ceeaa8919988c7",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/texcompress_astc.h",
+      "sha256": "f973cb8a7d2aa8a28652fa2939f8ad4e96562195dc771f4d94922a0534cb67bb",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/texcompress_bptc.h",
+      "sha256": "24eb2deb0845aed348680d3f6f044234c9ea367970c538143679155708617751",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/texcompress_cpal.h",
+      "sha256": "b0a4069bf2328e3455f1bf980b2c48f5c2343e2a2861ede675d7b64659cbd855",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/texcompress_etc.h",
+      "sha256": "51c62e50f06df9f2d40d3376d56472c0702820730c6f93f0419c062e3c2efbd9",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/texcompress_fxt1.h",
+      "sha256": "3fbce5008ea1a329434e2a16b018c4d3226480edd3a97299aa0894d0aad109f1",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/texcompress_rgtc.h",
+      "sha256": "c1b6e4944ce71a236dc194bbe98f5fa14822d2d7a7181c50039e8cab724cc23d",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/texcompress_s3tc.h",
+      "sha256": "1dd4d367c75b7e1e0483288de86725e4c60485c795aff12fcd28a7c411ac9381",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/texenvprogram.h",
+      "sha256": "794bf230cc090bdb752a07cdc9b575bc22b002daa9d74502d25d96ff7cd3cfc7",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/texgetimage.h",
+      "sha256": "0edb4793b32ababe9a35f78a1596bdff427d2d2603de7c1ec4a8123e9af85a3a",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/teximage.h",
+      "sha256": "5da13e54581706c9eeb5df8bbd5652e54539cb2f169c11463da293bb1e2164c2",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/texobj.h",
+      "sha256": "48f8884b0ba694d90abe46fc3c6e09575be2750cde07df8b5764dcab0bb30294",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/texparam.h",
+      "sha256": "a975f97fe080e668f299bbe1e59f6c11316acfad3ef5caa8f7a3af0815697d45",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/texstate.h",
+      "sha256": "9dad1cf21598f18a6e8a52c705b09dfcec0dfff64b43811d8e43b1944eadefe1",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/texstorage.h",
+      "sha256": "8fcb10d0bebadb0bfa38edbe654a0dc4ca527c799ba404e6aa434275b35d6097",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/texstore.h",
+      "sha256": "44a9c868f7dc6e662cc68c02e4e02f93f91be37638b0ed4c9acf2f147a9f972a",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/texturebindless.h",
+      "sha256": "d1c23548e8827b5eb24edefecd17df9eb41a1628f522f6fb8ed94edc112fd1c3",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/textureview.h",
+      "sha256": "c30ed9d6002915808079a06b2b03126e8f9a2823f5dccb184c5299509161381c",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/transformfeedback.h",
+      "sha256": "8d172b88cd33a0aeec3d16ac21c5fe7e14a8b1520e4474aaa3a3c7168caa01f9",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/uniforms.h",
+      "sha256": "b08696b2ab7334ae23cdfac2130bdb154857e5d16f2b93182a88832527f891f6",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/varray.h",
+      "sha256": "d3d197de26be7420f3eb80ec6df7a7a04a5dcd1e659ae354b0c88e1dc4a803b5",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/version.h",
+      "sha256": "735ddcdda0fa596f1b21b6b73177ecbe67efdcbf82ddf6cf8542e0571faa1b7a",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/main/viewport.h",
+      "sha256": "15deaf89e5fda291c1824522f58ff5a12057ea30e14310323f256ba2c54aea74",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/program/arbprogparse.h",
+      "sha256": "f0393e8c75f33eb80fa6534f53f0475c227dd26f8790635756cc4832c3970ccc",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/program/prog_cache.h",
+      "sha256": "7b6cc3e85f0cad1529f2b45fefce97467c907ada357818e6d80ba35263d4f0d0",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/program/prog_instruction.h",
+      "sha256": "b418813e8a313f856251fbf0a2214c77fe2fff1d52772587b1f34e8f3b89e889",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/program/prog_parameter.h",
+      "sha256": "c839d67f1a4b0e9c218fb5824e13d239294858b4c1db6f95be95e1031a27e797",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/program/prog_parameter_layout.h",
+      "sha256": "bf28054aa2ed05cbbc40a60577a017a8f1da410bcf760add4a335bde6111ad13",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/program/prog_print.h",
+      "sha256": "2202bba3e402c6aadebb8f21c37560b828df7dc72bc6c898ec9e96e5a156f42e",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/program/prog_statevars.h",
+      "sha256": "6fc43fd7fb0f3defdefedbd552d8e3ac63a1a44dc15a6f3b84621b9b7c7fa722",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/program/prog_to_nir.h",
+      "sha256": "0fdcbde4c48223ce950d98beb97181f0f35ccf51fe25375eae3c4613167177cb",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/program/program.h",
+      "sha256": "d6380b76ae245371c86ad7a26c55b06d93518fa3ea2fd5d680ceea49c2b2c47e",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/program/program_parser.h",
+      "sha256": "bc1d005bac36f6469cf4ac7ba47a94334328e4988479ea44c0fcf969a5ad0e8b",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/mesa/program/symbol_table.h",
+      "sha256": "1074b722ef386e5856468e3c87bb39339215b36b24e5e720ee67dbabf6e637cf",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/microsoft/compiler/dxcapi.h",
+      "sha256": "8a49d9cd3e8bb3157fda7e3eb01eeab749bbcf3993131f1d9cc6c9ac42465061",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/microsoft/compiler/dxil_buffer.c",
+      "sha256": "7e412a136fd2a1bf6dc2b65275de9ec88dd02cff22427fc9b1f2bec23d6e025a",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/microsoft/compiler/dxil_buffer.h",
+      "sha256": "5739701151f33e12aecf5f77830f7435d06c9f8895f103c51f045bb446829c5b",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/microsoft/compiler/dxil_container.c",
+      "sha256": "629516d2aebf20e2692e66ea18151048cc884f1018f320ec4b1edfbcbc207320",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/microsoft/compiler/dxil_container.h",
+      "sha256": "14fd50dd36eed96990b23b5492fc83e9c745e41c85b41b93b45c45ab12e95383",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/microsoft/compiler/dxil_dump.c",
+      "sha256": "b9d4bbb7008922fa1f215b920cb82d93078c872c3c3d7981dc23e6a96d7eee0a",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/microsoft/compiler/dxil_dump.h",
+      "sha256": "0b190715d144f36e25101ee3d6d6d09556b7d58fe24fcc581e8d8c4b0920270e",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/microsoft/compiler/dxil_dump_decls.h",
+      "sha256": "fe8cc9a5efd0302dc3f407c00c4eb88124b4011c297a22126f08f27146b7e909",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/microsoft/compiler/dxil_enums.c",
+      "sha256": "b6b8703988fe256579392795e4ff8675657700bcb61d38b0087e235736faecdd",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/microsoft/compiler/dxil_enums.h",
+      "sha256": "c6164a96902d2aafb8557fd0d99f2dd2793d0ad43100d59163c0acb658cfb0ab",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/microsoft/compiler/dxil_function.c",
+      "sha256": "da79c954ee84837fcf2f81a3a4e5066070baa46bcdd13dda2850aa507b654ebf",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/microsoft/compiler/dxil_function.h",
+      "sha256": "ec48bef4996b82d86d5ca03d8694655bc46f29369eae94ec3acbfc33bdf7e984",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/microsoft/compiler/dxil_internal.h",
+      "sha256": "36b8b663894192e410efa8e809d81a31bc539255c77a445bca3d4712fb2e137d",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/microsoft/compiler/dxil_module.c",
+      "sha256": "d62e6941ce37495e537044634c6d6c89fbf0320da9baeb6d18ac510247fc6d93",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/microsoft/compiler/dxil_module.h",
+      "sha256": "dc8400f5abd6a02877c199b0ddc1ffc4fdcb2ac9153cdb69d14cf2eeff3f9219",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/microsoft/compiler/dxil_nir.c",
+      "sha256": "ad5fa3142e65460471ad9a0e2ce405bf8844a6b55b954ca0f0a5126a308fa148",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/microsoft/compiler/dxil_nir.h",
+      "sha256": "3a046fcdf584c6d25495ed4e4c3ebff850aea1731596a655ea143f82d7c5ddd1",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/microsoft/compiler/dxil_nir_algebraic.py",
+      "sha256": "220a31c2adaa4330b5a19b027a672241ba0e07b1d987104cbcdad80dddfd6bec",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/microsoft/compiler/dxil_nir_lower_int_cubemaps.c",
+      "sha256": "27f1d3c2e74b564444fd60c70dd4eab2b247cb2122414967fc083ab894c6a261",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/microsoft/compiler/dxil_nir_lower_int_cubemaps.h",
+      "sha256": "afb4f5c04788b4ca8291ada8920dce1c0d3889042cc5f91ee736f5b702bf57c7",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/microsoft/compiler/dxil_nir_lower_int_samplers.c",
+      "sha256": "b7213e2ec9ea412fbc0c566b369b7e1c2f76c5e1e4fc9c7e5da981c0bd8cf98a",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/microsoft/compiler/dxil_nir_lower_int_samplers.h",
+      "sha256": "9687a3cd300c4336f96cafd4528f323c21e643fd85462a3418e05b27ff22f840",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/microsoft/compiler/dxil_nir_lower_vs_vertex_conversion.c",
+      "sha256": "569d10081f6b52d4446107731775d6e3d03c2dd3a28aa46b3a0701f31b63de9c",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/microsoft/compiler/dxil_nir_tess.c",
+      "sha256": "df32318d9d17afedffbb8386c4abc2533cece9e922385a2f2428897d7f7aae5b",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/microsoft/compiler/dxil_signature.c",
+      "sha256": "355ec98c41f1cbc168170855d25889bd2a402b52ec7be15f321a77aa15ab3350",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/microsoft/compiler/dxil_signature.h",
+      "sha256": "10d8d1162adfd8159663f603bf82033dd3608a7f56db4a5fe8400a2a3bcbf121",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/microsoft/compiler/dxil_validator.cpp",
+      "sha256": "83354e08b83b1a2cd7e7bcc21739a12d6c2cbfff099ce7968909d942c03b34b1",
+      "notice_blocks": 0
+    },
+    {
+      "path": "mesa/src/microsoft/compiler/dxil_validator.h",
+      "sha256": "5beb8a42290e16c2119c75faabba87b61ccfca5f1a12ea4c26cec482d51212a1",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/microsoft/compiler/dxil_versions.h",
+      "sha256": "501b1ae18005185e00d1007dc624e9a72f0f5d6ca8c43bf60f82e5cf38d64e14",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/microsoft/compiler/nir_to_dxil.c",
+      "sha256": "27912f7d67d379dfc31c531cfbfaa0df9d6a42290a1dc38fa81df6b9239afc28",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/microsoft/compiler/nir_to_dxil.h",
+      "sha256": "f3f95b98f74b9652d1207cfcbd5d241f43f55e289f4d98f26821254f4ade7462",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/microsoft/spirv_to_dxil/dxil_spirv_nir.c",
+      "sha256": "49fd7c1c661197f4770bb60976245bea7c527542c0fcf6a73dc54e69bd3db30c",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/microsoft/spirv_to_dxil/dxil_spirv_nir.h",
+      "sha256": "d82ff8ec604ce7e8c8ff49e85360f5804d3d00ea3788f3214d6cf0b7981984ff",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/microsoft/spirv_to_dxil/dxil_spirv_nir_lower_bindless.c",
+      "sha256": "d0d953453dcd04815cc2086f5c27bb99cc4f336cf83f686793e0c85a8f9ea0bc",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/microsoft/spirv_to_dxil/spirv_to_dxil.c",
+      "sha256": "1fa9c9918c3165bf402165da975a466d4ba6e0442a5319989460747c68a29fff",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/microsoft/spirv_to_dxil/spirv_to_dxil.h",
+      "sha256": "b6990e231c5cf17d17a4fd4783b6dd73aba69497ed16b58bfcd3df5b1c015bf7",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/anon_file.h",
+      "sha256": "c97c0fc5cf6391e3458841b9017b7b8c3ad15dad8b0a0d180c23867db02e840a",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/bfloat.h",
+      "sha256": "0a7e9dac48aa9ed8932e83a5b61407e1002899c40947fe7db3add8c41c14184f",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/bigmath.h",
+      "sha256": "781ef976d4441af3cd7d3e1235b43d1a445f5483650ccdf8d4071ceea6f1345c",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/bitpack_helpers.h",
+      "sha256": "b5199755381dff504ba73358ef466b8b8fbbf43967089da060510a4d45cb3a61",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/bitscan.c",
+      "sha256": "da1da8e4965c273874792f7f9ab70ab418d979e4e86212e9d0cbfe834825d8b5",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/bitscan.h",
+      "sha256": "af9ddd5e1abb0b89f929d7b11407df714d26ac8538962474b7a3796a4a3b32c5",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/bitset.h",
+      "sha256": "a97635cd101be61b97966164ede45b895ffdef2084cbf40ee7487d506f1e5c2d",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/blake3/README",
+      "sha256": "d85e66d85119bffe0cc4ee649165d7865ccd8d832e705e7233dacc54e8e0a44d",
+      "notice_blocks": 0
+    },
+    {
+      "path": "mesa/src/util/blake3/blake3.c",
+      "sha256": "53aba7db8bbffd57bf3745b60496edefb76368750d8812765a0257d28f23e15d",
+      "notice_blocks": 0
+    },
+    {
+      "path": "mesa/src/util/blake3/blake3.h",
+      "sha256": "875039b6a5dc3a7529e704a07c961c508db2c2f6559a59d0e00ea0dce237f0f7",
+      "notice_blocks": 0
+    },
+    {
+      "path": "mesa/src/util/blake3/blake3_dispatch.c",
+      "sha256": "a6cef5c497d95c8f7fcde6e1a8e140637f3260b31e911319e69cf5069459b635",
+      "notice_blocks": 0
+    },
+    {
+      "path": "mesa/src/util/blake3/blake3_impl.h",
+      "sha256": "9dab2a24a6adf4124a1590878fb0dc8861280f356cb950bd78c1735bba1c7cad",
+      "notice_blocks": 0
+    },
+    {
+      "path": "mesa/src/util/blake3/blake3_portable.c",
+      "sha256": "2bc25b0dad67b4329d0b49cfa075ab2b0d04e424addbddc4e9c389c52a192524",
+      "notice_blocks": 0
+    },
+    {
+      "path": "mesa/src/util/blake3/mesa_blake3_visibility.h",
+      "sha256": "073d6b149d1d7f9a4f43833becb4ca26dabf825a31b07a430169cd127cdf938a",
+      "notice_blocks": 0
+    },
+    {
+      "path": "mesa/src/util/blend.h",
+      "sha256": "1f16441094de04ca4f266cadbc3f6b183e2e4257dcb63211234dabeedd1705e4",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/blob.c",
+      "sha256": "c294b8bd34766cc2e3401372353da70490dd6bcdc3d968d2c6c952ecdadad2f5",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/blob.h",
+      "sha256": "f102f88a8363f799d1a4553b1494ac19482ccb4763eea31f648291fe8ae9420d",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/box.h",
+      "sha256": "9a55269f5cbea3fd736a8571a059fa5739160f5927b5c643d708f4cf05c267e6",
+      "notice_blocks": 0
+    },
+    {
+      "path": "mesa/src/util/build_id.h",
+      "sha256": "3433c27378ad1a777214841194e705f16631ff792e195c9731fdee2590ca1bf7",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/cache_ops.h",
+      "sha256": "7602f2e3943d9a4332d8d69fca1b85a4678dcd030b08f708c88dc7640cb1daca",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/cnd_monotonic.h",
+      "sha256": "d37e1c9b5cf63c5b07ff2159201871535ccab8219693f3c4bc7d0276e5b703dd",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/compiler.h",
+      "sha256": "919661909955445d4a0858f56e0ebaabbcaf8b694f5be8906c987979eeaa4fd0",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/compress.h",
+      "sha256": "5f4271ffdee14ae6602b9325822ebb54c5daaa19acf9e53b8e91fd0b34b2525c",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/crc32.h",
+      "sha256": "d67bf86db4f21d7dd3b81820093823755e08e5a64669bda4a2537cbde1e0da04",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/dag.h",
+      "sha256": "e71ce4cde8adc8d8214684a904b8826bc200a9066a1f75d420cffeddb4895407",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/detect.h",
+      "sha256": "a8ea16b111b4e89830aa9084b7915760e13c8be1e96bc240ae31edab2395439a",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/detect_arch.h",
+      "sha256": "0b4d0d2f98057061e755e7c9af449425a76f5ad7fd76054671b866a3c03e39e5",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/detect_cc.h",
+      "sha256": "bffcab52c836d510782f872e26055f0ca93562378fccbd5ecdb436a90fdca573",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/detect_os.h",
+      "sha256": "20ef7b831320956ac6ac44b96b20d2b47be6d2df945439acf90ef27b1c1ee7ea",
+      "notice_blocks": 2
+    },
+    {
+      "path": "mesa/src/util/disk_cache.h",
+      "sha256": "70812b74f626190e4fd9d4d378c0852e23c5416530d6730f88796feb9fbe3872",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/disk_cache_os.h",
+      "sha256": "90fc5fe0ecb379efc444a009200c491f1739a7067167bdde2481c45365f561d2",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/double.c",
+      "sha256": "eee0638bf1deb810b068e76e9cfd7f39c09fa61cbb6e9bd4243f4cb6964a5c76",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/double.h",
+      "sha256": "8f1394827a9348c19c9db140a8971920cc91777be9c7055883b4d442e84b4157",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/driconf.h",
+      "sha256": "7bb415b97a22a4507515b386175833bc5782fa718fe0247c7b441a63c4b543be",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/drm_is_nouveau.h",
+      "sha256": "320f2bf9e670b0fc809c35cbb01d4699c76858ecbd8d69a08c94f039da4d032b",
+      "notice_blocks": 0
+    },
+    {
+      "path": "mesa/src/util/enum_operators.h",
+      "sha256": "a67abf8ffd599b72b2f2936492a002f73b352bd4e4fac45b33e75232e6493b06",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/fast_idiv_by_const.h",
+      "sha256": "b8a73cb162a12af091571c5659590e50b0225ea6a0b8b33024881763f0df15bb",
+      "notice_blocks": 2
+    },
+    {
+      "path": "mesa/src/util/fast_urem_by_const.h",
+      "sha256": "31dafa6ebf5dbcb5e9862181828b4eb833e2f3154c35193fbcb97b9d9ec854f2",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/float8.c",
+      "sha256": "f823cf074026a99fd9201dcf798f5067945d1cf03ed3d8c9e14ff36f5668fd15",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/float8.h",
+      "sha256": "b3341f3c591ac89158d780d0c82f118b7b90f3e9893f4f3b267436288f464867",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/format/format_utils.h",
+      "sha256": "0f97933ddb1810cb78c68895a5d595a6c26ff85e0a7e814e7ced22cc757f7b4e",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/format/texcompress_bptc_tmp.h",
+      "sha256": "a384213f0a3b40694103b59a990af73116f02fafc8c2385754ba60b8158134cb",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/format/texcompress_etc_tmp.h",
+      "sha256": "b4525cee7ca8d861756036633a3a3fa3f3281d0451fde8e06ee1ecdaa0a7861b",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/format/texcompress_s3tc_tmp.h",
+      "sha256": "849f336cba96435141dd25cfa5665c8eee4619055c2660053f301d2fc45d3618",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/format/u_format.c",
+      "sha256": "a4f2aa2ca80ebda727cd581a9d78aedfefdda02e6028fe9692ce079b8be33cd5",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/format/u_format.h",
+      "sha256": "287f4b23295321214a23f9c10b8f37f5fd7b0bfcf95654fa18a524cb5659994a",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/format/u_format.yaml",
+      "sha256": "936ea82aa8b5764281023268b8c7392d17bd696480947e97b69bceb16547d141",
+      "notice_blocks": 0
+    },
+    {
+      "path": "mesa/src/util/format/u_format_bptc.c",
+      "sha256": "c8c771f501b142b9ef9b680655def7a53e12d6cf25904fce60c8f2450968919b",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/format/u_format_bptc.h",
+      "sha256": "a691cdca5c81c11e461bfa12ab87fe6481fffdbae3e35e1b4d52295696c9f74a",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/format/u_format_etc.c",
+      "sha256": "b0513e3d6237c6128c26fa2035582e15c97bd7db9c2fca7869bfb6a02b217731",
+      "notice_blocks": 0
+    },
+    {
+      "path": "mesa/src/util/format/u_format_etc.h",
+      "sha256": "5af29da0b566e0994d1bc1529e50643b80b1747a67a316ec0975e2f8db76dd90",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/format/u_format_fxt1.c",
+      "sha256": "0a27eec71adb609f742f3ea684c45d9845f656d45b8de4fe4d3477b282a51c0f",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/format/u_format_fxt1.h",
+      "sha256": "bcf0dd6ef9bb9101bba7adfa87835eb12e5eb2b01275d07f0ff998edf4bb7a39",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/format/u_format_latc.c",
+      "sha256": "88deed4b0740c12371c076acc76de668dcf2f97b36ebe8671fce253131da1edc",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/format/u_format_latc.h",
+      "sha256": "b711039a68237493a7747a6be5dd0daf117cea44a4b3cdec8f7b628558569958",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/format/u_format_other.c",
+      "sha256": "dc80007b8307e8de47f63654b0e948314993e26963a3a1afbec733e1638b2c6a",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/format/u_format_other.h",
+      "sha256": "8dcab080458f95a8d26015dfa8fa75fe1d821556914203581b26b2671de7ce92",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/format/u_format_pack.py",
+      "sha256": "a4a2510d443c84059d25f2346c521d28d503c1744b76b2aa3079198ecc33f2bc",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/format/u_format_parse.py",
+      "sha256": "674d85cfd01ca52cf2c347b0ca6ceaa0ea454ae8a9b106468c1669736b1cc2f0",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/format/u_format_rgtc.c",
+      "sha256": "d07dfd70e00f57b749de62f3832a05a64670d9602a8245b52f7839f8214e9810",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/format/u_format_rgtc.h",
+      "sha256": "c2fbd39a2be1d65c56ed456e00a5255b1745d9d94e8929280227566073e99275",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/format/u_format_s3tc.c",
+      "sha256": "30b17502c4fac127e7445bcfa68e7585923186c44aabc9920f7af99a0825bb95",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/format/u_format_s3tc.h",
+      "sha256": "3a77460daa2e48cc72cc6f4c12f28f82ee9c747f26bace4047cf267d1956ef09",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/format/u_format_table.py",
+      "sha256": "f8c314126990d10ea980762203cfae901526cb39b0e38f31d9b39c6cb59f5196",
+      "notice_blocks": 2
+    },
+    {
+      "path": "mesa/src/util/format/u_format_tests.c",
+      "sha256": "b6f9e7822bb0404cde708d66b681e3a6d8d826b4d4cbedb77d99459d17ee8d42",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/format/u_format_tests.h",
+      "sha256": "4fc1a4847de5e045772d4766c0757e18441430f49a1c67fde453785b563bc3a5",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/format/u_format_unpack_neon.c",
+      "sha256": "03d8ed973d784f927c6be137687e5173f8c71e76cd1ce9f115320dc0b690882c",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/format/u_format_yuv.c",
+      "sha256": "4331489d13bad59cbc7fcad221cde852186997d5eee40bdf6c9f8e6330d579dd",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/format/u_format_yuv.h",
+      "sha256": "07d2f1d9bb2a2f7bf4713d14aaf83057e477b0e92d8ba8827f31da30226176d4",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/format/u_format_zs.c",
+      "sha256": "b32ed43bca7eb1cbf4318b85293123a0a3fae3e3e453ab5ea30ea69baad58b2b",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/format/u_format_zs.h",
+      "sha256": "8f9e619acefab53a27b233773af5dc87694304b7aa75d74bce1470474d239125",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/format/u_formats.h",
+      "sha256": "2ef4c629175a9aa2996f6cafbf290897ba1427bc78e4f16559ecaf6a5f429549",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/format_r11g11b10f.h",
+      "sha256": "b0beabfa138da9c4935227e7d4d392c677007d84b7ec90e776f16ac68a79cf19",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/format_rgb9e5.h",
+      "sha256": "f04986a429c43b3d5f50575f91ce65603209e9e53a17d34d7de1c6b129eb9538",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/format_srgb.h",
+      "sha256": "0d1de21d7a961f9a0f442a5816f39930333eb141c6e06ad4afc4ee38bab5a766",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/format_srgb.py",
+      "sha256": "7d217e8055c2486685970812402a44660ad34573d9f33a53f36b9d90fac1f6c9",
+      "notice_blocks": 2
+    },
+    {
+      "path": "mesa/src/util/fossilize_db.h",
+      "sha256": "2a5d7605260cee413a28bec75934f3832c23298a1911b2ef9d8793b21c7d26e9",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/futex.h",
+      "sha256": "acd349682b307cf44957e027f4e3f03f9d4dbdc304e6e588721b748273a9e75e",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/glheader.h",
+      "sha256": "def3c9be62583645c6ecb0f9579414a75aed664fca4fa2d20049f3a54ba7f184",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/half_float.c",
+      "sha256": "274407bb71cd4e2ff0bd164492d6f5797ca5749f748ec00dde27052ad53ecc81",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/half_float.h",
+      "sha256": "1d34147cca817266113117764986fafe42fdca021111ab4744b2dcfe8a7f5669",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/hash_table.c",
+      "sha256": "901d68eee26d7c0592cb48f2ae0c835c288b751cfd135521b6c786a21561e85e",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/hash_table.h",
+      "sha256": "6f15fd9e65e9e6be8f9c6cd497099215e13eea9b0eb8392bb2848b7fbb296f89",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/helpers.h",
+      "sha256": "07e2cb108d8788f4f2351c3d0e546e8f02fb943f8b2ce5b4ee2755bf07dfc4fe",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/hex.h",
+      "sha256": "1e26ec1a4763429e48f539bb3ac9caff781adba47b76342829f441783e0307db",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/libdrm.h",
+      "sha256": "f4e583e3b47ff42a87886e1a88d396838a52b4e0da2df9dbaacdc4cab7665aac",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/libsync.h",
+      "sha256": "592e3c35831f6f11e00aecc8900543e784030c8b289ab5582670b5cc2ace463c",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/list.h",
+      "sha256": "bc9fd7abfdb1f1d5c063a3641cc007e5eb894359fe94278a0648d71b42fb6984",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/log.c",
+      "sha256": "8c44315cc446795526fdb2f7fa8df5191a6d46f94e77bd4cc20b9552dd5ed91e",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/log.h",
+      "sha256": "73ddc3d866ddfba5ec7351a08aa97561b8b3e90703f87992fb8533a00173f32a",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/lut.h",
+      "sha256": "f41dbd49da47251d1add40bab0bffc2ed17f296f6b6988347e84e4354f4cfe45",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/macros.h",
+      "sha256": "f5f5077292630fea47219fed67370efeee2e6e8332339c163e7ee3df2396701f",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/memstream.c",
+      "sha256": "715794f6a93b8211768dc389cf8763387bcc4577292cbc38f77b60214139b751",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/memstream.h",
+      "sha256": "2fe3691c7f616e76469d541bf8a2a4c12a643acc5050db2d2c545864afa53a6e",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/mesa-blake3.c",
+      "sha256": "dcd5b2c7bb6020b983f286788b535a937ff45cef1232708e9fa06946c682d640",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/mesa-blake3.h",
+      "sha256": "abe40b32adcee7e10c08ccb9158ba55fe7b0e7fae7e5161966555a53b3483b6a",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/mesa-sha1.c",
+      "sha256": "417050a0c9a23962f3860c6640bef0fb060cea547769a5d1aad1e9a46f33c2fd",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/mesa-sha1.h",
+      "sha256": "3570fd1a494ea0830442188b7b8b15ea27fa8ce495568d0e9cf5f50527c68d9a",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/mesa_cache_db.h",
+      "sha256": "2839bd9e507058efcc773e71581f8863d32e208c3eb69475b2803641ff723d38",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/mesa_cache_db_multipart.h",
+      "sha256": "7d3e8423a13a4a07efa22d282006165955cc48058cdb4fae61637c57f584d30d",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/os_drm.h",
+      "sha256": "e290b5384924042b371a4342758b3355e910e5f37926e8456789dedeaedd7a27",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/os_file.h",
+      "sha256": "5f15bc4d60f38959028f8fce1f9aeea0fdd0bbd0437ebee0238b682aa89f43ee",
+      "notice_blocks": 2
+    },
+    {
+      "path": "mesa/src/util/os_file_notify.h",
+      "sha256": "6d039bb743cd95feabe022e4b1f6cedfe93233639c115ce80cb66f4c0ad3eef4",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/os_memory.h",
+      "sha256": "58ea533018d008c9b7261321182f3e172dcceba111d6b64a3188f6a9697f5cf9",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/os_memory_aligned.h",
+      "sha256": "70b31922b549fc117ff5e844b069daeeb7bc1b664408de46508ce27b749744a5",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/os_memory_debug.h",
+      "sha256": "c483c80f6670824c6b268043ddb4fcf2b7291ade1859cb82b0b603daffcfac72",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/os_memory_fd.h",
+      "sha256": "0202e8ee39b1eb95dc01d74c830044bdc683d494c07d77b496f22470e6b4deed",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/os_memory_stdc.h",
+      "sha256": "0f8e3c0b484e433286cc11204521a0b6012e4eb351c075b3b39e119c45a45dbb",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/os_misc.c",
+      "sha256": "df28879195a208a3053c261aa5c4c3d4e03cc48ca25b5293fcc6643b50d386e2",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/os_misc.h",
+      "sha256": "43cb6460d6e98ae78803be54b3dd9b8f1cff2d78f85f29be05f0e9b728715a91",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/os_mman.h",
+      "sha256": "34f5497b04e22326af7cb27e10589d5f068d3d6938d28b1d192cbe2978a05f25",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/os_socket.h",
+      "sha256": "98427e8a0e9cd26cb2b205a721a58bb3b10d92b283b8fe445fce196796bd28b1",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/os_time.h",
+      "sha256": "01f5abdcf2867c27e9348fc2706d97639c403bcac8c264e864c5d7ed88ffd8d1",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/parson.h",
+      "sha256": "3eeb8e83f595d559175d50e1544ef22801044bec700d7502070a949e136b330c",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/pb_slab.h",
+      "sha256": "4c829788d489b7d86e81e4599686f785834046869006dcad0f6067eebad95cb0",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/perf/cpu_trace.h",
+      "sha256": "6550501f4c8b14aa8f637ab6e704cf5875b5226ae3178395806ecbc81d33c048",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/perf/gpuvis_trace_utils.h",
+      "sha256": "eeedd75345ef1b34458e9da209eb3f0e0107d7e59686241a4ac226e3c3661971",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/perf/u_gpuvis.h",
+      "sha256": "cfc393e61a0820f2d61bee37351ab42f640f390e4045ab5958c83bc2a4dae2ec",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/perf/u_perfetto.h",
+      "sha256": "4623a8a074caa74d632bc3f9af6a58cf88af3e4df17ef8c07c0b6865bebd0080",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/perf/u_perfetto_renderpass.h",
+      "sha256": "943c246a7fc6d65fd2c3a72f69369cd7c0c605dc698e490aba8967f3059d2bbb",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/perf/u_sysprof.h",
+      "sha256": "95ad8b9e384cf3eea208dff95b4d747b5df4aeba8cecfe8c131643df9c4a9a3d",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/perf/u_trace.h",
+      "sha256": "dc5b61b00fa1de7ac49127b19a113c9e5c30cd9c938808525037d8ed4fd30de8",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/perf/u_trace_priv.h",
+      "sha256": "1ba87cf5702393a24c9fb4a8d21ed4d473e9fee70db6209baf11f9fca222c500",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/ptralloc.h",
+      "sha256": "9f404e2e5d4737074adade367420ef8a90cc21a4dc208ec7d72f66a838d43661",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/ralloc.c",
+      "sha256": "326a7a3427b31b2168cfcee7649e536d7b048916ced63f00915f5e0caaf59703",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/ralloc.h",
+      "sha256": "6531c4b442ae699c17d58372792d5b3c458123b8c22d22101d710d607e2e10d1",
+      "notice_blocks": 2
+    },
+    {
+      "path": "mesa/src/util/rand_xor.h",
+      "sha256": "cd2d102208537846ef062535faa4730c40cf46bad29920baae05b721bd18694f",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/range_minimum_query.c",
+      "sha256": "b7c9790f9b539926d556d758199ee52f45447f56e84fbf9916ffff236aa8d1fc",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/range_minimum_query.h",
+      "sha256": "a2ca6ff344045dc82237c2db6161f951ee8b8b300c762b2700693bac9fb752f7",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/rb_tree.c",
+      "sha256": "a15e4b0f2597e9f743072b0353154f6e19c82be78ca36560d56dd2ff4ca13d1f",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/rb_tree.h",
+      "sha256": "4894e87eb11f38cb3d0b73aef82a81121899b38e6cdc1f71e41fba47cc3e45d8",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/reallocarray.h",
+      "sha256": "6511def792fc0f50f44fcc8f2ea7d673915b3e94ad004e46066401a1420e7985",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/register_allocate.h",
+      "sha256": "b905286e661589c6835d19b0fbf2c00ca540bb3f1064e48a26358a0f61f4de02",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/register_allocate_internal.h",
+      "sha256": "8213ef7b8a914be923688810dd860e15d8e15945e01402c1f79ece3df513a415",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/rgtc.c",
+      "sha256": "8cc61a528a9bd095e3d79e8da040b18c9d354f561a43c2db1534edbdfc407102",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/rgtc.h",
+      "sha256": "8229eb9b0ec6fcfecba6f5a663ba95efc9a8b9cd11f12a6342a374bfb5f72964",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/rounding.h",
+      "sha256": "8d1ab341bffd0f8818b2fbe0d614a1b101ec376fa2fb5f108aec42b349bf722d",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/rwlock.h",
+      "sha256": "7b170ac32c57d8f8ee55f5194473cd4490f33ba684903167c6fefeb5c710ce5f",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/set.c",
+      "sha256": "7bf25bbd280d0c46afecc2ca1b7697f47f768dc539b2cf2fe82a7b7dfd18a045",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/set.h",
+      "sha256": "b95de6f08f9933351ca7278018e6dc2d2084a9d6588ed1a81f273afa51d7a3ba",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/sha1/sha1.c",
+      "sha256": "38dba7373cdc7d95199c7714fe01ba6aa2316c426fd55b573e3a1fd4dc7d7409",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/sha1/sha1.h",
+      "sha256": "ef712024789319389c61160edd5f14dc10a6db83b7cdbf1ed8952dd3ee6dec78",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/simple_mtx.c",
+      "sha256": "6b2cca5826d573e843191216563e48a10862d0c56b487282caa0b37d58535403",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/simple_mtx.h",
+      "sha256": "e0efe2ae0e27477ab412fe62b80dab64d22a8a9e96d9abb59a52dbba2b01241b",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/slab.h",
+      "sha256": "4577c245bce74708fe77fe028b1220fa940679eeca76346f8c1321e884f3d9a3",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/softfloat.c",
+      "sha256": "489faaea77a35a5f037efbbbaf4bbd01286b9837bbab90f7d966982165bff19a",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/softfloat.h",
+      "sha256": "bc123eefce1a230d8d9ac20f0b8a0d1b7ae7116529fda084ffa697534a293c58",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/sparse_array.h",
+      "sha256": "2116a04a1fe6336d7bf9e21cbc96245fdbef8d33382602c9becdd6705aefb432",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/streaming-load-memcpy.h",
+      "sha256": "1ca369c6a9a585ac608fccfe54ba7d1258e518bdd0fa1873fef93194c4bd659d",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/string_buffer.c",
+      "sha256": "63a1d1b1e34926c88ea00159cafbcd56568b805c4f64d1e8c97169fe313921fc",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/string_buffer.h",
+      "sha256": "02c6811fa6449b996e70f9ff7ad5390ddaaf4a71e33fe54910db9e25fd7f673f",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/strndup.c",
+      "sha256": "39c038142883e494f3a5e47ae0b39737b51eed987fd0e37ad16fec2c0dc6b566",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/strndup.h",
+      "sha256": "107695e22dd1b10728fbaf5b6f5facb61211b04e1634c3728a43b0b6e3e809f6",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/strtod.h",
+      "sha256": "936836862139f70aa30e9215bf64d0236675084564ef720f02bb0bca421ca3b2",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/texcompress_astc_luts.h",
+      "sha256": "7f58176cc2f075e3d28d25aadca58c8c7c2a8a28952922170be9f81cd26a70ff",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/texcompress_astc_luts_wrap.h",
+      "sha256": "1556a235d35555d8fda282cfc5082b2001913b43f6b9e7dcdb632e89dfeb9b9f",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/texcompress_rgtc_tmp.h",
+      "sha256": "adfe646c37584b66d922a2067c01d618bc07c198b65b6273c5dd10d0ccce26a7",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/thread_sched.h",
+      "sha256": "fef06f677dae3d5187dfdb3d79679012509bfb088c16cb9c42eceb61ca18a40d",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/timespec.h",
+      "sha256": "0e7c841d33cee635020846fc639fc41e7064f58d6d6f66797e883065131109c7",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/u_atomic.h",
+      "sha256": "81bf636924f9c049606ed8d0be2e01cc7b9facc963955efc1faec2140b510960",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/u_call_once.c",
+      "sha256": "7c1422bc4500403659e7ec6e92269e8de80b4533c5d750aae68262e1c40f6b06",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/u_call_once.h",
+      "sha256": "c9413af6e96b3ad1bb5e684c0b3c15be635f47774d4eb63ff7f273676fab7a58",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/u_cpu_detect.c",
+      "sha256": "73e81119ccc66069c4957a5e263922c0e3f53e09d6657d6d8e559a05fbc8df4b",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/u_cpu_detect.h",
+      "sha256": "6f1ee7dacecaf8cd9d497f9ea6818b94cdd85712a80496951bfb0939e6d3ce4d",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/u_debug.c",
+      "sha256": "ba9a8a5e3bafcbc027973e56bbd9dbc1a71de8c20808c2977768e892b9859179",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/u_debug.h",
+      "sha256": "1c42bc679821b08c72ce0e740b35566964b1c5d5fdb2fe78b50ad2397e61ea64",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/u_debug_stack.h",
+      "sha256": "dcee1c9dedd7e4706ef06d7a89283f4d8ea08825674004b8b9210d144f5786af",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/u_debug_symbol.h",
+      "sha256": "995cf3d6a1a5c32102d9016d049c0b42fed4dd54a9b8bb3ce81edc7eb9392122",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/u_dl.h",
+      "sha256": "75cfebdb76cbbe9e617a89844dbd45a2cdac3e4ceafc4a1d01967853b76366fa",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/u_drm.h",
+      "sha256": "2d6b4c72c5918a4b5d2e162695327371c95af88bac40f590e5d16f654e948750",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/u_dynarray.c",
+      "sha256": "abe2324366e6ca2a5bbbb132c13c282892865662d72fba13fb7955d6711e6122",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/u_dynarray.h",
+      "sha256": "c83f349ea83966dfbd6047f96b4a03e64aaae326293d572a8171150c2af18e35",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/u_endian.h",
+      "sha256": "bf02a7d0e9984cf41e046e559e6c343b972031abaa8ecc253e4c641caa2112ea",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/u_hash_table.h",
+      "sha256": "48e138499a1d81481114586d645ec562fe76a8d12eddeaea1aa2b1137742dea7",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/u_hexdump.h",
+      "sha256": "657b30840097bbe7204a9b901e6a3dfe8e4279b3f30bfeec1cde33d4378f1ea0",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/u_idalloc.h",
+      "sha256": "c69245ad1cf462f9a3dd51b5ffd4c27562eb412a1fbd552e913eee788350f407",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/u_math.h",
+      "sha256": "5f30f98441e16bbfe1556510409aed89c2041154e1b5a2347883dcc3e9e03ac8",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/u_memory.h",
+      "sha256": "8792266c0d8ef9e9765e29c50217dc2bdcf56c6d31e8c0999459fd851ad90f90",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/u_memset.h",
+      "sha256": "443a65d29154951cd0dafac67e5ad24fe73f2b8cc65ce8e79791aa4135327440",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/u_mm.h",
+      "sha256": "c150c9af235564794d4a2801bed592766dc1f8196a493a6c521a5755e0d7a986",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/u_overflow.h",
+      "sha256": "310124da055682608d31503734401eee7f35e1bf19af3695bd6dcef3e691a726",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/u_pack_color.h",
+      "sha256": "eb3c34794d8fbd741b56a7c86ab0da2af88fbd1c3f54ab74f37560e2909c9b28",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/u_pointer.h",
+      "sha256": "0f90c5ef883c31a1a27bb7305563356e5f0f0e2f698dd76563f20a10b802d903",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/u_printf.c",
+      "sha256": "6ebc7b680ee416a84d570e71c96aee27a321af6512998b698978a87a594e8a69",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/u_printf.h",
+      "sha256": "0cbd05e4fe7277dce8d484b9b53c150b1651a1a85212c2d7a323bc1cea15841b",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/u_process.h",
+      "sha256": "a21289a2242194f5c23c19b55929acacb5a20cfbf807b648d8efd0b01c6d2d20",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/u_qsort.cpp",
+      "sha256": "13272fe2193a6fb7877f9fe0dcc546d54631030eb937b3f497fbff9e0b3bc841",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/u_qsort.h",
+      "sha256": "bc38214c68095c10b52f682f6129cfae04100e78ff02d048010b6cc02cdee09c",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/u_queue.h",
+      "sha256": "20fad1ada9a4b8bd6da5eca663fd1c3c52feb7f45338cc0037966bd158839478",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/u_range_remap.h",
+      "sha256": "2fb9f6ecb38b87f56d3d81c527e53e5f10f81e034bb22d5524fd68ecbc3eaf27",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/u_string.h",
+      "sha256": "ea5d9321707b864fdadb222c3763ba9bff0819070534e0656359e4dd8a9febf1",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/u_sync_provider.h",
+      "sha256": "92776c872eb4fc28c16ad5218aa1d3bce1f9c61aaf879b32f497583f4b553ae8",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/u_thread.c",
+      "sha256": "9fbebc6f182851a67f493288dd0a6b5c331bf076d8e7c485a7082058e97235ae",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/u_thread.h",
+      "sha256": "70b79a3a2727e587f8d3e20ceaa0866e8cbe04b1b0f683be32b1129975fc3039",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/u_tristate.h",
+      "sha256": "10a6b080e804ce4427ab4aa2e5a74bebc29fdb48ec29eebbadcdaef599c088a3",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/u_vector.c",
+      "sha256": "356b1fd22b7a0d70e4daf932eac9cfcd3d7f63c32974ed1cb97a4a6c736f99a9",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/u_vector.h",
+      "sha256": "1f2000c00c23e14c16ab65e0ada5c311b4bceeed2ceab6bd8e1adb04bb1c930f",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/u_worklist.c",
+      "sha256": "671f7662afb8b382af90bca911e5f66c65d8b66c7ae528cc4c59ea661721b399",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/u_worklist.h",
+      "sha256": "5994c9bf905f33f83feded13e516a421090566d7380c200d9a60e27b40012252",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/vl_bitstream.h",
+      "sha256": "a24ffe1c00659b9695a333a7c586cf831f0b56029450c402bfcd8f45fa6764c2",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/vl_rbsp.h",
+      "sha256": "c4abde07f3fee1a1fb261ac5bdeb51ba30e0e491dbf7a598070ce1dc4b02cb67",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/vl_vlc.h",
+      "sha256": "0c927bbab4dec0fa949a9d6706c470eec5e48dc7ba0c58f3b240fe733118b00e",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/vl_zscan_data.h",
+      "sha256": "bb828347eba3868b412ffa67f8f7b72704d8d82c5a4f141d97af94e6629c67c1",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/vma.h",
+      "sha256": "1354a3dbf04e907e8cc518cae2263b0f169f73e86d2ea5046e584d8132d4aa02",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/xmlconfig.h",
+      "sha256": "c84142961ce0434861a20988f616a15db4b95107669cd179fbbfa60d06a8b4cc",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/util/xxhash.h",
+      "sha256": "17973c0dc49d9854ca26caa191f0e12f7a424b68858d9a78de3860d959d85e4b",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/vulkan/runtime/vk_object.h",
+      "sha256": "bbf4edc8935651488f2a85e5e8c09ad2160da85787298bedf5b4b39dedad563e",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/vulkan/runtime/vk_ycbcr_conversion.h",
+      "sha256": "cfc497ff45bc32a132297e3d11c2a81c034755699afe2c4ab32a2659ae019a2e",
+      "notice_blocks": 1
+    },
+    {
+      "path": "mesa/src/vulkan/util/vk_format.h",
+      "sha256": "48daf014142613b056720afa592764ff9e9e4bee0541b99398fbab68849b74ca",
+      "notice_blocks": 1
+    },
+    {
+      "path": "sdk-generated/bin/git_sha1.h",
+      "sha256": "59d9b7733fcb766c102b2fade83202741f7f90e7aec968a39ed056959d235b52",
+      "notice_blocks": 0
+    },
+    {
+      "path": "sdk-generated/generated/src/compiler/builtin_types.h",
+      "sha256": "2f9769d4ea56a19408a77fa14f7b8a96d67fa4ff9659413a00466320ad32dbeb",
+      "notice_blocks": 1
+    },
+    {
+      "path": "sdk-generated/generated/src/compiler/ir_expression_operation.h",
+      "sha256": "4d0e49088607810e2c74c5ee381d38c35a5c86ed5b03a1591323336fe4b1b768",
+      "notice_blocks": 1
+    },
+    {
+      "path": "sdk-generated/generated/src/compiler/nir/nir_builder_opcodes.h",
+      "sha256": "dd9ffeb931d027cd71bcae12bb63899ae1629653bb479589eff8741528266b99",
+      "notice_blocks": 1
+    },
+    {
+      "path": "sdk-generated/generated/src/compiler/nir/nir_intrinsics.h",
+      "sha256": "2e88ee4d08fe9b48382fc74a8320a7baa59b27da0ce5e9c856a5c8691afcfed8",
+      "notice_blocks": 1
+    },
+    {
+      "path": "sdk-generated/generated/src/compiler/nir/nir_intrinsics_indices.h",
+      "sha256": "a5c78b3968d4d3e607e607cde24a81059a11a6b4352271246ca6793da1023288",
+      "notice_blocks": 1
+    },
+    {
+      "path": "sdk-generated/generated/src/compiler/nir/nir_opcodes.h",
+      "sha256": "f2e5563829d81a6afc8b457d5f5c412e70224723cd6af6d9d34c55c0614c8209",
+      "notice_blocks": 1
+    },
+    {
+      "path": "sdk-generated/generated/src/compiler/spirv/vtn_generator_ids.h",
+      "sha256": "7d583c730a51daabd0bb214f0d85c2cb5258ac107ccc06f1e87453bc6a580e47",
+      "notice_blocks": 1
+    },
+    {
+      "path": "sdk-generated/generated/src/util/format/u_format_gen.h",
+      "sha256": "a757a50af5500b69627a2b637d0ddb24e032823a2b4ed9a5f9f8aafb263959df",
+      "notice_blocks": 1
+    },
+    {
+      "path": "sdk-generated/generated/src/util/format/u_format_pack.h",
+      "sha256": "b14c7acaab1aaa8134d92a7f8f0b34602adedbbaa152a0a953c7c7ce4a2110f4",
+      "notice_blocks": 1
+    },
+    {
+      "path": "sdk-generated/src/compiler/spirv/spirv_info.h",
+      "sha256": "d4fecab9631d94e55846e544d2f93e494e524f6a323e95373993dfe188dfe318",
+      "notice_blocks": 1
+    },
+    {
+      "path": "godot-nir-static/drivers/d3d12/d3d12_godot_nir_bridge.h",
+      "sha256": "ccf2d85212acdd954a6ac05e61319ec31276d303ebec8d05d54d3d3df475aa49",
+      "notice_blocks": 7
+    },
+    {
+      "path": "godot-nir-static/vulkan/include/vk_video/vulkan_video_codec_h264std.h",
+      "sha256": "5725db044ee674d308e2647cb6d56f21564d53a58411ecc61e3492729fa734fd",
+      "notice_blocks": 1
+    },
+    {
+      "path": "godot-nir-static/vulkan/include/vk_video/vulkan_video_codec_h264std_decode.h",
+      "sha256": "a3697b4e76eb974fcd441d68c1e7fc5dc2613bd7165e85a859744d3952f8344f",
+      "notice_blocks": 1
+    },
+    {
+      "path": "godot-nir-static/vulkan/include/vk_video/vulkan_video_codec_h264std_encode.h",
+      "sha256": "aa8bc568831090917b0985d5ae0f317b530aed62a1d5ccad27556faea5032dbb",
+      "notice_blocks": 1
+    },
+    {
+      "path": "godot-nir-static/vulkan/include/vk_video/vulkan_video_codec_h265std.h",
+      "sha256": "95d87a19ff10f24fd2d040b4cd57b178c8f6eb92cae8fb8baa2a3db5205c76b5",
+      "notice_blocks": 1
+    },
+    {
+      "path": "godot-nir-static/vulkan/include/vk_video/vulkan_video_codec_h265std_decode.h",
+      "sha256": "66bdaae65aeb18af3451e8f3e0608dac57437285008c7e26d1e0ad519e774769",
+      "notice_blocks": 1
+    },
+    {
+      "path": "godot-nir-static/vulkan/include/vk_video/vulkan_video_codec_h265std_encode.h",
+      "sha256": "e71726a811ec651cd3de03ae99e3db9a056b6b423db5112f5ee291153185bae2",
+      "notice_blocks": 1
+    },
+    {
+      "path": "godot-nir-static/vulkan/include/vk_video/vulkan_video_codecs_common.h",
+      "sha256": "5aedcf62bd0c68036e58fee76654261c54a10b3cbc1de4ac215b837685098a55",
+      "notice_blocks": 1
+    },
+    {
+      "path": "godot-nir-static/vulkan/include/vulkan/vk_icd.h",
+      "sha256": "280e77ffc7397b06254d50cd93722311b11eaf41189f873f3560f90d36eb51f2",
+      "notice_blocks": 1
+    },
+    {
+      "path": "godot-nir-static/vulkan/include/vulkan/vk_layer.h",
+      "sha256": "884f89101435128ed68f944f19c078fb8311e55f6e3f9e31097f607a8447323a",
+      "notice_blocks": 1
+    },
+    {
+      "path": "godot-nir-static/vulkan/include/vulkan/vk_platform.h",
+      "sha256": "c2aa81456e5d24f5931f9b2052aaeb85d1a6362abac9ee5fb2029a57579e03a7",
+      "notice_blocks": 1
+    },
+    {
+      "path": "godot-nir-static/vulkan/include/vulkan/vk_sdk_platform.h",
+      "sha256": "a4fce20b4c86dedc9e2c5f1796c42b9ee5a1f29b528a6b481cb60ae7a523db31",
+      "notice_blocks": 1
+    },
+    {
+      "path": "godot-nir-static/vulkan/include/vulkan/vulkan.h",
+      "sha256": "74d7a953a9e02b0f8c6edb8dd3304428ad9cfb14697e50bd5da46c7666717787",
+      "notice_blocks": 1
+    },
+    {
+      "path": "godot-nir-static/vulkan/include/vulkan/vulkan_android.h",
+      "sha256": "3c9dc96f0d2e4d4ac4ea9f5af537d0b5979ba31647bf4920b10e968890acbd04",
+      "notice_blocks": 1
+    },
+    {
+      "path": "godot-nir-static/vulkan/include/vulkan/vulkan_beta.h",
+      "sha256": "b03bfb8b0796df07d1e441c1d585298d10c4b514398e9195dfe34300b3c46c7a",
+      "notice_blocks": 1
+    },
+    {
+      "path": "godot-nir-static/vulkan/include/vulkan/vulkan_core.h",
+      "sha256": "ce0a0c0212956816bbad9cdc69ffde35ec348bd2bdf592c18e39050ec7f83944",
+      "notice_blocks": 1
+    },
+    {
+      "path": "godot-nir-static/vulkan/include/vulkan/vulkan_directfb.h",
+      "sha256": "4737752e389f7ee314de03fff8788c93967e2ad283b87ca34ca0d511213a33db",
+      "notice_blocks": 1
+    },
+    {
+      "path": "godot-nir-static/vulkan/include/vulkan/vulkan_fuchsia.h",
+      "sha256": "6b8ed362cff484037c86ba278ff377056a90ffc305dae14f79a5406ed71e584a",
+      "notice_blocks": 1
+    },
+    {
+      "path": "godot-nir-static/vulkan/include/vulkan/vulkan_ggp.h",
+      "sha256": "d88d523b27fe88ce1ebf6d532d5b3f5954e188a444c4db45327740ef1c659f7d",
+      "notice_blocks": 1
+    },
+    {
+      "path": "godot-nir-static/vulkan/include/vulkan/vulkan_ios.h",
+      "sha256": "0a8a30e3755ee09eaac6b318e9ad24e0dff40696db73252c8cf0fb98cfe785fa",
+      "notice_blocks": 1
+    },
+    {
+      "path": "godot-nir-static/vulkan/include/vulkan/vulkan_macos.h",
+      "sha256": "ee42fc9df7d66e1596e4af2484623264411aa87ddf7f21b44e3108c0c391fd33",
+      "notice_blocks": 1
+    },
+    {
+      "path": "godot-nir-static/vulkan/include/vulkan/vulkan_metal.h",
+      "sha256": "ff730b1cb29eae75305af7483f8b0980e723ebe3f73b6248d8eb6a4d30444794",
+      "notice_blocks": 1
+    },
+    {
+      "path": "godot-nir-static/vulkan/include/vulkan/vulkan_screen.h",
+      "sha256": "206cd78d762bebccdfd6d3dfe785b7241c94b892e83574ec056434e1c0ff270c",
+      "notice_blocks": 1
+    },
+    {
+      "path": "godot-nir-static/vulkan/include/vulkan/vulkan_vi.h",
+      "sha256": "11bf9db57adff2ef8808491394c7ff12351dab016f77a4bb881dc5737f77e9d2",
+      "notice_blocks": 1
+    },
+    {
+      "path": "godot-nir-static/vulkan/include/vulkan/vulkan_wayland.h",
+      "sha256": "f721377e13e70f26db020ce44e9198feda750fc01e5756ee6758f4e904fde74e",
+      "notice_blocks": 1
+    },
+    {
+      "path": "godot-nir-static/vulkan/include/vulkan/vulkan_win32.h",
+      "sha256": "b9d113e451986f4b78bac0e463229d54e0f755a79c7b7a74c5e4218669f66e80",
+      "notice_blocks": 1
+    },
+    {
+      "path": "godot-nir-static/vulkan/include/vulkan/vulkan_xcb.h",
+      "sha256": "e4b5c297d7a717c1bdeb2a39681d94b591cbf29b30c71e18ea1514d569c6ea81",
+      "notice_blocks": 1
+    },
+    {
+      "path": "godot-nir-static/vulkan/include/vulkan/vulkan_xlib.h",
+      "sha256": "1d182afd41ad517907a19a22491941b93bb172521e402305e1fb08e398f7a4f1",
+      "notice_blocks": 1
+    },
+    {
+      "path": "godot-nir-static/vulkan/include/vulkan/vulkan_xlib_xrandr.h",
+      "sha256": "84909fb4afd740ef312753e7212ae4f982a266cf8db36feb03bfb5581c61cea4",
+      "notice_blocks": 1
+    }
+  ],
+  "files_without_notice_blocks": [
+    "mesa/VERSION",
+    "mesa/bin/git_sha1_gen.py",
+    "mesa/src/compiler/nir/nir_inline_helpers.h",
+    "mesa/src/compiler/nir/nir_shader_bisect.c",
+    "mesa/src/mesa/main/extensions_table.h",
+    "mesa/src/mesa/main/glconfig.h",
+    "mesa/src/microsoft/compiler/dxil_validator.cpp",
+    "mesa/src/util/blake3/README",
+    "mesa/src/util/blake3/blake3.c",
+    "mesa/src/util/blake3/blake3.h",
+    "mesa/src/util/blake3/blake3_dispatch.c",
+    "mesa/src/util/blake3/blake3_impl.h",
+    "mesa/src/util/blake3/blake3_portable.c",
+    "mesa/src/util/blake3/mesa_blake3_visibility.h",
+    "mesa/src/util/box.h",
+    "mesa/src/util/drm_is_nouveau.h",
+    "mesa/src/util/format/u_format.yaml",
+    "mesa/src/util/format/u_format_etc.c",
+    "sdk-generated/bin/git_sha1.h"
+  ],
+  "historical_notice_sources": [
+    {
+      "file": "nouveau-parent.NOTICE.txt",
+      "source_file": "nouveau-parent.raw",
+      "source_path": "src/nouveau/vulkan/nvkmd/nouveau/nvkmd_nouveau_pdev.c",
+      "source_ref": "6a217a06d9e08f79b6f71ab1cb3f1b432374fe01",
+      "source_sha256": "2ae7f1cdd9d88169183f6b0057c8e8eecc1ffe2dd295a72e416625b786ab5c30",
+      "notice_sha256": "10e68930ffc4bd3919989b33ac4ec0c0174174c95d20c4ed1339143063e25e2a",
+      "applies_to": "mesa/src/util/drm_is_nouveau.h",
+      "notice_text": "/*\n * Copyright \u00a9 2024 Collabora Ltd. and Red Hat Inc.\n * SPDX-License-Identifier: MIT\n */\n"
+    },
+    {
+      "file": "formats-csv-parent.NOTICE.txt",
+      "source_file": "formats-csv-parent.raw",
+      "source_path": "src/util/format/u_format.csv",
+      "source_ref": "12a33ecd0f5371884b2e81ff9007c75cd86799aa",
+      "source_sha256": "a612d7457076d03b4de5b07c64632d76c239167ad2d8ccbcea96d253ae333d90",
+      "notice_sha256": "8cc08434fdf13defe70ab210941ac18d04332d2148af680794fe8e7b6a14bacf",
+      "applies_to": "mesa/src/util/format/u_format.yaml",
+      "notice_text": "###########################################################################\n#\n# Copyright 2009-2010 VMware, Inc.\n# All Rights Reserved.\n#\n# Permission is hereby granted, free of charge, to any person obtaining a\n# copy of this software and associated documentation files (the\n# \"Software\"), to deal in the Software without restriction, including\n# without limitation the rights to use, copy, modify, merge, publish,\n# distribute, sub license, and/or sell copies of the Software, and to\n# permit persons to whom the Software is furnished to do so, subject to\n# the following conditions:\n#\n# The above copyright notice and this permission notice (including the\n# next paragraph) shall be included in all copies or substantial portions\n# of the Software.\n#\n# THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS\n# OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF\n# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT.\n# IN NO EVENT SHALL THE AUTHORS AND/OR ITS SUPPLIERS BE LIABLE FOR\n# ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,\n# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE\n# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n#\n###########################################################################\n"
+    }
+  ],
+  "source_lineage_registry_sha256": "5e0fe5110647e7f86dd044961009c8504cba4e7ee025bd115be7b2e292f54460",
+  "scope": "Conservative notice inventory, not a binary link contribution or legal opinion"
+}

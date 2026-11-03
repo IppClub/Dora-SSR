@@ -36,6 +36,8 @@
 #include "os_windows.h"
 #ifdef GLES3_ENABLED
 #include "modules/dora_bridge/gl/display_server_dora_gl.h"
+#elif defined(D3D12_ENABLED)
+#include "modules/dora_bridge/display_server_dora_d3d12.h"
 #endif
 
 static OS_Windows *os = nullptr;
@@ -48,6 +50,8 @@ GDExtensionObjectPtr libgodot_create_godot_instance(int p_argc, char *p_argv[], 
 	os = new OS_Windows(GetModuleHandle(nullptr));
 #ifdef GLES3_ENABLED
 	DisplayServer::register_create_function("dora-gl", DisplayServerDoraGL::create, DisplayServerDoraGL::drivers);
+#elif defined(D3D12_ENABLED)
+	DisplayServer::register_create_function("dora-d3d12", DisplayServerDoraD3D12::create, DisplayServerDoraD3D12::drivers);
 #endif
 
 	Error err = Main::setup(p_argv[0], p_argc - 1, &p_argv[1], false);

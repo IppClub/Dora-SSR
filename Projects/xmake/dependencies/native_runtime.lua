@@ -246,6 +246,11 @@ if is_plat("windows") then
                 envs.CARGO_TARGET_DIR = cargo_target_dir
                 local host_toolchain = envs.RUSTUP_TOOLCHAIN or "stable"
                 envs.RUSTUP_TOOLCHAIN = host_toolchain
+                import("lib.detect.find_tool")
+                local rustup = assert(find_tool("rustup", {envs = envs, force = true}),
+                    "Windows Rust build requires rustup in the configured tool environment").program
+                local cargo = assert(find_tool("cargo", {envs = envs, force = true}),
+                    "Windows Rust build requires cargo in the configured tool environment").program
                 local cc, cxx, ar
                 if mingw then
                     cc = assert(os.getenv("CC") or target:tool("cc"),
@@ -260,15 +265,34 @@ if is_plat("windows") then
                     envs["AR_" .. env_triple] = ar
                     envs["CARGO_TARGET_" .. env_triple:upper() .. "_LINKER"] = cc
                 end
-                os.vrunv("rustup", {
-                    "toolchain", "install", host_toolchain, "--profile", "minimal"
+                -- Building should use an installed toolchain without updating
+                -- its channel manifest or requiring a network connection.
+                local installed = try {function ()
+                    os.iorunv(rustup, {"run", host_toolchain, "rustc", "--version"},
+                        {envs = envs, curdir = rust_dir})
+                    return true
+                end}
+                if not installed then
+                    os.vrunv(rustup, {
+                        "toolchain", "install", host_toolchain, "--profile", "minimal"
+                    }, {envs = envs, curdir = rust_dir})
+                end
+                local targets = os.iorunv(rustup, {
+                    "target", "list", "--toolchain", host_toolchain, "--installed"
                 }, {envs = envs, curdir = rust_dir})
-                os.vrunv("rustup", {"target", "add", triple}, {envs = envs, curdir = rust_dir})
+                local target_installed = false
+                for installed_target in targets:gmatch("[^\r\n]+") do
+                    if installed_target:trim() == triple then target_installed = true; break end
+                end
+                if not target_installed then
+                    os.vrunv(rustup, {"target", "add", triple, "--toolchain", host_toolchain},
+                        {envs = envs, curdir = rust_dir})
+                end
                 local argv = {"build", "--locked", "--target", triple}
                 if profile == "release" then
                     table.insert(argv, "--release")
                 end
-                os.vrunv("cargo", argv, {envs = envs, curdir = rust_dir})
+                os.vrunv(cargo, argv, {envs = envs, curdir = rust_dir})
                 os.mkdir(path.directory(output))
                 os.cp(path.join(cargo_target_dir, triple, profile, output_name), output)
             end, {

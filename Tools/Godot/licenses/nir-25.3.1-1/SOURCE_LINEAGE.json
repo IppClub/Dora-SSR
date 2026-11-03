@@ -1,0 +1,143 @@
+{
+  "schema": 1,
+  "mesa_commit": "5005a50879b11b953ade113fccd13a208f706ba0",
+  "scope": "Historical extraction/conversion and retained parent notices for five files; not blanket component licensing or full legal review",
+  "evidence": [
+    {
+      "file": "nir-c-parent.raw",
+      "url": "https://gitlab.freedesktop.org/api/v4/projects/mesa%2Fmesa/repository/files/src%2Fcompiler%2Fnir%2Fnir.c/raw?ref=325f627d88623dc2906a159b8c2617f5413b28cf",
+      "sha256": "b3c874611c772c58f6b483aa95ec6559984df3c2a5929b2f860ae173d5bc398d"
+    },
+    {
+      "file": "nir-h-parent.raw",
+      "url": "https://gitlab.freedesktop.org/api/v4/projects/mesa%2Fmesa/repository/files/src%2Fcompiler%2Fnir%2Fnir.h/raw?ref=325f627d88623dc2906a159b8c2617f5413b28cf",
+      "sha256": "fb32447b30e6590f1a2363720cc08c866630ed111de63032c64f805bbaf95046"
+    },
+    {
+      "file": "mtypes-parent.raw",
+      "url": "https://gitlab.freedesktop.org/api/v4/projects/mesa%2Fmesa/repository/files/src%2Fmesa%2Fmain%2Fmtypes.h/raw?ref=4346f392993855ed4debba43032a498e2cd53ee4",
+      "sha256": "21c389eca7d63b63b5abfbe671aed35b935267880075a0e462f237ce1b3f9776"
+    },
+    {
+      "file": "commit-16fa44205744a336c55049b4e8fcf5995c0df9a7-diff.json",
+      "url": "https://gitlab.freedesktop.org/api/v4/projects/mesa%2Fmesa/repository/commits/16fa44205744a336c55049b4e8fcf5995c0df9a7/diff?per_page=100",
+      "sha256": "4cccbf947aaf8c9c6b7a0a910f95e713aaa67c0fccf576bbc549a01862d83816"
+    },
+    {
+      "file": "commit-336bcbacd05d6fb7ec1aabab68773de17d081eed-diff.json",
+      "url": "https://gitlab.freedesktop.org/api/v4/projects/mesa%2Fmesa/repository/commits/336bcbacd05d6fb7ec1aabab68773de17d081eed/diff?per_page=100",
+      "sha256": "2a3b214a0ef74df07676be0d6e6e2f98afdb8b3dd01cca37777e23ef3e6c6693"
+    },
+    {
+      "file": "nouveau-parent.raw",
+      "url": "https://gitlab.freedesktop.org/api/v4/projects/mesa%2Fmesa/repository/files/src%2Fnouveau%2Fvulkan%2Fnvkmd%2Fnouveau%2Fnvkmd_nouveau_pdev.c/raw?ref=6a217a06d9e08f79b6f71ab1cb3f1b432374fe01",
+      "sha256": "2ae7f1cdd9d88169183f6b0057c8e8eecc1ffe2dd295a72e416625b786ab5c30"
+    },
+    {
+      "file": "formats-csv-parent.raw",
+      "url": "https://gitlab.freedesktop.org/api/v4/projects/mesa%2Fmesa/repository/files/src%2Futil%2Fformat%2Fu_format.csv/raw?ref=12a33ecd0f5371884b2e81ff9007c75cd86799aa",
+      "sha256": "a612d7457076d03b4de5b07c64632d76c239167ad2d8ccbcea96d253ae333d90"
+    },
+    {
+      "file": "commit-4be68b119e62bc54c9e53ac57e0503ea65e3a4b3-diff.json",
+      "url": "https://gitlab.freedesktop.org/api/v4/projects/mesa%2Fmesa/repository/commits/4be68b119e62bc54c9e53ac57e0503ea65e3a4b3/diff?per_page=100",
+      "sha256": "bee7b4e5251a7e2f4982fea4bad9797c5e559188d36b5e065be786f6b5abff45"
+    },
+    {
+      "file": "commit-ccc6442d6f0539571c413222e0d6aadc78bc5d4d-diff.json",
+      "url": "https://gitlab.freedesktop.org/api/v4/projects/mesa%2Fmesa/repository/commits/ccc6442d6f0539571c413222e0d6aadc78bc5d4d/diff?per_page=100",
+      "sha256": "773a1de0bcf31b4c4cb122685b73f2b2f04710c43de43beba19a7cecbc813479"
+    },
+    {
+      "file": "extensions-parent.raw",
+      "url": "https://gitlab.freedesktop.org/api/v4/projects/mesa%2Fmesa/repository/files/src%2Fmesa%2Fmain%2Fextensions.c/raw?ref=c0b568f3db7968bde2b6c6e887522f2c208188cf",
+      "sha256": "9a62fe9bc8a4c28af8d2854e659b41116e198ce67446d0840a3759114d6d71b1"
+    },
+    {
+      "file": "commit-8bd82a91c05804260041b572b1a5d812cb58ae96-diff.json",
+      "url": "https://gitlab.freedesktop.org/api/v4/projects/mesa%2Fmesa/repository/commits/8bd82a91c05804260041b572b1a5d812cb58ae96/diff?per_page=100",
+      "sha256": "d6b1d35fb4a8760c1ffac50e43e9f9c9b535b0f763a7ab97f325a884968c68b3"
+    }
+  ],
+  "reviews": [
+    {
+      "path": "mesa/src/compiler/nir/nir_inline_helpers.h",
+      "commit": "336bcbacd05d6fb7ec1aabab68773de17d081eed",
+      "rule": "nir-inline-extraction",
+      "parents": [
+        {
+          "file": "nir-c-parent.raw",
+          "path": "src/compiler/nir/nir.c"
+        },
+        {
+          "file": "nir-h-parent.raw",
+          "path": "src/compiler/nir/nir.h"
+        }
+      ]
+    },
+    {
+      "path": "mesa/src/mesa/main/glconfig.h",
+      "commit": "16fa44205744a336c55049b4e8fcf5995c0df9a7",
+      "rule": "gl-config-struct-extraction",
+      "parents": [
+        {
+          "file": "mtypes-parent.raw",
+          "path": "src/mesa/main/mtypes.h"
+        }
+      ]
+    },
+    {
+      "path": "mesa/src/util/drm_is_nouveau.h",
+      "commit": "4be68b119e62bc54c9e53ac57e0503ea65e3a4b3",
+      "rule": "nouveau-helper-extraction",
+      "parents": [
+        {
+          "file": "nouveau-parent.raw",
+          "path": "src/nouveau/vulkan/nvkmd/nouveau/nvkmd_nouveau_pdev.c"
+        }
+      ]
+    },
+    {
+      "path": "mesa/src/util/format/u_format.yaml",
+      "commit": "ccc6442d6f0539571c413222e0d6aadc78bc5d4d",
+      "rule": "format-table-conversion",
+      "parents": [
+        {
+          "file": "formats-csv-parent.raw",
+          "path": "src/util/format/u_format.csv"
+        }
+      ]
+    },
+    {
+      "path": "mesa/src/mesa/main/extensions_table.h",
+      "commit": "8bd82a91c05804260041b572b1a5d812cb58ae96",
+      "rule": "extensions-table-extraction",
+      "parents": [
+        {
+          "file": "extensions-parent.raw",
+          "path": "src/mesa/main/extensions.c"
+        }
+      ]
+    }
+  ],
+  "historical_notices": [
+    {
+      "file": "nouveau-parent.NOTICE.txt",
+      "source_file": "nouveau-parent.raw",
+      "source_path": "src/nouveau/vulkan/nvkmd/nouveau/nvkmd_nouveau_pdev.c",
+      "source_ref": "6a217a06d9e08f79b6f71ab1cb3f1b432374fe01",
+      "source_sha256": "2ae7f1cdd9d88169183f6b0057c8e8eecc1ffe2dd295a72e416625b786ab5c30",
+      "notice_sha256": "10e68930ffc4bd3919989b33ac4ec0c0174174c95d20c4ed1339143063e25e2a",
+      "applies_to": "mesa/src/util/drm_is_nouveau.h"
+    },
+    {
+      "file": "formats-csv-parent.NOTICE.txt",
+      "source_file": "formats-csv-parent.raw",
+      "source_path": "src/util/format/u_format.csv",
+      "source_ref": "12a33ecd0f5371884b2e81ff9007c75cd86799aa",
+      "source_sha256": "a612d7457076d03b4de5b07c64632d76c239167ad2d8ccbcea96d253ae333d90",
+      "notice_sha256": "8cc08434fdf13defe70ab210941ac18d04332d2148af680794fe8e7b6a14bacf",
+      "applies_to": "mesa/src/util/format/u_format.yaml"
+    }
+  ]
+}

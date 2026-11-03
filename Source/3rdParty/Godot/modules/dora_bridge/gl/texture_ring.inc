@@ -70,14 +70,20 @@ uint64_t dora_gl_copy(void *p,uint32_t source,uint32_t slot,uint64_t last_read) 
 uint64_t dora_gl_copy_async(void *p,uint32_t source,uint32_t slot,uint64_t last_read) {
     return copy_slot(p,source,slot,last_read,true);
 }
+int dora_gl_begin_direct(void *p,uint32_t slot,uint64_t last_read,int queued) {
+    auto *t=get(p); if (!t || slot>=t->buffers
+        || !(queued?dora_gl_can_advance(t,slot,last_read):dora_gl_can_produce(t,slot,last_read))) return 0;
+    const auto &s=t->slots[slot];
+    if (s.consumed) glWaitSync(s.consumed,0,GL_TIMEOUT_IGNORED);
+    return check(t);
+}
 static uint64_t publish_slot(void *p,uint32_t slot,uint64_t last_read,bool queued) {
     auto *t=get(p); if (!t || slot>=t->buffers
         || !(queued?dora_gl_can_advance(t,slot,last_read):dora_gl_can_produce(t,slot,last_read))) return 0;
     auto &s=t->slots[slot];
     // Godot has already rendered into this borrowed slot texture. The host
-    // consumer fence protects it from being selected while still sampled;
+    // consumer wait was submitted by begin_direct before any rendering;
     // this new fence publishes the completed direct render to the host.
-    if (s.consumed) glWaitSync(s.consumed,0,GL_TIMEOUT_IGNORED);
     if (s.ready) glDeleteSync(s.ready);
     s.ready=glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE,0); glFlush();
     if (!s.ready || !check(t)) return 0;

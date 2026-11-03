@@ -1,0 +1,345 @@
+{
+  "schema_version": 1,
+  "scope": "Retained-source correspondence with fixed bgfx and equivalent Khronos baseline; original import checkout and patch authorship are not inferred.",
+  "dora_import_commit": "0836aa1d1fc898d712c078a46e2ca9e10b70402e",
+  "bgfx_commit": "f1e0ba4b0bf9eaccf25889392c112ee98aeda272",
+  "bgfx_tree": "012a5e6a5ec269e592f0002b9dcfe9240738cfdf",
+  "bgfx_commit_evidence_sha256": "8d3a2558e491ba0e7964bf9fe6540023e5faa09ac1c277918e4d2eedf570941b",
+  "bgfx_tree_evidence_sha256": "ae18d664bb0ffba08e8cd950f623c806a7a4f39e92ba404467b0ac77f9b05c62",
+  "upstream_repository": "KhronosGroup/SPIRV-Cross",
+  "upstream_commit": "b26ac3fa8bcfe76c361b56e3284b5276b23453ce",
+  "upstream_archive_url": "https://codeload.github.com/KhronosGroup/SPIRV-Cross/tar.gz/b26ac3fa8bcfe76c361b56e3284b5276b23453ce",
+  "upstream_archive_sha256": "bd1e51025da2bee394f3c0ac0f15e755728f59a0167cc6eea35757b0dfded10b",
+  "upstream_archive_bytes": 1940298,
+  "version": "fixed commit, no release version inferred",
+  "patch": {
+    "path": "patches/bgfx-retained.patch",
+    "sha256": "e789fbf17c8193c9dd27f93a151a36fb280d78beb1ed0bda0797b9c26b4973fa"
+  },
+  "files": [
+    {
+      "path": "GLSL.std.450.h",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "6f56e094663fded4435ab1d3d8c24d72adb3bf82832fc002ecf0a0d4d96543e9",
+      "upstream_sha256": "6f56e094663fded4435ab1d3d8c24d72adb3bf82832fc002ecf0a0d4d96543e9",
+      "bgfx_blob_sha1": "2686fc4ea7e075cbc1f6c202b6f2901443ec0006",
+      "mode": "100644"
+    },
+    {
+      "path": "LICENSE",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "upstream_sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "bgfx_blob_sha1": "d645695673349e3947e8e5ae42332d0ac3164cd7",
+      "mode": "100644"
+    },
+    {
+      "path": "include/spirv_cross/barrier.hpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "414b81898092b8cd3d04b738a7f5247b70842eb44040436d7c731250e6917526",
+      "upstream_sha256": "414b81898092b8cd3d04b738a7f5247b70842eb44040436d7c731250e6917526",
+      "bgfx_blob_sha1": "4ca7f4d77cb42ccc3f02356669cfdf12755b504b",
+      "mode": "100644"
+    },
+    {
+      "path": "include/spirv_cross/external_interface.h",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "45f04bb4c3e22f9eda84fa780b4ab0ac567d775c61cbe1e22474a6ed2fcccb7d",
+      "upstream_sha256": "45f04bb4c3e22f9eda84fa780b4ab0ac567d775c61cbe1e22474a6ed2fcccb7d",
+      "bgfx_blob_sha1": "949654f5bff9271714e95ee0b28b1ad66b0729e6",
+      "mode": "100644"
+    },
+    {
+      "path": "include/spirv_cross/image.hpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "28ef603f5938314b7f4696c38a7b65da4b1176379f8e378c879cf5ec20fd3f40",
+      "upstream_sha256": "28ef603f5938314b7f4696c38a7b65da4b1176379f8e378c879cf5ec20fd3f40",
+      "bgfx_blob_sha1": "a41ccdfbb4031c3520e3826c5bc3d98dc70d2762",
+      "mode": "100644"
+    },
+    {
+      "path": "include/spirv_cross/internal_interface.hpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "33276a0e3f5038f40a889712526e3da22d8abe5fc1ca889ffdee23c850746834",
+      "upstream_sha256": "33276a0e3f5038f40a889712526e3da22d8abe5fc1ca889ffdee23c850746834",
+      "bgfx_blob_sha1": "3ff7f8e258c75ef6cde75b5e2000e4edfc121146",
+      "mode": "100644"
+    },
+    {
+      "path": "include/spirv_cross/sampler.hpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "ce751adfa65f989d583095e71fe33e24f28995136912fe51157d340ae72eceb5",
+      "upstream_sha256": "ce751adfa65f989d583095e71fe33e24f28995136912fe51157d340ae72eceb5",
+      "bgfx_blob_sha1": "020848095147be5d0ea55cb91a3b452c899762b3",
+      "mode": "100644"
+    },
+    {
+      "path": "include/spirv_cross/thread_group.hpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "eecad5e505af90dd6ffd0818a786804ca034d393155debf5666cf79d62dcf57c",
+      "upstream_sha256": "eecad5e505af90dd6ffd0818a786804ca034d393155debf5666cf79d62dcf57c",
+      "bgfx_blob_sha1": "b2155815625ab9cdcef9338ec6cfeaa8c88efa2d",
+      "mode": "100644"
+    },
+    {
+      "path": "main.cpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "a9a09340c7149e57f26f67c13aeca5ef9f0bb3f9c8d60e8f275131d1b6022821",
+      "upstream_sha256": "a9a09340c7149e57f26f67c13aeca5ef9f0bb3f9c8d60e8f275131d1b6022821",
+      "bgfx_blob_sha1": "605901648e73b0f675a42158ae4b2b82f7f643ec",
+      "mode": "100644"
+    },
+    {
+      "path": "spirv.h",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "139e717765737fb46b3267a10db5af5544410b176872eb6737f38c3b814fd370",
+      "upstream_sha256": "139e717765737fb46b3267a10db5af5544410b176872eb6737f38c3b814fd370",
+      "bgfx_blob_sha1": "005d451d3336972dca405718bd0485d8bf775b24",
+      "mode": "100644"
+    },
+    {
+      "path": "spirv.hpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "b00492b60db6516f45a965553e5937ebd556cb524f7558a5072897bf15b5ab16",
+      "upstream_sha256": "b00492b60db6516f45a965553e5937ebd556cb524f7558a5072897bf15b5ab16",
+      "bgfx_blob_sha1": "f7a7bf835e86ca2613aceea45928855817f950ab",
+      "mode": "100644"
+    },
+    {
+      "path": "spirv_cfg.cpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "248526af6c0b3c74c318f5e085cf3966a2d79683849a3de264b95e73903c279c",
+      "upstream_sha256": "248526af6c0b3c74c318f5e085cf3966a2d79683849a3de264b95e73903c279c",
+      "bgfx_blob_sha1": "c68886d989bc8f4a475661008a394471cff4ef98",
+      "mode": "100644"
+    },
+    {
+      "path": "spirv_cfg.hpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "7453c4b79d243051456298452d7248cdd0ef4e04d0556309f7bedfafb7085973",
+      "upstream_sha256": "7453c4b79d243051456298452d7248cdd0ef4e04d0556309f7bedfafb7085973",
+      "bgfx_blob_sha1": "1c21ea070bd6c644fbdad0239cbc1d68aa697ae3",
+      "mode": "100644"
+    },
+    {
+      "path": "spirv_common.hpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "9201fb9df00ce1b9c6f05895c37767bc6218088b9325fc213dc56a8d3e6b2886",
+      "upstream_sha256": "9201fb9df00ce1b9c6f05895c37767bc6218088b9325fc213dc56a8d3e6b2886",
+      "bgfx_blob_sha1": "854efe5ebfc0e7200e238928a0cb4603a055429a",
+      "mode": "100644"
+    },
+    {
+      "path": "spirv_cpp.cpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "0c22dae9f7b68c206ecd0ee5eaa94898a65ad193679038cb661fe09b50fd8578",
+      "upstream_sha256": "0c22dae9f7b68c206ecd0ee5eaa94898a65ad193679038cb661fe09b50fd8578",
+      "bgfx_blob_sha1": "61c30e9e55caf90e7eb74812e635733c987808b8",
+      "mode": "100644"
+    },
+    {
+      "path": "spirv_cpp.hpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "689fd45a5241b3f29c9702f566a2c9467d42748de4072e0849d602eae66ada06",
+      "upstream_sha256": "689fd45a5241b3f29c9702f566a2c9467d42748de4072e0849d602eae66ada06",
+      "bgfx_blob_sha1": "c76629cdcbed4ec13e8c24fd236306a9122e7c1a",
+      "mode": "100644"
+    },
+    {
+      "path": "spirv_cross.cpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "076da4c5e1e25db8d20852772b1d48047ffd319d82bdd6d6a47f7287901f7a49",
+      "upstream_sha256": "076da4c5e1e25db8d20852772b1d48047ffd319d82bdd6d6a47f7287901f7a49",
+      "bgfx_blob_sha1": "4c1d39d98b8a0e95baadc048db54bb7c0d2b1b54",
+      "mode": "100644"
+    },
+    {
+      "path": "spirv_cross.hpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "e46ffa779e3f9debde7c5f575bf71929c2a4d9ce261341b7f1ff02213e14ce3f",
+      "upstream_sha256": "e46ffa779e3f9debde7c5f575bf71929c2a4d9ce261341b7f1ff02213e14ce3f",
+      "bgfx_blob_sha1": "65e4bedfa38660eb0398b90c581a847ef095fae5",
+      "mode": "100644"
+    },
+    {
+      "path": "spirv_cross_c.cpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "4c4e4a32a33f96de3a4bf6becfffb6311f3acf4929d4bbafc221673b73179d02",
+      "upstream_sha256": "4c4e4a32a33f96de3a4bf6becfffb6311f3acf4929d4bbafc221673b73179d02",
+      "bgfx_blob_sha1": "8a4a49279c42ba7a50517a58a3cd576c9122b96d",
+      "mode": "100644"
+    },
+    {
+      "path": "spirv_cross_c.h",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "baf783b35e676a6381498feada7c13b839a27ac4c9f5c849ab77582a98665536",
+      "upstream_sha256": "baf783b35e676a6381498feada7c13b839a27ac4c9f5c849ab77582a98665536",
+      "bgfx_blob_sha1": "f360711e8ebaa17fb5cc643aab200fd769c9b2f0",
+      "mode": "100644"
+    },
+    {
+      "path": "spirv_cross_containers.hpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "81c28e562046fc518a57be4e7eb9af836d3b05a6d9fb3f766a671638c275441f",
+      "upstream_sha256": "81c28e562046fc518a57be4e7eb9af836d3b05a6d9fb3f766a671638c275441f",
+      "bgfx_blob_sha1": "c496cb75be5498544b04eab417bc3d13656807d6",
+      "mode": "100644"
+    },
+    {
+      "path": "spirv_cross_error_handling.hpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "af7ceaa02741ed3cb9a8c8dd347d428f7a27f82d41ac57dbc5ad0dbaab8a368f",
+      "upstream_sha256": "af7ceaa02741ed3cb9a8c8dd347d428f7a27f82d41ac57dbc5ad0dbaab8a368f",
+      "bgfx_blob_sha1": "91e6cf4f86be53e20fc479848d54a98483b010be",
+      "mode": "100644"
+    },
+    {
+      "path": "spirv_cross_parsed_ir.cpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "fd7dafbe3634426bab1ce3371ecc90a38179c4b117e17fe7898c9bf52fe41e40",
+      "upstream_sha256": "fd7dafbe3634426bab1ce3371ecc90a38179c4b117e17fe7898c9bf52fe41e40",
+      "bgfx_blob_sha1": "1dcd24e9f024c8a9465e817d674dc1e27f529606",
+      "mode": "100644"
+    },
+    {
+      "path": "spirv_cross_parsed_ir.hpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "f83eda4122a4a972286d0fa5a216578f866df0225922f8a3ac6fc349563cef07",
+      "upstream_sha256": "f83eda4122a4a972286d0fa5a216578f866df0225922f8a3ac6fc349563cef07",
+      "bgfx_blob_sha1": "8c30ef819793093f953f8a5f8bddbbeffecc7336",
+      "mode": "100644"
+    },
+    {
+      "path": "spirv_cross_util.cpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "19d1e9816983acd76553f06163547f09ab2906c824c4a272dc9353c126f79ec0",
+      "upstream_sha256": "19d1e9816983acd76553f06163547f09ab2906c824c4a272dc9353c126f79ec0",
+      "bgfx_blob_sha1": "7cff010d1c1e9ae1ad02e14eab13b2db88eef069",
+      "mode": "100644"
+    },
+    {
+      "path": "spirv_cross_util.hpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "0942b0bae888eb986685adaf2d6741d15d4811711056d8dbc68fa80f40d18480",
+      "upstream_sha256": "0942b0bae888eb986685adaf2d6741d15d4811711056d8dbc68fa80f40d18480",
+      "bgfx_blob_sha1": "e6e3fcdb6340083259535db4ded9da1310d8bf8c",
+      "mode": "100644"
+    },
+    {
+      "path": "spirv_glsl.cpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "8760139e5fef7debe9be0e465f2c72ac5bc16ed23eb550f3f82b20b4b2507d17",
+      "upstream_sha256": "8760139e5fef7debe9be0e465f2c72ac5bc16ed23eb550f3f82b20b4b2507d17",
+      "bgfx_blob_sha1": "5392bd796ae53825b88537c156960e08afd8b28f",
+      "mode": "100644"
+    },
+    {
+      "path": "spirv_glsl.hpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "0bbce9597cdeebbabe0d5b8268d25acbd4307b8445f5fb01cb8ae7babe66e9b0",
+      "upstream_sha256": "0bbce9597cdeebbabe0d5b8268d25acbd4307b8445f5fb01cb8ae7babe66e9b0",
+      "bgfx_blob_sha1": "776ab8a6c93a244f52c961d3ec1608d298689f89",
+      "mode": "100644"
+    },
+    {
+      "path": "spirv_hlsl.cpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "b8cdd387a195ea9c15720d73eb535ab6ec3b5990e34ccd58baee5ac0426caed2",
+      "upstream_sha256": "b8cdd387a195ea9c15720d73eb535ab6ec3b5990e34ccd58baee5ac0426caed2",
+      "bgfx_blob_sha1": "0db81c46ef2d8220afa2e5e662e2be54b5717ce9",
+      "mode": "100644"
+    },
+    {
+      "path": "spirv_hlsl.hpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "142c8dd2f329e5f53d8e09899e5c09899314821fc2366616f6c2f5bcd5907e36",
+      "upstream_sha256": "142c8dd2f329e5f53d8e09899e5c09899314821fc2366616f6c2f5bcd5907e36",
+      "bgfx_blob_sha1": "4303bb7d5f0293bceb9bbdb6c9a6ba01c3bf24b7",
+      "mode": "100644"
+    },
+    {
+      "path": "spirv_msl.cpp",
+      "upstream_present": true,
+      "identical": false,
+      "sha256": "2d3a197d6d2ded6445ecbe7e678a4273c56253286e113f9ad495ddd70735b46f",
+      "upstream_sha256": "2415102f5de40729cd301bccb5c09f84f19ffe444be8d58c13239488dcd2a1d8",
+      "bgfx_blob_sha1": "f604314416d19055624712e3630325609fab66a2",
+      "mode": "100644"
+    },
+    {
+      "path": "spirv_msl.hpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "c6ce4cc773388aeb0198988abaea154d38ecddd44f5c956feb8099c0e30d5f93",
+      "upstream_sha256": "c6ce4cc773388aeb0198988abaea154d38ecddd44f5c956feb8099c0e30d5f93",
+      "bgfx_blob_sha1": "cd767ea15ae9c9188e29b8748748470291a762bd",
+      "mode": "100644"
+    },
+    {
+      "path": "spirv_parser.cpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "537b50f6bab0a4359e6dec3db23e4bf61ed9167f16b2f8070406b574d3e5d06b",
+      "upstream_sha256": "537b50f6bab0a4359e6dec3db23e4bf61ed9167f16b2f8070406b574d3e5d06b",
+      "bgfx_blob_sha1": "f3ea7e288450cc3b61af7b00e1cd539d8a459079",
+      "mode": "100644"
+    },
+    {
+      "path": "spirv_parser.hpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "e5cc214ad1d87bd78183f2e72a902c0fb994dc18e7aa6e83e86cb2875708c2f2",
+      "upstream_sha256": "e5cc214ad1d87bd78183f2e72a902c0fb994dc18e7aa6e83e86cb2875708c2f2",
+      "bgfx_blob_sha1": "dabc0e22446bce815ee98b0eb28eff503d50415d",
+      "mode": "100644"
+    },
+    {
+      "path": "spirv_reflect.cpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "b3b903c9303253b057a9679d8265d523104de14582ab50e2130b3abdf467b847",
+      "upstream_sha256": "b3b903c9303253b057a9679d8265d523104de14582ab50e2130b3abdf467b847",
+      "bgfx_blob_sha1": "ab5a91f9e3ff1a42f644054667daeea8931d7370",
+      "mode": "100644"
+    },
+    {
+      "path": "spirv_reflect.hpp",
+      "upstream_present": true,
+      "identical": true,
+      "sha256": "a8eb35b4f665d42e9ffb18af09f2b6c1bcc3ef9ef92dd7d9dd043c1e943a8b96",
+      "upstream_sha256": "a8eb35b4f665d42e9ffb18af09f2b6c1bcc3ef9ef92dd7d9dd043c1e943a8b96",
+      "bgfx_blob_sha1": "a129ba54da57b6bf977d26951539649a09fa7198",
+      "mode": "100644"
+    }
+  ]
+}

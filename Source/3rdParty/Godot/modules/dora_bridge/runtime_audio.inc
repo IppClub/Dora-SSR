@@ -14,6 +14,9 @@ static_assert(audio_target_frames<=Dora::GodotAudioQueue::Capacity);
 struct AudioCapture {
     Dora::GodotAudioQueue queue;
     Thread thread;
+#ifdef WINDOWS_ENABLED
+    Semaphore worker_ready;
+#endif
     // Opt-in test evidence: written by producer, inspected only after join.
     struct ProducerEvent { uint64_t at, gap, mix, produced; uint32_t queued; };
     std::array<ProducerEvent,64> producerEvents{};
@@ -54,6 +57,17 @@ void produce_audio(uint32_t frames) {
 }
 void audio_worker(void *) {
     Thread::set_name("DoraGodotPCM");
+#ifdef WINDOWS_ENABLED
+    // Godot's Windows Thread backend does not apply Thread::Settings priority.
+    // Boost only this bounded PCM producer, before the host starts consumption.
+    const HANDLE thread=GetCurrentThread();
+    const int before=GetThreadPriority(thread);
+    const bool raised=SetThreadPriority(thread,THREAD_PRIORITY_ABOVE_NORMAL)!=0;
+    const int after=GetThreadPriority(thread);
+    if (audio_capture.traceProducer)
+        print_line(vformat("DORA_PCM_PRIORITY before=%d after=%d failed=%d",before,after,int(!raised)));
+    audio_capture.worker_ready.post();
+#endif
 #ifdef ANDROID_ENABLED
     // Match the host SDL audio consumer without using realtime scheduling.
     JNIEnv *jni=get_jni_env();
@@ -120,6 +134,9 @@ int start_audio_capture(void *handle) {
     if (!audio_capture.thread.is_started()) {
         audio_capture.stop=true; runtime.error="cannot start Godot PCM worker"; return 0;
     }
+#ifdef WINDOWS_ENABLED
+    audio_capture.worker_ready.wait();
+#endif
     return 1;
 #endif
 }

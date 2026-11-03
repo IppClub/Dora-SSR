@@ -1,0 +1,463 @@
+--- a/include/SDL_config.h
++++ b/include/SDL_config.h
+@@ -41,6 +41,8 @@
+ #include "SDL_config_iphoneos.h"
+ #elif defined(__ANDROID__)
+ #include "SDL_config_android.h"
++#elif defined(__LINUX__)
++#include "SDL_config_linux.h"
+ #elif defined(__OS2__)
+ #include "SDL_config_os2.h"
+ #elif defined(__EMSCRIPTEN__)
+--- a/include/SDL_hints.h
++++ b/include/SDL_hints.h
+@@ -1415,6 +1415,19 @@
+  * - "1": SDL Will require DRM master to use the KMSDRM backend (default)
+  */
+ #define SDL_HINT_KMSDRM_REQUIRE_DRM_MASTER      "SDL_KMSDRM_REQUIRE_DRM_MASTER"
++
++/**
++ * A variable controlling whether the KMSDRM backend creates a hardware
++ * cursor plane.
++ *
++ * This hint must be set before creating a KMSDRM window.
++ *
++ * This variable can be set to the following values:
++ *
++ * - "0": Create and manage the KMSDRM hardware cursor (default)
++ * - "1": Do not create a KMSDRM cursor buffer or default cursor
++ */
++#define SDL_HINT_KMSDRM_DISABLE_CURSOR          "SDL_KMSDRM_DISABLE_CURSOR"
+ 
+ /**
+  * A comma separated list of devices to open as joysticks
+--- a/src/audio/pipewire/SDL_pipewire.c
++++ b/src/audio/pipewire/SDL_pipewire.c
+@@ -590,7 +590,7 @@
+ 
+         /* Need to parse the parameters to get the sample rate */
+         for (i = 0; i < info->n_params; ++i) {
+-            pw_node_enum_params(node->proxy, 0, info->params[i].id, 0, 0, NULL);
++            pw_node_enum_params((struct pw_node *)node->proxy, 0, info->params[i].id, 0, 0, NULL);
+         }
+ 
+         hotplug_core_sync(node);
+--- a/src/video/cocoa/SDL_cocoaevents.m
++++ b/src/video/cocoa/SDL_cocoaevents.m
+@@ -74,10 +74,27 @@
+ 
+ static SDL_bool s_bShouldHandleEventsInSDLApplication = SDL_FALSE;
+ 
++/* Embedded native views own their input even inside an SDL window. */
++static BOOL Cocoa_IsNativeUI(NSResponder *responder)
++{
++    if (![responder isKindOfClass:[NSView class]]) return NO;
++    for (NSView *view = (NSView *)responder; view; view = view.superview) {
++        if ([view.identifier isEqualToString:@"DoraNativeUI"]) return YES;
++    }
++    return NO;
++}
++
++#include <objc/runtime.h>
++
+ static void Cocoa_DispatchEvent(NSEvent *theEvent)
+ {
+     SDL_VideoDevice *_this = SDL_GetVideoDevice();
+ 
++    if (theEvent.type == NSEventTypeKeyDown || theEvent.type == NSEventTypeKeyUp) {
++        BOOL (^consumeKey)(NSEvent *) = objc_getAssociatedObject(theEvent.window,
++            NSSelectorFromString(@"doraIDEKeyEvent:"));
++        if (consumeKey && consumeKey(theEvent)) return;
++    }
+     switch ([theEvent type]) {
+         case NSEventTypeLeftMouseDown:
+         case NSEventTypeOtherMouseDown:
+@@ -90,12 +107,21 @@
+         case NSEventTypeOtherMouseDragged: /* usually middle mouse dragged */
+         case NSEventTypeMouseMoved:
+         case NSEventTypeScrollWheel:
+-            Cocoa_HandleMouseEvent(_this, theEvent);
++            if (!Cocoa_IsNativeUI([[theEvent window].contentView hitTest:
++                [[theEvent window].contentView convertPoint:theEvent.locationInWindow fromView:nil]])) {
++                Cocoa_HandleMouseEvent(_this, theEvent);
++            }
+             break;
+         case NSEventTypeKeyDown:
+         case NSEventTypeKeyUp:
+         case NSEventTypeFlagsChanged:
+-            Cocoa_HandleKeyEvent(_this, theEvent);
++            /* Native auxiliary windows (WebKit, file panels) own their text
++             * input context. Feeding their keys to SDL's translator as well
++             * interprets characters/IME twice and leaks keys into the game. */
++            if (FindSDLWindowForNSWindow([theEvent window] ?: [NSApp keyWindow])
++                && !Cocoa_IsNativeUI(([theEvent window] ?: [NSApp keyWindow]).firstResponder)) {
++                Cocoa_HandleKeyEvent(_this, theEvent);
++            }
+             break;
+         default:
+             break;
+@@ -117,7 +143,9 @@
+ + (void)registerUserDefaults
+ {
+     NSDictionary *appDefaults = [[NSDictionary alloc] initWithObjectsAndKeys:
+-                                 [NSNumber numberWithBool:NO], @"AppleMomentumScrollSupported",
++                                 /* WKWebView shares these application defaults. Allow Cocoa
++                                  * to deliver momentum; filter it only at the SDL boundary. */
++                                 [NSNumber numberWithBool:YES], @"AppleMomentumScrollSupported",
+                                  [NSNumber numberWithBool:NO], @"ApplePressAndHoldEnabled",
+                                  [NSNumber numberWithBool:YES], @"ApplePersistenceIgnoreState",
+                                  nil];
+--- a/src/video/cocoa/SDL_cocoakeyboard.m
++++ b/src/video/cocoa/SDL_cocoakeyboard.m
+@@ -340,6 +340,15 @@
+         nswindow = ((__bridge SDL_WindowData*)window->driverdata).nswindow;
+     }
+ 
++    /* Embedded native views own their text input and IME responder. */
++    if ([nswindow.firstResponder isKindOfClass:[NSView class]]) {
++        for (NSView *view = (NSView *)nswindow.firstResponder; view; view = view.superview) {
++            if ([view.identifier isEqualToString:@"DoraNativeUI"]) {
++                return;
++            }
++        }
++    }
++
+     parentView = [nswindow contentView];
+ 
+     /* We only keep one field editor per process, since only the front most
+--- a/src/video/cocoa/SDL_cocoamouse.m
++++ b/src/video/cocoa/SDL_cocoamouse.m
+@@ -508,6 +508,12 @@
+ 
+ void Cocoa_HandleMouseWheel(SDL_Window *window, NSEvent *event)
+ {
++    /* Native views need system momentum scrolling, but game controls should
++       still stop when fingers leave the trackpad, as before. */
++    if ([event momentumPhase] != NSEventPhaseNone) {
++        return;
++    }
++
+     SDL_MouseID mouseID;
+     SDL_MouseWheelDirection direction;
+     CGFloat x, y;
+--- a/src/video/kmsdrm/SDL_kmsdrmopengles.c
++++ b/src/video/kmsdrm/SDL_kmsdrmopengles.c
+@@ -68,7 +68,14 @@
+        so we manually unload the library whenever we want. */
+ }
+ 
+-SDL_EGL_CreateContext_impl(KMSDRM)
++SDL_GLContext
++KMSDRM_GLES_CreateContext(_THIS, SDL_Window *window)
++{
++    _this->gl_config.profile_mask = SDL_GL_CONTEXT_PROFILE_ES;
++    _this->gl_config.major_version = 2;
++    _this->gl_config.minor_version = 0;
++    return SDL_EGL_CreateContext(_this, ((SDL_WindowData *)window->driverdata)->egl_surface);
++}
+ 
+     int KMSDRM_GLES_SetSwapInterval(_THIS, int interval)
+ {
+@@ -174,7 +181,8 @@
+            That makes it flip immediately, without waiting for the next vblank
+            to do so, so even if we don't block on EGL, the flip will have completed
+            when we get here again. */
+-        if (_this->egl_data->egl_swapinterval == 0 && viddata->async_pageflip_support) {
++        /* Some older KMSDRM stacks advertise async pageflip but reject it at runtime. */
++        if (SDL_FALSE && _this->egl_data->egl_swapinterval == 0 && viddata->async_pageflip_support) {
+             flip_flags |= DRM_MODE_PAGE_FLIP_ASYNC;
+         }
+ 
+--- a/src/video/kmsdrm/SDL_kmsdrmvideo.c
++++ b/src/video/kmsdrm/SDL_kmsdrmvideo.c
+@@ -365,7 +365,9 @@
+     h = KMSDRM_gbm_bo_get_height(bo);
+     format = KMSDRM_gbm_bo_get_format(bo);
+ 
+-    if (KMSDRM_drmModeAddFB2WithModifiers &&
++    /* Legacy Rockchip/Mali GBM buffers work with drmModeAddFB but not modifiers. */
++    if (SDL_FALSE &&
++        KMSDRM_drmModeAddFB2WithModifiers &&
+         KMSDRM_gbm_bo_get_modifier &&
+         KMSDRM_gbm_bo_get_plane_count &&
+         KMSDRM_gbm_bo_get_offset &&
+@@ -1193,7 +1195,7 @@
+     SDL_VideoDisplay *display = SDL_GetDisplayForWindow(window);
+     SDL_DisplayData *dispdata = (SDL_DisplayData *)display->driverdata;
+ 
+-    uint32_t surface_fmt = GBM_FORMAT_ARGB8888;
++    uint32_t surface_fmt = GBM_FORMAT_XRGB8888;
+     uint32_t surface_flags = GBM_BO_USE_SCANOUT | GBM_BO_USE_RENDERING;
+ 
+     EGLContext egl_context;
+@@ -1233,7 +1235,47 @@
+        but we need an EGL surface NOW, or GL won't be able to render into any surface
+        and we won't see the first frame. */
+     SDL_EGL_SetRequiredVisualId(_this, surface_fmt);
+-    windata->egl_surface = SDL_EGL_CreateSurface(_this, (NativeWindowType)windata->gs);
++    if (_this->egl_data) {
++        EGLint config_attrs[] = {
++            EGL_RED_SIZE, 8,
++            EGL_GREEN_SIZE, 8,
++            EGL_BLUE_SIZE, 8,
++            EGL_DEPTH_SIZE, 24,
++            EGL_STENCIL_SIZE, _this->gl_config.stencil_size,
++            EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
++            EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
++            EGL_NONE
++        };
++        EGLConfig configs[64];
++        EGLint found_configs = 0;
++        EGLint i;
++        if (_this->egl_data->eglChooseConfig(_this->egl_data->egl_display,
++                                             config_attrs,
++                                             configs, SDL_arraysize(configs),
++                                             &found_configs) == EGL_TRUE) {
++            for (i = 0; i < found_configs; i++) {
++                EGLint native_visual_id = 0;
++                _this->egl_data->eglGetConfigAttrib(_this->egl_data->egl_display,
++                                                    configs[i],
++                                                    EGL_NATIVE_VISUAL_ID,
++                                                    &native_visual_id);
++                if ((uint32_t)native_visual_id == surface_fmt) {
++                    _this->egl_data->egl_config = configs[i];
++                    break;
++                }
++            }
++        }
++        if (_this->egl_data->egl_config) {
++            windata->egl_surface = _this->egl_data->eglCreateWindowSurface(
++                _this->egl_data->egl_display,
++                _this->egl_data->egl_config,
++                (NativeWindowType)windata->gs,
++                NULL);
++        }
++    }
++    if (windata->egl_surface == EGL_NO_SURFACE) {
++        windata->egl_surface = SDL_EGL_CreateSurface(_this, (NativeWindowType)windata->gs);
++    }
+ 
+     if (windata->egl_surface == EGL_NO_SURFACE) {
+         ret = SDL_SetError("Could not create EGL window surface");
+@@ -1562,13 +1604,15 @@
+             _this->gl_config.driver_loaded = 1;
+         }
+ 
+-        /* Create the cursor BO for the display of this window,
+-           now that we know this is not a VK window. */
+-        KMSDRM_CreateCursorBO(display);
+-
+-        /* Create and set the default cursor for the display
+-           of this window, now that we know this is not a VK window. */
+-        KMSDRM_InitMouse(_this, display);
++        if (!SDL_GetHintBoolean(SDL_HINT_KMSDRM_DISABLE_CURSOR, SDL_FALSE)) {
++            /* Create the cursor BO for the display of this window,
++               now that we know this is not a VK window. */
++            KMSDRM_CreateCursorBO(display);
++
++            /* Create and set the default cursor for the display
++               of this window, now that we know this is not a VK window. */
++            KMSDRM_InitMouse(_this, display);
++        }
+ 
+         /* The FULLSCREEN flags are cut out from window->flags at this point,
+            so we can't know if a window is fullscreen or not, hence all windows
+--- a/src/video/kmsdrm/SDL_kmsdrmvideo.h
++++ b/src/video/kmsdrm/SDL_kmsdrmvideo.h
+@@ -67,6 +67,7 @@
+ 
+ #ifndef GBM_FORMAT_ARGB8888
+ #define GBM_FORMAT_ARGB8888  ((uint32_t)('A') | ((uint32_t)('R') << 8) | ((uint32_t)('2') << 16) | ((uint32_t)('4') << 24))
++#define GBM_FORMAT_XRGB8888  ((uint32_t)('X') | ((uint32_t)('R') << 8) | ((uint32_t)('2') << 16) | ((uint32_t)('4') << 24))
+ #define GBM_BO_USE_CURSOR   (1 << 1)
+ #define GBM_BO_USE_WRITE    (1 << 3)
+ #define GBM_BO_USE_LINEAR   (1 << 4)
+--- /dev/null
++++ b/include/SDL_config_linux.h
+@@ -0,0 +1,186 @@
++/*
++  Simple DirectMedia Layer
++  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
++
++  This software is provided 'as-is', without any express or implied
++  warranty.  In no event will the authors be held liable for any damages
++  arising from the use of this software.
++
++  Permission is granted to anyone to use this software for any purpose,
++  including commercial applications, and to alter it and redistribute it
++  freely, subject to the following restrictions:
++
++  1. The origin of this software must not be misrepresented; you must not
++     claim that you wrote the original software. If you use this software
++     in a product, an acknowledgment in the product documentation would be
++     appreciated but is not required.
++  2. Altered source versions must be plainly marked as such, and must not be
++     misrepresented as being the original software.
++  3. This notice may not be removed or altered from any source distribution.
++*/
++
++#ifndef SDL_config_linux_h_
++#define SDL_config_linux_h_
++#define SDL_config_h_
++
++#include "SDL_platform.h"
++
++#ifdef __LP64__
++#define SIZEOF_VOIDP 8
++#else
++#define SIZEOF_VOIDP 4
++#endif
++
++#define SDL_BYTEORDER 1234
++
++#define STDC_HEADERS 1
++#define HAVE_ALLOCA_H 1
++#define HAVE_CTYPE_H 1
++#define HAVE_DLFCN_H 1
++#define HAVE_INTTYPES_H 1
++#define HAVE_LIMITS_H 1
++#define HAVE_MALLOC_H 1
++#define HAVE_MATH_H 1
++#define HAVE_MEMORY_H 1
++#define HAVE_SIGNAL_H 1
++#define HAVE_STDARG_H 1
++#define HAVE_STDINT_H 1
++#define HAVE_STDIO_H 1
++#define HAVE_STDLIB_H 1
++#define HAVE_STRINGS_H 1
++#define HAVE_STRING_H 1
++#define HAVE_SYS_TYPES_H 1
++#define HAVE_UNISTD_H 1
++
++#define HAVE_DLOPEN 1
++#define HAVE_MALLOC 1
++#define HAVE_CALLOC 1
++#define HAVE_REALLOC 1
++#define HAVE_FREE 1
++#define HAVE_ALLOCA 1
++#define HAVE_GETENV 1
++#define HAVE_SETENV 1
++#define HAVE_PUTENV 1
++#define HAVE_UNSETENV 1
++#define HAVE_QSORT 1
++#define HAVE_BSEARCH 1
++#define HAVE_ABS 1
++#define HAVE_BCOPY 1
++#define HAVE_MEMSET 1
++#define HAVE_MEMCPY 1
++#define HAVE_MEMMOVE 1
++#define HAVE_STRLEN 1
++#define HAVE_STRCHR 1
++#define HAVE_STRRCHR 1
++#define HAVE_STRSTR 1
++#define HAVE_STRTOL 1
++#define HAVE_STRTOUL 1
++#define HAVE_STRTOLL 1
++#define HAVE_STRTOULL 1
++#define HAVE_ATOI 1
++#define HAVE_ATOF 1
++#define HAVE_STRCMP 1
++#define HAVE_STRNCMP 1
++#define HAVE_STRCASECMP 1
++#define HAVE_STRNCASECMP 1
++#define HAVE_VSSCANF 1
++#define HAVE_VSNPRINTF 1
++#define HAVE_M_PI 1
++#define HAVE_CEIL 1
++#define HAVE_COPYSIGN 1
++#define HAVE_COS 1
++#define HAVE_COSF 1
++#define HAVE_EXP 1
++#define HAVE_FABS 1
++#define HAVE_FLOOR 1
++#define HAVE_LOG 1
++#define HAVE_LOG10 1
++#define HAVE_LROUND 1
++#define HAVE_LROUNDF 1
++#define HAVE_ROUND 1
++#define HAVE_ROUNDF 1
++#define HAVE_SCALBN 1
++#define HAVE_SIN 1
++#define HAVE_SINF 1
++#define HAVE_SQRT 1
++#define HAVE_SQRTF 1
++#define HAVE_TAN 1
++#define HAVE_TANF 1
++#define HAVE_TRUNC 1
++#define HAVE_TRUNCF 1
++#define HAVE_SIGACTION 1
++#define HAVE_SA_SIGACTION 1
++#define HAVE_SETJMP 1
++#define HAVE_NANOSLEEP 1
++#define HAVE_CLOCK_GETTIME 1
++
++#define SDL_AUDIO_DRIVER_ALSA 1
++#define SDL_AUDIO_DRIVER_ALSA_DYNAMIC "libasound.so.2"
++#define SDL_AUDIO_DRIVER_DUMMY 1
++#define SDL_AUDIO_DRIVER_DISK 1
++#define SDL_AUDIO_DRIVER_PIPEWIRE 1
++#define SDL_AUDIO_DRIVER_PIPEWIRE_DYNAMIC "libpipewire-0.3.so.0"
++#define SDL_AUDIO_DRIVER_PULSEAUDIO 1
++#define SDL_AUDIO_DRIVER_PULSEAUDIO_DYNAMIC "libpulse.so.0"
++
++#define SDL_INPUT_LINUXEV 1
++#define SDL_INPUT_LINUXKD 1
++#define SDL_JOYSTICK_LINUX 1
++#define SDL_JOYSTICK_VIRTUAL 1
++#define SDL_HAPTIC_LINUX 1
++#define SDL_HIDAPI_DISABLED 1
++#define SDL_SENSOR_DUMMY 1
++
++#define SDL_LOADSO_DLOPEN 1
++
++#define SDL_THREAD_PTHREAD 1
++#define SDL_THREAD_PTHREAD_RECURSIVE_MUTEX 1
++
++#define SDL_TIMER_UNIX 1
++#define SDL_FILESYSTEM_UNIX 1
++#define SDL_POWER_LINUX 1
++
++#define HAVE_DBUS_DBUS_H 1
++#define HAVE_FCITX 1
++#define SDL_USE_LIBDBUS 1
++#define SDL_USE_IME 1
++
++#define SDL_VIDEO_DRIVER_DUMMY 1
++#define SDL_VIDEO_DRIVER_WAYLAND 1
++#define SDL_VIDEO_DRIVER_WAYLAND_DYNAMIC "libwayland-client.so.0"
++#define SDL_VIDEO_DRIVER_WAYLAND_DYNAMIC_CURSOR "libwayland-cursor.so.0"
++#define SDL_VIDEO_DRIVER_WAYLAND_DYNAMIC_EGL "libwayland-egl.so.1"
++#define SDL_VIDEO_DRIVER_WAYLAND_DYNAMIC_LIBDECOR "libdecor-0.so.0"
++#define SDL_VIDEO_DRIVER_WAYLAND_DYNAMIC_XKBCOMMON "libxkbcommon.so.0"
++#define SDL_VIDEO_DRIVER_WAYLAND_QT_TOUCH 1
++#define SDL_VIDEO_DRIVER_X11 1
++#define SDL_VIDEO_DRIVER_X11_DYNAMIC "libX11.so.6"
++#define SDL_VIDEO_DRIVER_X11_DYNAMIC_XCURSOR "libXcursor.so.1"
++#define SDL_VIDEO_DRIVER_X11_DYNAMIC_XEXT "libXext.so.6"
++#define SDL_VIDEO_DRIVER_X11_DYNAMIC_XFIXES "libXfixes.so.3"
++#define SDL_VIDEO_DRIVER_X11_DYNAMIC_XINPUT2 "libXi.so.6"
++#define SDL_VIDEO_DRIVER_X11_DYNAMIC_XRANDR "libXrandr.so.2"
++#define SDL_VIDEO_DRIVER_X11_DYNAMIC_XSS "libXss.so.1"
++#define SDL_VIDEO_DRIVER_X11_HAS_XKBKEYCODETOKEYSYM 1
++#define SDL_VIDEO_DRIVER_X11_SUPPORTS_GENERIC_EVENTS 1
++#define SDL_VIDEO_DRIVER_X11_XCURSOR 1
++#define SDL_VIDEO_DRIVER_X11_XDBE 1
++#define SDL_VIDEO_DRIVER_X11_XFIXES 1
++#define SDL_VIDEO_DRIVER_X11_XINPUT2 1
++#define SDL_VIDEO_DRIVER_X11_XINPUT2_SUPPORTS_MULTITOUCH 1
++#define SDL_VIDEO_DRIVER_X11_XRANDR 1
++#define SDL_VIDEO_DRIVER_X11_XSCRNSAVER 1
++#define SDL_VIDEO_DRIVER_X11_XSHAPE 1
++#define SDL_VIDEO_OPENGL 1
++#define SDL_VIDEO_OPENGL_EGL 1
++#define SDL_VIDEO_OPENGL_GLX 1
++#define SDL_VIDEO_OPENGL_ES2 1
++#define SDL_VIDEO_VULKAN 1
++
++#define SDL_HAVE_LIBDECOR_GET_MIN_MAX 1
++#define HAVE_LIBDECOR_H 1
++#define HAVE_LINUX_VERSION_H 1
++#define HAVE_SYS_INOTIFY_H 1
++#define HAVE_INOTIFY 1
++
++#endif /* SDL_config_linux_h_ */

@@ -1,0 +1,13 @@
+--- a/zconf.h
++++ b/zconf.h
+@@ -7,6 +7,10 @@
+ 
+ #ifndef ZCONF_H
+ #define ZCONF_H
++
++#if __has_include(<unistd.h>)
++	#define HAVE_UNISTD_H
++#endif
+ 
+ /*
+  * If you *really* need a unique prefix for all types and library functions,

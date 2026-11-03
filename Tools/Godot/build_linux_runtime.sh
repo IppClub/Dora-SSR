@@ -5,6 +5,7 @@ BUILD="${DORA_GODOT_BUILD_DIR:-$ROOT/build/godot-linux}"
 SOURCE="$ROOT/Source/3rdParty/Godot"
 ARCH="${DORA_GODOT_LINUX_ARCH:-$(uname -m)}"
 TARGET="${DORA_GODOT_TARGET:-template_debug}"
+XMAKE="${DORA_GODOT_XMAKE:-${DORA_XMAKE:-xmake}}"
 case "$TARGET" in
     template_debug) OPTIMIZE=none ;;
     template_release) OPTIMIZE=speed ;;
@@ -17,29 +18,33 @@ case "$ARCH" in
 esac
 [[ "$(uname -s)" == Linux ]] || { echo 'Linux host required' >&2; exit 1; }
 mkdir -p "$BUILD"
-SCONS="${DORA_GODOT_SCONS:-$BUILD/venv/bin/scons}"
-if [[ -n "${DORA_GODOT_SCONS:-}" && ! -x "$SCONS" ]]; then
-    echo "Configured SCons executable is missing: $SCONS" >&2
-    exit 1
-fi
-if [[ -z "${DORA_GODOT_SCONS:-}" && ! -x "$SCONS" ]]; then
-    python3 -m venv "$BUILD/venv"
-    "$BUILD/venv/bin/pip" install scons==4.11.1
-fi
 python3 "$ROOT/Tools/Godot/prepare.py" "$SOURCE"
-cd "$SOURCE"
-COMPILER=()
-[[ -n "${DORA_GODOT_LINUX_CC:-}" ]] && COMPILER+=("CC=$DORA_GODOT_LINUX_CC")
-[[ -n "${DORA_GODOT_LINUX_CXX:-}" ]] && COMPILER+=("CXX=$DORA_GODOT_LINUX_CXX")
-[[ -n "${DORA_GODOT_LINUX_AR:-}" ]] && COMPILER+=("AR=$DORA_GODOT_LINUX_AR")
-[[ -n "${DORA_GODOT_LINUX_RANLIB:-}" ]] && COMPILER+=("RANLIB=$DORA_GODOT_LINUX_RANLIB")
-"$SCONS" platform=linuxbsd arch="$ARCH" target="$TARGET" "${COMPILER[@]}" \
-    disable_path_overrides=no library_type=shared_library linkflags=-Wl,--version-script=dora_bridge.map \
-    x11=no wayland=no vulkan=no opengl3=yes alsa=no pulseaudio=no speechd=no dbus=no \
-    optimize="$OPTIMIZE" debug_symbols=no use_lto=no -j"${JOBS:-3}" > "$BUILD/build.log" 2>&1
-printf 'Runtime: %s\n' "$SOURCE/bin/"libgodot*.so
+command -v "$XMAKE" >/dev/null 2>&1 || {
+    echo "Configured xmake executable is missing: $XMAKE" >&2
+    exit 1
+}
+XMAKE_VERSION_OUTPUT="$("$XMAKE" --version)"
+XMAKE_VERSION="${XMAKE_VERSION_OUTPUT%%$'\n'*}"
+[[ "$XMAKE_VERSION" =~ xmake\ v([0-9]+)\. ]] && (( BASH_REMATCH[1] >= 3 )) || {
+    echo "Godot xmake migration requires xmake 3.x or newer: $XMAKE_VERSION" >&2
+    exit 1
+}
+MODE=debug; SUFFIX=/debug
+if [[ "$TARGET" == template_release ]]; then MODE=release; SUFFIX=; fi
+CONFIG="$ROOT/build/godot-xmake/linux-config-$PACKAGE_ARCH-$MODE"
+XMAKE_ARGS=(-c -p linux -a "$PACKAGE_ARCH" -m "$MODE" --dora_godot_runtime=y --dora_godot_standalone=y --ccache=n)
+[[ -n "${DORA_GODOT_LINUX_CROSS:-}" ]] && XMAKE_ARGS+=("--cross=$DORA_GODOT_LINUX_CROSS")
+[[ -n "${DORA_GODOT_LINUX_BIN:-}" ]] && XMAKE_ARGS+=("--bin=$DORA_GODOT_LINUX_BIN")
+[[ -n "${DORA_GODOT_LINUX_CC:-}" ]] && XMAKE_ARGS+=("--cc=$DORA_GODOT_LINUX_CC")
+[[ -n "${DORA_GODOT_LINUX_CXX:-}" ]] && XMAKE_ARGS+=("--cxx=$DORA_GODOT_LINUX_CXX")
+[[ -n "${DORA_GODOT_LINUX_AR:-}" ]] && XMAKE_ARGS+=("--ar=$DORA_GODOT_LINUX_AR")
+[[ -n "${DORA_GODOT_LINUX_RANLIB:-}" ]] && XMAKE_ARGS+=("--ranlib=$DORA_GODOT_LINUX_RANLIB")
+: > "$BUILD/build.log"
+XMAKE_CONFIGDIR="$CONFIG" "$XMAKE" f -P "$ROOT" "${XMAKE_ARGS[@]}" >> "$BUILD/build.log" 2>&1
+XMAKE_CONFIGDIR="$CONFIG" "$XMAKE" build -P "$ROOT" -j "${JOBS:-3}" godot-runtime >> "$BUILD/build.log" 2>&1
+LIBRARY="$ROOT/build/godot-xmake/linux/$PACKAGE_ARCH${SUFFIX}/lib/libdora_godot.so"
+printf 'Runtime: %s\n' "$LIBRARY"
 
-LIBRARY="$(find "$SOURCE/bin" -maxdepth 1 -type f -name "libgodot.*.${TARGET}.*.so" -print -quit)"
 [[ -n "$LIBRARY" ]] || { echo "Missing $TARGET runtime library" >&2; exit 1; }
 python3 "$ROOT/Tools/Godot/package_runtime.py" --source "$SOURCE" --library "$LIBRARY" \
-    --output "$BUILD/package" --architecture "$PACKAGE_ARCH"
+    --output "$BUILD/package" --build-target "$TARGET" --architecture "$PACKAGE_ARCH" --graphics-backend egl

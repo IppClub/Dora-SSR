@@ -39,6 +39,8 @@
 #include "core/os/os.h"
 #include "storage/texture_storage.h"
 
+#include <cstring>
+
 #define _EXT_DEBUG_OUTPUT_SYNCHRONOUS_ARB 0x8242
 #define _EXT_DEBUG_NEXT_LOGGED_MESSAGE_LENGTH_ARB 0x8243
 #define _EXT_DEBUG_CALLBACK_FUNCTION_ARB 0x8244
@@ -309,10 +311,30 @@ RasterizerGLES3::RasterizerGLES3() {
 #ifdef GLES_API_ENABLED
 	if (!gles_over_gl) {
 		if (OS::get_singleton()->is_stdout_verbose()) {
-			DebugMessageCallbackARB callback = (DebugMessageCallbackARB)eglGetProcAddress("glDebugMessageCallback");
-			if (!callback) {
+			// EGL may return entry points even when the current ES context does
+			// not support their capability. KHR_debug uses suffixed entry points
+			// until debug output becomes core in OpenGL ES 3.2.
+			GLint major = 0, minor = 0, extension_count = 0;
+			glGetIntegerv(GL_MAJOR_VERSION, &major);
+			glGetIntegerv(GL_MINOR_VERSION, &minor);
+			glGetIntegerv(GL_NUM_EXTENSIONS, &extension_count);
+			bool has_khr_debug = false;
+			for (GLint i = 0; i < extension_count; i++) {
+				const char *extension = (const char *)glGetStringi(GL_EXTENSIONS, i);
+				if (extension && std::strcmp(extension, "GL_KHR_debug") == 0) {
+					has_khr_debug = true;
+					break;
+				}
+			}
+			const bool core_debug = major > 3 || (major == 3 && minor >= 2);
+			DebugMessageCallbackARB callback = nullptr;
+			if (core_debug) {
+				callback = (DebugMessageCallbackARB)eglGetProcAddress("glDebugMessageCallback");
+			}
+			if (!callback && has_khr_debug) {
 				callback = (DebugMessageCallbackARB)eglGetProcAddress("glDebugMessageCallbackKHR");
 			}
+			print_line(vformat("godot: GL DEBUG capability GLES=%d.%d KHR_debug=%d core=%d", major, minor, int(has_khr_debug), int(core_debug)));
 
 			if (callback) {
 				print_line("godot: ENABLING GL DEBUG");

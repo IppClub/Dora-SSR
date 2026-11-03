@@ -5,7 +5,10 @@ export class GodotWebBridge {
   constructor(host,godot,boundary) {this.host=host;this.godot=godot;this.boundary=boundary;this.targets=[];}
   initialize(canvas) {
     const g=this.godot;
-    g.initConfig({canvas,locale:navigator.language||'en',resizeCanvasOnStart:false});
+    // init_config assigns godotPoolSize directly: omitting it overwrites its
+    // upstream default with undefined, which becomes a zero-thread C++ pool.
+    // Projects without an explicit max_threads then crash on physics tasks.
+    g.initConfig({canvas,locale:navigator.language||'en',canvasResizePolicy:0,godotPoolSize:4});
     if(!g._dora_web_context() || g.GL.currentContext.GLctx!==this.host.GL.currentContext.GLctx)
       throw new Error('Godot and Dora must use the same WebGL2 context');
     if(!g._dora_web_direct(1))throw new Error('Cannot enable Godot WebGL2 direct targets');

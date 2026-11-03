@@ -1,0 +1,146 @@
+{
+  "schema_version": 1,
+  "identified_equivalent_release": "1.3.1",
+  "identified_equivalent_commit": "51b7f2abdade71cd9bb0e7a373ef2610ec6f9daf",
+  "scope": "All 26 retained files reconstruct from this upstream commit plus one recorded zconf.h patch; this identifies equivalent source, not the originally imported Git checkout or ABI compatibility.",
+  "upstream": "https://github.com/madler/zlib",
+  "tag": "v1.3.1",
+  "archive_url": "https://codeload.github.com/madler/zlib/tar.gz/51b7f2abdade71cd9bb0e7a373ef2610ec6f9daf",
+  "archive_sha256": "d9e270d46252734aa49770fbc544125391617956266f220bd63216c834f3a522",
+  "files": [
+    {
+      "path": "LICENSE",
+      "upstream_sha256": "845efc77857d485d91fb3e0b884aaa929368c717ae8186b66fe1ed2495753243",
+      "vendor_sha256": "845efc77857d485d91fb3e0b884aaa929368c717ae8186b66fe1ed2495753243"
+    },
+    {
+      "path": "adler32.c",
+      "upstream_sha256": "9cd1443a24ff2a3053961695bd432035c58347386a420d3388232376ebabe211",
+      "vendor_sha256": "9cd1443a24ff2a3053961695bd432035c58347386a420d3388232376ebabe211"
+    },
+    {
+      "path": "compress.c",
+      "upstream_sha256": "86f802c16a965e7a28737e3730b4e576c5ba40981753967e3e30916f4dc1b4b1",
+      "vendor_sha256": "86f802c16a965e7a28737e3730b4e576c5ba40981753967e3e30916f4dc1b4b1"
+    },
+    {
+      "path": "crc32.c",
+      "upstream_sha256": "8fd16f0a7714d51c89c2eb37eb98ec15e8a4dc57ba343e7b7398b19144039fda",
+      "vendor_sha256": "8fd16f0a7714d51c89c2eb37eb98ec15e8a4dc57ba343e7b7398b19144039fda"
+    },
+    {
+      "path": "crc32.h",
+      "upstream_sha256": "9a2223575183ac2ee8a247f20bf3ac066e8bd0140369556bdbdffc777435749e",
+      "vendor_sha256": "9a2223575183ac2ee8a247f20bf3ac066e8bd0140369556bdbdffc777435749e"
+    },
+    {
+      "path": "deflate.c",
+      "upstream_sha256": "3b956337350f94c34987750f785587ef33d9c89ceaebb7c2afb189c956360cbe",
+      "vendor_sha256": "3b956337350f94c34987750f785587ef33d9c89ceaebb7c2afb189c956360cbe"
+    },
+    {
+      "path": "deflate.h",
+      "upstream_sha256": "48baf016326d8d5e3e32ac8153cc7e22f854b8e6834830b167b998a7fb1e7989",
+      "vendor_sha256": "48baf016326d8d5e3e32ac8153cc7e22f854b8e6834830b167b998a7fb1e7989"
+    },
+    {
+      "path": "gzclose.c",
+      "upstream_sha256": "35ea6e991a63095f797d8c4cc25817fac7a7155c2ba7dcdbbf648f7871c7ea40",
+      "vendor_sha256": "35ea6e991a63095f797d8c4cc25817fac7a7155c2ba7dcdbbf648f7871c7ea40"
+    },
+    {
+      "path": "gzguts.h",
+      "upstream_sha256": "716fa648aca1bb06c219d7b97ad4846d8479206143bc39557bfd8283f5783e04",
+      "vendor_sha256": "716fa648aca1bb06c219d7b97ad4846d8479206143bc39557bfd8283f5783e04"
+    },
+    {
+      "path": "gzlib.c",
+      "upstream_sha256": "042c2be8ec67ad525a2812e508de7381c6766dde903acf5ae6ac4fa6b541946d",
+      "vendor_sha256": "042c2be8ec67ad525a2812e508de7381c6766dde903acf5ae6ac4fa6b541946d"
+    },
+    {
+      "path": "gzread.c",
+      "upstream_sha256": "72e481aca07b0b85a9783237b85dc67ff3a4c1d19878d0cec69f58d38634867b",
+      "vendor_sha256": "72e481aca07b0b85a9783237b85dc67ff3a4c1d19878d0cec69f58d38634867b"
+    },
+    {
+      "path": "gzwrite.c",
+      "upstream_sha256": "469b1e58932ea11bdda2a153f6655f7b3c13254240fae157181b49ed1bc93b47",
+      "vendor_sha256": "469b1e58932ea11bdda2a153f6655f7b3c13254240fae157181b49ed1bc93b47"
+    },
+    {
+      "path": "inffast.c",
+      "upstream_sha256": "e6ef64ce5dc0a4cd5c7ad08ceeb2b2a698b8447f6bd156057caeb2edab68c0cb",
+      "vendor_sha256": "e6ef64ce5dc0a4cd5c7ad08ceeb2b2a698b8447f6bd156057caeb2edab68c0cb"
+    },
+    {
+      "path": "inffast.h",
+      "upstream_sha256": "05cc5dc9ff1da7b8b52a4bd8bda0d8a5c236a2f39efe84b941516ea13857e6c5",
+      "vendor_sha256": "05cc5dc9ff1da7b8b52a4bd8bda0d8a5c236a2f39efe84b941516ea13857e6c5"
+    },
+    {
+      "path": "inffixed.h",
+      "upstream_sha256": "237ba710f090e432b62ebf963bee8b302867e9691406b2d3f8ee89ee7bfef9b0",
+      "vendor_sha256": "237ba710f090e432b62ebf963bee8b302867e9691406b2d3f8ee89ee7bfef9b0"
+    },
+    {
+      "path": "inflate.c",
+      "upstream_sha256": "34c998ce0037c0537c04b03b276f680b945f9b2c9d1e01b287605bd6879f7fd2",
+      "vendor_sha256": "34c998ce0037c0537c04b03b276f680b945f9b2c9d1e01b287605bd6879f7fd2"
+    },
+    {
+      "path": "inflate.h",
+      "upstream_sha256": "e8d4a51b07694bf48cb91979c19974cf6a5ab0b8a09d26ec0d14df349230673e",
+      "vendor_sha256": "e8d4a51b07694bf48cb91979c19974cf6a5ab0b8a09d26ec0d14df349230673e"
+    },
+    {
+      "path": "inftrees.c",
+      "upstream_sha256": "5d4f335221d2dc76f17abd2577d92c2d7baf68fa6d7f23373b360830493d1563",
+      "vendor_sha256": "5d4f335221d2dc76f17abd2577d92c2d7baf68fa6d7f23373b360830493d1563"
+    },
+    {
+      "path": "inftrees.h",
+      "upstream_sha256": "0a0fcaf2ae2fae57426bdc06637270e9bba974f35202cadbdba479d946e6409d",
+      "vendor_sha256": "0a0fcaf2ae2fae57426bdc06637270e9bba974f35202cadbdba479d946e6409d"
+    },
+    {
+      "path": "trees.c",
+      "upstream_sha256": "f63c68c16c05fcd196050529d1a0e7657960e4136b9987d90a6ac3e58a964b0f",
+      "vendor_sha256": "f63c68c16c05fcd196050529d1a0e7657960e4136b9987d90a6ac3e58a964b0f"
+    },
+    {
+      "path": "trees.h",
+      "upstream_sha256": "bb0a9d3ca88ee00c81adb7c636e73b97085f6ef1b52d6d58edbe2b6dc3adeb4d",
+      "vendor_sha256": "bb0a9d3ca88ee00c81adb7c636e73b97085f6ef1b52d6d58edbe2b6dc3adeb4d"
+    },
+    {
+      "path": "uncompr.c",
+      "upstream_sha256": "04dca5e31b3b8a17d1806426f66f0c539f4184d657e149d40be07070c6227b52",
+      "vendor_sha256": "04dca5e31b3b8a17d1806426f66f0c539f4184d657e149d40be07070c6227b52"
+    },
+    {
+      "path": "zconf.h",
+      "upstream_sha256": "f5134250a67d57459234b63858f0d9d3ef8dcc48e9e1028d3f4fdcf6eae677ae",
+      "vendor_sha256": "6a394f5da811a6471be3ccd284a5afb8e57b4e4400566ceb7794d3cad63f343b"
+    },
+    {
+      "path": "zlib.h",
+      "upstream_sha256": "8a5579af72ea4f427ff00a4150f0ccb3fc5c1e4379f726e101133b1ab9fc600c",
+      "vendor_sha256": "8a5579af72ea4f427ff00a4150f0ccb3fc5c1e4379f726e101133b1ab9fc600c"
+    },
+    {
+      "path": "zutil.c",
+      "upstream_sha256": "8ced40d8c88588811edd2bdb35b7439983d5e1f8e9e32b8a3b244731f3c317b7",
+      "vendor_sha256": "8ced40d8c88588811edd2bdb35b7439983d5e1f8e9e32b8a3b244731f3c317b7"
+    },
+    {
+      "path": "zutil.h",
+      "upstream_sha256": "dddb2dc7a1dc339ecf2c8e089b366f08bb731c0839c7110240d17ce731bb4fea",
+      "vendor_sha256": "dddb2dc7a1dc339ecf2c8e089b366f08bb731c0839c7110240d17ce731bb4fea"
+    }
+  ],
+  "patch": {
+    "path": "patches/dora-unistd.patch",
+    "sha256": "128e26a7d906cba42ad7910071e99616047933e34725657bb726b25104f9e549"
+  }
+}

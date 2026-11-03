@@ -1,0 +1,41 @@
+plugins {
+    id 'com.android.library'
+    id 'org.jetbrains.kotlin.android'
+}
+
+// Match the pinned upstream Java API; native compilation is owned by xmake.
+def godotSource = file(providers.gradleProperty('dora.godot.source').get())
+apply from: new File(godotSource, 'platform/android/java/app/config.gradle')
+android {
+    namespace 'org.godotengine.godot'
+    compileSdk versions.compileSdk
+    buildToolsVersion versions.buildTools
+    defaultConfig {
+        minSdk versions.minSdk
+        targetSdk versions.targetSdk
+        manifestPlaceholders = [godotLibraryVersion: providers.gradleProperty('dora.godot.version').get()]
+    }
+    compileOptions {
+        sourceCompatibility versions.javaVersion
+        targetCompatibility versions.javaVersion
+    }
+    kotlinOptions { jvmTarget = versions.javaVersion.toString() }
+    buildFeatures { aidl = true; buildConfig = true }
+    flavorDimensions += 'products'
+    productFlavors { template { dimension 'products' } }
+    sourceSets {
+        main {
+            def mainRoot = new File(godotSource, 'platform/android/java/lib/src/main')
+            manifest.srcFile new File(mainRoot, 'AndroidManifest.xml')
+            java.srcDirs = [new File(mainRoot, 'java')]
+            aidl.srcDirs = [new File(mainRoot, 'aidl')]
+            res.srcDirs = [new File(mainRoot, 'res')]
+            jniLibs.srcDirs = []
+        }
+    }
+    lint { abortOnError false }
+}
+dependencies {
+    implementation "androidx.fragment:fragment:${versions.fragmentVersion}"
+    implementation 'androidx.documentfile:documentfile:1.1.0'
+}

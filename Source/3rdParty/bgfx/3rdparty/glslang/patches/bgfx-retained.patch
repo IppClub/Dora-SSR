@@ -1,0 +1,42 @@
+--- a/glslang/HLSL/hlslAttributes.h
++++ b/glslang/HLSL/hlslAttributes.h
+@@ -36,6 +36,7 @@
+ #ifndef HLSLATTRIBUTES_H_
+ #define HLSLATTRIBUTES_H_
+ 
++#include <cstdint>
+ #include <unordered_map>
+ #include <functional>
+ 
+--- a/glslang/Include/Common.h
++++ b/glslang/Include/Common.h
+@@ -37,6 +37,7 @@
+ #ifndef _COMMON_INCLUDED_
+ #define _COMMON_INCLUDED_
+ 
++#include <sstream>
+ #include <algorithm>
+ #include <cassert>
+ #ifdef _MSC_VER
+@@ -55,8 +56,9 @@
+ #include <unordered_set>
+ #include <vector>
+ 
+-#if defined(__ANDROID__)
++#if defined(__ANDROID__) || (defined(_MSC_VER) && _MSC_VER < 1700)
+ #include <sstream>
++
+ namespace std {
+ template<typename T>
+ std::string to_string(const T& val) {
+--- a/glslang/MachineIndependent/span.h
++++ b/glslang/MachineIndependent/span.h
+@@ -34,6 +34,8 @@
+ // ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ // POSSIBILITY OF SUCH DAMAGE.
+ //
++
++#include <array>
+ 
+ // Partial implementation of std::span for C++11
+ // Replace with std::span if repo standard is bumped to C++20

@@ -1,0 +1,264 @@
+{
+  "schema_version": 1,
+  "scope": "Equivalent retained-source reconstruction; original Arm import checkout is not established. All 34 retained files match fixed bimg; mapped Arm baseline plus recorded patch reconstructs them exactly.",
+  "dora_import_commit": "0836aa1d1fc898d712c078a46e2ca9e10b70402e",
+  "bimg": {
+    "commit": "98a40e85334721446bbc2efe7bd4576d37952136",
+    "archive_url": "https://codeload.github.com/bkaradzic/bimg/tar.gz/98a40e85334721446bbc2efe7bd4576d37952136",
+    "archive_sha256": "86436cc057405031ae5bd4ed092f666f9f79341c5288fddf95a702fb71e51b75",
+    "archive_bytes": 748265,
+    "subtree": "3rdparty/astc-encoder"
+  },
+  "arm_baseline": {
+    "commit": "234c8a48483a74892a0e6c49d1e100ad42fbdde4",
+    "declared_cmake_version": "4.8.0",
+    "archive_url": "https://codeload.github.com/ARM-software/astc-encoder/tar.gz/234c8a48483a74892a0e6c49d1e100ad42fbdde4",
+    "archive_sha256": "e80ad180ae9ed3dc23f2ea6404e3044fe20183b26e547894abb48c0ed9dec0e4",
+    "archive_bytes": 36153370
+  },
+  "patch": {
+    "path": "patches/bimg-4.8-baseline.patch",
+    "sha256": "665e6ae7c9696054c67549e148fd7bf3b41bbfe5c8f78c8af7258215e82c90de",
+    "scope": "Exact difference of mapped Arm baseline and fixed bimg retained subset, not proof of original patch authorship or order"
+  },
+  "files": [
+    {
+      "path": "LICENSE.txt",
+      "upstream_path": "LICENSE.txt",
+      "identical": true,
+      "sha256": "494accc32e50eb523a0e384d0ae6d4b702db867a89d6971216760e92b240ee12",
+      "upstream_sha256": "494accc32e50eb523a0e384d0ae6d4b702db867a89d6971216760e92b240ee12"
+    },
+    {
+      "path": "include/astcenc.h",
+      "upstream_path": "Source/astcenc.h",
+      "identical": true,
+      "sha256": "b976436694d86d8fe1aa109d7bd106b9760fc7bcd9ca5fffa5cb1894c68766fe",
+      "upstream_sha256": "b976436694d86d8fe1aa109d7bd106b9760fc7bcd9ca5fffa5cb1894c68766fe"
+    },
+    {
+      "path": "source/astcenc_averages_and_directions.cpp",
+      "upstream_path": "Source/astcenc_averages_and_directions.cpp",
+      "identical": true,
+      "sha256": "37687118f5787f6ef8eb88db25b9ff7a30f00e38ebbc9d13792bf400b787cfac",
+      "upstream_sha256": "37687118f5787f6ef8eb88db25b9ff7a30f00e38ebbc9d13792bf400b787cfac"
+    },
+    {
+      "path": "source/astcenc_block_sizes.cpp",
+      "upstream_path": "Source/astcenc_block_sizes.cpp",
+      "identical": true,
+      "sha256": "52c2c522fb2c7ee5d2da9c4dc749a0adc5a32357b5bc7b9fcb144015697889cb",
+      "upstream_sha256": "52c2c522fb2c7ee5d2da9c4dc749a0adc5a32357b5bc7b9fcb144015697889cb"
+    },
+    {
+      "path": "source/astcenc_color_quantize.cpp",
+      "upstream_path": "Source/astcenc_color_quantize.cpp",
+      "identical": true,
+      "sha256": "eba701ab54ff208e0bc2e232b5fc67c38f6c971958b4c3090cf2680ec52a9f33",
+      "upstream_sha256": "eba701ab54ff208e0bc2e232b5fc67c38f6c971958b4c3090cf2680ec52a9f33"
+    },
+    {
+      "path": "source/astcenc_color_unquantize.cpp",
+      "upstream_path": "Source/astcenc_color_unquantize.cpp",
+      "identical": true,
+      "sha256": "bfa0a34e69e8b1a9229823e6dc8ae5b78a150e21188160c024513a4abece5df0",
+      "upstream_sha256": "bfa0a34e69e8b1a9229823e6dc8ae5b78a150e21188160c024513a4abece5df0"
+    },
+    {
+      "path": "source/astcenc_compress_symbolic.cpp",
+      "upstream_path": "Source/astcenc_compress_symbolic.cpp",
+      "identical": true,
+      "sha256": "589453d1e26bae55aee4e5dbebd2d3ca34e8ba23b3dab1ece63f52680f200fbe",
+      "upstream_sha256": "589453d1e26bae55aee4e5dbebd2d3ca34e8ba23b3dab1ece63f52680f200fbe"
+    },
+    {
+      "path": "source/astcenc_compute_variance.cpp",
+      "upstream_path": "Source/astcenc_compute_variance.cpp",
+      "identical": true,
+      "sha256": "bb8e5ec428284ba7b185020114fc59b4ba85ffad1bbb1198202a230636d03538",
+      "upstream_sha256": "bb8e5ec428284ba7b185020114fc59b4ba85ffad1bbb1198202a230636d03538"
+    },
+    {
+      "path": "source/astcenc_decompress_symbolic.cpp",
+      "upstream_path": "Source/astcenc_decompress_symbolic.cpp",
+      "identical": true,
+      "sha256": "36cb891373e5de995aeadd90589738a4929dd3609680fafbc1abd30d42b81605",
+      "upstream_sha256": "36cb891373e5de995aeadd90589738a4929dd3609680fafbc1abd30d42b81605"
+    },
+    {
+      "path": "source/astcenc_diagnostic_trace.cpp",
+      "upstream_path": "Source/astcenc_diagnostic_trace.cpp",
+      "identical": true,
+      "sha256": "a540301c0fa7c520b288d45139455fb72ccb5e15c070f7be1103619a5a691552",
+      "upstream_sha256": "a540301c0fa7c520b288d45139455fb72ccb5e15c070f7be1103619a5a691552"
+    },
+    {
+      "path": "source/astcenc_diagnostic_trace.h",
+      "upstream_path": "Source/astcenc_diagnostic_trace.h",
+      "identical": true,
+      "sha256": "23fbc794086a8ac8f090523a544186cdf6c82575e3f6f78b361b4446a519a183",
+      "upstream_sha256": "23fbc794086a8ac8f090523a544186cdf6c82575e3f6f78b361b4446a519a183"
+    },
+    {
+      "path": "source/astcenc_entry.cpp",
+      "upstream_path": "Source/astcenc_entry.cpp",
+      "identical": true,
+      "sha256": "01a4728ffecd80e2056df75175492de23c9d8757382ac4d8ef6837d30f3a6ef0",
+      "upstream_sha256": "01a4728ffecd80e2056df75175492de23c9d8757382ac4d8ef6837d30f3a6ef0"
+    },
+    {
+      "path": "source/astcenc_find_best_partitioning.cpp",
+      "upstream_path": "Source/astcenc_find_best_partitioning.cpp",
+      "identical": true,
+      "sha256": "79bb1bd9f8a301c5144962c7c7474112adf849970e4f6777c6114fb6cbf6b760",
+      "upstream_sha256": "79bb1bd9f8a301c5144962c7c7474112adf849970e4f6777c6114fb6cbf6b760"
+    },
+    {
+      "path": "source/astcenc_ideal_endpoints_and_weights.cpp",
+      "upstream_path": "Source/astcenc_ideal_endpoints_and_weights.cpp",
+      "identical": true,
+      "sha256": "6744dabae53bb1f6898e692499ce235313de2a1cf665d4826df4de30821e090b",
+      "upstream_sha256": "6744dabae53bb1f6898e692499ce235313de2a1cf665d4826df4de30821e090b"
+    },
+    {
+      "path": "source/astcenc_image.cpp",
+      "upstream_path": "Source/astcenc_image.cpp",
+      "identical": true,
+      "sha256": "34e06ccbd37ce265e7aab91fd14c24a6c4bd807cfb4aff1f387799154d857010",
+      "upstream_sha256": "34e06ccbd37ce265e7aab91fd14c24a6c4bd807cfb4aff1f387799154d857010"
+    },
+    {
+      "path": "source/astcenc_integer_sequence.cpp",
+      "upstream_path": "Source/astcenc_integer_sequence.cpp",
+      "identical": true,
+      "sha256": "23127ed919d38e1d13c7d32d6c6d93315ac0cbb1d71b9ca236d5c245e291fe4b",
+      "upstream_sha256": "23127ed919d38e1d13c7d32d6c6d93315ac0cbb1d71b9ca236d5c245e291fe4b"
+    },
+    {
+      "path": "source/astcenc_internal.h",
+      "upstream_path": "Source/astcenc_internal.h",
+      "identical": true,
+      "sha256": "178884fdd656485d54d7339132377b9a0022a5c8c4a8a9dd2f3c12c627369874",
+      "upstream_sha256": "178884fdd656485d54d7339132377b9a0022a5c8c4a8a9dd2f3c12c627369874"
+    },
+    {
+      "path": "source/astcenc_internal_entry.h",
+      "upstream_path": "Source/astcenc_internal_entry.h",
+      "identical": true,
+      "sha256": "19d9313075eeb140dbb64d646e29b0277a10a5e8695114bb84397b3c9370cf58",
+      "upstream_sha256": "19d9313075eeb140dbb64d646e29b0277a10a5e8695114bb84397b3c9370cf58"
+    },
+    {
+      "path": "source/astcenc_mathlib.cpp",
+      "upstream_path": "Source/astcenc_mathlib.cpp",
+      "identical": true,
+      "sha256": "9b207409e5026eb509c95ec31db70dd33183e5153ef9286e4ac18dc6eee39b6f",
+      "upstream_sha256": "9b207409e5026eb509c95ec31db70dd33183e5153ef9286e4ac18dc6eee39b6f"
+    },
+    {
+      "path": "source/astcenc_mathlib.h",
+      "upstream_path": "Source/astcenc_mathlib.h",
+      "identical": true,
+      "sha256": "4d81ed831728698cf9c3772be4521064714eb33193f02914bea2af5aa6281041",
+      "upstream_sha256": "4d81ed831728698cf9c3772be4521064714eb33193f02914bea2af5aa6281041"
+    },
+    {
+      "path": "source/astcenc_mathlib_softfloat.cpp",
+      "upstream_path": "Source/astcenc_mathlib_softfloat.cpp",
+      "identical": true,
+      "sha256": "f854596cde2c2a061ca52c1f10aeb789de60d2945d0658d26989e3b574270551",
+      "upstream_sha256": "f854596cde2c2a061ca52c1f10aeb789de60d2945d0658d26989e3b574270551"
+    },
+    {
+      "path": "source/astcenc_partition_tables.cpp",
+      "upstream_path": "Source/astcenc_partition_tables.cpp",
+      "identical": true,
+      "sha256": "1aff6ad32be5359973ea2a93dd0a0fee62cb9f0bbaf611f3b7920778b6180377",
+      "upstream_sha256": "1aff6ad32be5359973ea2a93dd0a0fee62cb9f0bbaf611f3b7920778b6180377"
+    },
+    {
+      "path": "source/astcenc_percentile_tables.cpp",
+      "upstream_path": "Source/astcenc_percentile_tables.cpp",
+      "identical": true,
+      "sha256": "f689127e0b83b6c45ef7fa8625481818f1bdd6892e1eb2981844e3d9cfa04af0",
+      "upstream_sha256": "f689127e0b83b6c45ef7fa8625481818f1bdd6892e1eb2981844e3d9cfa04af0"
+    },
+    {
+      "path": "source/astcenc_pick_best_endpoint_format.cpp",
+      "upstream_path": "Source/astcenc_pick_best_endpoint_format.cpp",
+      "identical": true,
+      "sha256": "ff1d3348c3d6ee04291857b79b6fd0fa13c99b694befa09976f2254e5db2550b",
+      "upstream_sha256": "ff1d3348c3d6ee04291857b79b6fd0fa13c99b694befa09976f2254e5db2550b"
+    },
+    {
+      "path": "source/astcenc_quantization.cpp",
+      "upstream_path": "Source/astcenc_quantization.cpp",
+      "identical": true,
+      "sha256": "266b513e5432f7e95ca44a3c36d4c51ab5ee0ffaeb9c1d8b1f1ed971f37aeb15",
+      "upstream_sha256": "266b513e5432f7e95ca44a3c36d4c51ab5ee0ffaeb9c1d8b1f1ed971f37aeb15"
+    },
+    {
+      "path": "source/astcenc_symbolic_physical.cpp",
+      "upstream_path": "Source/astcenc_symbolic_physical.cpp",
+      "identical": true,
+      "sha256": "73526b9721f5a0ecde2e2ae5ad496883057391b914d3f5b74d36b5131b934b49",
+      "upstream_sha256": "73526b9721f5a0ecde2e2ae5ad496883057391b914d3f5b74d36b5131b934b49"
+    },
+    {
+      "path": "source/astcenc_vecmathlib.h",
+      "upstream_path": "Source/astcenc_vecmathlib.h",
+      "identical": true,
+      "sha256": "38280ac476db3d10bccbefce5734b60efde897a44e4c164e7aa2bfb9e190ea36",
+      "upstream_sha256": "38280ac476db3d10bccbefce5734b60efde897a44e4c164e7aa2bfb9e190ea36"
+    },
+    {
+      "path": "source/astcenc_vecmathlib_avx2_8.h",
+      "upstream_path": "Source/astcenc_vecmathlib_avx2_8.h",
+      "identical": false,
+      "sha256": "99a6871a0dbdc9f163d1c288a6fa3fa1cb7a0163d23598991a75f45f3bb81568",
+      "upstream_sha256": "f98e3826d0a18feb961828029ec2ddeadcdf70a02961ed2d5e4b5126a365409f"
+    },
+    {
+      "path": "source/astcenc_vecmathlib_common_4.h",
+      "upstream_path": "Source/astcenc_vecmathlib_common_4.h",
+      "identical": true,
+      "sha256": "646cb7082732d2f8c6ccdac93e1843878632503398ee30c91d4098b903f7fb0b",
+      "upstream_sha256": "646cb7082732d2f8c6ccdac93e1843878632503398ee30c91d4098b903f7fb0b"
+    },
+    {
+      "path": "source/astcenc_vecmathlib_neon_4.h",
+      "upstream_path": "Source/astcenc_vecmathlib_neon_4.h",
+      "identical": true,
+      "sha256": "829e22155c10a38f7e1c8dd2760cbad5c1286b5886b9365a27e09d8dc6f1b24d",
+      "upstream_sha256": "829e22155c10a38f7e1c8dd2760cbad5c1286b5886b9365a27e09d8dc6f1b24d"
+    },
+    {
+      "path": "source/astcenc_vecmathlib_none_4.h",
+      "upstream_path": "Source/astcenc_vecmathlib_none_4.h",
+      "identical": true,
+      "sha256": "39ae75358f6b32c711daa891cb85a547d7937dabfc27d60ca2b7f1a3ec5a4d97",
+      "upstream_sha256": "39ae75358f6b32c711daa891cb85a547d7937dabfc27d60ca2b7f1a3ec5a4d97"
+    },
+    {
+      "path": "source/astcenc_vecmathlib_sse_4.h",
+      "upstream_path": "Source/astcenc_vecmathlib_sse_4.h",
+      "identical": false,
+      "sha256": "41b64176a89312ef4c0f3dd1853b6fb49959125693bb2aaae8255835521a55e9",
+      "upstream_sha256": "e5a98727a4ef34da5244c9adb5b359a7d7d3a1e59dee6c2c28dbaecc854eb626"
+    },
+    {
+      "path": "source/astcenc_weight_align.cpp",
+      "upstream_path": "Source/astcenc_weight_align.cpp",
+      "identical": true,
+      "sha256": "cbf98b703a2c10d4bd3a72a03a03a05b6a95235c1fb58802e642be96f572c519",
+      "upstream_sha256": "cbf98b703a2c10d4bd3a72a03a03a05b6a95235c1fb58802e642be96f572c519"
+    },
+    {
+      "path": "source/astcenc_weight_quant_xfer_tables.cpp",
+      "upstream_path": "Source/astcenc_weight_quant_xfer_tables.cpp",
+      "identical": true,
+      "sha256": "4799c8c99c540cd43a58cfab007a0654b88e6c4ec2d7b5b80cfd70fc188c4b9f",
+      "upstream_sha256": "4799c8c99c540cd43a58cfab007a0654b88e6c4ec2d7b5b80cfd70fc188c4b9f"
+    }
+  ]
+}

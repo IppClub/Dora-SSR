@@ -19,6 +19,11 @@ Tools/dora-cs/**/*.manifest text eol=crlf
 # Preserve vendored SDL files byte-for-byte.
 Source/3rdParty/SDL2/** -text !eol
 
+# Provenance patches and notices are hashed as exact upstream bytes.
+Source/3rdParty/**/patches/*.patch -text !eol -whitespace
+Tools/Godot/vendor/**/*.patch -text !eol -whitespace
+Tools/Godot/licenses/** -text !eol -whitespace
+
 Source/3rdParty/** linguist-vendored
 Site/** linguist-vendored
 Tools/dora-dora/3rdParty/** linguist-vendored

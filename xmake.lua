@@ -4,7 +4,7 @@ set_xmakever("3.0.0")
 
 set_allowedmodes("debug", "release")
 set_defaultmode("debug")
-set_allowedplats("macosx", "iphoneos", "linux", "windows", "android", "wasm")
+set_allowedplats("macosx", "iphoneos", "linux", "windows", "android", "wasm", "mingw")
 set_policy("build.fence", true)
 
 if is_plat("macosx") then
@@ -19,6 +19,20 @@ add_repositories("dora-packages Projects/xmake/packages")
 
 includes("Projects/xmake/options.lua")
 includes("Projects/xmake/web/options.lua")
+-- Standalone runtime builds require C/C++ and Python, not Dora's Go/Rust tools.
+if has_config("dora_godot_standalone") then
+    if is_plat("wasm") then
+        includes("Projects/xmake/dependencies/host_tools.lua")
+    end
+    includes("Projects/xmake/godot/targets.lua")
+    return
+end
+-- MinGW currently builds only the optional Godot DLL. Dora's Windows host
+-- keeps its existing native Windows toolchain and dependency graph.
+if is_plat("mingw") then
+    includes("Projects/xmake/godot/targets.lua")
+    return
+end
 if is_plat("iphoneos") and (get_config("dora_ios_sign_identity") or "-") == "-" then
     set_config("xcode_codesign_identity", false)
 end

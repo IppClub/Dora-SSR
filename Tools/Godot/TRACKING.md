@@ -1,75 +1,93 @@
-# Godot / Dora vendor 与 xmake 迁移清单
+# Godot vendor / xmake 迁移清单
 
-更新：2026-11-02。当前目标：将固定版本的完整 Godot 源码纳入 Dora 仓库维护，把 LibGodot 构建逐平台迁移到 xmake，并为后续 Dora/Godot 第三方库复用建立可审计的构建基础。
+更新：2026-11-04。执行顺序见 [PLAN.md](PLAN.md)，命令见 [README.md](README.md)。本页只维护已完成项和待办。旧 history 目录已按用户整理移除；本次新记录暂存 `build/godot-xmake-only-v1/PROGRESS-DRAFT.md`，不重建历史目录。
 
-使用方法见 [README.md](README.md)；截至 2026-11-01 的 1.0、多平台 direct-target、真实项目和 D3D12/WARP 进展已移入 [历史归档](history/2026-11-02-pre-vendor-xmake/TRACKING.md)。更早的原型记录见 [2026-10-29 归档](history/2026-10-29-pre-1.0/TRACKING.md)，详细实验和失败记录继续保留在 [PLAN.md](PLAN.md)。本页只维护当前决策、待办和验收门槛。
+## 固定范围
 
-## 已确定的决策
+- 完整 vendor Godot 4.6-stable 至 `Source/3rdParty/Godot`，不用 submodule；维护来源、版本、许可证与 Dora 补丁。
+- 原生 xmake 管理生成、编译、链接与封包；允许复用上游 Python 生成器，生成物不写回源码。构建入口统一 xmake；保留上游构建文件与历史对照，不保留 SCons 安装/调用/回退。动态验收另行跟踪。
+- Godot C#/Mono 关闭，Dora C# 保留；Dora Apple2 / Godot Apple4；Windows x64 WGL 为本轮验收后端；保留 D3D12 适配并跳过本轮 D3D12 验收，不新增 Windows ARM64 目标验收。
+- 浏览器验收在宿主执行；不在虚拟机内增加浏览器测试，不自动扩展额外压力轮次。
+- Godot保持完整独立LibGodot运行时，包含各平台原有第三方实现；Dora与Godot分别构建依赖，不复用第三方二进制或宿主codec函数表。共享库实验与相关待办已撤销，[历史完整保留](history/2026-11-03-library-sharing-removed/README.md)。
+- 不做进程内 LibGodot 重初始化；未来完整工程切换采用 Worker 进程。缺少真机时可用 VM/模拟器，明确证据边界。
 
-- [x] 完整 vendor 固定的 Godot 4.6-stable 源码，不使用 submodule；目标目录为 `Source/3rdParty/Godot`。
-- [x] Godot 上游版本、精确 commit、原始归档 SHA-256、导入日期、Dora 修改和许可证必须可追溯。
-- [x] 当前 `prepare*.py` 对上游源码的修改将固化到 vendor 树；`modules/dora_bridge` 成为 vendor 源码的一部分，不再依赖构建时字符串改写。
-- [x] 最终由 xmake 原生描述 Godot 的依赖图、源文件、编译选项和链接流程；Godot 必需的 Python 代码生成器可以继续由 xmake 调用。
-- [x] SCons 在迁移期间只作为行为基线和对照构建，按平台通过等价验收后再移除，不能在首个阶段直接删除。
-- [x] 不实现进程内 LibGodot 销毁后重新初始化。未来不同 Godot 工程的完整卸载与切换采用独立 Worker 进程边界。
-- [x] 不恢复 Godot C# / Mono 支持；Dora 原有 C# 功能保持不变。
-- [x] 第三方库共享必须逐库核对版本、补丁、编译宏、ABI、allocator、CRT、异常/RTTI、全局状态和许可证；vendor 与 xmake 统一本身不等于允许直接共用二进制。
-- [x] 既有 1.0 能力和兼容回退不得因构建迁移而缩减；虚拟机、模拟器、软件渲染和物理设备证据继续分开标注。
+## 已完成
 
-## 当前已完成
+- [x] **TEST-EXTERNAL-01｜测试外置**：287个 Godot 测试、夹具与独立审计/诊断文件迁入 Dora-Example `Test/Godot` 与 `Test/LibGodotMetalProbe`；xmake 测试宿主、统一套件、CI 和文档已同步。协议、17项包校验、构建回归、原生测试源码编译及可搬移封包夹具通过；生产构建和必需完整性校验保留引擎。新记录暂存 `build/godot-test-move-v1/`，未扩大 GPU/VM 验收。
 
-- [x] 原 1.0 与后续 direct-target 进展完整归档，当前跟踪页与历史证据分离。
-- [x] Godot 4.6-stable 源码规模已核对：13,842 个文件，其中 7,873 个 C/C++/Objective-C 源码及头文件；当前 Dora 公共准备脚本只直接修改少量上游文件并注入约 200 KB 的桥接模块。
-- [x] Dora 主构建已统一使用 xmake 3.x，并已有 `Source/3rdParty` 内多库的源码级 xmake 构建模式，可作为 Godot 迁移的组织基础。
+- [x] **XMAKE-ONLY-01｜xmake 唯一构建入口**：六平台的13种架构/后端配置均通过 Debug、Release 串行编译、链接、封包与静态检查，共26项；10项构建系统回归通过，13,884个登记源码文件及24个最终构建输入摘要复核通过。自有 SCons 安装/调用/回退已移除，上游构建文件保留；四个原生 codec 变体目标替代新增 wrapper，无新增 codec 动态库。Linux ARM64 两模式各228项启动前ABI通过；其余动态缺口不随构建关闭。两台任务VM已关闭并恢复配置。新详情按用户要求暂存 `build/godot-xmake-only-v1/PROGRESS-DRAFT.md`，总验收为同目录 `FINAL-VERIFICATION.json`。
 
-## 待完成：按顺序推进
+- [x] **DEPS-INDEPENDENT-01｜恢复完整独立LibGodot**：共享选项、codec提供/转发/握手及专用工具已移出活动树，实验与视频异常补丁归档；完整解码源恢复，macOS重建库与已验收独立基线整文件一致，普通宿主动画/缺库回退/GPU排空通过。其他既定整合修复保留；见[撤销与验证记录](history/2026-11-03-library-sharing-removed/README.md)。
+- [x] **ARCHIVE-01**：旧进展与计划完整归档，主清单保留阶段成果和开放任务。
+- [x] **VENDOR-01/02、VENDOR-INTEGRITY-01**：完整固定版本 vendor，登记来源、许可证与 Dora 补丁，源码完整性核对通过。
+- [x] **XMAKE-01/02**：独立目标、输出目录与等价代码生成。
+- [x] **XMAKE-03/04**：macOS arm64 Metal、Linux Release 构建封包及既定运行验收；Linux x86_64 本轮基线补证见 LINUX-X64-REG-01。
+- [x] **XMAKE-05、GL-REG-01**：Windows WGL 原迁移基线验收、GL 计时修复及 Linux ARM64 回归；新 WGL 包回归见 WGL-REG-01。
+- [x] **XMAKE-06/07**：Android arm64 Release 模拟器、Web Release 四浏览器验收及入口切换。
+- [x] **WIN-ABI-01**：修复后 WGL 与新 xmake D3D12 DLL 在 Windows x64 进程中分别通过 228 / 185 项启动前 ABI 检查；D3D12 图形动态验收仍开放。
+- [x] **WGL-REG-01**：修复后新 DLL 的 Windows x64 ABI、2/3/4 缓冲、独立 soak/timing、普通宿主回退及官方项目回归通过；范围限 VM 虚拟 GPU。
+- [x] **WGL-REG-02**：本轮新 WGL 包的 2/3/4 缓冲、soak/timing、普通宿主、缺库/后端回退及未修改官方项目通过；修复 pending await 退出泄漏并通过最小回归，哈希/截图审计和测试任务清理完成。范围限 VM 虚拟 GPU。
+- [x] **WGL-GLES-REG-01**：读回修复前WGL库8df0a19e…完成 228项 ABI、2/3/4、soak/timing、普通宿主与缺库/后端回退、await 清理及原版官方项目验收；截图独立复核通过、零 blit，范围限 VM x64 进程。
+- [x] **WIN-TOOLS-01**：D3D12 x64 双宿主构建、Rust 已安装工具链复用及中文 Windows UTF-8 封包检查通过；动态验收仍见 XMAKE-09。
+- [x] **BASELINE-01**：D3D12 单后端 SCons Release 编译对照基线。
+- [x] **VENDOR-MODE-01**：Ogg/Theora 构建模式修复及 macOS 宿主、视频和真实项目回归。
+- [x] **DEPS-03、NIR-NOTICE-01**：依赖隔离方案与部分 NIR 历史许可补齐；完整许可审计仍开放。
+- [x] **DEPS-LINUX-01、DEPS-ZLIB-01、DEPS-JOLT-01、DEPS-SDL-01**：Linux 最终 ELF 静态核对及 Dora zlib/Jolt/SDL2 来源、补丁审计。
+- [x] **DEPS-MACOS-HOST-MAP-01**：已验收普通Dora Debug宿主的584对象顺序已恢复；控制/带map产物46段及签名前字节匹配（仅签名长度字段例外），Ogg归属和4项负向控制通过。Release收益仍未验收；见[宿主map记录](history/2026-11-03-macos-host-ogg-map.md)。
+- [x] **DEPS-MACOS-MAP-01**：当前Metal库已按实际链接收据重现，控制/带map产物均与已验收库整文件一致；旧52字节差异定位为framework顺序，负向重链复现通过。Ogg两成员贡献已核对，仍非共享收益或ABI验收；见[精确map记录](history/2026-11-03-macos-current-linkmap.md)。
+- [x] **DEPS-VORBIS-SOURCE-01**：Dora Vorbis的76个保留文件已从固定aoTuV/Lancer基线加完整差异精确重建，23个合并编译输入及9项负向控制通过。原源码/通知未改；仅确认等价基线，修改归属、完整ABI与共享仍开放；见[来源记录](history/2026-11-03-vorbis-source-provenance.md)。
+- [x] **DEPS-SHADER-SOURCE-01**：Dora glslang/SPIRV-Cross的131/36个保留文件及mode匹配固定bgfx树；Khronos基线加3/1文件补丁及glslang生成头精确重建，19项负向控制通过。原源码/通知未改，C++ ABI与共享仍开放；见[来源记录](history/2026-11-03-shader-source-provenance.md)。
+- [x] **DEPS-TINYEXR-SOURCE-01**：Dora保留的TinyEXR头及README与固定syoyo/bimg提交逐字节一致，Git blob及树关系核对、8项负向控制通过；来源已登记。仅覆盖两份保留文件，压缩后端、完整许可适用性及ABI/复用仍开放；见[来源记录](history/2026-11-03-tinyexr-source-provenance.md)。
+- [x] **DEPS-ASTC-SOURCE-01**：Dora astcenc的34个保留文件与固定bimg提交逐字节一致，Arm 4.8.0基线加两文件补丁精确重建；来源/补丁已登记，8项负向控制通过。Godot 5.3.0继续独立，ABI与复用仍待审计；见[来源记录](history/2026-11-03-astc-source-provenance.md)。
+- [x] **DEPS-WGL-IMAGE-01**：当前已验收WGL包与普通Dora宿主的最终PE导入/导出、包/验收收据身份已核对，6项负向控制通过；两侧静态符号已剥离，内部贡献与完整ABI/链接审计仍开放。见[WGL镜像审计](history/2026-11-03-wgl-dependency-images.md)。
+- [x] **DEPS-LINUX/WEB/IOS-LAYOUT-01、DEPS-MACOS/IOS/ANDROID-C-API-01**：指定编译单元布局及公开 C 接口核对；不等同完整 ABI 验收。
+- [x] **DEPS-MACOS-CODEC-01、DEPS-MACOS-ZLIB-01**：macOS 现有对象跨库调用、所有权及错误清理实验；尚未进入生产复用。
+- [x] **LINUX-X64-REG-01**：冻结新库 a5435ea9… 的 2/3/4、soak/timing、228项 ABI、普通宿主/缺库回退、官方项目及 await 清理全部通过，原始图像独立复核，VM已恢复关闭；范围为 QEMU/llvmpipe。后续 GLES 补丁的新产物复验另行跟踪。
+- [x] **GDSCRIPT-MACOS-01**：修复后 macOS Metal 库重建封包、214项 ABI 与原生 pending await 清理回归通过；GPU 排空无错误、零 blit、退出无对象泄漏。
+- [x] **GDSCRIPT-LINUX-ARM64-01**：当前源码重建库通过原生 ARM64 ABI、await 销毁与退出清理，以及 2/3/4、soak/timing、普通宿主回退、未修改官方项目；virgl GLES3.0/KHR_debug 分支及原始截图独立复核通过，零 blit。
+- [x] **GDSCRIPT-ANDROID-01**：新 arm64 Release 库在专用模拟器通过 await 清理及正常 Activity/LibGodot 退出验证；修复 GLES 详细日志误启用不支持的调试功能，测试 APK/模拟器已清理关闭。
+- [x] **GDSCRIPT-WEB-01**：当前源码 Web 库重建封包，Chrome/Firefox/WebKit/原生 Safari 的 await 节点销毁与正常退出回归全部通过；旧封包两个计时器泄漏的负向对照可复现，源码两侧 FS 哈希一致。
+- [x] **WEB-CURRENT-EXTRAS-01**：当前源码 Web 包的 context loss/重载恢复、独立 heap、可信 DOM/中文输入及 WebAudio 输出/挂起恢复通过，报告与封包摘要独立复核完成。
+- [x] **GL-TIMING-CAP-01**：原版 Godot 4.6、Dora Metal 与 Linux ARM64/x64 EGL 的强制追赶上限对照通过，Shader TIME 对独立墙钟误差≤2tick；原64步全部原图按上游语义复核通过，严格默认与运行时计时未改变。
+- [x] **LINUX-X64-PROJECT-02、LINUX-CURRENT-REG-02**：GLES修复后的 x64 库 b89fbb2a… 的全部矩阵、原64步计时、普通宿主/缺库回退、原版官方项目及 await 已独立复核通过；公开输入按真实时间控制，455tick与全部像素门槛保留，范围限 QEMU/llvmpipe。
+- [x] **GLES-DEBUG-REG-01**：Android 缺扩展、Linux ARM64 KHR_debug 正向分支及GLES阶段的 WGL/Linux x64 新包回归全部通过；Web/iOS 不编译此 EGL 调试分支，D3D12 本轮跳过。
+- [x] **DIRECT-READBACK-01**：macOS Metal 的 Godot 根 ViewportTexture.get_image() 已跟随当前共享纹理；旧库负向对照、新库2/3/4读回/resize、宿主显示、完整Metal矩阵和原版官方项目通过，214项ABI与源码完整性复核完成。
+- [x] **DIRECT-READBACK-EGL-01**：新Linux ARM64/x86_64库的Godot直接纹理读回2/3/4、640×360→800×450 resize及宿主显示通过，8组原图独立复核，GPU排空/零blit通过；范围为virgl及QEMU/llvmpipe，完整功能矩阵仍另验。
+- [x] **READBACK-REG-EGL-01**：新ARM64/x86_64库a659e7bf…/e4865cfe…完成228项ABI、2/3/4、soak、原64步计时、普通宿主/缺库回退、官方项目及await共16组复核；首次欠载与计时模式拒绝保留，按相同门槛串行续验通过，范围限VM。
+- [x] **DIRECT-READBACK-WEB-01、WEB-CURRENT-CORE-REG-01**：新Web包e72f952f…的三引擎2/3/4读回及完整显示矩阵、四浏览器await、context loss、DOM/音频回归通过；原图、实际shutdown与源/包摘要复核完成，原生Safari全矩阵另验。
+- [x] **DIRECT-READBACK-GL-01、READBACK-REG-WGL-01**：新WGL库dd61a9ae…通过2/3/4读回/resize、宿主显示、228项ABI、完整矩阵/soak/timing、普通宿主/回退、await及原版Dodge；原图/输入独立复核，4个本轮任务已清理、VM正常关闭。GL读回各平台既定缺口已补齐；范围限Windows x64进程/VM虚拟GPU，见[当前WGL验收](history/2026-11-03-wgl-current-acceptance.md)。
+- [x] **WEB-CURRENT-REG-01、DIRECT-READBACK-SAFARI-01**：解锁后原生Safari26.6.2在同一新包e72f952f…通过2/3/4完整矩阵与Godot自身读回/resize；42张原图独立复核，可信画布点击/音频解锁及正常shutdown通过，旧失败保留。最新Web包四浏览器既定矩阵缺口补齐，见[Safari当前包验收](history/2026-11-03-safari-current-regression.md)。
+- [x] **IOS-CURRENT-BUILD-01**：当前登记源码的simulator/device Release archive及framework重建封包通过；新模拟器库218项ABI、普通Dora180帧与Apple4安全拒绝重跑通过，原图/42个宿主section及两套最终符号独立复核。未运行Godot正向渲染或await，相关父项仍开放；见[iOS当前库历史](history/2026-11-03-ios-current-regression.md)。
+- [x] **ANDROID-CACHE-DIAG-01**：保留缓存的2/3/4续验已核对5个文件跨进程摘要；源码回退后的像素、时钟、resize与真实退出通过诊断复核，独立GLES复现及验收器负向控制完成。告警仍使严格验收失败，兼容处理见ANDROID-SHADER-CACHE-01；不是暖缓存验收通过。见[缓存诊断](history/2026-11-03-android-shader-cache.md)。
+- [x] **DIRECT-READBACK-ANDROID-01、READBACK-REG-ANDROID-01**：新arm64 Release库b58bd299…在专用模拟器通过2/3/4读回/resize、完整显示矩阵、普通宿主/缺库回退、未修改官方Dodge及await清理；原图、密封包/宿主摘要和实际Activity/LibGodot退出独立复核通过。限冷安装SwiftShader，暖缓存另列待办，模拟器已关闭。见[Android读回历史](history/2026-11-03-android-readback.md)。
+- [x] **WEB-REAL-PROJECT-02**：同一新Web包在Chrome通过未修改官方Dodge的48源文件双heap摘要、625控制帧/12截图、输入动画、暂停恢复、移除重建及GPU/PCM排空。
+- [x] **XMAKE-HOST-GEN-01**：修复 Linux 交叉配置中 Lua 生成器误用目标编译器；宿主 ARM64 ELF 与实际 Lua5.1/LFS 执行检查通过，配套 x64 测试宿主已构建并用于本轮矩阵验收。
+- [x] **CLEANUP-01｜已验收配置旧构建退场**：macOS arm64、Linux ARM64/x64、WGL x64、Android arm64及Web的Release入口已使用原生xmake；17项分派核对与8次真实prepare只读检查通过，13,884个源码文件摘要不变。这是原Release入口收口阶段；后续Debug、其他架构、iOS/D3D12及SCons显式入口的全量退场见XMAKE-ONLY-01，不删除历史产物。见[入口收口记录](history/2026-11-03-build-entrypoint-cleanup.md)。
+- [x] **DOC-01**：[维护指南](MAINTENANCE.md)、构建、升级与封包说明。
 
-- [x] **VENDOR-01｜导入上游源码。** 提交 `199c2c69c` 将 Godot 4.6-stable 完整源码导入 `Source/3rdParty/Godot`：上游 tag 对应 commit `89cea143987d564363e15d207438530651d943ac`，归档 SHA-256 为 `b451eaa1…57a0`。13,842 个上游路径逐项比较 Git mode/blob，缺失、额外和不一致均为 0；另加 `UPSTREAM.md/json` 两个来源文件，保留 MIT 许可证、完整第三方声明，并由既有 `Source/3rdParty/** linguist-vendored` 规则标记为 vendored。
-- [x] **VENDOR-02｜固化 Dora 修改。** 提交 `58b79c23c`、`bef1e3912`、`be70d4912`、`34db79031`、`3233c3fc2`、`aafaa14cd` 分别固化通用 bridge/平台入口/渲染与音频输入、D3D12 WARP 兼容、嵌入稳定性修复、Android、iOS 和 Web 修改；`9f7c07ae1` 移除旧 `Tools/Godot/module` 副本并把构建及测试入口切到 vendor 树。四个 `prepare*.py` 兼容入口现为只读校验器，重复运行后 vendor 源码零变化；Web只读回归、17项包完整性测试和2/3/4缓冲CPU协议测试通过，未据此宣称平台编译或GPU验收。
-- [ ] **BASELINE-01｜建立 SCons 对照基线。** 从未修改的 vendor 工作树构建现有 macOS、Linux、Windows、Android、Web、iOS 运行库，记录命令、工具链、编译宏、生成文件、导出符号、动态依赖、包体和现有运行回归结果。
-  - [x] macOS arm64 Metal：vendor `template_release` 完整构建、封装、214项ABI和三缓冲动态回归通过；详细证据见 `PLAN.md` 的“2026-11-02 vendor SCons macOS 基线”。
-  - [x] Linux x86_64/ARM64 EGL/OpenGL：vendor `template_release` 标准模块运行库分别以原生 ARM64 和交叉 GCC x86_64 完整构建、封装，均为精确架构且只导出6项 bridge ABI。ARM64 Ubuntu VM 中当前 Dora Debug 宿主以 Mesa llvmpipe 实际完成三缓冲1000帧、两次生命周期、direct-target 零 blit、GPU/PCM 零错误回归；x86_64 当前 Dora 测试宿主也完成交叉构建并由 Rosetta 启动至 bgfx EGL，但 Rosetta 在加载 Mesa LLVM AOT 映像时因 segment 数限制终止，故不宣称 x86_64 动态或物理 GPU 通过。两台 VM 均已关闭；详细证据见 `PLAN.md` 的“2026-11-02 vendor SCons Linux 基线”。
-  - [ ] Windows x64 WGL/OpenGL 与保留的 D3D12 编译边界。2026-11-02 尝试启动既有 Parallels Windows 11 VM 时进入自动修复；通过 `prlctl send-key-event` 安全选择“继续使用 Windows”后仍持续黑屏且 Parallels Tools 无法建立来宾执行通道。未执行重置、重装或磁盘修复，也未把 VM 启动故障计作 Godot 构建失败；该 VM 已请求停止，本项保持未完成。
-  - [x] Android arm64 EGL：vendor `template_release` 运行库与当前 Dora Debug prototype APK 完成构建，APK 内运行库哈希与密封包一致；API 35 ARM64 模拟器实际执行 2/3/4 缓冲各1000帧，direct-target 稳态 blit、GPU pending/error 和 PCM underrun 均为0。测试包已卸载且模拟器已关闭；该结果不宣称物理设备或普通 Release 验收，详细证据见 `PLAN.md` 的“2026-11-02 vendor SCons Android 基线”。
-  - [x] Web WebGL2/WASM：vendor `template_debug` 运行库与当前 Dora Web 宿主完成构建；Chrome 156 实际执行 2/3/4 缓冲矩阵，每档620控制帧、12张合成截图，direct-target 稳态 blit、GPU pending/error 和 PCM underrun 均为0。此次基线未重跑 Firefox/WebKit/Safari；详细证据见 `PLAN.md` 的“2026-11-02 vendor SCons Web 基线”。
-  - [x] iOS simulator/device Metal：vendor `template_debug` 静态库与 framework 均完成编译、链接、6项导出和 ad-hoc 签名检查；模拟器 Dora 宿主实际启动并在 Godot 初始化前按 Apple2 / Apple4 门槛正确拒绝，随后卸载应用并关闭模拟器。该结果不宣称 Apple4 GPU 共享通过；详细证据见 `PLAN.md` 的“2026-11-02 vendor SCons iOS 基线”。
-- [x] **XMAKE-01｜建立 Godot xmake 构建骨架。** 已增加默认关闭的 `dora_godot_runtime` 选项和 `godot-core → godot-drivers → godot-servers → godot-scene → godot-modules → godot-main-platform → godot-dora-bridge → godot-runtime` 八级 object/static 目标图；对象、静态库和后续生成目录全部固定到 `build/godot-xmake`。`Tools/Godot/test_xmake_skeleton.py` 已核对目标、依赖、输出边界和 vendor 树零修改。该项只关闭构建骨架，不代表代码生成、源文件清单或任一平台 xmake 编译已经完成。
-- [x] **XMAKE-02｜迁移代码生成。** xmake 的 `godot-codegen` 目标现直接调用上游 Python builder，将版本/证书/许可证、控制器映射、profiling、GDVirtual/ClassDB 包装、GDExtension API、模块与平台注册、启动资源、主题资源、GLES3/RD Shader 及 SMAA 纹理头统一生成到 `build/godot-xmake/generated`。`template_release.json` 固定标准模块 profile；内容指纹覆盖 profile、生成器、Python builder、Shader、图标和二进制输入。测试实际得到143项输出，与当前 SCons 基线143项逐字节一致；再次强制执行保持全部 mtime/size 不变。该项不包含 C/C++ 源文件清单、平台编译宏或链接，后者从 XMAKE-03 起验收。
-- [x] **XMAKE-03｜macOS Metal 首个平台。** 原生 xmake 已完成 macOS arm64 `template_release` Metal 运行库：2,366条编译动作固化为可审计清单，PCRE2/JPEG同源多变体由110个独立wrapper保留，macOS profile启用Metal必需的glslang并排除依赖OpenGL的WebXR。产物为macOS 11 arm64、严格6项bridge导出、仅系统动态依赖；214项ABI、密封包、2/3/4缓冲各1000帧动态矩阵和官方`Dodge the Creeps`真实项目回归通过。`build_runtime.sh`的Release生产路径已切换到xmake且打包哈希与原生产物一致；Debug SCons仅暂作开发回退，不计生产路径。详细证据与一次保留的暂停截图时序失败见`PLAN.md`的“2026-11-02 XMAKE-03 macOS Metal原生构建”。
-- [ ] **XMAKE-04｜Linux EGL/OpenGL。** 迁移 Linux x86_64/ARM64 构建，保持无 X11/Wayland 宿主窗口、direct-target、兼容 blit 回退、运行库打包和 AppImage 集成行为。
-- [ ] **XMAKE-05｜Windows WGL/OpenGL。** 迁移 Windows x64 构建，保持符号隔离、WGL direct-target、输入/IME/音频和缺库安全回退；ARM64 Windows 不列入当前验收范围。
-- [ ] **XMAKE-06｜Android EGL。** 迁移 Android arm64 JNI 运行库及 Java/AAR 配套生成，保持 nondebuggable/R8 Release、Activity 生命周期、触摸/IME、Home 恢复和 direct-target 行为。
-- [ ] **XMAKE-07｜WebGL2/WASM。** 迁移 Web 静态运行库、Emscripten 链接和 JS glue，保持独立 Wasm heap、四浏览器矩阵、context loss 安全停止与页面重载恢复。
-- [ ] **XMAKE-08｜iOS Metal。** 迁移 simulator/device 静态库与 framework 打包，保持 Dora Apple2 / Godot Apple4 能力门槛和安全拒绝；Apple4 正向 GPU 共享仍需相应设备证据。
-- [ ] **XMAKE-09｜Windows D3D12。** 迁移保留的 D3D12 单后端构建；WARP CPU-fence 基线继续作为兼容性证据，物理 Windows GPU 和纯 GPU fence 仍单列验收。
-- [ ] **DEPS-01｜第三方库清单与冲突审计。** 生成 Dora、Godot 双方第三方库的版本、补丁、特性、许可证、符号和链接形态矩阵，先识别重复项，不在审计前改变运行库归属。
-- [ ] **DEPS-02｜低风险源码复用。** 优先评估纯 C、无跨边界对象所有权的库；每次只迁移一个库，分别验证静态复用、动态复用、包体、性能和跨进程代码页收益。
-- [ ] **DEPS-03｜高风险依赖隔离。** Godot 修改过的 bundled 库、暴露 C++ ABI、依赖特定 allocator/CRT 或含全局状态的库默认保持独立，除非有完整的双宿主回归和回退方案。
-- [ ] **CLEANUP-01｜移除旧准备与 SCons 生产路径。** 所有目标平台完成 xmake 等价验收后，删除下载归档、运行时源码改写和 SCons 生产入口；保留必要的上游同步工具、来源审计和历史复现说明。
-- [ ] **DOC-01｜更新用户和维护者文档。** 更新构建命令、可选运行库布局、源码与许可证说明、上游升级流程、第三方共享政策、Worker 边界以及故障排查入口。
+## 待完成
 
-## 每个平台的完成门槛
 
-- xmake 从干净 checkout 独立生成并构建，不读取旧 SCons 构建目录，也不修改 vendor 源码。
-- 编译器、SDK、目标架构、Godot feature flags、Dora bridge ABI 和图形后端与对照基线一致。
-- 导出符号、运行库动态依赖、许可证、manifest 和包内文件通过校验；二进制哈希不要求与 SCons 相同。
-- 现有 ABI/协议测试，以及该平台 2/3/4 缓冲、动画、暂停/恢复、输入、音频、resize、节点重建、退出排空和缺库回退全部通过。
-- 至少一个未经修改的真实 Godot 开源项目通过；测试设备和图形后端按实际证据标注。
-- xmake 失败、可选运行库缺失或后端不匹配时，普通 Dora 功能保持安全可用。
-- 本地验收完成后清理本任务启动的服务、模拟器和虚拟机，保留报告、截图、哈希及构建来源记录。
+执行顺序：最新WGL包的读回、显示、完整回归与官方项目验收已完成；各平台GL读回既定缺口已补齐。D3D12 本轮跳过，不作为 WGL 收口门槛。随后补其他平台回归及 iOS 缺口，第三方库共享及其综合前置审计已撤销，NIR许可随D3D12保留后续；全部受支持配置的 xmake 唯一构建入口已收口；环境受限时推进独立任务，不改变验收门槛。
 
-## 上游更新规则
+- [ ] **GDSCRIPT-REG-01｜其他平台 await 清理回归**：macOS、Linux ARM64/x86_64、Android、Web 已重建并通过最小清理回归；iOS两套当前库已重建，模拟器ABI/安全拒绝已复验，但Apple2模拟器不能进入Godot运行态；仍须在Apple4可用环境复用夹具检查节点销毁及退出泄漏。
+- [ ] **READBACK-REG-01｜公共RD/GL改动的其他配置**：Linux ARM64/x86_64、WGL和Web新库已独立构建封包；Linux两架构、Android冷安装及Web核心回归已完成；首次失败与续验证据保留。WGL当前包动态回归、iOS重建/模拟器ABI及Web原生Safari矩阵均已补，剩余iOS正向动态回归；D3D12跳过。
+- [ ] **ANDROID-SHADER-CACHE-01｜暖缓存续验**：新包保留缓存再次启动时出现shader binary加载失败并回退源码编译，严格读回验证拒绝。独立GLES探针及跨进程缓存/图像/生命周期诊断已完成，2/3/4回退后像素与清理正确；剩余是二进制缓存兼容性处理及严格无告警复验。host模式报告0种binary格式，不能替代原SwiftShader问题；不关闭缓存或过滤告警以通过。见[Android读回历史](history/2026-11-03-android-readback.md)。
+- [ ] **LINUX-X64-AUDIO-LOAD-01｜并发欠载诊断**：当前包并发浏览器测试时出现一次512帧音频欠载，串行同场景零欠载通过；本轮同宿主旧/新基线配对均通过；额外浏览器压力轮次按用户要求取消，部分样本不算完整配对，原因仍待确认，不将基线通过写成已修复并发问题。见[范围收敛记录](history/2026-11-03-linux-audio-scope.md)。
+- [ ] **XMAKE-08｜iOS Metal**：补 Apple4 正向共享、2/3/4 缓冲动态矩阵及真实项目；当前源码两套archive/framework、模拟器218项ABI与能力拒绝已重跑通过；模拟器仅Apple2，正向缺口不变，构建已改为xmake，最新配置验证见XMAKE-ONLY-01。
 
-1. 上游更新先以独立提交导入，不与 Dora 功能修改混合。
-2. 更新来源清单、版本、commit、归档哈希、许可证和第三方声明差异。
-3. 重新应用或合并 Dora 修改，明确记录冲突和已被上游吸收的修复。
-4. SCons 尚未完全移除前先跑对照构建；之后以最近封存的 xmake 基线比较。
-5. 全平台编译通过不等于迁移完成，仍须满足各平台实际运行与交付门槛。
 
-## 当前不纳入本迁移的工作
+详细进展、失败诊断与证据见 [Windows 回归历史](history/2026-11-03-windows-runtime-reaccept.md)、[Linux x86_64 回归历史](history/2026-11-03-linux-x64-runtime-reaccept.md)、[macOS 清理回归](history/2026-11-03-macos-await-cleanup.md)、[Android 清理回归](history/2026-11-03-android-await-cleanup.md)、[Web 清理回归](history/2026-11-03-web-await-cleanup.md)、[计时契约对照](history/2026-11-03-timing-cap-contract.md)、[Metal读回修复](history/2026-11-03-metal-readback.md)及[归档索引](history/2026-11-03-vendor-xmake-plan-refresh-final/README.md)，本页不追加过程记录。
 
-- 进程内 LibGodot 重初始化。
-- Godot C# / Mono 项目支持。
-- 多个同时活动的 Godot Worker 或多个同时活动的 GodotNode。
-- 未经审计的一次性全量第三方库合并。
-- 以虚拟 GPU、软件渲染或模拟器结果替代物理设备兼容性声明。
+## 本轮跳过，保留后续
+
+- [ ] **NIR-LICENSE-01｜D3D12 SDK许可核对**：NIR仍有12项许可继承关系待确认，仅在恢复D3D12验收/封包时处理；当前WGL等其他后端不引入NIR通知材料，不作为本轮收口门槛。见[许可材料](licenses/nir-25.3.1-1/README.md)。
+- [ ] **XMAKE-09｜Windows D3D12**：按用户决定跳过本轮动态验收，保留适配、构建与已有 WARP 证据；官方项目崩溃及物理 GPU/纯 GPU fence 仍未验收。不标记通过，构建入口仅使用 xmake，GPU 验收保持开放。
+
+## 验收与维护规则
+
+1. 干净 checkout 独立构建，不读取旧 SCons 输出、不修改 vendor；工具链、flags、平台与后端可追溯。
+2. 通过封包哈希、许可证、导出、动态依赖、ABI 与协议检查。
+3. 实际覆盖 2/3/4 缓冲、动画、生命周期、输入音频、resize、重建、退出排空、缺库回退与未修改真实项目；未覆盖项明确保留。
+4. 编译、VM/模拟器、软件渲染和物理硬件分别记录。每完成任务更新勾选，过程与证据写入历史文档。
+5. 测试结束关闭本任务启动的服务、模拟器和虚拟机，保留证据。

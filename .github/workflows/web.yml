@@ -9,7 +9,7 @@ on:
       - 'xmake.lua'
       - 'Projects/xmake/**'
       - 'Source/**'
-      - 'Tools/Godot/tests/web/**'
+      - 'Tools/Godot/web/**'
       - 'Tools/tolua\+\+/**'
       - '.github/workflows/web.yml'
   pull_request:
@@ -20,7 +20,7 @@ on:
       - 'xmake.lua'
       - 'Projects/xmake/**'
       - 'Source/**'
-      - 'Tools/Godot/tests/web/**'
+      - 'Tools/Godot/web/**'
       - 'Tools/tolua\+\+/**'
       - '.github/workflows/web.yml'
   workflow_dispatch:
@@ -70,10 +70,10 @@ jobs:
           npm install --prefix build/godot-bootstrap-browser --no-save --package-lock=false playwright@1.62.1
           build/godot-bootstrap-browser/node_modules/.bin/playwright install --with-deps chromium
           mkdir -p build/godot-bootstrap-failure-game
-          cp Tools/Godot/tests/web/bootstrap_failure.lua build/godot-bootstrap-failure-game/init.lua
+          cp "$DORA_TEST_REPO/Test/Godot/tests/web/bootstrap_failure.lua" build/godot-bootstrap-failure-game/init.lua
           cp -R result/dora-web-player build/godot-bootstrap-failure-player
           DORA_WEB_GAME_PROFILE=dora-preset DORA_WEB_EAGER_GAME_ASSETS=1 node Projects/xmake/tools/web/package_web_game.mjs build/godot-bootstrap-failure-game build/godot-bootstrap-failure-player
-          DORA_PLAYWRIGHT_MODULE="$PWD/build/godot-bootstrap-browser/node_modules/playwright" node Tools/Godot/tests/web/run_bootstrap_failure.cjs build/godot-bootstrap-failure-player build/godot-bootstrap-failure-results
+          DORA_PLAYWRIGHT_MODULE="$PWD/build/godot-bootstrap-browser/node_modules/playwright" node "$DORA_TEST_REPO/Test/Godot/tests/web/run_bootstrap_failure.cjs" build/godot-bootstrap-failure-player build/godot-bootstrap-failure-results
       - name: Upload failed bootstrap diagnostics
         if: always() && runner.os == 'Linux'
         uses: actions/upload-artifact@v4

@@ -33,6 +33,17 @@
 #include <cstdlib>
 #include <cstring>
 #include <cstdio>
+#ifdef WINDOWS_ENABLED
+#include "core/os/semaphore.h"
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h>
+#endif
+
 bool DisplayServerDoraGL::desktop=false;
 void *DisplayServerDoraGL::transport=nullptr;
 void initialize_dora_bridge_module(ModuleInitializationLevel) {}
@@ -106,6 +117,11 @@ bool attach_direct_color(RID target,uint32_t texture) {
     if (!fbo || !texture) return false;
     GLint previous=0; glGetIntegerv(GL_FRAMEBUFFER_BINDING,&previous);
     glBindFramebuffer(GL_FRAMEBUFFER,fbo);
+#ifdef WINDOWS_ENABLED
+    // Invalidate the old attachment before replacing it. Some WGL drivers
+    // otherwise report the new texture while leaving its pixels unchanged.
+    glFramebufferTexture2D(GL_FRAMEBUFFER,GL_COLOR_ATTACHMENT0,GL_TEXTURE_2D,0,0);
+#endif
     glFramebufferTexture2D(GL_FRAMEBUFFER,GL_COLOR_ATTACHMENT0,GL_TEXTURE_2D,texture,0);
     const bool complete=glCheckFramebufferStatus(GL_FRAMEBUFFER)==GL_FRAMEBUFFER_COMPLETE;
     glBindFramebuffer(GL_FRAMEBUFFER,GLuint(previous)); return complete;
@@ -269,6 +285,9 @@ uint64_t advance_impl(void *handle,uint32_t index,uint64_t last_read,bool queued
     if (!valid(handle) || !(queued?dora_gl_can_advance(runtime.transport,index,last_read):dora_gl_can_produce(runtime.transport,index,last_read))) return 0;
     ProducerScope scope; if (!scope.ok) return 0;
     output_pending=false;
+    if (runtime.direct_targets && !dora_gl_begin_direct(runtime.transport,index,last_read,int(queued))) {
+        runtime.error="Godot direct target consumer wait failed: "+std::string(dora_gl_error()); return 0;
+    }
     if (runtime.instance->iteration()) { runtime.error="Godot project requested quit"; return 0; }
     if (!draw(runtime.direct_targets?int(index):-1)) { runtime.error="Godot direct target selection failed"; return 0; }
     RID texture=output.texture(runtime.root);

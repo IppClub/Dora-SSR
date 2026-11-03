@@ -48,10 +48,28 @@ option("dora_music")
     set_description("Build music support")
 option_end()
 
+option("dora_godot_standalone")
+    set_default(false)
+    set_showmenu(true)
+    set_description("Load only the LibGodot graph, without Dora host tool dependencies")
+option_end()
+
 option("dora_godot_runtime")
     set_default(false)
     set_showmenu(true)
     set_description("Enable the experimental vendored Godot runtime xmake graph")
+option_end()
+
+option("dora_godot_windows_backend")
+    set_default("wgl")
+    set_values("wgl", "d3d12")
+    set_showmenu(true)
+    set_description("Single graphics backend for the optional Windows Godot runtime")
+option_end()
+
+option("dora_godot_mesa_libs")
+    set_showmenu(true)
+    set_description("Audited Godot NIR SDK root for the D3D12 runtime (contains bin and godot-mesa)")
 option_end()
 
 option("dora_web_pthreads")

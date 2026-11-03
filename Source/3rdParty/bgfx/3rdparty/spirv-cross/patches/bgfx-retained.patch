@@ -1,0 +1,11 @@
+--- a/spirv_msl.cpp
++++ b/spirv_msl.cpp
+@@ -20317,7 +20317,7 @@
+ #pragma warning(push)
+ #pragma warning(disable : 4996)
+ #endif
+-#if _WIN32
++#if defined(_WIN32)
+ 	sprintf(print_buffer, "0x%x", msl_options.additional_fixed_sample_mask);
+ #else
+ 	snprintf(print_buffer, sizeof(print_buffer), "0x%x", msl_options.additional_fixed_sample_mask);

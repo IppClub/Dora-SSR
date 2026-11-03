@@ -62,6 +62,15 @@ target("Dora")
     on_load(function (target)
         assert(not csharp_native or target:is_plat("windows"), "The C# native host currently supports Windows only")
         import("core.project.config")
+        local function godot_test(relative)
+            local repo = config.get("dora_test_repo") or os.getenv("DORA_TEST_REPO")
+            if not repo then
+                repo = import("Projects.xmake.testing.repository", {rootdir = DORA_ROOT, anonymous = true})().directory
+            end
+            local source = path.join(repo, relative)
+            assert(os.isfile(source), "external Godot test source is missing: " .. source)
+            return source
+        end
         if config.get("dora_native_tests") then
             local repo = assert(config.get("dora_test_repo"), "native tests require a resolved Dora-Example checkout")
             assert(os.isfile(path.join(repo, "Test/Native/HelloWorldCpp.cpp")), "external native test sources are missing")
@@ -69,13 +78,13 @@ target("Dora")
             target:add("files", path.join(repo, "Test/Native/HelloWorldCpp.cpp"))
         end
         if target:is_plat("macosx") and os.getenv("DORA_BUILD_LIBGODOT_METAL_PROBE") == "1" then
-            target:add("files", rootpath("Tools/LibGodotMetalProbe/DoraMetalProbe.mm"), {force = {mxxflags = {"-fobjc-arc"}}})
+            target:add("files", godot_test("Test/LibGodotMetalProbe/DoraMetalProbe.mm"), {force = {mxxflags = {"-fobjc-arc"}}})
         end
         if target:is_plat("macosx", "iphoneos", "linux", "windows", "android") and os.getenv("DORA_BUILD_GODOT_NODE_TEST") == "1" then
-            target:add("files", rootpath("Tools/Godot/tests/GodotNodeTest.cpp"),
+            target:add("files", godot_test("Test/Godot/tests/GodotNodeTest.cpp"),
                 csharp_native and {defines = {"DORA_AS_LIB"}} or nil)
             if target:is_plat("macosx", "iphoneos") then
-                target:add("files", rootpath("Tools/Godot/tests/GodotResourceProbe.mm"), {force = {mxxflags = {"-fobjc-arc"}}})
+                target:add("files", godot_test("Test/Godot/tests/GodotResourceProbe.mm"), {force = {mxxflags = {"-fobjc-arc"}}})
             end
         end
         local manifest = import("Projects.xmake.manifests.engine", {rootdir = os.projectdir(), anonymous = true})()
@@ -280,7 +289,8 @@ target("Dora")
             add_defines("DORA_GODOT_WINDOWS_GL_BACKEND=1")
         end
         if os.getenv("DORA_BUILD_GODOT_NODE_TEST") == "1" then
-            set_targetdir(rootpath("build/godot-runtime/dora"))
+            set_targetdir(os.getenv("DORA_GODOT_TEST_TARGETDIR")
+                or rootpath("build/godot-runtime/dora"))
         end
         if csharp_native then
             set_targetdir(rootpath("build/dora-csharp/native"))

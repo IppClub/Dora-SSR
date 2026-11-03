@@ -1,0 +1,578 @@
+{
+  "schema": 1,
+  "upstream_commit": "89cea143987d564363e15d207438530651d943ac",
+  "source_archive_sha256": "b451eaa16d3abe0c7430e9ce1c4e83b146e5670e5b683dd8995c931fc82b57a0",
+  "initial_vendor_commit": "199c2c69c0e707808ad189200922bf71d04057b8",
+  "policy": "Canonical Git text/EOL content using attributes from the fixed initial import; no other content normalization",
+  "upstream_files": 13842,
+  "registered_current_files": 13884,
+  "archive_crlf_to_git_lf_files": [
+    "misc/msvs/nmake.substitution.props",
+    "misc/msvs/props.template",
+    "misc/msvs/sln.template",
+    "misc/msvs/vcxproj.filters.template",
+    "misc/msvs/vcxproj.template",
+    "modules/mono/editor/Godot.NET.Sdk/Godot.NET.Sdk.sln",
+    "modules/mono/editor/Godot.NET.Sdk/Godot.NET.Sdk/Godot.NET.Sdk.csproj",
+    "modules/mono/editor/Godot.NET.Sdk/Godot.SourceGenerators.Sample/Godot.SourceGenerators.Sample.csproj",
+    "modules/mono/editor/Godot.NET.Sdk/Godot.SourceGenerators.Tests/Godot.SourceGenerators.Tests.csproj",
+    "modules/mono/editor/Godot.NET.Sdk/Godot.SourceGenerators/Godot.SourceGenerators.csproj",
+    "modules/mono/editor/GodotTools/GodotTools.BuildLogger/GodotTools.BuildLogger.csproj",
+    "modules/mono/editor/GodotTools/GodotTools.Core/GodotTools.Core.csproj",
+    "modules/mono/editor/GodotTools/GodotTools.IdeMessaging.CLI/GodotTools.IdeMessaging.CLI.csproj",
+    "modules/mono/editor/GodotTools/GodotTools.IdeMessaging/GodotTools.IdeMessaging.csproj",
+    "modules/mono/editor/GodotTools/GodotTools.OpenVisualStudio/GodotTools.OpenVisualStudio.csproj",
+    "modules/mono/editor/GodotTools/GodotTools.ProjectEditor/GodotTools.ProjectEditor.csproj",
+    "modules/mono/editor/GodotTools/GodotTools.Shared/GodotTools.Shared.csproj",
+    "modules/mono/editor/GodotTools/GodotTools.sln",
+    "modules/mono/editor/GodotTools/GodotTools/GodotTools.csproj",
+    "modules/mono/glue/GodotSharp/Godot.SourceGenerators.Internal/Godot.SourceGenerators.Internal.csproj",
+    "modules/mono/glue/GodotSharp/GodotPlugins/GodotPlugins.csproj",
+    "modules/mono/glue/GodotSharp/GodotSharp.sln",
+    "modules/mono/glue/GodotSharp/GodotSharp/GodotSharp.csproj",
+    "modules/mono/glue/GodotSharp/GodotSharpEditor/GodotSharpEditor.csproj",
+    "platform/android/java/gradlew.bat"
+  ],
+  "delta_patch_sha256": "54a42d171a8c0ae3cdb29346ee35a69a5ea2ee19b613b0a4782d1be726d38582",
+  "files": [
+    {
+      "path": "UPSTREAM.json",
+      "status": "added",
+      "mode": "100644",
+      "canonical_sha256": "6686616166e03e19f9615b4ee21f36554c009960bf396820bcae64c929cb1118",
+      "upstream_canonical_sha256": null
+    },
+    {
+      "path": "UPSTREAM.md",
+      "status": "added",
+      "mode": "100644",
+      "canonical_sha256": "34c4b89e3eba3e3f5953fb3490d981d0cd905aa153ff3e1563c701e1ed94f56d",
+      "upstream_canonical_sha256": null
+    },
+    {
+      "path": "dora_android.map",
+      "status": "added",
+      "mode": "100644",
+      "canonical_sha256": "6338eb822141177000b0256138ac5a8c35498d7ecae58f1e59485a3f819bd863",
+      "upstream_canonical_sha256": null
+    },
+    {
+      "path": "dora_bridge.exports",
+      "status": "added",
+      "mode": "100644",
+      "canonical_sha256": "0f9b3d30424068a75b2e604bec8efc48391876cab95468aa103d71dc736257d3",
+      "upstream_canonical_sha256": null
+    },
+    {
+      "path": "dora_bridge.map",
+      "status": "added",
+      "mode": "100644",
+      "canonical_sha256": "f31437d55ff386eb26cd2a07e9568c5cab9fa6bbaad235a61729731e5b9ee278",
+      "upstream_canonical_sha256": null
+    },
+    {
+      "path": "drivers/apple_embedded/os_apple_embedded.mm",
+      "status": "modified",
+      "mode": "100644",
+      "canonical_sha256": "20a74248941df3e0448f4186e2c373a44a53a20a928c130a54524e735ba08d6f",
+      "upstream_canonical_sha256": "b674be79d7f0496aa3d86500ab06211ef6c7b14d8acde58818f110bf86f704a0"
+    },
+    {
+      "path": "drivers/d3d12/rendering_context_driver_d3d12.cpp",
+      "status": "modified",
+      "mode": "100644",
+      "canonical_sha256": "2c06001a2cdb5e1552859e7ccdb91f980c8839361b25a8c158a024976c2ce26a",
+      "upstream_canonical_sha256": "935b1238c178ee150feeac3a4e3c68acb9c032e6c8e1db6b4044f88e2c33f7a8"
+    },
+    {
+      "path": "drivers/gles3/rasterizer_canvas_gles3.cpp",
+      "status": "modified",
+      "mode": "100644",
+      "canonical_sha256": "925038b049cbc6269afd01ebdec9c8c54bf5e1e8483d933abef567dc0c73a221",
+      "upstream_canonical_sha256": "d3f423687d0013d3a7c7b5dac7ae9b483c38e3a64f82769e7debc024bdbe1747"
+    },
+    {
+      "path": "drivers/gles3/rasterizer_gles3.cpp",
+      "status": "modified",
+      "mode": "100644",
+      "canonical_sha256": "9adeb911d213cd53c8d8b7fdc6b68cc29229a53f499b255ccad9a39ca2ffc897",
+      "upstream_canonical_sha256": "6a8b7fdeb20424c5c8c2bcd1843755043bc6b24d6688a8250257f1fbe8630df2"
+    },
+    {
+      "path": "drivers/gles3/storage/texture_storage.cpp",
+      "status": "modified",
+      "mode": "100644",
+      "canonical_sha256": "438c2039455ee3eb39337b7dcb0d00fe19108c7a218d4c457aa351a500c1eb0a",
+      "upstream_canonical_sha256": "e12bd94de3edc1d19ae5dcf9af3189e3752552627a68a41ea0a2565aac155cfc"
+    },
+    {
+      "path": "drivers/metal/metal_device_properties.mm",
+      "status": "modified",
+      "mode": "100644",
+      "canonical_sha256": "05658402521654993064b02503b6b677103ec80615ec457abe6ec936995af676",
+      "upstream_canonical_sha256": "502235e3049a7c049209b23e72e6a421837d60e0f8b5fe820de71414f63568b9"
+    },
+    {
+      "path": "drivers/metal/rendering_context_driver_metal.mm",
+      "status": "modified",
+      "mode": "100644",
+      "canonical_sha256": "0731454b0769821447dd698b57d56eee5148efc1d809c15a56bf5319ceb72745",
+      "upstream_canonical_sha256": "8040f398bf8b181d831b9ce2a040e446bde587c037b34ca33b9cee167e8c3482"
+    },
+    {
+      "path": "drivers/metal/rendering_device_driver_metal.mm",
+      "status": "modified",
+      "mode": "100644",
+      "canonical_sha256": "3081b1bcc8c7b5b48196d7ba0e6af1017e500dab926c2c65ebd858126480354a",
+      "upstream_canonical_sha256": "62a287dd5db0c569727ab4ce55601a9bb8ab1823f4b040bd15f3417656fcf6b0"
+    },
+    {
+      "path": "main/main.cpp",
+      "status": "modified",
+      "mode": "100644",
+      "canonical_sha256": "2df448110f16e0f1fa1e49f3b082166313654d040a4be9230f4fe59073daf6df",
+      "upstream_canonical_sha256": "248f7e34fbe5aa3a65275420264af33cca7d29e0ce353120a90b9aaf23e8927c"
+    },
+    {
+      "path": "modules/camera/camera_android.cpp",
+      "status": "modified",
+      "mode": "100644",
+      "canonical_sha256": "b160fe3f562574286ef278c38003f86715237caeba099bf71ecab74496d8bed0",
+      "upstream_canonical_sha256": "0779cfd62721b1d338da9ea8ab48083ad7fab4fab1bca29eac15cb16a66e5251"
+    },
+    {
+      "path": "modules/dora_bridge/GodotAudioQueue.h",
+      "status": "added",
+      "mode": "100644",
+      "canonical_sha256": "1d4420509bf1f7284b9ba1db9d54536b837813429cdf832e8d226d5446dc9848",
+      "upstream_canonical_sha256": null
+    },
+    {
+      "path": "modules/dora_bridge/GodotBridge.h",
+      "status": "added",
+      "mode": "100644",
+      "canonical_sha256": "e8f34a65ced18f263a5dc833b43656ec3dc16d27969e805315cbd32f8fcb22bc",
+      "upstream_canonical_sha256": null
+    },
+    {
+      "path": "modules/dora_bridge/GodotBridgeAndroid.h",
+      "status": "added",
+      "mode": "100644",
+      "canonical_sha256": "f4e671e13e0aa9ebd4cf613d0d5c1b53a8aa6dd2aea054b7dff706cc2d60d35c",
+      "upstream_canonical_sha256": null
+    },
+    {
+      "path": "modules/dora_bridge/GodotBridgeAudio.h",
+      "status": "added",
+      "mode": "100644",
+      "canonical_sha256": "5a0c846044fe6681a9453771da8ffe325151d3432d0b61269da3892c84432ca4",
+      "upstream_canonical_sha256": null
+    },
+    {
+      "path": "modules/dora_bridge/GodotBridgeD3D12.h",
+      "status": "added",
+      "mode": "100644",
+      "canonical_sha256": "ca4b606aa42a5d50e40092a9cac47cf14bb6a5cd0e833f9867646599b39734df",
+      "upstream_canonical_sha256": null
+    },
+    {
+      "path": "modules/dora_bridge/GodotBridgeGL.h",
+      "status": "added",
+      "mode": "100644",
+      "canonical_sha256": "da58c1188a9fd171905e6ea0038cfcd6f78c7266bf4851d9d2f5da352078b4ba",
+      "upstream_canonical_sha256": null
+    },
+    {
+      "path": "modules/dora_bridge/GodotBridgeGLTargets.h",
+      "status": "added",
+      "mode": "100644",
+      "canonical_sha256": "82588da099826ee6379554f191cc12724a411bd284dc1e00d1442ddd29c8962c",
+      "upstream_canonical_sha256": null
+    },
+    {
+      "path": "modules/dora_bridge/GodotBridgeIME.h",
+      "status": "added",
+      "mode": "100644",
+      "canonical_sha256": "76ce31813d1d9ad9aca4eac11bc7fd196d0ccd9d1d0d109870b5acc94466f86e",
+      "upstream_canonical_sha256": null
+    },
+    {
+      "path": "modules/dora_bridge/GodotBridgeMetalTargets.h",
+      "status": "added",
+      "mode": "100644",
+      "canonical_sha256": "e961fece6cc8e6d4ec40eaf8bbcf9eafb303097e8e66df7853f17c7a0611b5fe",
+      "upstream_canonical_sha256": null
+    },
+    {
+      "path": "modules/dora_bridge/GodotBridgeOutput.h",
+      "status": "added",
+      "mode": "100644",
+      "canonical_sha256": "945ad66b529fe40bee8a5f2f29cf3df316e51e1bb1c8ff37f2f882778e058c3a",
+      "upstream_canonical_sha256": null
+    },
+    {
+      "path": "modules/dora_bridge/GodotBridgeViewport.h",
+      "status": "added",
+      "mode": "100644",
+      "canonical_sha256": "434adc5a8526fb41a32fbd81183362b4510a40286a9c36e312aa93b5b7e4dc80",
+      "upstream_canonical_sha256": null
+    },
+    {
+      "path": "modules/dora_bridge/SCsub",
+      "status": "added",
+      "mode": "100644",
+      "canonical_sha256": "757df111d96b96ee9193892d6a37aedc6bf1bd914dd3450549e5b6aaead3f4d2",
+      "upstream_canonical_sha256": null
+    },
+    {
+      "path": "modules/dora_bridge/android/embedded.h",
+      "status": "added",
+      "mode": "100644",
+      "canonical_sha256": "27dd6e254d2c48105f4b3b2b3384dec887a653510d110b0671a87b12e82a12ce",
+      "upstream_canonical_sha256": null
+    },
+    {
+      "path": "modules/dora_bridge/android/libgodot_android.cpp",
+      "status": "added",
+      "mode": "100644",
+      "canonical_sha256": "5c1ec9420f43a1794afc164fc9d15e632ce1c0470d1dc8b61a76eabe09917d64",
+      "upstream_canonical_sha256": null
+    },
+    {
+      "path": "modules/dora_bridge/config.py",
+      "status": "added",
+      "mode": "100644",
+      "canonical_sha256": "a3d1f4e8c875ad1448a14920053192738f041bdb761c673eaecc0fe7ca8df653",
+      "upstream_canonical_sha256": null
+    },
+    {
+      "path": "modules/dora_bridge/display_server_dora_d3d12.h",
+      "status": "added",
+      "mode": "100644",
+      "canonical_sha256": "cfbbf6d3e4a428faee4a64a5709e92612ee8140e2c0954f729c8235b8f75bfc4",
+      "upstream_canonical_sha256": null
+    },
+    {
+      "path": "modules/dora_bridge/display_server_dora_metal.h",
+      "status": "added",
+      "mode": "100644",
+      "canonical_sha256": "d94c8793bfd40feef66e25af856dfe29456c83b192b7e7d66648cfad83788690",
+      "upstream_canonical_sha256": null
+    },
+    {
+      "path": "modules/dora_bridge/gl/display_server_dora_gl.h",
+      "status": "added",
+      "mode": "100644",
+      "canonical_sha256": "7a1e44f0558fb1f3c36d4b70c3222080ae6f882bb85eef84b5bdc352b7f7cc9a",
+      "upstream_canonical_sha256": null
+    },
+    {
+      "path": "modules/dora_bridge/gl/egl_transport.cpp",
+      "status": "added",
+      "mode": "100644",
+      "canonical_sha256": "fc10ccfe8ec6cc9165cfc20952550b1974f0ebe1a30ded7d37200bd143c1add9",
+      "upstream_canonical_sha256": null
+    },
+    {
+      "path": "modules/dora_bridge/gl/gl_transport.h",
+      "status": "added",
+      "mode": "100644",
+      "canonical_sha256": "9496cac8f34c1613051f0e0205e246e75ca24e330f82d854819117e2f5b8bc2e",
+      "upstream_canonical_sha256": null
+    },
+    {
+      "path": "modules/dora_bridge/gl/target_policy.h",
+      "status": "added",
+      "mode": "100644",
+      "canonical_sha256": "e4684bc074b3ea45b825e75ca70113e8187a360e5cc58aa460c1c5c817164f8b",
+      "upstream_canonical_sha256": null
+    },
+    {
+      "path": "modules/dora_bridge/gl/texture_ring.inc",
+      "status": "added",
+      "mode": "100644",
+      "canonical_sha256": "26d4372d99c60ff037ace225f1700342bb7bd1857b73bbfb3cc23e7b6a7f4b68",
+      "upstream_canonical_sha256": null
+    },
+    {
+      "path": "modules/dora_bridge/gl/wgl_functions.h",
+      "status": "added",
+      "mode": "100644",
+      "canonical_sha256": "943a2364ec8885f76d11dcc9f43677835ab37b7223b14c8cd1f19d554ba43726",
+      "upstream_canonical_sha256": null
+    },
+    {
+      "path": "modules/dora_bridge/gl/wgl_transport.cpp",
+      "status": "added",
+      "mode": "100644",
+      "canonical_sha256": "8dd6494f155d4aebfaec30eae8b827a68eb21a7c38ec99e7ddf65770bc26bd8d",
+      "upstream_canonical_sha256": null
+    },
+    {
+      "path": "modules/dora_bridge/ios/libgodot_ios.mm",
+      "status": "added",
+      "mode": "100644",
+      "canonical_sha256": "21aa584626624c988818a283c7e0d468e3c240dcadd9c8f858d73d835c9a5933",
+      "upstream_canonical_sha256": null
+    },
+    {
+      "path": "modules/dora_bridge/register_types.h",
+      "status": "added",
+      "mode": "100644",
+      "canonical_sha256": "a710e944b3429e535840cc506f8911402c03c49a02319c0ee6d558bbd9cc488f",
+      "upstream_canonical_sha256": null
+    },
+    {
+      "path": "modules/dora_bridge/register_types.mm",
+      "status": "added",
+      "mode": "100644",
+      "canonical_sha256": "8438cf838fa74293f07f4e39026ef5382e7fe404a71218d7b0be64cb3ab5ef3e",
+      "upstream_canonical_sha256": null
+    },
+    {
+      "path": "modules/dora_bridge/register_types_d3d12.cpp",
+      "status": "added",
+      "mode": "100644",
+      "canonical_sha256": "ba32a9e7a9f53c491995548adc68689f43e93f161f562e3b79ccfb2fc101d40f",
+      "upstream_canonical_sha256": null
+    },
+    {
+      "path": "modules/dora_bridge/register_types_gl.cpp",
+      "status": "added",
+      "mode": "100644",
+      "canonical_sha256": "d05cea317b9d47aa1683f56be42d710894ee010212bc99657d05fab5e5b61e29",
+      "upstream_canonical_sha256": null
+    },
+    {
+      "path": "modules/dora_bridge/runtime_audio.inc",
+      "status": "added",
+      "mode": "100644",
+      "canonical_sha256": "99b59cc2436b9f216f7f84a46a8ee7f15958b809361c9a1f422c79752e63216a",
+      "upstream_canonical_sha256": null
+    },
+    {
+      "path": "modules/dora_bridge/runtime_ime.h",
+      "status": "added",
+      "mode": "100644",
+      "canonical_sha256": "5f2badef5435711e492c07c06b75419daf924ad71fb7bef9812e742bc8f841d7",
+      "upstream_canonical_sha256": null
+    },
+    {
+      "path": "modules/dora_bridge/runtime_input.inc",
+      "status": "added",
+      "mode": "100644",
+      "canonical_sha256": "3c0c78ff7a59386c8eec8c8a575f5401136ac0cd97b3c13dca737930db02a3f3",
+      "upstream_canonical_sha256": null
+    },
+    {
+      "path": "modules/dora_bridge/runtime_output.h",
+      "status": "added",
+      "mode": "100644",
+      "canonical_sha256": "64f7d81a5f52076b5f7f05639d69c2c83dd718287fb077dfc549831676eeb53d",
+      "upstream_canonical_sha256": null
+    },
+    {
+      "path": "modules/dora_bridge/runtime_timing.h",
+      "status": "added",
+      "mode": "100644",
+      "canonical_sha256": "37b983df280664ed2b2f98db4b07d3bfeda3e0fdd8ead7649c5cf5edd255ee8b",
+      "upstream_canonical_sha256": null
+    },
+    {
+      "path": "modules/dora_bridge/web/libgodot_web.cpp",
+      "status": "added",
+      "mode": "100644",
+      "canonical_sha256": "238f623d52b2380a5e249cb2db4a6be022c8f6627581bf3178ef3c3cda56c58e",
+      "upstream_canonical_sha256": null
+    },
+    {
+      "path": "modules/dora_bridge/web/web_api.cpp",
+      "status": "added",
+      "mode": "100644",
+      "canonical_sha256": "ffee4bdccb3aa177b134bf9f5644e2118527d678bf19e77db64176ff9e14fe28",
+      "upstream_canonical_sha256": null
+    },
+    {
+      "path": "modules/dora_bridge/web/web_transport.cpp",
+      "status": "added",
+      "mode": "100644",
+      "canonical_sha256": "788b5bcbb4b8cbc3c60ef172d21cb4493c13ee27ddd88a4b1befc952b5dc2d46",
+      "upstream_canonical_sha256": null
+    },
+    {
+      "path": "modules/gdscript/gdscript.cpp",
+      "status": "modified",
+      "mode": "100644",
+      "canonical_sha256": "8c361c75d7706af1bec77e7ba61d0bce3b38c43a6f34ae0854016e85e3cfd424",
+      "upstream_canonical_sha256": "50fc24214fef2e3f212b42cbe333f44cd4cb43b6be4f14772a6df9fbfd1e55f3"
+    },
+    {
+      "path": "platform/android/detect.py",
+      "status": "modified",
+      "mode": "100644",
+      "canonical_sha256": "2c88f62279df9085267f3f624f41399d88664aeba776e3dc8497c26d42255819",
+      "upstream_canonical_sha256": "5411663cd0a45859acf1f49ade73ec8823d9900cbd7acc78cbe3477186671476"
+    },
+    {
+      "path": "platform/android/java_godot_lib_jni.cpp",
+      "status": "modified",
+      "mode": "100644",
+      "canonical_sha256": "930f0dbf52b7b93ff9dd381dccd7644090a49163441826019ab914fe405b7445",
+      "upstream_canonical_sha256": "7504fcd06658c55185c38242e693596c6cd773b750853b980f194c58114f4553"
+    },
+    {
+      "path": "platform/android/os_android.cpp",
+      "status": "modified",
+      "mode": "100644",
+      "canonical_sha256": "bf1f285f1dee871a9d95cc0c8e77aab376c67ebe615d2d3b68cd08d3b640811b",
+      "upstream_canonical_sha256": "8938426526d493d84eee060ecaa7d34843afea6abcc1b8a383c5a1f1e09dbcd2"
+    },
+    {
+      "path": "platform/ios/detect.py",
+      "status": "modified",
+      "mode": "100644",
+      "canonical_sha256": "db7eb214575092b2f0893a5d43b70609d3487bd248659f036d96708978bb81ca",
+      "upstream_canonical_sha256": "56d9f5df568f8bd6ff6c587aa27f9b17f2c5c724acc17b4053df57ddfe1f061e"
+    },
+    {
+      "path": "platform/linuxbsd/libgodot_linuxbsd.cpp",
+      "status": "modified",
+      "mode": "100644",
+      "canonical_sha256": "2b9acf01233c9b5c9921f26bc2dc8c13096cde60eb4cb0964e74dbd4acf0f7eb",
+      "upstream_canonical_sha256": "68fb6ac9323df756037eea40c098ccad3216d75238092910ab9905bc72b1460b"
+    },
+    {
+      "path": "platform/macos/libgodot_macos.mm",
+      "status": "modified",
+      "mode": "100644",
+      "canonical_sha256": "608f3069d9da84f8c9bf5c3c6292837497a92b5c2e5ff09e60132139388e0419",
+      "upstream_canonical_sha256": "818e8cb5304e2c79b28a35f01732e36fea991f27ddf3ffc3a85bdea8ca6f9a19"
+    },
+    {
+      "path": "platform/web/SCsub",
+      "status": "modified",
+      "mode": "100644",
+      "canonical_sha256": "8911d948c5e33156d9c60f9a0998d5333ec536a6901094a6c3a8858e35e13c41",
+      "upstream_canonical_sha256": "7d1399c00266f1de7aab3bf42648890599a0af7829bde2ccd02decc96934d5f2"
+    },
+    {
+      "path": "platform/web/audio_driver_web.cpp",
+      "status": "modified",
+      "mode": "100644",
+      "canonical_sha256": "df092b296eaf487a1d942e5706f378b89d37c0839983a11bc92b804ddc49564d",
+      "upstream_canonical_sha256": "e73d98ad82ece2e1bfb6cb6e547f41bddaf075b80e81dc834ec5b8198afed6f7"
+    },
+    {
+      "path": "platform/web/detect.py",
+      "status": "modified",
+      "mode": "100644",
+      "canonical_sha256": "c98b3d5843588f4cdab41ff7a20d9059fc9ef2c615063cb3e85acd44a683fc28",
+      "upstream_canonical_sha256": "0b6b95527d497470000148feaf9b59e2e9f2fd1ebb622ca013848b495a598371"
+    },
+    {
+      "path": "platform/web/js/libs/library_godot_os.js",
+      "status": "modified",
+      "mode": "100644",
+      "canonical_sha256": "74886b9f186bce759ce5717c9852bc4480e25515d86cb447d62f9f290e55e392",
+      "upstream_canonical_sha256": "211dfb5520e9dd1381e3c379b4d9486420a02d9f3f72c40b912e3b2a5e7daaa9"
+    },
+    {
+      "path": "platform/windows/SCsub",
+      "status": "modified",
+      "mode": "100644",
+      "canonical_sha256": "c9a02e3a6647fbdd50cba4060b5f5c7700b2f609fb9ea0078f469d931d15cf59",
+      "upstream_canonical_sha256": "d0f569ad7f63330c338ec988c08f103fdc4542df5cf113bf72350a08804af90b"
+    },
+    {
+      "path": "platform/windows/libgodot_windows.cpp",
+      "status": "modified",
+      "mode": "100644",
+      "canonical_sha256": "31af574b0a7faf41c80adb797f40355aefd5846b739a2f247dd984fa5e2d2fd5",
+      "upstream_canonical_sha256": "91cd4bf71d80af2a8f72756757721b531e43084c55c6141545bd731ab19257dd"
+    },
+    {
+      "path": "scene/main/window.cpp",
+      "status": "modified",
+      "mode": "100644",
+      "canonical_sha256": "5f6db2ca29453f9fb511d0d827dd8cae8804949754ef6684c4c1a50b16371f39",
+      "upstream_canonical_sha256": "03b2a0cdfd25533075aa0ed15dcfed27a53e960aab71987c633362b7db7b99ee"
+    },
+    {
+      "path": "scene/resources/particle_process_material.h",
+      "status": "modified",
+      "mode": "100644",
+      "canonical_sha256": "c7b59d1bee6dc16a89879a68fb0b8333acbc375d9bc46fca3df38339d8651a47",
+      "upstream_canonical_sha256": "54d4bddc1b57edfebfe0f46f4ff6a0997e740c2df3841614fd7eea195cf71cbb"
+    },
+    {
+      "path": "servers/rendering/renderer_rd/effects/SCsub",
+      "status": "modified",
+      "mode": "100644",
+      "canonical_sha256": "b3d36d69d02f3fa54ffef0a0adde88bf8ff1e0087b4ffa8988d54b4ccc466c60",
+      "upstream_canonical_sha256": "1066fa8f6d2b79c00816f1b7600898d5ed8ad5b7876c1b7e2d2e508403c5194d"
+    },
+    {
+      "path": "servers/rendering/renderer_rd/effects/metal_fx.h",
+      "status": "modified",
+      "mode": "100644",
+      "canonical_sha256": "5ef1b804d9811f4a53c82ea1963f35e2dc1cc13d3f5a484eb9927b89fda4d7ca",
+      "upstream_canonical_sha256": "3533991f7eb0dad6ef493124762b87295819d999b3172811db68608668410977"
+    },
+    {
+      "path": "servers/rendering/renderer_rd/forward_mobile/render_forward_mobile.cpp",
+      "status": "modified",
+      "mode": "100644",
+      "canonical_sha256": "18a0c2c31f9282413d54de875b26046f44d5fa29c64c8bf89385f3ee47835c84",
+      "upstream_canonical_sha256": "4c3d07ef344c0c69f3641b53b26fc7e3be37954ed6376355a5515dfeb781cb75"
+    },
+    {
+      "path": "servers/rendering/renderer_rd/renderer_compositor_rd.cpp",
+      "status": "modified",
+      "mode": "100644",
+      "canonical_sha256": "5416a75a74b15b75da2cbe83dad1cdcd09348a0e61dc0eb73ed8184f54bd71ca",
+      "upstream_canonical_sha256": "cdb79646bc6cecd01a49e928f35fcca35fd7dd97f473d7b8e44f1033258569a0"
+    },
+    {
+      "path": "servers/rendering/renderer_rd/renderer_scene_render_rd.cpp",
+      "status": "modified",
+      "mode": "100644",
+      "canonical_sha256": "79c4d4b30f4cb0b1d8229763bd50210dd1e812237a90a7b7aa3c9c7cd98b6953",
+      "upstream_canonical_sha256": "96cd12ec5ef8c8d828dc6cdaa9e780e5b03f31f05b1bc07ee329be786fc1eb7a"
+    },
+    {
+      "path": "servers/rendering/renderer_rd/renderer_scene_render_rd.h",
+      "status": "modified",
+      "mode": "100644",
+      "canonical_sha256": "a7b052480bad94c192bf6b618c47c59a774c8f8c93cd4a5355efcd8995e6d641",
+      "upstream_canonical_sha256": "01433b34753b44ab281f6ab2587749299d222aee6c82f3241a1a76e5e0d0537e"
+    },
+    {
+      "path": "servers/rendering/renderer_rd/storage_rd/render_scene_buffers_rd.cpp",
+      "status": "modified",
+      "mode": "100644",
+      "canonical_sha256": "e5711d33c4d252b6ca2fc301447b1e7372de20166eae9878b5da5fb609895823",
+      "upstream_canonical_sha256": "eb90fc876d21321385fc88bf82759f4a263d0408bebd8c21ede0e6478e3a210c"
+    },
+    {
+      "path": "servers/rendering/renderer_rd/storage_rd/render_scene_buffers_rd.h",
+      "status": "modified",
+      "mode": "100644",
+      "canonical_sha256": "e5eea74c1ae217bbb9bce16c1e023ba049333bb07cc82b946c75f5a45574c485",
+      "upstream_canonical_sha256": "08235c3ad67b455687f80702e9368192e713001b64d0aaf11514d08056a12de0"
+    },
+    {
+      "path": "servers/rendering/renderer_rd/storage_rd/texture_storage.cpp",
+      "status": "modified",
+      "mode": "100644",
+      "canonical_sha256": "a9856465d7c5842bb8aad20152af94fa71aad43ea39c2d04cf8497c2094cd349",
+      "upstream_canonical_sha256": "943273a88a486e4e25337c8a19bf23072c945271be929088eafe6f28093159a3"
+    },
+    {
+      "path": "servers/rendering/rendering_server.cpp",
+      "status": "modified",
+      "mode": "100644",
+      "canonical_sha256": "6b1abb20609fd9a8ebf8911448c3c0235a9126c7b40040e7515833f32e07c748",
+      "upstream_canonical_sha256": "688b9023786e30603c95779e29ab21cedf43c7f5e723573df658cbbcd4bc88d7"
+    }
+  ]
+}

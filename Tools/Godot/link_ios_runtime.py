@@ -7,8 +7,11 @@ from verify_package import verify
 root=Path(__file__).resolve().parents[2]
 def digest(path):
  with path.open('rb') as file:return hashlib.file_digest(file,'sha256').hexdigest()
-p=argparse.ArgumentParser();p.add_argument('--device',choices=['simulator','device'],default='simulator');a=p.parse_args()
-build=root/'build/godot-ios'/a.device;compiled=json.loads((build/'compilation.json').read_text());assert compiled['passed']
+p=argparse.ArgumentParser();p.add_argument('--device',choices=['simulator','device'],default='simulator')
+p.add_argument('--build-dir',type=Path,help='Directory containing the verified compilation.json; framework output stays beside it')
+a=p.parse_args()
+build=(a.build_dir or root/'build/godot-ios'/a.device).resolve();compiled=json.loads((build/'compilation.json').read_text());assert compiled['passed']
+assert compiled['device']==a.device,'Archive platform does not match requested framework'
 archive=Path(compiled['archive']);assert digest(archive)==compiled['archive_sha256']
 source=root/'Source/3rdParty/Godot';package=build/'package';framework=package/'DoraGodot.framework';framework.mkdir(parents=True,exist_ok=True)
 manifest=package/'manifest.json';manifest.unlink(missing_ok=True)
@@ -30,6 +33,11 @@ binary=framework/'DoraGodot';symbols=subprocess.check_output(['nm','-gU',str(bin
 exports={line.split()[-1] for line in symbols.splitlines() if line.strip()};expected={line.strip() for line in (source/'dora_bridge.exports').read_text().splitlines() if line.strip()};assert exports==expected,exports
 metadata=subprocess.check_output(['xcrun','vtool','-show-build',str(binary)],text=True);assert re.search(r'platform\s+'+('IOSSIMULATOR' if a.device=='simulator' else 'IOS')+r'\s*$',metadata,re.M),metadata
 r={'passed':True,'scope':'iOS framework compilation/link/signature/export inspection only; no app boot or GPU acceptance','device':a.device,'framework':str(framework),'library_sha256':digest(binary),'source_archive_sha256':compiled['source_archive_sha256'],'archive_sha256':compiled['archive_sha256'],'command':command,'exports':sorted(exports),'mach_o_build':metadata,'ad_hoc_development_signature':True,'licenses':['GODOT-LICENSE.txt','GODOT-THIRD-PARTY-NOTICES.txt']}
+r['builder']=compiled['builder']
+r['build_target']=compiled.get('build_target','template_debug')
+r['graphics_backend']='metal'
+r['architectures']=['arm64']
+r['migration_inputs_sha256']=compiled.get('migration_inputs_sha256',{})
 r['library']='DoraGodot.framework/DoraGodot'
 r['licenses']=['DoraGodot.framework/'+name for name in r['licenses']]
 manifest.write_text(json.dumps(seal(package,r),indent=2)+'\n');print(json.dumps(r,indent=2))

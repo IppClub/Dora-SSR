@@ -3786,7 +3786,7 @@ Error Main::setup2(bool p_show_boot_logo) {
 }
 
 void Main::setup_boot_logo() {
-	if ((DisplayServer::get_singleton()->get_name() == "dora-metal" || DisplayServer::get_singleton()->get_name() == "dora-gl")) return; // Dora windowless boot
+	if ((DisplayServer::get_singleton()->get_name() == "dora-metal" || DisplayServer::get_singleton()->get_name() == "dora-gl" || DisplayServer::get_singleton()->get_name() == "dora-d3d12")) return; // Dora windowless boot
 	GodotProfileZone("setup_boot_logo");
 	MAIN_PRINT("Main: Load Boot Image");
 
@@ -4813,8 +4813,7 @@ bool Main::iteration() {
 #ifdef MODULE_DORA_BRIDGE_ENABLED
 	// Dora manual render timing: preserve Main's effective scale and step.
 	const String dora_display = DisplayServer::get_singleton()->get_name();
-	const bool dora_manual_render = dora_display == "dora-metal" || dora_display == "dora-gl" ||
-		(dora_display == "Windows" && OS::get_singleton()->get_environment("DORA_GODOT_WINDOWS_D3D12") == "1");
+	const bool dora_manual_render = dora_display == "dora-metal" || dora_display == "dora-gl" || dora_display == "dora-d3d12";
 	if (dora_manual_render) DoraGodotRenderTiming::enqueue(scaled_step);
 #endif
 
@@ -5138,7 +5137,8 @@ void Main::cleanup(bool p_force) {
 #ifdef MODULE_DORA_BRIDGE_ENABLED
 	// Dora threadless audio shutdown: retire playbacks after nodes are freed.
 	if (DisplayServer::get_singleton() &&
-		(DisplayServer::get_singleton()->get_name() == "dora-metal" || DisplayServer::get_singleton()->get_name() == "dora-gl")) {
+		(DisplayServer::get_singleton()->get_name() == "dora-metal" || DisplayServer::get_singleton()->get_name() == "dora-gl" ||
+				DisplayServer::get_singleton()->get_name() == "dora-d3d12")) {
 		int32_t final_audio[4096 * 2];
 		for (int i = 0; i < 2; ++i) {
 			AudioDriverDummy::get_dummy_singleton()->mix_audio(4096, final_audio);

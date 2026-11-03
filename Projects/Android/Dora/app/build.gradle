@@ -5,7 +5,7 @@ def godotEnabled = (project.findProperty('dora.godot') ?: 'false').toString().to
 def godotTest = (project.findProperty('dora.godot.test') ?: 'false').toString().toBoolean()
 if (godotTest && !godotEnabled) throw new GradleException('Godot tests require -Pdora.godot=true')
 if (godotEnabled) buildDir = rootProject.file(project.findProperty('dora.godot.buildDir') ?: '../../../build/godot-android/gradle-app')
-def godotJava = rootProject.file('../../../build/godot-android/java/godot-java-4.6.0.stable.aar')
+def godotJava = rootProject.file(project.findProperty('dora.godot.javaAar') ?: '../../../build/godot-android/java/godot-java-4.6.0.stable.aar')
 def godotRuntimePackage = rootProject.file(project.findProperty('dora.godot.runtimePackage') ?: '../../../build/godot-android/package')
 def godotJni = new File(godotRuntimePackage, 'jni')
 // Keep source assets intact when packaging a standalone Godot-enabled game.
