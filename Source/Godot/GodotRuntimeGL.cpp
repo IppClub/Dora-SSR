@@ -4,7 +4,7 @@
 #include "Godot/GodotAudio.h"
 #include "Godot/GodotBridgeOutput.h"
 #include "Godot/GodotBridgeIME.h"
-#if BX_PLATFORM_LINUX
+#if BX_PLATFORM_LINUX || BX_PLATFORM_WINDOWS
 #include "Godot/GodotBridgeProject.h"
 #endif
 #include "Godot/GodotFrameRing.h"
@@ -42,7 +42,7 @@ DoraGodotAudioAPI audioAPI{};
 DoraGodotOutputAPI outputAPI{};
 DoraGodotIMEAPI imeAPI{};
 DoraGodotGLTargetsAPI targetsAPI{};
-#if BX_PLATFORM_LINUX
+#if BX_PLATFORM_LINUX || BX_PLATFORM_WINDOWS
 DoraGodotProjectAPI projectAPI{};
 #endif
 void *library=nullptr,*activeHandle=nullptr;
@@ -163,9 +163,13 @@ bool loadAPI() {
         loaderError="incompatible or unconfigured Dora/Godot Android platform bridge";return false;
     }
 #endif
-#if BX_PLATFORM_LINUX
+#if BX_PLATFORM_LINUX || BX_PLATFORM_WINDOWS
     projectAPI={};
+#if BX_PLATFORM_WINDOWS
+    auto getProject=reinterpret_cast<DoraGodotGetProjectAPI>(GetProcAddress(module,"dora_godot_get_project_api"));
+#else
     auto getProject=reinterpret_cast<DoraGodotGetProjectAPI>(dlsym(library,"dora_godot_get_project_api"));
+#endif
     if (getProject) {
         projectAPI.size=sizeof(projectAPI);
         if (!getProject(DORA_GODOT_PROJECT_ABI_VERSION,&projectAPI) || projectAPI.size<sizeof(projectAPI)
@@ -430,7 +434,7 @@ public:
             activeSession.reset();
         }
         _handle=nullptr; clientReserved=false;
-#if BX_PLATFORM_LINUX
+#if BX_PLATFORM_LINUX || BX_PLATFORM_WINDOWS
         const bool unloaded=!api.open || (projectAPI.get_state && projectAPI.get_state()==DORA_GODOT_PROJECT_UNLOADED);
         std::string reason;
         if (!unloaded) {
@@ -503,7 +507,7 @@ void shutdownInterop(bgfx::RendererType::Enum,void *) {
         }
         api.shutdown(); api={}; glAPI={};
         activeSession.reset(); audioAPI={}; targetsAPI={}; outputAPI={}; imeAPI={};
-#if BX_PLATFORM_LINUX
+#if BX_PLATFORM_LINUX || BX_PLATFORM_WINDOWS
         projectAPI={};
 #endif
     }

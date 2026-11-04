@@ -210,25 +210,7 @@ void *dora_gl_create(void *host, uint32_t width, uint32_t height, uint32_t buffe
     return t;
 }
 #include "texture_ring.inc"
-#ifdef LINUXBSD_ENABLED
-int dora_gl_reset_targets(void *p,uint32_t width,uint32_t height,uint32_t buffers) {
-    auto *t=get(p);
-    if (!t || !width || !height || width>8192 || height>8192 || buffers<2 || buffers>4) return 0;
-    dora_gl_clear_targets(t);
-    GLint previous=0; glGetIntegerv(GL_TEXTURE_BINDING_2D,&previous);
-    for (uint32_t i=0;i<buffers;++i) {
-        auto &s=t->slots[i]; glGenTextures(1,&s.texture); glBindTexture(GL_TEXTURE_2D,s.texture);
-        glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA8,width,height,0,GL_RGBA,GL_UNSIGNED_BYTE,nullptr);
-        glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_CLAMP_TO_EDGE);
-    }
-    glBindTexture(GL_TEXTURE_2D,previous);
-    t->width=width; t->height=height; t->buffers=buffers;
-    return check(t);
-}
-#endif
+
 void dora_gl_destroy(void *p) {
     auto *t=get(p); if (!t) return;
     if (t->producer!=EGL_NO_CONTEXT && dora_gl_enter(t)) {

@@ -9,7 +9,10 @@
 #include "GodotAudioQueue.h"
 #include "runtime_timing.h"
 #include "runtime_output.h"
-#ifdef LINUXBSD_ENABLED
+#if defined(LINUXBSD_ENABLED) || defined(WINDOWS_ENABLED)
+#define DORA_GODOT_GL_PROJECT_LIFECYCLE
+#endif
+#ifdef DORA_GODOT_GL_PROJECT_LIFECYCLE
 #include "runtime_project.h"
 #include "GodotBridgeProject.h"
 #endif
@@ -174,13 +177,13 @@ void *open(const DoraGodotConfig *config) {
         runtime.error="invalid GL Godot configuration"; return nullptr;
     }
     if (runtime.active || runtime.terminated
-#ifndef LINUXBSD_ENABLED
+#ifndef DORA_GODOT_GL_PROJECT_LIFECYCLE
         || (runtime.instance && !runtime.tree)
 #endif
     ) {
         runtime.error="Godot runtime is active, terminated or startup failed"; return nullptr;
     }
-#ifndef LINUXBSD_ENABLED
+#ifndef DORA_GODOT_GL_PROJECT_LIFECYCLE
     if (runtime.instance && (runtime.project!=config->project_path || ((!runtime.external_targets) && (runtime.width!=config->width
         || runtime.height!=config->height)) || runtime.buffers!=config->buffer_count)) {
         runtime.error="GL runtime reopen requires the same project, dimensions and buffer count"; return nullptr;
@@ -195,12 +198,12 @@ void *open(const DoraGodotConfig *config) {
     }
     runtime.width=config->width; runtime.height=config->height;
     ProducerScope scope; if (!scope.ok) { runtime.error="cannot activate Godot GL context"; return nullptr; }
-#ifdef LINUXBSD_ENABLED
+#ifdef DORA_GODOT_GL_PROJECT_LIFECYCLE
     if (runtime.instance) {
         // The renderer and its context-local objects survive. Only the drained
         // texture ring changes dimensions/count between project lifetimes.
         if (!dora_gl_reset_targets(runtime.transport,config->width,config->height,config->buffer_count)) {
-            runtime.error="cannot reset drained EGL texture ring"; return nullptr;
+            runtime.error="cannot reset drained GL texture ring"; return nullptr;
         }
         runtime.buffers=config->buffer_count;
     }
@@ -220,8 +223,14 @@ void *open(const DoraGodotConfig *config) {
             (char*)"--resolution",(char*)resolution.c_str()};
         runtime.instance=(GodotInstance*)libgodot_create_godot_instance(sizeof(args)/sizeof(args[0]),args,extension_init);
         if (!runtime.instance) { runtime.error="LibGodot GL initialization failed"; return nullptr; }
-#ifdef LINUXBSD_ENABLED
-        const String cache=OS::get_singleton()->get_cache_path().path_join("Dora/LibGodot-4.6/egl");
+#ifdef DORA_GODOT_GL_PROJECT_LIFECYCLE
+        const String cache=OS::get_singleton()->get_cache_path().path_join(
+#ifdef WINDOWS_ENABLED
+            "Dora/LibGodot-4.6/wgl"
+#else
+            "Dora/LibGodot-4.6/egl"
+#endif
+        );
         if (DirAccess::make_dir_recursive_absolute(cache)!=OK) {
             runtime.error="cannot create process-owned Godot shader cache";runtime.terminated=true;return nullptr;
         }
@@ -236,13 +245,13 @@ void *open(const DoraGodotConfig *config) {
         ProjectSettings::get_singleton()->set("audio/general/default_playback_type.web",0);
 #endif
         if (!runtime.instance->start()) { runtime.error="Godot project startup failed"; runtime.terminated=true; return nullptr; }
-#ifdef LINUXBSD_ENABLED
+#ifdef DORA_GODOT_GL_PROJECT_LIFECYCLE
         if (!DoraGodotProject::supported(runtime.error)) { runtime.terminated=true; return nullptr; }
 #endif
         runtime.tree=Object::cast_to<SceneTree>(OS::get_singleton()->get_main_loop());
         if (!runtime.tree) { runtime.error="project does not use SceneTree"; return nullptr; }
         runtime.root=runtime.tree->get_root();
-#ifdef LINUXBSD_ENABLED
+#ifdef DORA_GODOT_GL_PROJECT_LIFECYCLE
     } else {
         if (!DoraGodotProject::load(runtime.instance,config->project_path,config->scene_path,config->width,config->height,runtime.error)) {
             DoraGodotProject::unload(runtime.instance);
@@ -259,7 +268,7 @@ void *open(const DoraGodotConfig *config) {
         if (runtime.tree->change_scene_to_file(scene)!=OK) { runtime.error="cannot load Godot scene"; return nullptr; }
 #endif
     }
-#ifdef LINUXBSD_ENABLED
+#ifdef DORA_GODOT_GL_PROJECT_LIFECYCLE
     print_line(vformat("DORA_GODOT_PROJECT_ID instance=%d tree=%d",uint64_t(runtime.instance->get_instance_id()),uint64_t(runtime.tree->get_instance_id())));
 #endif
     runtime.tree->set_pause(false);
@@ -382,7 +391,7 @@ void close(void *handle,DoraGodotStats *stats) {
     if (runtime.external_targets) dora_gl_clear_targets(runtime.transport);
     release_inputs();
     runtime.tree->set_pause(true); runtime.active=false; DoraGodotRenderTiming::reset();DoraGodotIME::reset();
-#ifdef LINUXBSD_ENABLED
+#ifdef DORA_GODOT_GL_PROJECT_LIFECYCLE
     runtime.external_targets=false; runtime.source=0;
     if (!DoraGodotProject::supported(runtime.error)) {
         runtime.terminated=true;
@@ -447,7 +456,7 @@ extern "C" DORA_GODOT_EXPORT int dora_godot_get_ime_api(uint32_t requested,DoraG
     }};return 1;
 }
 
-#ifdef LINUXBSD_ENABLED
+#ifdef DORA_GODOT_GL_PROJECT_LIFECYCLE
 extern "C" DORA_GODOT_EXPORT int dora_godot_get_project_api(uint32_t requested,DoraGodotProjectAPI *api) {
     if (requested!=DORA_GODOT_PROJECT_ABI_VERSION || !api || api->size<sizeof(*api)) return 0;
     *api={sizeof(*api),DORA_GODOT_PROJECT_ABI_VERSION,[]()->uint32_t {

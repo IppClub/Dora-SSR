@@ -13,6 +13,8 @@
 
 ## 已完成
 
+- [x] **PROJECT-SWITCH-WGL-IMPL｜Windows x64 WGL 生命周期接入**：复用同一 LibGodot/WGL context，支持项目卸载、重新加载、不同尺寸与2/3/4纹理环。x64 Debug 普通宿主在 Windows 11 ARM VM 的组合用例完成五次加载、不同SceneTree、失败恢复/启动取消/重复通知/活动实例拒绝，GPU排空、零blit、音频及清理计数通过。仅表示生命周期证据，完整画面验收未通过，见待办；证据暂存 `build/godot-project-wgl-v1/`。
+
 - [x] **PROJECT-SWITCH-LINUX-01｜Linux EGL 同实例卸载与切换**：默认接入项目生命周期接口与 GodotPlayer；保留 LibGodot、renderer 和 EGL context，在排空 GPU 后重建不同尺寸及 2/3/4 缓冲纹理环。Ubuntu ARM64／Mesa virgl 的 Debug 普通宿主通过七次隔离夹具、重复卸载通知、无效工程恢复、启动取消和旧库拒绝；官方 2D/3D 源码/PCK 交替八次、24 图、每轮149–169共享帧通过。输入、音频、零blit及GPU排空通过，重复访问后对象数稳定、资源1、场景节点0。普通资源目录查库的 A→B→A 回归及5图通过；修复 Linux 导出表并登记链接依赖；本次测试进程、临时挂载已清理，VM已关闭。证据暂存 `build/godot-project-linux-v1/acceptance-v3/`；范围见 [PROJECT_SWITCH.md](PROJECT_SWITCH.md)。
 
 - [x] **CI-PRECHECK-01｜轻量测试构建与增量夹具修复**：Lua契约改用独立host-tools配置，避免触发Rust/Go依赖；解释器按宿主OS/架构选择。Linux快速构建复现xmake秒级mtime导致静态库未重打包，夹具跨时间戳tick后保留增量与运行断言；补实际值日志/CI产物。macOS及Linux VM本地验证通过，VM已关闭；远程CI另行核对。记录暂存 `build/godot-ci-fix-v1/`。
@@ -79,10 +81,10 @@
 
 ## 待完成
 
-- [ ] **PROJECT-SWITCH-01｜项目切换正式化**：保留同一进程内LibGodot的方向已确认，macOS Metal和Linux ARM64 EGL通过；通知/串行控制器与官方2D/3D有界重复切换已通过；继续补树外对象/网络/扩展拒绝和更多失败阶段、复杂游戏/长期与GPU显存稳定性，继续验证Linux x64/Release，并按平台接入WGL、Android EGL、WebGL2、iOS及D3D12。macOS Metal和Linux EGL已默认开放；不作为已完成的全平台能力。
+- [ ] **PROJECT-SWITCH-WGL-VISUAL｜WGL 图形验收阻塞**：原始 Squash PCK 的3D几何在Parallels WGL中不可见、UI正常；冷启动 direct-target 与兼容blit同样复现。Dodge 2D正常。MSAA重配和两种UBO适配未解决，已移除无效补丁；运行态关闭阴影的诊断能显示几何，但不算原项目通过。官方未修改 Godot 4.6 Windows x64 在同一VM/驱动和同一PCK下也缺失3D几何（天空/UI可见），确认不是Dora切换/共享路径独有；尚未区分上游与虚拟驱动原因。先定位阴影/场景渲染路径，再只复验B→A→B，不重跑已完成的平台或完整矩阵。
+- [ ] **PROJECT-SWITCH-01｜项目切换正式化**：macOS Metal、Linux ARM64 Debug EGL已通过，本轮不重复验收。先复用当前CI，Linux x64/Release仅补未覆盖的受影响项；下一项为Windows x64 WGL，随后Android EGL、WebGL2，每个新增后端只做一轮串行组合验收（两次A↔B往返，源码/PCK、2/3/4缓冲、一次失败恢复/取消和卸载通知），通过即停止。iOS受限环境、D3D12、长期显存/额外压力及扩展兼容性保持待办，不自动扩测或标为通过。详见 [最小计划](PLAN.md#剩余工作的最小执行计划)。
 
-
-执行顺序：最新WGL包的读回、显示、完整回归与官方项目验收已完成；各平台GL读回既定缺口已补齐。D3D12 本轮跳过，不作为 WGL 收口门槛。随后补其他平台回归及 iOS 缺口，第三方库共享及其综合前置审计已撤销，NIR许可随D3D12保留后续；全部受支持配置的 xmake 唯一构建入口已收口；环境受限时推进独立任务，不改变验收门槛。
+执行规则：复用已有通过证据，先包/导出/ABI后动态；局部失败仅复验失败项和直接受影响项。已有渲染/读回/await完整矩阵不随项目切换移植反复重跑；本地任务串行，结束关闭本次启动的VM/模拟器。D3D12与第三方库共享等既定范围不变。
 
 - [ ] **GDSCRIPT-REG-01｜其他平台 await 清理回归**：macOS、Linux ARM64/x86_64、Android、Web 已重建并通过最小清理回归；iOS两套当前库已重建，模拟器ABI/安全拒绝已复验，但Apple2模拟器不能进入Godot运行态；仍须在Apple4可用环境复用夹具检查节点销毁及退出泄漏。
 - [ ] **READBACK-REG-01｜公共RD/GL改动的其他配置**：Linux ARM64/x86_64、WGL和Web新库已独立构建封包；Linux两架构、Android冷安装及Web核心回归已完成；首次失败与续验证据保留。WGL当前包动态回归、iOS重建/模拟器ABI及Web原生Safari矩阵均已补，剩余iOS正向动态回归；D3D12跳过。
@@ -102,6 +104,6 @@
 
 1. 干净 checkout 独立构建，不读取旧 SCons 输出、不修改 vendor；工具链、flags、平台与后端可追溯。
 2. 通过封包哈希、许可证、导出、动态依赖、ABI 与协议检查。
-3. 实际覆盖 2/3/4 缓冲、动画、生命周期、输入音频、resize、重建、退出排空、缺库回退与未修改真实项目；未覆盖项明确保留。
+3. 对新增/受影响路径覆盖相关缓冲、动画、生命周期、输入音频、resize、重建及退出排空；复用既有未受影响的回退和真实项目证据。按最小组合计划验收，不逐提交重跑完整矩阵；未覆盖项明确保留。
 4. 编译、VM/模拟器、软件渲染和物理硬件分别记录。每完成任务更新勾选，过程与证据写入历史文档。
 5. 测试结束关闭本任务启动的服务、模拟器和虚拟机，保留证据。

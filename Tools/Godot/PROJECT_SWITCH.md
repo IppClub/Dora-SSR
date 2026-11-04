@@ -21,7 +21,7 @@ macOS Metal 和 Linux EGL 的项目卸载和切换默认启用，无需环境变
 
 macOS Metal、Linux EGL 已作为默认功能开放；下述平台与项目兼容性边界仍然适用。
 
-- 已接入 macOS Metal 和 Linux EGL；Linux ARM64 Debug 已在 Ubuntu / Mesa virgl 虚拟机动态验收；Linux x64、Release 及长期显存稳定性仍待验证。WGL、Android EGL、WebGL2、iOS 和 D3D12 尚未接入项目切换。
+- 已接入 macOS Metal 和 Linux EGL；Linux ARM64 Debug 已在 Ubuntu / Mesa virgl 虚拟机动态验收；Linux x64、Release 及长期显存稳定性仍待验证。Windows x64 WGL 已接入并完成同实例五次卸载/加载及边界控制，但 Squash 3D 在 Parallels WGL 中冷启动亦缺失画面，整体图形验收未通过；Android EGL、WebGL2、iOS 和 D3D12 尚未接入项目切换。
 - 使用标准 SceneTree 与 GDScript。Godot C#/Mono、原生 GDExtension 不支持；Dora 原有 C# 不变。未 join 的脚本 Thread 会被拒绝。关闭时发现不支持状态，会保留暂停树用于最终退出，并拒绝再次打开项目。
 - 工程必须释放自己创建的树外对象、线程、网络连接及外部回调。当前实现不保证任意第三方工程的全部全局副作用都被隔离；附加翻译域、服务器全局状态、树外引用和实际联网仍须审计。
 - 首次引擎初始化失败后需重启 Dora；已成功启动后的无主场景项目拒绝与后续有效工程恢复已验证，其他失败阶段仍须补充。
