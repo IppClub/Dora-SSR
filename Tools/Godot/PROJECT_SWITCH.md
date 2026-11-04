@@ -4,9 +4,9 @@
 
 ## 当前可用范围
 
-macOS Metal 的项目卸载和切换默认启用，无需环境变量。能力由匹配运行库的项目生命周期接口确认；旧实验环境开关已移除。保留基础 bridge ABI 1，增加可选的项目生命周期扩展；宿主用它确认项目清理成功，没有增加动态库。
+macOS Metal 和 Linux EGL 的项目卸载和切换默认启用，无需环境变量。能力由匹配运行库的项目生命周期接口确认；旧实验环境开关已移除。保留基础 bridge ABI 1，增加可选的项目生命周期扩展；宿主用它确认项目清理成功，没有增加动态库。
 
-在 macOS Metal 上，移除一个活动 `GodotNode` 会在宿主 GPU 读取排空、PCM 生产线程停止之后卸载工程。卸载完成后，可创建另一个 `GodotNode` 加载已导入的工程目录或独立 PCK。一次只允许一个活动节点；同工程重开也会清理项目状态。`restartScene` 仍是当前项目的场景重启。
+在 macOS Metal / Linux EGL 上，移除一个活动 `GodotNode` 会在宿主 GPU 读取排空、PCM 生产线程停止之后卸载工程。卸载完成后，可创建另一个 `GodotNode` 加载已导入的工程目录或独立 PCK。一次只允许一个活动节点；同工程重开也会清理项目状态。`restartScene` 仍是当前项目的场景重启。
 
 当前清理包括：
 
@@ -19,9 +19,9 @@ macOS Metal 的项目卸载和切换默认启用，无需环境变量。能力�
 
 ## 限制与未完成项
 
-macOS Metal 已作为默认功能开放；下述平台与项目兼容性边界仍然适用。
+macOS Metal、Linux EGL 已作为默认功能开放；下述平台与项目兼容性边界仍然适用。
 
-- 仅接入并动态验证 macOS Metal；GL/EGL/WGL/WebGL2、iOS 和 D3D12 尚未接入项目切换。公共源码改动尚须逐平台构建和回归。
+- 已接入 macOS Metal 和 Linux EGL；Linux ARM64 Debug 已在 Ubuntu / Mesa virgl 虚拟机动态验收；Linux x64、Release 及长期显存稳定性仍待验证。WGL、Android EGL、WebGL2、iOS 和 D3D12 尚未接入项目切换。
 - 使用标准 SceneTree 与 GDScript。Godot C#/Mono、原生 GDExtension 不支持；Dora 原有 C# 不变。未 join 的脚本 Thread 会被拒绝。关闭时发现不支持状态，会保留暂停树用于最终退出，并拒绝再次打开项目。
 - 工程必须释放自己创建的树外对象、线程、网络连接及外部回调。当前实现不保证任意第三方工程的全部全局副作用都被隔离；附加翻译域、服务器全局状态、树外引用和实际联网仍须审计。
 - 首次引擎初始化失败后需重启 Dora；已成功启动后的无主场景项目拒绝与后续有效工程恢复已验证，其他失败阶段仍须补充。
@@ -53,7 +53,7 @@ player:closeAsync(function(ok, message) print(ok, message) end)
 
 `switchAsync` / `unloadAsync` 返回请求ID，关闭后返回 `nil, reason`；选项在入队时复制。切换回调为 `(ok, game, message)`，单独卸载时game为nil。启动失败/超时也先等待原生卸载，再回调和处理下一个请求；卸载失败会使控制器faulted，后续请求逐个失败。用户回调抛错会记录错误，不阻塞队列。`closeAsync` 回调为 `(ok, message)`，重复关闭均得到结果。调用者应在销毁游戏父节点之前关闭控制器；它的调度节点位于Director.ui，不能仅丢弃Lua引用作为资源释放方式。
 
-常驻Renderer的shader cache使用宿主缓存目录 `Dora/LibGodot-4.6/metal`，不跟随 `user://` 在切换时改变根路径，也不写回作者工程。缓存仍然启用，按上游shader哈希管理。
+常驻Renderer的shader cache使用宿主缓存目录 `Dora/LibGodot-4.6/metal` 或 `Dora/LibGodot-4.6/egl`，不跟随 `user://` 在切换时改变根路径，也不写回作者工程。缓存仍然启用，按上游shader哈希管理。
 
 ## 复现与验收
 
@@ -82,3 +82,25 @@ python3 "$DORA_TEST_REPO/Test/Godot/run_real_project_switch.py" \
 ```
 
 默认化记录暂存 `build/godot-project-default-v1/`；此前通知及缓存修复记录保留在 `build/godot-project-controller-v1/`，早期原型在 `build/godot-project-switch-v1/`。保留旧证据，不恢复已移除的history目录。
+
+### Linux EGL
+
+三个串行驱动 `run_project_switch.py`、`run_real_project_switch.py` 和 `run_project_lifecycle_edges.py` 接受 `--binary /path/to/ordinary/Dora --asset-source /path/to/Assets`，替代 macOS 的 `--app`。运行库必须是匹配的 Linux EGL 包，资源导入使用 Godot 4.6。无桌面会话时用 `tests/with_weston.py --logs /fresh/weston -- <同一命令>` 包装，保留实际 EGL 渲染器日志。
+
+项目边界先排空两侧 GPU 队列并解除 Godot FBO 对宿主纹理的挂接，再清理项目。EGL producer context 和常驻 renderer 保留，空闲纹理环按新项目的尺寸及 2/3/4 缓冲数重建。稳态依旧直接写 Dora/bgfx 纹理，不增加 framebuffer blit。卸载完成通知从渲染线程返回逻辑线程后，控制器才启动下一项目。
+
+Linux 一次性串行入口（隔离夹具 → 取消/旧库边界 → 官方游戏）：
+
+```sh
+python3 "$DORA_TEST_REPO/Test/Godot/run_linux_project_switch.py" \
+  --godot /path/to/Godot-4.6-linux.arm64 \
+  --binary /path/to/ordinary/Dora --asset-source Assets \
+  --runtime-package /path/to/sealed/linux-runtime \
+  --legacy-runtime-package /path/to/previous/linux-runtime \
+  --repository /path/to/godot-demo-projects \
+  --output /path/to/fresh-output
+```
+
+`--legacy-runtime-package` 可省略；传入时验证缺少项目生命周期扩展的旧库会拒绝继续切换。驱动自动管理各组独立 Weston；虚拟机的启动/关闭由调用者负责。真实游戏使用 `2d/dodge_the_creeps` 和 `3d/squash_the_creeps`，不改作者源码，报告中保留仓库 revision、执行文件摘要、截图与真实渲染器。
+
+Linux 本地验收：官方工程 revision `52e30044658448149b04e8f69b475eebbfbd8f6e`，Godot 4.6；Mesa 25.2.8 / virgl (Apple M1 Pro Compat) / OpenGL ES 3.0。八轮源码/PCK切换使用同一 LibGodot、八棵不同 SceneTree，24张截图；每轮149–169共享帧，公开D键让2D角色移动约226像素。GPU错误、未完成读取、blit和音频欠载均0；重复访问后2D/3D项目卸载对象数分别246/243、资源1、场景节点0。隔离夹具七轮、重复订阅、无主场景拒绝恢复、默认队列、启动前取消及旧库拒绝也通过。完整结果在 `build/godot-project-linux-v1/acceptance-v3/verification.json`，详细过程保留在同级任务目录的 `PROGRESS-DRAFT.md`；这不代替长期GPU显存或更多工程兼容性验收。

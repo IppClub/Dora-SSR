@@ -33,7 +33,7 @@
     "modules/mono/glue/GodotSharp/GodotSharpEditor/GodotSharpEditor.csproj",
     "platform/android/java/gradlew.bat"
   ],
-  "delta_patch_sha256": "45863cfd2ef704130bbcd562c42e4a394b61a26d23d02401b02d3d1fb1a91b53",
+  "delta_patch_sha256": "c124fd8bf10f44106cb6a3592d752be98e7a3ee2090aea799f17062dc607aa6f",
   "files": [
     {
       "path": "UPSTREAM.json",
@@ -95,7 +95,7 @@
       "path": "dora_bridge.map",
       "status": "added",
       "mode": "100644",
-      "canonical_sha256": "f31437d55ff386eb26cd2a07e9568c5cab9fa6bbaad235a61729731e5b9ee278",
+      "canonical_sha256": "4fbf3494091afda20e2a7ae82c0169fe17761959b1e1fbb5ede0d3d1b44789c3",
       "upstream_canonical_sha256": null
     },
     {
@@ -312,14 +312,14 @@
       "path": "modules/dora_bridge/gl/egl_transport.cpp",
       "status": "added",
       "mode": "100644",
-      "canonical_sha256": "fc10ccfe8ec6cc9165cfc20952550b1974f0ebe1a30ded7d37200bd143c1add9",
+      "canonical_sha256": "c9f03c1e4880f1859277f40ffdfef604d373a0999d2a0955f417639011033d74",
       "upstream_canonical_sha256": null
     },
     {
       "path": "modules/dora_bridge/gl/gl_transport.h",
       "status": "added",
       "mode": "100644",
-      "canonical_sha256": "9496cac8f34c1613051f0e0205e246e75ca24e330f82d854819117e2f5b8bc2e",
+      "canonical_sha256": "407bece6c61d384a2da834430e1eeb02e1286d34edbb4ee16a7a0e239f8e8f1f",
       "upstream_canonical_sha256": null
     },
     {
@@ -382,7 +382,7 @@
       "path": "modules/dora_bridge/register_types_gl.cpp",
       "status": "added",
       "mode": "100644",
-      "canonical_sha256": "d05cea317b9d47aa1683f56be42d710894ee010212bc99657d05fab5e5b61e29",
+      "canonical_sha256": "83dceed06dcf7ed8e8240fc1c5f6896ce85777f936de3df85044d3e338f77d61",
       "upstream_canonical_sha256": null
     },
     {

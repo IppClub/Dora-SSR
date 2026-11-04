@@ -399,6 +399,9 @@ if is_plat("linux") and (is_arch("arm64") or is_arch("x86_64")) and has_config("
     target("godot-runtime")
         if not debug_runtime then add_shflags("-s", {force = true}) end
         add_syslinks("pthread", "dl", "EGL", "GLESv2")
+        on_config(function (target)
+            target:data_add("linkdepfiles", path.join(godot_root, "dora_bridge.map"))
+        end)
         add_shflags(
             -- The staged archives deliberately mirror Godot subsystems, but
             -- upstream has valid cross-subsystem references (for example the

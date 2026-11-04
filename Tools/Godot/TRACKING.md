@@ -9,9 +9,11 @@
 - Godot C#/Mono 关闭，Dora C# 保留；Dora Apple2 / Godot Apple4；Windows x64 WGL 为本轮验收后端；保留 D3D12 适配并跳过本轮 D3D12 验收，不新增 Windows ARM64 目标验收。
 - 浏览器验收在宿主执行；不在虚拟机内增加浏览器测试，不自动扩展额外压力轮次。
 - Godot保持完整独立LibGodot运行时，包含各平台原有第三方实现；Dora与Godot分别构建依赖，不复用第三方二进制或宿主codec函数表。共享库实验与相关待办已撤销，[历史完整保留](history/2026-11-03-library-sharing-removed/README.md)。
-- 不做进程内 LibGodot 重初始化；按最新决定保留同一 LibGodot，实现项目级卸载与切换，macOS Metal默认开放，见 [PROJECT_SWITCH.md](PROJECT_SWITCH.md)。缺少真机时可用 VM/模拟器，明确证据边界。
+- 不做进程内 LibGodot 重初始化；按最新决定保留同一 LibGodot，实现项目级卸载与切换，macOS Metal和Linux EGL默认开放，见 [PROJECT_SWITCH.md](PROJECT_SWITCH.md)。缺少真机时可用 VM/模拟器，明确证据边界。
 
 ## 已完成
+
+- [x] **PROJECT-SWITCH-LINUX-01｜Linux EGL 同实例卸载与切换**：默认接入项目生命周期接口与 GodotPlayer；保留 LibGodot、renderer 和 EGL context，在排空 GPU 后重建不同尺寸及 2/3/4 缓冲纹理环。Ubuntu ARM64／Mesa virgl 的 Debug 普通宿主通过七次隔离夹具、重复卸载通知、无效工程恢复、启动取消和旧库拒绝；官方 2D/3D 源码/PCK 交替八次、24 图、每轮149–169共享帧通过。输入、音频、零blit及GPU排空通过，重复访问后对象数稳定、资源1、场景节点0。普通资源目录查库的 A→B→A 回归及5图通过；修复 Linux 导出表并登记链接依赖；本次测试进程、临时挂载已清理，VM已关闭。证据暂存 `build/godot-project-linux-v1/acceptance-v3/`；范围见 [PROJECT_SWITCH.md](PROJECT_SWITCH.md)。
 
 - [x] **CI-PRECHECK-01｜轻量测试构建与增量夹具修复**：Lua契约改用独立host-tools配置，避免触发Rust/Go依赖；解释器按宿主OS/架构选择。Linux快速构建复现xmake秒级mtime导致静态库未重打包，夹具跨时间戳tick后保留增量与运行断言；补实际值日志/CI产物。macOS及Linux VM本地验证通过，VM已关闭；远程CI另行核对。记录暂存 `build/godot-ci-fix-v1/`。
 
@@ -77,7 +79,7 @@
 
 ## 待完成
 
-- [ ] **PROJECT-SWITCH-01｜项目切换正式化**：保留同一进程内LibGodot的方向已确认，Metal原型通过；通知/串行控制器与官方2D/3D有界重复切换已通过；继续补树外对象/网络/扩展拒绝和更多失败阶段、复杂游戏/长期与GPU显存稳定性，再按平台逐个接入GL等后端并构建回归。macOS Metal已默认开放；其余后端不作为已完成的全平台能力。
+- [ ] **PROJECT-SWITCH-01｜项目切换正式化**：保留同一进程内LibGodot的方向已确认，macOS Metal和Linux ARM64 EGL通过；通知/串行控制器与官方2D/3D有界重复切换已通过；继续补树外对象/网络/扩展拒绝和更多失败阶段、复杂游戏/长期与GPU显存稳定性，继续验证Linux x64/Release，并按平台接入WGL、Android EGL、WebGL2、iOS及D3D12。macOS Metal和Linux EGL已默认开放；不作为已完成的全平台能力。
 
 
 执行顺序：最新WGL包的读回、显示、完整回归与官方项目验收已完成；各平台GL读回既定缺口已补齐。D3D12 本轮跳过，不作为 WGL 收口门槛。随后补其他平台回归及 iOS 缺口，第三方库共享及其综合前置审计已撤销，NIR许可随D3D12保留后续；全部受支持配置的 xmake 唯一构建入口已收口；环境受限时推进独立任务，不改变验收门槛。

@@ -6,7 +6,7 @@
 
 **类对象：** [GodotNode 类](/docs/api/Class%20Object/GodotNode)。
 
-Apple Silicon macOS Metal、Linux ARM64 EGL（Mesa virgl）以及 Windows WGL（Parallels Windows 11 ARM64 上的 x64 进程）已通过原生节点 GPU 测试。Android API35 ARM64 模拟器也已通过共享 EGL 纹理、2／3／4 缓冲、动画、尺寸切换、材质时间、GPU 粒子和场景主动调整输出测试。Android 需要可选的上游 Java 服务与匹配的源码编译运行库，真机仍待验证。需要匹配的原生运行库。一个进程仅允许一个活动节点。macOS Metal默认在节点清理时卸载项目状态，保留LibGodot并允许下一个节点加载不同项目；其他后端仍保留当前工程与autoload到应用退出，限制见`Tools/Godot/PROJECT_SWITCH.md`。
+Apple Silicon macOS Metal、Linux ARM64 EGL（Mesa virgl）以及 Windows WGL（Parallels Windows 11 ARM64 上的 x64 进程）已通过原生节点 GPU 测试。Android API35 ARM64 模拟器也已通过共享 EGL 纹理、2／3／4 缓冲、动画、尺寸切换、材质时间、GPU 粒子和场景主动调整输出测试。Android 需要可选的上游 Java 服务与匹配的源码编译运行库，真机仍待验证。需要匹配的原生运行库。一个进程仅允许一个活动节点。macOS Metal和Linux EGL默认在节点清理时卸载项目状态，保留LibGodot并允许下一个节点加载不同项目；其他后端仍保留当前工程与autoload到应用退出，限制见`Tools/Godot/PROJECT_SWITCH.md`。
 
 iOS 集成要求 Apple4 或更新的 Metal GPU 能力。当前 Apple 模拟器暴露 Apple2 配置，不支持 Godot 必需的立方体数组纹理；能力拒绝路径已单独验证，不代表 GPU 共享输出通过。
 
@@ -100,4 +100,4 @@ unloadAsync: function(self: GodotNode, callback: function(ok: boolean, error: st
 
 移除节点并等待原生卸载完成。回调在逻辑线程执行，此时GPU读取、PCM生产、项目状态清理及活动客户端占用均已释放；成功时只读属性`unloaded`变为true。重复调用（含完成后的调用）均异步收到同一结果。`running=false`不能替代此通知。
 
-项目卸载使用匹配的macOS Metal运行库时默认可用，无需实验环境变量。旧库或其他后端会在客户端清理后回调false及原因，不能据此启动另一个工程。Lua模块`GodotPlayer`基于此回调串行处理切换与卸载。应用退出、逻辑循环停止后不保证继续派发回调。范围见`Tools/Godot/PROJECT_SWITCH.md`。
+项目卸载使用匹配的macOS Metal或Linux EGL运行库时默认可用，无需实验环境变量。旧库或其他后端会在客户端清理后回调false及原因，不能据此启动另一个工程。Lua模块`GodotPlayer`基于此回调串行处理切换与卸载。应用退出、逻辑循环停止后不保证继续派发回调。范围见`Tools/Godot/PROJECT_SWITCH.md`。
