@@ -30,7 +30,7 @@
 
 按用户要求采用增量验收，已有通过证据继续有效；不会因接入一个新后端而默认重跑其他平台、全部架构、浏览器或压力矩阵。
 
-1. **复用当前 CI，结束 Linux 本轮工作**：先核对提交 `a7a379218` 的 CI 与实际产物配置；同一提交和配置已有通过项不再本地重跑。Linux ARM64 Debug 的项目切换已经通过；x64/Release 只补 CI 真正未覆盖的受影响项，不再重复八轮真实项目或完整图形矩阵。未验证的配置保持明确标注，不按已通过处理。
+1. **复用当前候选 CI，结束 Linux 本轮工作**：运行时代码候选固定为 `2bdad734a`，实际解析测试为 `aec520851`，详见 [候选核对](RELEASE_1_0.md#当前候选核对)。Linux ARM64 Debug 的项目切换已经通过；现有 x64 CI 使用 Release 宿主配 Debug LibGodot，只复用宿主、补建一次缺失的 Release 运行库，再执行一次 A→B→A。不重复既有真实项目或完整图形矩阵；未验证的配置保持明确标注，不按已通过处理。
 2. **Windows x64 WGL 已完成本轮最小验收，停止动态测试**：复用先前五次加载、失败恢复/取消/重复卸载通知证据；Parallels 的投影阴影采样适配后，只补原始 B的PCK(3缓冲) → A源码(4) → B的PCK(2)。9图、同实例/新场景树、动态画面/输入/PCM和GPU排空通过，阴影与4×MSAA保留。范围限VM内x64 Debug；物理GPU、Release及长期压力保持未覆盖。证据暂存 `build/godot-wgl-shadow-v1/`，不重跑其他平台或完整矩阵。
 3. **Android EGL 已完成本轮功能验收**：arm64普通Release在API35／SwiftShader中完成一轮成功的五次官方源码/PCK切换、2/3/4缓冲与失败恢复/取消/卸载通知；15图、输入/PCM/GPU排空及重复清理计数通过。首次失败定位到Android APK资源根目录覆盖工程路径，修复后只复验受影响的组合，未重跑旧矩阵。保留既有shader binary回退告警，严格无告警/跨进程暖缓存任务继续单列；不关闭缓存，不将此功能验收写成缓存无告警通过。证据暂存 `build/godot-project-android-v1/`。
    **WebGL2本轮已完成并停止**：默认Release `dora-preset`，Chrome跑五次源码/PCK切换和边界，Firefox、原生Safari、WebKit各只补A→B→A；42图、公开输入、PCM、GPU排空、副本回收及Chrome卸载后context loss通过。未在VM测浏览器，未加压力矩阵；证据 `build/godot-project-web-v1/`。Android已完成唯一一组冷/暖配对：冷通过、5文件／19条binary；保留相同缓存重启仍因链接告警严格失败，诊断像素与清理通过。按最新决定只接受真正binary恢复，转译层故障保留为模拟器环境限制，不增加源码缓存回退，不在同一已知失败环境反复验收。另修正binary实际长度保存，7项边界和旧代码负向控制通过；证据 `build/godot-android-warm-cache-v1/`。

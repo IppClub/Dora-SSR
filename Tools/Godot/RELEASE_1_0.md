@@ -1,6 +1,6 @@
 # Godot 整合 1.0：支持范围与交付清单
 
-更新：2026-11-04。本页汇总当前源码及跟踪清单已有证据，不代表本轮重新验收全部平台。当前处于候选收口：已实现能力、环境限制、最终候选包及公开发布分别记录；源码提交成功不等于最终包验收或发布完成。
+更新：2026-11-05。本页汇总当前源码及跟踪清单已有证据，不代表本轮重新验收全部平台。当前处于候选收口：已实现能力、环境限制、最终候选包及公开发布分别记录；源码提交成功不等于最终包验收或发布完成。
 
 ## 固定范围
 
@@ -16,7 +16,7 @@
 | --- | --- | --- |
 | macOS Apple Silicon / Metal | 原生纹理共享、真实源码/PCK项目、默认卸载及反复切换 | 已有本机验收；最终候选应用、运行库和签名仍须逐包对应，不推广到 Intel Mac |
 | Linux ARM64 / EGL | 普通 Debug 宿主、默认卸载及真实项目切换 | Ubuntu VM / Mesa virgl；不是物理 GPU 或 Release 项目切换验收 |
-| Linux x86_64 / EGL | 运行、读回及普通宿主基线；CI 驱动含普通宿主 A→B→A | QEMU/llvmpipe 历史基线与当前 CI 分开；Release 的活动退出检查不等于跨项目切换通过 |
+| Linux x86_64 / EGL | 运行、读回及普通宿主基线；CI 驱动含普通宿主 A→B→A | 当前 CI 的 Release 宿主复用默认 Debug LibGodot；不能称为完整 Release 组合，活动退出检查也不等于跨项目切换通过 |
 | Windows x64 / WGL | 真实源码/PCK切换、2/3/4缓冲、输入/PCM/GPU排空 | Parallels Windows 11 ARM VM 内 x64 Debug；Release、物理 GPU 未覆盖；不新增 Windows ARM64 目标验收 |
 | Android arm64 / EGL | 普通非 debuggable Release、模拟器真实项目切换、冷启动读回 | API35 / SwiftShader；暖缓存 binary 恢复严格失败，记为模拟器环境限制；不据源码回退宣称恢复通过 |
 | Web wasm32 / WebGL2 | 默认 Release `dora-preset`；Chrome完整切换组合，Firefox/原生Safari/WebKit冒烟；42图 | 宿主桌面浏览器；context loss 采用安全停止/页面重载；移动浏览器和原地恢复未承诺 |
@@ -46,8 +46,21 @@
 
 ## 最终交付仍缺少的证据
 
-- [ ] **候选身份和 CI**：记录引擎与 Dora-Example 的最终提交、实际解析的测试 revision、对应 CI 结果及产物摘要。本轮未查询最新远程 CI，不据工作流定义推断运行成功。
+- [ ] **候选身份和 CI**：运行时代码候选及实际测试 revision 已核对，当前结果见下方清单；仍须补齐 Linux 完整 Release 组合，并保留 macOS runner 未分配的缺口，不据工作流定义或部分通过推断全部成功。
 - [ ] **候选包对应关系**：将拟分发的宿主、LibGodot manifest、架构/后端和许可逐项对应到候选源码；通用 `dora-package` 的 Godot 包参数是可选的，常规 Dora 构建成功不能证明含有匹配 LibGodot。旧测试包和本地 QA 签名不充作最终发布包。
 - [ ] **仅补缺失覆盖**：先查当前 CI 中普通宿主 A→B→A 的产物与报告；Linux x64/Release 只补确实缺少的项目切换证据。既有通过矩阵不重复。iOS/D3D12/物理设备/长期压力及扩展兼容性维持已注明的延期或未覆盖状态。
 
 公开 Release、tag、发布签名、公证、上传及 Hub 工程浏览界面不在本轮执行动作内。后续发布单独确认交付清单；本页不声称已公开发布。
+
+## 当前候选核对
+
+运行时代码候选固定为`2bdad734a372499cfc606d0c4d493f722d0fe0b8`，原CI日志实际解析的Dora-Example版本为`aec520851ba747a9315997e2c5d9bf2b521902e5`。后续单项验收入口提交仅修改CI编排和测试驱动，不改变该候选运行时代码。
+
+- [x] 原CI实际测试revision已从[Ubuntu协议任务](https://github.com/IppClub/Dora-SSR/actions/runs/41854885101/job/126660702194)日志确认。
+- [x] 两架构AppImage已下载静态检查：均不包含LibGodot或GodotRuntimeNotices，不能当作Godot最终包。
+- [x] [Godot Linux任务](https://github.com/IppClub/Dora-SSR/actions/runs/41854885101/job/126660702345)的构建、原有矩阵、普通Release宿主退出/回退、Wasm trap、3D工程及上传步骤均成功；产物`godot-linux-egl`（ID `13341903137`）已生成。任务总状态尚未完成，不能记为整个工作流通过。
+- [ ] 等原Linux任务正式成功后，单独消费其Release宿主；若运行库为Debug，只补建一次LibGodot Release，再运行一次A→B→A。入口为`godot-release-candidate.yml`，测试入口固定`2d1e2d15dd6d379ad29224187356baf7705550aa`；不重编译宿主或重跑旧矩阵，分别核对优化标志、runtime target、源码和测试fixture身份。此次单项动态验收尚未执行。
+- [ ] macOS、iOS设备Debug/Release及模拟器Release、macOS Web：对应子任务未取得GitHub runner，未执行代码；Web子任务只重试一次后仍因容量被取消。iOS模拟器Debug子任务已通过，但普通Dora构建不证明Godot Apple4正向运行。保留其余基础设施缺口，不据此修改源码或记为通过。
+- [ ] GitHub Actions状态恢复：北京时间2026-11-05 00:18:38，Linux最后一个步骤已成功结束，但job/check-run总状态仍为`in_progress`；同期[官方Actions故障](https://www.githubstatus.com/incidents/xr3myzj7ms51)仍在调查。状态延迟原因尚未独立确认，不绕过成功状态门槛或重复原矩阵。
+
+当前核对记录暂存`build/godot-1.0-candidate-v2/`。候选CI、单项验收与最终分发包仍须分别满足前述交付门槛。

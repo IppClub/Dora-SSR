@@ -91,9 +91,9 @@
 
 ## 待完成
 
-- [ ] **RELEASE-DELIVERY-01｜候选CI与最终包对应**：冻结两仓库提交及实际测试revision，核对对应CI、宿主/运行库清单/架构/后端/许可和产物摘要；普通Dora CI不直接等同Godot发布包。仅补CI确实缺失的配置证据，不复跑既有矩阵，不把本地QA签名作为正式发布。见 [交付缺口](RELEASE_1_0.md#最终交付仍缺少的证据)。
+- [ ] **RELEASE-DELIVERY-01｜候选CI与最终包对应**：候选`2bdad734a`及实际测试`aec520851`已确认，两架构普通AppImage均未含LibGodot。Linux原有任务全部步骤成功，job最终状态仍等待GitHub Actions服务恢复；macOS等runner容量缺口保留。后续核对匹配的宿主/运行库清单/架构/后端/许可和产物摘要，仅补完整Release单项切换，不复跑既有矩阵，不把本地QA签名作为正式发布。见 [交付缺口](RELEASE_1_0.md#最终交付仍缺少的证据)。
 
-- [ ] **PROJECT-SWITCH-01｜项目切换正式化**：macOS Metal、Linux ARM64 Debug EGL、Windows x64 Debug WGL、Android arm64 Release EGL、WebGL2默认Release功能验收已通过，本轮不重复验收。先复用当前CI，Linux x64/Release仅补未覆盖的受影响项；WebGL2已按一轮组合及其余浏览器最小冒烟完成并停止，不重跑既有矩阵。iOS受限环境、D3D12、长期显存/额外压力及扩展兼容性保持待办，不自动扩测或标为通过。详见 [最小计划](PLAN.md#剩余工作的最小执行计划)。
+- [ ] **PROJECT-SWITCH-01｜项目切换正式化**：macOS Metal、Linux ARM64 Debug EGL、Windows x64 Debug WGL、Android arm64 Release EGL、WebGL2默认Release功能验收已通过，本轮不重复验收。先复用当前CI，Linux x64/Release仅补未覆盖的受影响项；当前CI为Release宿主配Debug运行库，完整Release组合由单项产物复用入口补齐，不混记通过；WebGL2已按一轮组合及其余浏览器最小冒烟完成并停止，不重跑既有矩阵。iOS受限环境、D3D12、长期显存/额外压力及扩展兼容性保持待办，不自动扩测或标为通过。详见 [最小计划](PLAN.md#剩余工作的最小执行计划)。
 
 执行规则：复用已有通过证据，先包/导出/ABI后动态；局部失败仅复验失败项和直接受影响项。已有渲染/读回/await完整矩阵不随项目切换移植反复重跑；本地任务串行，结束关闭本次启动的VM/模拟器。D3D12与第三方库共享等既定范围不变。
 
