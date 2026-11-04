@@ -570,6 +570,18 @@ bool ShaderGLES3::_load_from_cache(Version *p_version) {
 	int cache_variant_count = static_cast<int>(f->get_32());
 	ERR_FAIL_COND_V_MSG(cache_variant_count != variant_count, false, "shader cache variant count mismatch, expected " + itos(variant_count) + " got " + itos(cache_variant_count)); //should not happen but check
 
+	// Own every temporary program until the complete cache is committed. This
+	// also covers early returns after earlier variants loaded successfully.
+	struct CacheProgramCleanup {
+		LocalVector<GLuint> programs;
+		~CacheProgramCleanup() {
+			for (GLuint program : programs) {
+				if (program != 0) {
+					glDeleteProgram(program);
+				}
+			}
+		}
+	} cleanup;
 	LocalVector<AHashMap<uint64_t, Version::Specialization>> variants;
 	for (int i = 0; i < cache_variant_count; i++) {
 		uint32_t cache_specialization_count = f->get_32();
@@ -591,6 +603,7 @@ bool ShaderGLES3::_load_from_cache(Version *p_version) {
 			Version::Specialization specialization;
 
 			specialization.id = glCreateProgram();
+			cleanup.programs.push_back(specialization.id);
 			if (feedback_count) {
 				Vector<const char *> feedback;
 				for (int feedback_index = 0; feedback_index < feedback_count; feedback_index++) {
@@ -622,6 +635,7 @@ bool ShaderGLES3::_load_from_cache(Version *p_version) {
 		variants.push_back(variant);
 	}
 	p_version->variants = variants;
+	cleanup.programs.clear(); // Ownership now belongs to p_version.
 
 	return true;
 #endif // WEB_ENABLED

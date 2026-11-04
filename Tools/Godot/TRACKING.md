@@ -13,6 +13,8 @@
 
 ## 已完成
 
+- [x] **GLES-CACHE-CLEANUP-01｜缓存失败的GL program回收**：缓存加载期间统一持有临时program，完整成功后才转交给Version；链接失败、跨变体部分成功后失败及读取截断均释放已创建program。实际生产加载/初始化/清理方法的C++故障注入覆盖13类路径及500次重复失败，成功路径和源码回退保持，旧代码负向控制复现泄漏。源码登记审计通过；未启动模拟器或扩展平台矩阵。测试在Dora-Example，证据暂存 `build/godot-shader-cache-cleanup-v1/`；不关闭shader binary兼容/暖缓存待办。
+
 - [x] **PROJECT-SWITCH-ANDROID-01｜Android EGL 同实例卸载与切换**：默认接入生命周期协议和2/3/4纹理环重建，修复嵌入模式仍走APK资源根目录导致复用旧工程配置。arm64普通非debuggable Release在API35／SwiftShader模拟器完成官方Dodge源码→Squash Android PCK→A→B→A，同一LibGodot、五棵新树、15图、公开输入、有效PCM、失败恢复/取消/重复通知/活动实例拒绝通过；GPU错误/未完成读取/blit/音频欠载均0，重复清理对象稳定、资源1、节点0。按已有Android普通宿主功能标准验收；保留已知shader binary回退告警，不关闭严格无告警缓存任务。测试应用已清理，模拟器已关闭；证据暂存 `build/godot-project-android-v1/acceptance-v2/`。
 
 - [x] **PROJECT-SWITCH-WGL-01｜Windows x64 WGL 卸载与切换**：保留同一LibGodot/WGL context及可重建的2/3/4纹理环。先前五次加载和失败/取消/通知/活动实例边界通过；本轮将Parallels阴影比较采样改为手动投影，原始阴影、滤波和4×MSAA保留，只补B→A→B，9图、动态像素/输入/PCM、零blit及GPU排空通过，重复清理对象稳定、资源1、节点0。限Windows 11 ARM VM内x64 Debug，物理GPU/Release未覆盖；VM已关闭。证据暂存 `build/godot-wgl-shadow-v1/` 和前轮 `build/godot-project-wgl-v1/`。
@@ -89,7 +91,7 @@
 
 - [ ] **GDSCRIPT-REG-01｜其他平台 await 清理回归**：macOS、Linux ARM64/x86_64、Android、Web 已重建并通过最小清理回归；iOS两套当前库已重建，模拟器ABI/安全拒绝已复验，但Apple2模拟器不能进入Godot运行态；仍须在Apple4可用环境复用夹具检查节点销毁及退出泄漏。
 - [ ] **READBACK-REG-01｜公共RD/GL改动的其他配置**：Linux ARM64/x86_64、WGL和Web新库已独立构建封包；Linux两架构、Android冷安装及Web核心回归已完成；首次失败与续验证据保留。WGL当前包动态回归、iOS重建/模拟器ABI及Web原生Safari矩阵均已补，剩余iOS正向动态回归；D3D12跳过。
-- [ ] **ANDROID-SHADER-CACHE-01｜暖缓存续验**：新包保留缓存再次启动时出现shader binary加载失败并回退源码编译，严格读回验证拒绝。独立GLES探针及跨进程缓存/图像/生命周期诊断已完成，2/3/4回退后像素与清理正确；剩余是二进制缓存兼容性处理及严格无告警复验。host模式报告0种binary格式，不能替代原SwiftShader问题；不关闭缓存或过滤告警以通过。本轮同实例项目重载也复现一次告警，源码回退后的图像/同步/清理通过；不作为严格无告警通过，证据暂存 `build/godot-project-android-v1/acceptance-v2/`。见[Android读回历史](history/2026-11-03-android-readback.md)。
+- [ ] **ANDROID-SHADER-CACHE-01｜暖缓存续验**：新包保留缓存再次启动时出现shader binary加载失败并回退源码编译，严格读回验证拒绝。独立GLES探针及跨进程缓存/图像/生命周期诊断已完成，2/3/4回退后像素与清理正确；失败路径GL program回收已由GLES-CACHE-CLEANUP-01补齐；剩余是二进制缓存兼容性处理及严格无告警复验。host模式报告0种binary格式，不能替代原SwiftShader问题；不关闭缓存或过滤告警以通过。本轮同实例项目重载也复现一次告警，源码回退后的图像/同步/清理通过；不作为严格无告警通过，证据暂存 `build/godot-project-android-v1/acceptance-v2/`。见[Android读回历史](history/2026-11-03-android-readback.md)。
 - [ ] **LINUX-X64-AUDIO-LOAD-01｜并发欠载诊断**：当前包并发浏览器测试时出现一次512帧音频欠载，串行同场景零欠载通过；本轮同宿主旧/新基线配对均通过；额外浏览器压力轮次按用户要求取消，部分样本不算完整配对，原因仍待确认，不将基线通过写成已修复并发问题。见[范围收敛记录](history/2026-11-03-linux-audio-scope.md)。
 - [ ] **XMAKE-08｜iOS Metal**：补 Apple4 正向共享、2/3/4 缓冲动态矩阵及真实项目；当前源码两套archive/framework、模拟器218项ABI与能力拒绝已重跑通过；模拟器仅Apple2，正向缺口不变，构建已改为xmake，最新配置验证见XMAKE-ONLY-01。
 

@@ -1528,3 +1528,12 @@ python3 $DORA_TEST_REPO/Test/Godot/tests/web/run_timing_cap_safari.py \
 
 
 原生计时上限夹具的宿主截图模式会临时设置640×480窗口，退出前恢复原窗口大小；Godot CPU读回模式不改变窗口。`captureGameAsync`会对超过1280像素的buffer缩小输出，因此宿主像素条码用例记录每张图的`*.source.json`并核对PNG与源buffer尺寸相同；不对图像后处理、不放宽条码几何/时钟门槛。原大窗口与视口变化继续由独立完整功能矩阵覆盖。
+
+### GLES shader cache 失败回收回归
+
+```sh
+python3 "$DORA_TEST_REPO/Test/Godot/test_shader_cache_cleanup.py" \
+  --output /path/to/fresh-output
+```
+
+从实际vendor源码提取缓存加载、初始化与清理方法，使用C++17和确定性的GL故障驱动，检查链接失败、部分加载/数据截断、成功所有权移交、源码回退及重复失败的program释放。可加 `--baseline-ref ac9882929` 验证修复前泄漏的负向控制。无需GPU或模拟器；这不证明SwiftShader二进制缓存兼容或暖缓存无告警。
