@@ -4425,6 +4425,13 @@ RasterizerSceneGLES3::RasterizerSceneGLES3() {
 
 	{
 		String global_defines;
+#ifdef WINDOWS_ENABLED
+		// Parallels advertises desktop GL but its Metal translator drops scene
+		// fragments using projected explicit-LOD depth-comparison samples.
+		if (String::utf8(reinterpret_cast<const char *>(glGetString(GL_VENDOR))).contains("Parallels")) {
+			global_defines += "#define DORA_MANUAL_SHADOW_PROJECTION\n";
+		}
+#endif
 		global_defines += "#define MAX_GLOBAL_SHADER_UNIFORMS 256\n"; // TODO: this is arbitrary for now
 		global_defines += "\n#define MAX_LIGHT_DATA_STRUCTS " + itos(config->max_renderable_lights) + "\n";
 		global_defines += "\n#define MAX_DIRECTIONAL_LIGHT_DATA_STRUCTS " + itos(MAX_DIRECTIONAL_LIGHTS) + "\n";

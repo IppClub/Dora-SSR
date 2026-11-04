@@ -33,7 +33,7 @@
     "modules/mono/glue/GodotSharp/GodotSharpEditor/GodotSharpEditor.csproj",
     "platform/android/java/gradlew.bat"
   ],
-  "delta_patch_sha256": "2c7593e940cd812498d82361bb75099cf0a7ccea749ec529146a772b982bbd5b",
+  "delta_patch_sha256": "7d635de3e86eef0fafa2edb78f257d76a89c8c9b7d2acfacea49f8b11b9d7541",
   "files": [
     {
       "path": "UPSTREAM.json",
@@ -125,6 +125,20 @@
       "mode": "100644",
       "canonical_sha256": "9adeb911d213cd53c8d8b7fdc6b68cc29229a53f499b255ccad9a39ca2ffc897",
       "upstream_canonical_sha256": "6a8b7fdeb20424c5c8c2bcd1843755043bc6b24d6688a8250257f1fbe8630df2"
+    },
+    {
+      "path": "drivers/gles3/rasterizer_scene_gles3.cpp",
+      "status": "modified",
+      "mode": "100644",
+      "canonical_sha256": "d78bfe76ea860506da863b401cd24255565d90dea9b83eabbc02277d86032c69",
+      "upstream_canonical_sha256": "64527e79892a7683775fcfbd0d3527e3e9936467ebe5cd7ef07f295fcc532bb6"
+    },
+    {
+      "path": "drivers/gles3/shaders/scene.glsl",
+      "status": "modified",
+      "mode": "100644",
+      "canonical_sha256": "348d0aca2a939a996ad4dbc027d6827158b28e9855fe699a4e58ec9fe2d8895f",
+      "upstream_canonical_sha256": "ea82bdf13c539d1a96ae57e87af5b0be104e94bcb3bcc2929c96d0e8aaf0d313"
     },
     {
       "path": "drivers/gles3/storage/texture_storage.cpp",

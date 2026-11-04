@@ -1339,16 +1339,24 @@ uniform lowp uint directional_shadow_index;
 #endif // !(defined(ADDITIVE_OMNI) || defined(ADDITIVE_SPOT))
 
 #if !defined(ADDITIVE_OMNI)
+float sample_shadow_projected(highp sampler2DShadow shadow, vec4 pos) {
+#ifdef DORA_MANUAL_SHADOW_PROJECTION
+	return texture(shadow, pos.xyz / pos.w);
+#else
+	return textureProjLod(shadow, pos, 0.0);
+#endif
+}
+
 float sample_shadow(highp sampler2DShadow shadow, float shadow_pixel_size, vec4 pos) {
 	// Use textureProjLod with LOD set to 0.0 over textureProj, as textureProj not working correctly on ANGLE with Metal backend.
 	// https://github.com/godotengine/godot/issues/93537
-	float avg = textureProjLod(shadow, pos, 0.0);
+	float avg = sample_shadow_projected(shadow, pos);
 #ifdef SHADOW_MODE_PCF_13
 	pos /= pos.w;
-	avg += textureProjLod(shadow, vec4(pos.xy + vec2(shadow_pixel_size * 2.0, 0.0), pos.zw), 0.0);
-	avg += textureProjLod(shadow, vec4(pos.xy + vec2(-shadow_pixel_size * 2.0, 0.0), pos.zw), 0.0);
-	avg += textureProjLod(shadow, vec4(pos.xy + vec2(0.0, shadow_pixel_size * 2.0), pos.zw), 0.0);
-	avg += textureProjLod(shadow, vec4(pos.xy + vec2(0.0, -shadow_pixel_size * 2.0), pos.zw), 0.0);
+	avg += sample_shadow_projected(shadow, vec4(pos.xy + vec2(shadow_pixel_size * 2.0, 0.0), pos.zw));
+	avg += sample_shadow_projected(shadow, vec4(pos.xy + vec2(-shadow_pixel_size * 2.0, 0.0), pos.zw));
+	avg += sample_shadow_projected(shadow, vec4(pos.xy + vec2(0.0, shadow_pixel_size * 2.0), pos.zw));
+	avg += sample_shadow_projected(shadow, vec4(pos.xy + vec2(0.0, -shadow_pixel_size * 2.0), pos.zw));
 
 	// Early bail if distant samples are fully shaded (or none are shaded) to improve performance.
 	if (avg <= 0.000001) {
@@ -1359,23 +1367,23 @@ float sample_shadow(highp sampler2DShadow shadow, float shadow_pixel_size, vec4 
 		return 1.0;
 	}
 
-	avg += textureProjLod(shadow, vec4(pos.xy + vec2(shadow_pixel_size, 0.0), pos.zw), 0.0);
-	avg += textureProjLod(shadow, vec4(pos.xy + vec2(-shadow_pixel_size, 0.0), pos.zw), 0.0);
-	avg += textureProjLod(shadow, vec4(pos.xy + vec2(0.0, shadow_pixel_size), pos.zw), 0.0);
-	avg += textureProjLod(shadow, vec4(pos.xy + vec2(0.0, -shadow_pixel_size), pos.zw), 0.0);
-	avg += textureProjLod(shadow, vec4(pos.xy + vec2(shadow_pixel_size, shadow_pixel_size), pos.zw), 0.0);
-	avg += textureProjLod(shadow, vec4(pos.xy + vec2(-shadow_pixel_size, shadow_pixel_size), pos.zw), 0.0);
-	avg += textureProjLod(shadow, vec4(pos.xy + vec2(shadow_pixel_size, -shadow_pixel_size), pos.zw), 0.0);
-	avg += textureProjLod(shadow, vec4(pos.xy + vec2(-shadow_pixel_size, -shadow_pixel_size), pos.zw), 0.0);
+	avg += sample_shadow_projected(shadow, vec4(pos.xy + vec2(shadow_pixel_size, 0.0), pos.zw));
+	avg += sample_shadow_projected(shadow, vec4(pos.xy + vec2(-shadow_pixel_size, 0.0), pos.zw));
+	avg += sample_shadow_projected(shadow, vec4(pos.xy + vec2(0.0, shadow_pixel_size), pos.zw));
+	avg += sample_shadow_projected(shadow, vec4(pos.xy + vec2(0.0, -shadow_pixel_size), pos.zw));
+	avg += sample_shadow_projected(shadow, vec4(pos.xy + vec2(shadow_pixel_size, shadow_pixel_size), pos.zw));
+	avg += sample_shadow_projected(shadow, vec4(pos.xy + vec2(-shadow_pixel_size, shadow_pixel_size), pos.zw));
+	avg += sample_shadow_projected(shadow, vec4(pos.xy + vec2(shadow_pixel_size, -shadow_pixel_size), pos.zw));
+	avg += sample_shadow_projected(shadow, vec4(pos.xy + vec2(-shadow_pixel_size, -shadow_pixel_size), pos.zw));
 	return avg * (1.0 / 13.0);
 #endif
 
 #ifdef SHADOW_MODE_PCF_5
 	pos /= pos.w;
-	avg += textureProjLod(shadow, vec4(pos.xy + vec2(shadow_pixel_size, 0.0), pos.zw), 0.0);
-	avg += textureProjLod(shadow, vec4(pos.xy + vec2(-shadow_pixel_size, 0.0), pos.zw), 0.0);
-	avg += textureProjLod(shadow, vec4(pos.xy + vec2(0.0, shadow_pixel_size), pos.zw), 0.0);
-	avg += textureProjLod(shadow, vec4(pos.xy + vec2(0.0, -shadow_pixel_size), pos.zw), 0.0);
+	avg += sample_shadow_projected(shadow, vec4(pos.xy + vec2(shadow_pixel_size, 0.0), pos.zw));
+	avg += sample_shadow_projected(shadow, vec4(pos.xy + vec2(-shadow_pixel_size, 0.0), pos.zw));
+	avg += sample_shadow_projected(shadow, vec4(pos.xy + vec2(0.0, shadow_pixel_size), pos.zw));
+	avg += sample_shadow_projected(shadow, vec4(pos.xy + vec2(0.0, -shadow_pixel_size), pos.zw));
 	return avg * (1.0 / 5.0);
 
 #endif

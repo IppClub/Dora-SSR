@@ -86,9 +86,9 @@ python3 Tools/Godot/verify_package.py /absolute/path/to/package
 
 ## 运行时与项目边界
 
-当前是进程内 LibGodot、一次活动运行时。按最新用户决定，保留同一 LibGodot 实现项目级卸载和切换；不执行进程内 LibGodot 销毁/重初始化，也不继续 Worker 进程方案。macOS Metal、Linux EGL 默认采用项目卸载协议；其他后端仍按既有同工程协议执行。
+当前是进程内 LibGodot、一次活动运行时。按最新用户决定，保留同一 LibGodot 实现项目级卸载和切换；不执行进程内 LibGodot 销毁/重初始化，也不继续 Worker 进程方案。macOS Metal、Linux EGL、Windows x64 WGL 默认采用项目卸载协议；其他后端仍按既有同工程协议执行。
 
-macOS Metal、Linux EGL 已默认启用项目切换，清理场景树及项目状态并重新创建场景树；卸载通知及串行控制器已完成；树外状态、长期资源稳定性与其他平台仍有缺口。使用方式、验收和边界统一见 [PROJECT_SWITCH.md](PROJECT_SWITCH.md)，不能据节点销毁或有界测试通过声称任意工程已完整隔离。
+macOS Metal、Linux EGL、Windows x64 WGL 已默认启用项目切换，清理场景树及项目状态并重新创建场景树；卸载通知及串行控制器已完成；树外状态、长期资源稳定性与其他平台仍有缺口。使用方式、验收和边界统一见 [PROJECT_SWITCH.md](PROJECT_SWITCH.md)，不能据节点销毁或有界测试通过声称任意工程已完整隔离。
 
 Godot C#/Mono 关闭不影响 Dora 原有 C#；不要通过删掉 Dora 的 C# 绑定来缩小 Godot 包。Dora Apple2 / Godot Apple4 的能力门槛保留，不把 Apple2 模拟器安全拒绝写作 Apple4 渲染通过。
 

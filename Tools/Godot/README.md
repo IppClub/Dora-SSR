@@ -17,7 +17,7 @@ Web PCM 更新（2026-10-29）：宿主与 Godot 运行在同一 window 线程�
 
 ## 工程导入、导出与试玩
 
-仓库/Git URL/源码 ZIP 的隔离导入、PCK 试玩包导出、归档安装和普通 Dora 试玩入口见 [工程与试玩包](PROJECTS.md)。游戏数据包复用宿主 LibGodot，不重复包含引擎二进制；常驻实例的跨工程卸载/切换已在 [macOS Metal / Linux EGL 默认支持](PROJECT_SWITCH.md)，无需实验开关；已提供卸载完成通知及Lua串行控制器，官方2D/3D源码和PCK反复切换通过，正式化和其他平台单列跟踪。
+仓库/Git URL/源码 ZIP 的隔离导入、PCK 试玩包导出、归档安装和普通 Dora 试玩入口见 [工程与试玩包](PROJECTS.md)。游戏数据包复用宿主 LibGodot，不重复包含引擎二进制；常驻实例的跨工程卸载/切换已在 [macOS Metal / Linux EGL / Windows x64 WGL 默认支持](PROJECT_SWITCH.md)，无需实验开关；已提供卸载完成通知及Lua串行控制器，官方2D/3D源码和PCK反复切换通过，正式化和其他平台单列跟踪。
 
 ## 构建和验证
 

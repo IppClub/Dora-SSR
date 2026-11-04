@@ -9,11 +9,11 @@
 - Godot C#/Mono 关闭，Dora C# 保留；Dora Apple2 / Godot Apple4；Windows x64 WGL 为本轮验收后端；保留 D3D12 适配并跳过本轮 D3D12 验收，不新增 Windows ARM64 目标验收。
 - 浏览器验收在宿主执行；不在虚拟机内增加浏览器测试，不自动扩展额外压力轮次。
 - Godot保持完整独立LibGodot运行时，包含各平台原有第三方实现；Dora与Godot分别构建依赖，不复用第三方二进制或宿主codec函数表。共享库实验与相关待办已撤销，[历史完整保留](history/2026-11-03-library-sharing-removed/README.md)。
-- 不做进程内 LibGodot 重初始化；按最新决定保留同一 LibGodot，实现项目级卸载与切换，macOS Metal和Linux EGL默认开放，见 [PROJECT_SWITCH.md](PROJECT_SWITCH.md)。缺少真机时可用 VM/模拟器，明确证据边界。
+- 不做进程内 LibGodot 重初始化；按最新决定保留同一 LibGodot，实现项目级卸载与切换，macOS Metal、Linux EGL和Windows x64 WGL默认开放，见 [PROJECT_SWITCH.md](PROJECT_SWITCH.md)。缺少真机时可用 VM/模拟器，明确证据边界。
 
 ## 已完成
 
-- [x] **PROJECT-SWITCH-WGL-IMPL｜Windows x64 WGL 生命周期接入**：复用同一 LibGodot/WGL context，支持项目卸载、重新加载、不同尺寸与2/3/4纹理环。x64 Debug 普通宿主在 Windows 11 ARM VM 的组合用例完成五次加载、不同SceneTree、失败恢复/启动取消/重复通知/活动实例拒绝，GPU排空、零blit、音频及清理计数通过。仅表示生命周期证据，完整画面验收未通过，见待办；证据暂存 `build/godot-project-wgl-v1/`。
+- [x] **PROJECT-SWITCH-WGL-01｜Windows x64 WGL 卸载与切换**：保留同一LibGodot/WGL context及可重建的2/3/4纹理环。先前五次加载和失败/取消/通知/活动实例边界通过；本轮将Parallels阴影比较采样改为手动投影，原始阴影、滤波和4×MSAA保留，只补B→A→B，9图、动态像素/输入/PCM、零blit及GPU排空通过，重复清理对象稳定、资源1、节点0。限Windows 11 ARM VM内x64 Debug，物理GPU/Release未覆盖；VM已关闭。证据暂存 `build/godot-wgl-shadow-v1/` 和前轮 `build/godot-project-wgl-v1/`。
 
 - [x] **PROJECT-SWITCH-LINUX-01｜Linux EGL 同实例卸载与切换**：默认接入项目生命周期接口与 GodotPlayer；保留 LibGodot、renderer 和 EGL context，在排空 GPU 后重建不同尺寸及 2/3/4 缓冲纹理环。Ubuntu ARM64／Mesa virgl 的 Debug 普通宿主通过七次隔离夹具、重复卸载通知、无效工程恢复、启动取消和旧库拒绝；官方 2D/3D 源码/PCK 交替八次、24 图、每轮149–169共享帧通过。输入、音频、零blit及GPU排空通过，重复访问后对象数稳定、资源1、场景节点0。普通资源目录查库的 A→B→A 回归及5图通过；修复 Linux 导出表并登记链接依赖；本次测试进程、临时挂载已清理，VM已关闭。证据暂存 `build/godot-project-linux-v1/acceptance-v3/`；范围见 [PROJECT_SWITCH.md](PROJECT_SWITCH.md)。
 
@@ -81,8 +81,7 @@
 
 ## 待完成
 
-- [ ] **PROJECT-SWITCH-WGL-VISUAL｜WGL 图形验收阻塞**：原始 Squash PCK 的3D几何在Parallels WGL中不可见、UI正常；冷启动 direct-target 与兼容blit同样复现。Dodge 2D正常。MSAA重配和两种UBO适配未解决，已移除无效补丁；运行态关闭阴影的诊断能显示几何，但不算原项目通过。官方未修改 Godot 4.6 Windows x64 在同一VM/驱动和同一PCK下也缺失3D几何（天空/UI可见），确认不是Dora切换/共享路径独有；尚未区分上游与虚拟驱动原因。先定位阴影/场景渲染路径，再只复验B→A→B，不重跑已完成的平台或完整矩阵。
-- [ ] **PROJECT-SWITCH-01｜项目切换正式化**：macOS Metal、Linux ARM64 Debug EGL已通过，本轮不重复验收。先复用当前CI，Linux x64/Release仅补未覆盖的受影响项；下一项为Windows x64 WGL，随后Android EGL、WebGL2，每个新增后端只做一轮串行组合验收（两次A↔B往返，源码/PCK、2/3/4缓冲、一次失败恢复/取消和卸载通知），通过即停止。iOS受限环境、D3D12、长期显存/额外压力及扩展兼容性保持待办，不自动扩测或标为通过。详见 [最小计划](PLAN.md#剩余工作的最小执行计划)。
+- [ ] **PROJECT-SWITCH-01｜项目切换正式化**：macOS Metal、Linux ARM64 Debug EGL、Windows x64 Debug WGL已通过，本轮不重复验收。先复用当前CI，Linux x64/Release仅补未覆盖的受影响项；下一项为Android EGL，随后WebGL2，每个新增后端只做一轮串行组合验收（两次A↔B往返，源码/PCK、2/3/4缓冲、一次失败恢复/取消和卸载通知），通过即停止。iOS受限环境、D3D12、长期显存/额外压力及扩展兼容性保持待办，不自动扩测或标为通过。详见 [最小计划](PLAN.md#剩余工作的最小执行计划)。
 
 执行规则：复用已有通过证据，先包/导出/ABI后动态；局部失败仅复验失败项和直接受影响项。已有渲染/读回/await完整矩阵不随项目切换移植反复重跑；本地任务串行，结束关闭本次启动的VM/模拟器。D3D12与第三方库共享等既定范围不变。
 
