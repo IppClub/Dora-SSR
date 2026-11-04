@@ -1,0 +1,112 @@
+name: Godot Candidate Release Switch
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_run_id:
+        description: Completed Godot Integration run providing godot-linux-egl
+        required: true
+        type: string
+      engine_sha:
+        description: Exact 40-character engine commit used by the source run
+        required: true
+        type: string
+      harness_sha:
+        description: Exact Dora-Example commit containing the candidate harness
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: godot-candidate-release-${{ inputs.source_run_id }}
+  cancel-in-progress: false
+
+jobs:
+  release-switch:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Check source identity and completed Linux job
+        id: source
+        uses: actions/github-script@v7
+        env:
+          SOURCE_RUN_ID: ${{ inputs.source_run_id }}
+          ENGINE_SHA: ${{ inputs.engine_sha }}
+          HARNESS_SHA: ${{ inputs.harness_sha }}
+        with:
+          script: |
+            const {SOURCE_RUN_ID: id, ENGINE_SHA: sha, HARNESS_SHA: tests} = process.env;
+            if (!/^\d+$/.test(id) || !/^[0-9a-f]{40}$/.test(sha) || !/^[0-9a-f]{40}$/.test(tests)) throw Error('Exact run and commit identities are required');
+            const repo = context.repo;
+            const {data: run} = await github.rest.actions.getWorkflowRun({...repo, run_id: Number(id)});
+            if (run.head_sha !== sha || run.path !== '.github/workflows/godot.yml') throw Error('Wrong candidate source run');
+            const jobs = await github.paginate(github.rest.actions.listJobsForWorkflowRun, {...repo, run_id: Number(id), filter: 'latest'});
+            if (!jobs.some(j => j.name === 'linux-egl' && j.conclusion === 'success')) throw Error('Wait for the source Linux job to pass');
+            const files = await github.paginate(github.rest.actions.listWorkflowRunArtifacts, {...repo, run_id: Number(id)});
+            const matching = files.filter(a => a.name === 'godot-linux-egl' && !a.expired);
+            if (matching.length !== 1) throw Error('One immutable candidate artifact is required');
+            core.setOutput('artifact_id', matching[0].id);
+            core.setOutput('artifact_digest', matching[0].digest || '');
+
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.engine_sha }}
+
+      - name: Checkout test harness only
+        uses: actions/checkout@v4
+        with:
+          repository: IppClub/Dora-Example
+          ref: ${{ inputs.harness_sha }}
+          path: candidate-tests
+          sparse-checkout: |
+            Test/Godot
+            Test/support
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Download existing candidate binaries and receipts
+        uses: actions/download-artifact@v5
+        with:
+          artifact-ids: ${{ steps.source.outputs.artifact_id }}
+          merge-multiple: true
+          run-id: ${{ inputs.source_run_id }}
+          github-token: ${{ github.token }}
+          path: candidate-artifact
+
+      - name: Install runtime dependencies only
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y rsync weston wayland-utils libegl1 libgles2 libgl1 libssl3t64 \
+            libdbus-1-3 libasound2t64 libjack-jackd2-0 libpulse0 libpipewire-0.3-0 \
+            libsamplerate0 libsndio7.0 libibus-1.0-5 libudev1 libusb-1.0-0 \
+            libx11-6 libxext6 libxcursor1 libxrandr2 libxinerama1 libxi6 libxfixes3 \
+            libdrm2 libgbm1 libwayland-client0 libwayland-cursor0 libwayland-egl1 libxkbcommon0 libdecor-0-0
+          python3 -m pip install Pillow==12.1.0
+
+      - name: One optimized ordinary-host A to B to A case
+        env:
+          DORA_ENGINE_ROOT: ${{ github.workspace }}
+          DORA_TEST_REPO: ${{ github.workspace }}/candidate-tests
+          ENGINE_SHA: ${{ inputs.engine_sha }}
+          SOURCE_RUN_ID: ${{ inputs.source_run_id }}
+          SOURCE_ARTIFACT_ID: ${{ steps.source.outputs.artifact_id }}
+          SOURCE_ARTIFACT_DIGEST: ${{ steps.source.outputs.artifact_digest }}
+        run: |
+          mkdir -p build/godot-candidate-release
+          python3 -c 'import json,os; from pathlib import Path; Path("build/godot-candidate-release/source.json").write_text(json.dumps({k:os.environ[k] for k in ["ENGINE_SHA","SOURCE_RUN_ID","SOURCE_ARTIFACT_ID","SOURCE_ARTIFACT_DIGEST"]},indent=2)+"\n")'
+          python3 "$DORA_TEST_REPO/Test/Godot/tests/run_candidate_release_switch.py" \
+            --artifact "$PWD/candidate-artifact" --output "$PWD/build/godot-candidate-release/acceptance" \
+            --engine-sha "$ENGINE_SHA" --run-id "$SOURCE_RUN_ID"
+
+      - name: Retain only this acceptance's evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: godot-candidate-release-switch
+          path: build/godot-candidate-release/
+          if-no-files-found: warn
