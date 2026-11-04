@@ -27,7 +27,7 @@ concurrency:
 jobs:
   release-switch:
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 90
     steps:
       - name: Check source identity and completed Linux job
         id: source
@@ -78,15 +78,47 @@ jobs:
           github-token: ${{ github.token }}
           path: candidate-artifact
 
-      - name: Install runtime dependencies only
+      - name: Install dependencies for existing host and any missing Release runtime
         run: |
           sudo apt-get update
-          sudo apt-get install -y rsync weston wayland-utils libegl1 libgles2 libgl1 libssl3t64 \
+          sudo apt-get install -y build-essential cmake ninja-build pkg-config rsync weston wayland-utils \
+            libegl1 libgles2 libgl1 libssl3t64 libssl-dev libdbus-1-dev libasound2-dev \
+            libjack-jackd2-dev libpulse-dev libpipewire-0.3-dev libsamplerate0-dev libsndio-dev \
+            libibus-1.0-dev libudev-dev libusb-1.0-0-dev libx11-dev libxext-dev libxcursor-dev \
+            libxrandr-dev libxinerama-dev libxi-dev libxfixes-dev libdrm-dev libgbm-dev \
+            libegl1-mesa-dev libgles2-mesa-dev libwayland-dev libxkbcommon-dev libdecor-0-dev \
             libdbus-1-3 libasound2t64 libjack-jackd2-0 libpulse0 libpipewire-0.3-0 \
             libsamplerate0 libsndio7.0 libibus-1.0-5 libudev1 libusb-1.0-0 \
             libx11-6 libxext6 libxcursor1 libxrandr2 libxinerama1 libxi6 libxfixes3 \
             libdrm2 libgbm1 libwayland-client0 libwayland-cursor0 libwayland-egl1 libxkbcommon0 libdecor-0-0
           python3 -m pip install Pillow==12.1.0
+
+      - name: Check whether the source runtime is Release
+        id: runtime
+        run: |
+          python3 Tools/Godot/verify_package.py candidate-artifact/godot-linux/package
+          python3 -c 'import json; from pathlib import Path; m=json.loads(Path("candidate-artifact/godot-linux/package/manifest.json").read_text()); print("release="+str(m.get("build_target")=="template_release").lower())' >> "$GITHUB_OUTPUT"
+
+      - uses: xmake-io/github-action-setup-xmake@v1
+        if: steps.runtime.outputs.release != 'true'
+        with:
+          xmake-version: '3.1.1'
+
+      - name: Build only the missing LibGodot Release package
+        if: steps.runtime.outputs.release != 'true'
+        env:
+          DORA_GODOT_TARGET: template_release
+          DORA_GODOT_BUILD_DIR: ${{ github.workspace }}/build/godot-candidate-release/runtime
+          JOBS: '2'
+        run: bash Tools/Godot/build_linux_runtime.sh
+
+      - name: Select the verified runtime package
+        run: |
+          if [ -f build/godot-candidate-release/runtime/package/manifest.json ]; then
+            echo "CANDIDATE_RUNTIME=$PWD/build/godot-candidate-release/runtime/package" >> "$GITHUB_ENV"
+          else
+            echo "CANDIDATE_RUNTIME=$PWD/candidate-artifact/godot-linux/package" >> "$GITHUB_ENV"
+          fi
 
       - name: One optimized ordinary-host A to B to A case
         env:
@@ -101,7 +133,7 @@ jobs:
           python3 -c 'import json,os; from pathlib import Path; Path("build/godot-candidate-release/source.json").write_text(json.dumps({k:os.environ[k] for k in ["ENGINE_SHA","SOURCE_RUN_ID","SOURCE_ARTIFACT_ID","SOURCE_ARTIFACT_DIGEST"]},indent=2)+"\n")'
           python3 "$DORA_TEST_REPO/Test/Godot/tests/run_candidate_release_switch.py" \
             --artifact "$PWD/candidate-artifact" --output "$PWD/build/godot-candidate-release/acceptance" \
-            --engine-sha "$ENGINE_SHA" --run-id "$SOURCE_RUN_ID"
+            --engine-sha "$ENGINE_SHA" --run-id "$SOURCE_RUN_ID" --runtime-package "$CANDIDATE_RUNTIME"
 
       - name: Retain only this acceptance's evidence
         if: always()
