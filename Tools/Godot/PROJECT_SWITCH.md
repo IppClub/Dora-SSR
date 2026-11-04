@@ -4,9 +4,9 @@
 
 ## 当前可用范围
 
-macOS Metal、Linux EGL 和 Windows x64 WGL 的项目卸载和切换默认启用，无需环境变量。能力由匹配运行库的项目生命周期接口确认；旧实验环境开关已移除。保留基础 bridge ABI 1，增加可选的项目生命周期扩展；宿主用它确认项目清理成功，没有增加动态库。
+macOS Metal、Linux EGL、Windows x64 WGL 和 Android EGL 的项目卸载和切换默认启用，无需环境变量。能力由匹配运行库的项目生命周期接口确认；旧实验环境开关已移除。保留基础 bridge ABI 1，增加可选的项目生命周期扩展；宿主用它确认项目清理成功，没有增加动态库。
 
-在 macOS Metal / Linux EGL / Windows x64 WGL 上，移除一个活动 `GodotNode` 会在宿主 GPU 读取排空、PCM 生产线程停止之后卸载工程。卸载完成后，可创建另一个 `GodotNode` 加载已导入的工程目录或独立 PCK。一次只允许一个活动节点；同工程重开也会清理项目状态。`restartScene` 仍是当前项目的场景重启。
+在 macOS Metal / Linux EGL / Windows x64 WGL / Android EGL 上，移除一个活动 `GodotNode` 会在宿主 GPU 读取排空、PCM 生产线程停止之后卸载工程。卸载完成后，可创建另一个 `GodotNode` 加载已导入的工程目录或独立 PCK。一次只允许一个活动节点；同工程重开也会清理项目状态。`restartScene` 仍是当前项目的场景重启。
 
 当前清理包括：
 
@@ -19,9 +19,9 @@ macOS Metal、Linux EGL 和 Windows x64 WGL 的项目卸载和切换默认启用
 
 ## 限制与未完成项
 
-macOS Metal、Linux EGL、Windows x64 WGL 已作为默认功能开放；下述平台与项目兼容性边界仍然适用。
+macOS Metal、Linux EGL、Windows x64 WGL、Android EGL 已作为默认功能开放；下述平台与项目兼容性边界仍然适用。
 
-- 已接入 macOS Metal、Linux EGL 和 Windows x64 WGL；Linux ARM64 Debug 已在 Ubuntu / Mesa virgl 虚拟机动态验收；Linux x64、Release 及长期显存稳定性仍待验证。Windows x64 Debug WGL 已在 Parallels Windows 11 ARM VM 的 x64 普通进程通过：复用先前五次加载/边界控制证据，修复阴影采样后只复验 B→A→B 的完整画面与同步；物理 Windows GPU、Release 和长期稳定性未覆盖；Android EGL、WebGL2、iOS 和 D3D12 尚未接入项目切换。
+- 已接入 macOS Metal、Linux EGL、Windows x64 WGL 和 Android EGL；Linux ARM64 Debug 已在 Ubuntu / Mesa virgl 虚拟机动态验收；Linux x64、Release 及长期显存稳定性仍待验证。Windows x64 Debug WGL 已在 Parallels Windows 11 ARM VM 的 x64 普通进程通过：复用先前五次加载/边界控制证据，修复阴影采样后只复验 B→A→B 的完整画面与同步；物理 Windows GPU、Release 和长期稳定性未覆盖；Android arm64 Release EGL已在API35／SwiftShader模拟器完成五次真实项目切换，保留已知shader binary回退告警，严格缓存无告警仍未验收；WebGL2、iOS 和 D3D12 尚未接入项目切换。
 - 使用标准 SceneTree 与 GDScript。Godot C#/Mono、原生 GDExtension 不支持；Dora 原有 C# 不变。未 join 的脚本 Thread 会被拒绝。关闭时发现不支持状态，会保留暂停树用于最终退出，并拒绝再次打开项目。
 - 工程必须释放自己创建的树外对象、线程、网络连接及外部回调。当前实现不保证任意第三方工程的全部全局副作用都被隔离；附加翻译域、服务器全局状态、树外引用和实际联网仍须审计。
 - 首次引擎初始化失败后需重启 Dora；已成功启动后的无主场景项目拒绝与后续有效工程恢复已验证，其他失败阶段仍须补充。
@@ -121,3 +121,21 @@ python "$DORA_TEST_REPO/Test/Godot/run_project_switch_windows.py" \
 默认一轮 `A源码(2) → B的PCK(3) → A(4) → B(2) → A(3)`，同时检查取消、失败恢复、活动实例拒绝和重复卸载通知。`--targeted-3d` 只跑 `B(3) → A(4) → B(2)`，复用先前边界证据，不代表再次执行完整五次组合。
 
 本地范围：Windows 11 ARM VM，x64 Debug 普通宿主，Parallels OpenGL 3.3 / Metal (Apple M1 Pro)。原版 Godot 4.6 也在该环境出现阴影开启时几何缺失；只对 Windows 的 Parallels GL vendor 使用手动投影后的深度比较采样，其他驱动保留 `textureProjLod`。阴影、原有滤波、正交相机与4×MSAA保持开启。原始PCK未改动，修复后9图、158/163/216共享帧、公开输入约209像素位移、非零PCM、零blit/错误/未完成读取/欠载通过；重复3D卸载对象243、资源1、节点0。证据见 `build/godot-wgl-shadow-v1/targeted-projection/verification.json`；先前五次生命周期及边界证据见 `build/godot-project-wgl-v1/acceptance/`。不扩展为物理硬件或其他平台验收。
+
+### Android EGL
+
+匹配的新运行库和宿主默认提供卸载通知及项目切换。Java/JNI服务、Activity、LibGodot、renderer和EGL context均保留；只结束项目级场景与状态，不提供Java插件或文件系统沙箱隔离。嵌入模式从实际工程目录/PCK解析资源，独立Godot APK的资源根目录行为不变。常驻shader cache根位于Android缓存目录下的 `Dora/LibGodot-4.6/egl`。
+
+Dora-Example的 `prepare_project_switch_android.py` 接受已导入的 `--project-a` 源码目录、Android目标的 `--project-b` PCK、`--source-revision` 和新的 `--output` 资源目录。使用 `dora.godot.test=false` 构建普通Release及独立 `tests/android/lifecycle` 控制器后运行：
+
+```sh
+python3 "$DORA_TEST_REPO/Test/Godot/run_android_project_switch.py" \
+  --sdk "$ANDROID_HOME" --serial emulator-5554 --owned-avd DoraGodotRC1_example \
+  --apk /path/to/ordinary-release.apk --runtime-package /path/to/android-runtime \
+  --lifecycle-apk /path/to/controller.apk --assets-manifest /path/to/assets-manifest.json \
+  --output /path/to/fresh-output
+```
+
+驱动只接受显式命名的专用模拟器，单进程执行 `A源码(2) → B的PCK(3) → A(4) → B(2) → A(3)`，补一次无主场景失败恢复、启动取消、活动实例拒绝及重复卸载通知；控制器在Lua完成后调用正常Activity.finish并导出平面证据及作者文件/PCK摘要。`--verify-only` 仅复核已导出的证据，不重启应用。模拟器创建、启动和关闭由调用者管理。
+
+本轮范围：API35 ARM64、arm64非debuggable Release、SwiftShader／ANGLE GLES3.1。五次共享帧250/252/254/265/245、15图、2D公开输入约273像素位移、有效PCM、零blit/错误/未完成读取/欠载通过；作者源码/资源及PCK前后摘要一致，12个导入元数据文件的Godot4.6生成变化单独登记。重复2D/3D卸载对象245/242、资源1、节点0。复用现有Android普通Release对已知模拟器告警的分类，报告完整保留一次shader binary源码回退告警及 `shader_cache_clean=false`；不等同跨进程暖缓存或严格无告警验收。该缺口继续由ANDROID-SHADER-CACHE-01跟踪，不关闭缓存或隐藏告警。完整功能报告为 `build/godot-project-android-v1/acceptance-v2/verification.json`；首轮文件系统路径失败证据保留在同级 `acceptance/`，不增加其他平台或压力测试。

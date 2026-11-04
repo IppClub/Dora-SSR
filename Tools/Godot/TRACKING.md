@@ -9,9 +9,11 @@
 - Godot C#/Mono 关闭，Dora C# 保留；Dora Apple2 / Godot Apple4；Windows x64 WGL 为本轮验收后端；保留 D3D12 适配并跳过本轮 D3D12 验收，不新增 Windows ARM64 目标验收。
 - 浏览器验收在宿主执行；不在虚拟机内增加浏览器测试，不自动扩展额外压力轮次。
 - Godot保持完整独立LibGodot运行时，包含各平台原有第三方实现；Dora与Godot分别构建依赖，不复用第三方二进制或宿主codec函数表。共享库实验与相关待办已撤销，[历史完整保留](history/2026-11-03-library-sharing-removed/README.md)。
-- 不做进程内 LibGodot 重初始化；按最新决定保留同一 LibGodot，实现项目级卸载与切换，macOS Metal、Linux EGL和Windows x64 WGL默认开放，见 [PROJECT_SWITCH.md](PROJECT_SWITCH.md)。缺少真机时可用 VM/模拟器，明确证据边界。
+- 不做进程内 LibGodot 重初始化；按最新决定保留同一 LibGodot，实现项目级卸载与切换，macOS Metal、Linux EGL、Windows x64 WGL和Android EGL默认开放，见 [PROJECT_SWITCH.md](PROJECT_SWITCH.md)。缺少真机时可用 VM/模拟器，明确证据边界。
 
 ## 已完成
+
+- [x] **PROJECT-SWITCH-ANDROID-01｜Android EGL 同实例卸载与切换**：默认接入生命周期协议和2/3/4纹理环重建，修复嵌入模式仍走APK资源根目录导致复用旧工程配置。arm64普通非debuggable Release在API35／SwiftShader模拟器完成官方Dodge源码→Squash Android PCK→A→B→A，同一LibGodot、五棵新树、15图、公开输入、有效PCM、失败恢复/取消/重复通知/活动实例拒绝通过；GPU错误/未完成读取/blit/音频欠载均0，重复清理对象稳定、资源1、节点0。按已有Android普通宿主功能标准验收；保留已知shader binary回退告警，不关闭严格无告警缓存任务。测试应用已清理，模拟器已关闭；证据暂存 `build/godot-project-android-v1/acceptance-v2/`。
 
 - [x] **PROJECT-SWITCH-WGL-01｜Windows x64 WGL 卸载与切换**：保留同一LibGodot/WGL context及可重建的2/3/4纹理环。先前五次加载和失败/取消/通知/活动实例边界通过；本轮将Parallels阴影比较采样改为手动投影，原始阴影、滤波和4×MSAA保留，只补B→A→B，9图、动态像素/输入/PCM、零blit及GPU排空通过，重复清理对象稳定、资源1、节点0。限Windows 11 ARM VM内x64 Debug，物理GPU/Release未覆盖；VM已关闭。证据暂存 `build/godot-wgl-shadow-v1/` 和前轮 `build/godot-project-wgl-v1/`。
 
@@ -81,13 +83,13 @@
 
 ## 待完成
 
-- [ ] **PROJECT-SWITCH-01｜项目切换正式化**：macOS Metal、Linux ARM64 Debug EGL、Windows x64 Debug WGL已通过，本轮不重复验收。先复用当前CI，Linux x64/Release仅补未覆盖的受影响项；下一项为Android EGL，随后WebGL2，每个新增后端只做一轮串行组合验收（两次A↔B往返，源码/PCK、2/3/4缓冲、一次失败恢复/取消和卸载通知），通过即停止。iOS受限环境、D3D12、长期显存/额外压力及扩展兼容性保持待办，不自动扩测或标为通过。详见 [最小计划](PLAN.md#剩余工作的最小执行计划)。
+- [ ] **PROJECT-SWITCH-01｜项目切换正式化**：macOS Metal、Linux ARM64 Debug EGL、Windows x64 Debug WGL、Android arm64 Release EGL功能验收已通过，本轮不重复验收。先复用当前CI，Linux x64/Release仅补未覆盖的受影响项；下一项为WebGL2，每个新增后端只做一轮串行组合验收（两次A↔B往返，源码/PCK、2/3/4缓冲、一次失败恢复/取消和卸载通知），通过即停止。iOS受限环境、D3D12、长期显存/额外压力及扩展兼容性保持待办，不自动扩测或标为通过。详见 [最小计划](PLAN.md#剩余工作的最小执行计划)。
 
 执行规则：复用已有通过证据，先包/导出/ABI后动态；局部失败仅复验失败项和直接受影响项。已有渲染/读回/await完整矩阵不随项目切换移植反复重跑；本地任务串行，结束关闭本次启动的VM/模拟器。D3D12与第三方库共享等既定范围不变。
 
 - [ ] **GDSCRIPT-REG-01｜其他平台 await 清理回归**：macOS、Linux ARM64/x86_64、Android、Web 已重建并通过最小清理回归；iOS两套当前库已重建，模拟器ABI/安全拒绝已复验，但Apple2模拟器不能进入Godot运行态；仍须在Apple4可用环境复用夹具检查节点销毁及退出泄漏。
 - [ ] **READBACK-REG-01｜公共RD/GL改动的其他配置**：Linux ARM64/x86_64、WGL和Web新库已独立构建封包；Linux两架构、Android冷安装及Web核心回归已完成；首次失败与续验证据保留。WGL当前包动态回归、iOS重建/模拟器ABI及Web原生Safari矩阵均已补，剩余iOS正向动态回归；D3D12跳过。
-- [ ] **ANDROID-SHADER-CACHE-01｜暖缓存续验**：新包保留缓存再次启动时出现shader binary加载失败并回退源码编译，严格读回验证拒绝。独立GLES探针及跨进程缓存/图像/生命周期诊断已完成，2/3/4回退后像素与清理正确；剩余是二进制缓存兼容性处理及严格无告警复验。host模式报告0种binary格式，不能替代原SwiftShader问题；不关闭缓存或过滤告警以通过。见[Android读回历史](history/2026-11-03-android-readback.md)。
+- [ ] **ANDROID-SHADER-CACHE-01｜暖缓存续验**：新包保留缓存再次启动时出现shader binary加载失败并回退源码编译，严格读回验证拒绝。独立GLES探针及跨进程缓存/图像/生命周期诊断已完成，2/3/4回退后像素与清理正确；剩余是二进制缓存兼容性处理及严格无告警复验。host模式报告0种binary格式，不能替代原SwiftShader问题；不关闭缓存或过滤告警以通过。本轮同实例项目重载也复现一次告警，源码回退后的图像/同步/清理通过；不作为严格无告警通过，证据暂存 `build/godot-project-android-v1/acceptance-v2/`。见[Android读回历史](history/2026-11-03-android-readback.md)。
 - [ ] **LINUX-X64-AUDIO-LOAD-01｜并发欠载诊断**：当前包并发浏览器测试时出现一次512帧音频欠载，串行同场景零欠载通过；本轮同宿主旧/新基线配对均通过；额外浏览器压力轮次按用户要求取消，部分样本不算完整配对，原因仍待确认，不将基线通过写成已修复并发问题。见[范围收敛记录](history/2026-11-03-linux-audio-scope.md)。
 - [ ] **XMAKE-08｜iOS Metal**：补 Apple4 正向共享、2/3/4 缓冲动态矩阵及真实项目；当前源码两套archive/framework、模拟器218项ABI与能力拒绝已重跑通过；模拟器仅Apple2，正向缺口不变，构建已改为xmake，最新配置验证见XMAKE-ONLY-01。
 

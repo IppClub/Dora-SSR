@@ -445,6 +445,11 @@ Error OS_Android::shell_open(const String &p_uri) {
 }
 
 String OS_Android::get_resource_dir() const {
+#ifdef MODULE_DORA_BRIDGE_ENABLED
+    // Embedded projects live in the host filesystem, not at the APK resource
+    // root. Let ProjectSettings resolve each requested project directory.
+    if (DoraGodotAndroid::host_filesystem) return OS_Unix::get_resource_dir();
+#endif
 #ifdef TOOLS_ENABLED
 	return OS_Unix::get_resource_dir();
 #else

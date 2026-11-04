@@ -29,7 +29,7 @@ uint32_t dora_gl_framebuffer(void *transport);
 // Producer context, host GPU drained. IDs are borrowed, never deleted here.
 int dora_gl_bind_targets(void *transport,uint32_t width,uint32_t height,const uint32_t *textures,uint32_t count);
 void dora_gl_clear_targets(void *transport);
-#if defined(LINUXBSD_ENABLED) || defined(WINDOWS_ENABLED)
+#if defined(LINUXBSD_ENABLED) || defined(WINDOWS_ENABLED) || defined(ANDROID_ENABLED)
 // Project boundary only: producer current, both GPU queues drained. Retains the producer context.
 int dora_gl_reset_targets(void *transport,uint32_t width,uint32_t height,uint32_t buffers);
 #endif

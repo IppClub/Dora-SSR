@@ -8,7 +8,7 @@
 
 保持 Godot 4.6-stable 来源、版本、许可证与 Dora 修改可追溯；生成物和对象文件放在独立构建目录，不写入 vendor 源码。受支持配置统一为原生 xmake 唯一构建入口；保留上游构建文件及封存对照，不保留 Dora 的 SCons 安装/调用/回退路径。动态验收缺口独立跟踪。
 
-产品范围保持：Godot 不含 C#/Mono，Dora 原有 C# 保留；Dora Apple2 / Godot Apple4；Windows 本轮验收 x64 WGL，D3D12 适配保留但按用户决定跳过本轮动态验收；不做进程内 LibGodot 重初始化；按最新决定保留一个进程内LibGodot，实现项目级卸载与切换，macOS Metal、Linux EGL和Windows x64 WGL默认开放，其他平台和兼容性缺口见 [PROJECT_SWITCH.md](PROJECT_SWITCH.md)。
+产品范围保持：Godot 不含 C#/Mono，Dora 原有 C# 保留；Dora Apple2 / Godot Apple4；Windows 本轮验收 x64 WGL，D3D12 适配保留但按用户决定跳过本轮动态验收；不做进程内 LibGodot 重初始化；按最新决定保留一个进程内LibGodot，实现项目级卸载与切换，macOS Metal、Linux EGL、Windows x64 WGL和Android EGL默认开放，其他平台和兼容性缺口见 [PROJECT_SWITCH.md](PROJECT_SWITCH.md)。
 
 依赖部署固定为完整独立LibGodot：移除第三方库共享开关、宿主提供端、转发层及启动握手，各引擎保留自己的依赖实现。共享实验和撤销任务见[归档](history/2026-11-03-library-sharing-removed/README.md)。
 
@@ -32,7 +32,8 @@
 
 1. **复用当前 CI，结束 Linux 本轮工作**：先核对提交 `a7a379218` 的 CI 与实际产物配置；同一提交和配置已有通过项不再本地重跑。Linux ARM64 Debug 的项目切换已经通过；x64/Release 只补 CI 真正未覆盖的受影响项，不再重复八轮真实项目或完整图形矩阵。未验证的配置保持明确标注，不按已通过处理。
 2. **Windows x64 WGL 已完成本轮最小验收，停止动态测试**：复用先前五次加载、失败恢复/取消/重复卸载通知证据；Parallels 的投影阴影采样适配后，只补原始 B的PCK(3缓冲) → A源码(4) → B的PCK(2)。9图、同实例/新场景树、动态画面/输入/PCM和GPU排空通过，阴影与4×MSAA保留。范围限VM内x64 Debug；物理GPU、Release及长期压力保持未覆盖。证据暂存 `build/godot-wgl-shadow-v1/`，不重跑其他平台或完整矩阵。
-3. **随后依次接入 Android EGL、WebGL2**：每个新增后端沿用上述一轮组合验收；只增加该后端新改动涉及的生命周期/FS/context loss检查。Web主浏览器跑完整组合，其余受影响浏览器只补A→B→A切换冒烟，不重跑已有完整渲染矩阵；不在VM里测浏览器。Android暖缓存修复单列，只验证一次冷启动和一次保留缓存重启，不自动重跑全部功能。
+3. **Android EGL 已完成本轮功能验收，下一项 WebGL2**：arm64普通Release在API35／SwiftShader中完成一轮成功的五次官方源码/PCK切换、2/3/4缓冲与失败恢复/取消/卸载通知；15图、输入/PCM/GPU排空及重复清理计数通过。首次失败定位到Android APK资源根目录覆盖工程路径，修复后只复验受影响的组合，未重跑旧矩阵。保留既有shader binary回退告警，严格无告警/跨进程暖缓存任务继续单列；不关闭缓存，不将此功能验收写成缓存无告警通过。证据暂存 `build/godot-project-android-v1/`。
+   WebGL2 后续沿用一轮组合；主浏览器跑完整组合，其余受影响浏览器只补A→B→A冒烟，不在VM中测浏览器。Android暖缓存修复仍仅补一次冷启动和一次保留缓存重启，不重跑全部功能。
 4. **受限项保持待办**：iOS Apple4正向运行环境不足时，只复用已有编译/能力拒绝证据，不反复运行已知不能正向渲染的模拟器；D3D12继续按既定决定跳过。长期显存、额外并发压力、更多复杂工程及扩展兼容性保留后续，不自动扩成当前验收门槛，也不标为完成。
 
 ## 增量验收与停止条件
