@@ -9,4 +9,4 @@
 - 平台原有系统库链接保持；Web分别保留各自heap，不合并Wasm实例。
 - 来源、许可证、构建配置和最终镜像隔离仍需审计；维护范围见[依赖清单](DEPENDENCIES.md)。
 
-此前共享方案、候选ABI与必要复用回归计划保存在[历史快照](history/2026-11-03-library-sharing-removed/snapshot/Tools/Godot/DEPENDENCY_ISOLATION.md)，不再作为当前实施计划。
+此前共享方案、候选ABI与必要复用回归计划保存在历史快照（`history/2026-11-03-library-sharing-removed/snapshot/Tools/Godot/DEPENDENCY_ISOLATION.md`），不再作为当前实施计划。

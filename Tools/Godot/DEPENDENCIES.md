@@ -24,10 +24,10 @@ Dora和Godot分别编译、链接并管理自己的依赖实例，不保留宿�
 | glslang / SPIRV-Cross | bgfx保留版本及补丁 | Godot各自版本与构建配置 |
 | astcenc / TinyEXR | bimg保留版本及补丁 | Godot各自保留版本 |
 
-源码对应、版本、布局、对象/符号、平台镜像及许可审计的详细证据，完整保存在[撤销前审计快照](history/2026-11-03-library-sharing-removed/snapshot/Tools/Godot/DEPENDENCIES.md)及其引用的历史记录中。这些结果是历史审计范围，不代替当前构建和平台运行验收。
+源码对应、版本、布局、对象/符号、平台镜像及许可审计的详细证据，完整保存在撤销前审计快照（`history/2026-11-03-library-sharing-removed/snapshot/Tools/Godot/DEPENDENCIES.md`）及其引用的历史记录中。这些结果是历史审计范围，不代替当前构建和平台运行验收。
 
 ## 来源与剩余任务
 
 登记及未忽略源码由[audit_vendor_provenance.py](https://github.com/IppClub/Dora-Example/blob/master/Test/Godot/audit_vendor_provenance.py)和[SOURCE_DELTA.json](vendor/SOURCE_DELTA.json)维护；复查流程见[vendor说明](vendor/README.md)。恢复独立实现后的复核证据写入`build/godot-full-runtime-restored-v1/vendor-verified/verification.json`。
 
-共享改造的综合依赖前置审计已撤销，原状态见[归档](history/2026-11-03-deps-audit-retired/README.md)。日常源码/许可通知维护继续按现有构建封包规则执行；NIR剩余12项单列为NIR-LICENSE-01，随本轮已跳过的D3D12保留后续，不阻塞当前WGL等后端收口。
+共享改造的综合依赖前置审计已撤销，原状态见归档（`history/2026-11-03-deps-audit-retired/README.md`）。日常源码/许可通知维护继续按现有构建封包规则执行；NIR剩余12项单列为NIR-LICENSE-01，随本轮已跳过的D3D12保留后续，不阻塞当前WGL等后端收口。

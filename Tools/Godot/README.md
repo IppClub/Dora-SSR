@@ -1,19 +1,19 @@
-# GodotNode：共享 GPU 纹理集成实验
+# GodotNode：共享 GPU 纹理集成
 
 
 测试、验证与诊断程序已迁至 Dora-Example 的 `Test/Godot`，旧 Metal 原型位于 `Test/LibGodotMetalProbe`。生产构建与包/SDK完整性校验仍由本目录维护。运行本文测试命令前，先从引擎根目录执行 `xmake dora-test-deps --env-file=/path/to/test-env`，或设置 `DORA_TEST_REPO=/absolute/path/to/Dora-Example`；Python/Shell 测试使用 `DORA_ENGINE_ROOT` 指向当前引擎，未设置时从引擎工作目录解析。统一轻量入口为 `xmake dora-test --repo=/path/to/Dora-Example --suite=godot-contract`。
 
-第三方依赖采用完整独立LibGodot模式：保留Godot各平台原有依赖实现，Dora分别构建自己的版本；库共享开关和codec函数表实验已移除，历史见[归档](history/2026-11-03-library-sharing-removed/README.md)。
+第三方依赖采用完整独立LibGodot模式：保留Godot各平台原有依赖实现，Dora分别构建自己的版本；库共享开关和codec函数表实验已移除，历史见归档（`history/2026-11-03-library-sharing-removed/README.md`）。
 
 将固定版本 Godot 4.6 的项目离屏输出作为 Dora Sprite 使用。Apple Silicon macOS 上，Dora/bgfx 已可创建 2–4 张 host-owned Metal render target，Godot 导入后直接渲染，双向 GPU event 同步且稳态零 blit。Linux ARM64 EGL、Windows WGL、Android EGL 与 WebGL2 也已通过各自记录范围内的 direct-target 节点测试。LibGodot、Godot 场景树与渲染器实际运行在 Dora 进程内。
 
 直接运行的2D/3D项目与简明操作步骤见 [示例快速开始](examples/README.md)。
 
-当前平台状态、产品决策和待办任务统一维护在 [`TRACKING.md`](TRACKING.md)。阶段安排见 [`PLAN.md`](PLAN.md)，源码升级、可选包和排障见 [维护指南](MAINTENANCE.md)，详细实验过程保留在 [历史归档](history/2026-11-02-vendor-xmake-progress/README.md)。
+1.0 支持矩阵、延期项和最终候选包缺口见 [收口清单](RELEASE_1_0.md)。当前平台状态、产品决策和待办任务统一维护在 [`TRACKING.md`](TRACKING.md)。阶段安排见 [`PLAN.md`](PLAN.md)，源码升级、可选包和排障见 [维护指南](MAINTENANCE.md)，详细实验过程保留在 历史归档（`history/2026-11-02-vendor-xmake-progress/README.md`）。
 
-iOS 兼容策略：普通 Dora 保持 Apple2 GPU Family；可选 GodotNode 要求 Apple4 GPU Family，不满足时可查询原因并安全拒绝。Metal host-owned targets 扩展已编入并导出于 iOS simulator runtime/framework，宿主也已完成链接与签名；当前模拟器只暴露 Apple2，因此验证结果是启动前安全拒绝，不能作为 Apple4+ 共享画面、物理 GPU、真实触摸或真实音频证据。原整合证据见 [DIRECT-04 历史](history/2026-11-02-pre-vendor-xmake/TRACKING.md)，当前迁移缺口见 [XMAKE-08](TRACKING.md)。
+iOS 兼容策略：普通 Dora 保持 Apple2 GPU Family；可选 GodotNode 要求 Apple4 GPU Family，不满足时可查询原因并安全拒绝。Metal host-owned targets 扩展已编入并导出于 iOS simulator runtime/framework，宿主也已完成链接与签名；当前模拟器只暴露 Apple2，因此验证结果是启动前安全拒绝，不能作为 Apple4+ 共享画面、物理 GPU、真实触摸或真实音频证据。原整合证据见 DIRECT-04 历史（`history/2026-11-02-pre-vendor-xmake/TRACKING.md`），当前迁移缺口见 [XMAKE-08](TRACKING.md)。
 
-Web PCM 更新（2026-10-29）：宿主与 Godot 运行在同一 window 线程时，PCM 在宿主请求时按需混音；不启动 PCM 生产 pthread，不预填充 lookahead 队列。此路径用于避免 Firefox ScriptProcessor 突发回调耗尽异步队列，原生平台继续使用后台生产队列。包含 Web 排空记账修正的新运行库已通过 Chrome/Firefox/Playwright WebKit 的 2/3/4 缓冲矩阵；实际设备输出、长期复杂混音及端到端延迟仍待验收，历史证据见 [原整合清单](history/2026-11-02-pre-vendor-xmake/TRACKING.md)，当前迁移状态见 [XMAKE-07](TRACKING.md)。
+Web PCM 更新（2026-10-29）：宿主与 Godot 运行在同一 window 线程时，PCM 在宿主请求时按需混音；不启动 PCM 生产 pthread，不预填充 lookahead 队列。此路径用于避免 Firefox ScriptProcessor 突发回调耗尽异步队列，原生平台继续使用后台生产队列。包含 Web 排空记账修正的新运行库已通过 Chrome/Firefox/Playwright WebKit 的 2/3/4 缓冲矩阵；实际设备输出、长期复杂混音及端到端延迟仍待验收，历史证据见 原整合清单（`history/2026-11-02-pre-vendor-xmake/TRACKING.md`），当前迁移状态见 [XMAKE-07](TRACKING.md)。
 
 ## 工程导入、导出与试玩
 
@@ -91,7 +91,7 @@ python3 $DORA_TEST_REPO/Test/Godot/tests/with_weston.py --logs /absolute/path/to
   python3 $DORA_TEST_REPO/Test/Godot/tests/run_project_boundary_linux.py --binary /absolute/path/to/ordinary/Dora --library /absolute/path/to/package/libdora_godot.so --output /absolute/path/to/fresh-results
 ```
 
-入口复用公共图像/排空校验，记录 GL 实际渲染器；普通 Debug 宿主已在 Ubuntu ARM64 VM / Mesa llvmpipe 通过此用例，历史证据见 [迁移前整合记录](history/2026-11-02-pre-vendor-xmake/README.md)。普通宿主与原生测试宿主的结果分别记录。
+入口复用公共图像/排空校验，记录 GL 实际渲染器；普通 Debug 宿主已在 Ubuntu ARM64 VM / Mesa llvmpipe 通过此用例，历史证据见 迁移前整合记录（`history/2026-11-02-pre-vendor-xmake/README.md`）。普通宿主与原生测试宿主的结果分别记录。
 
 Linux 普通宿主的随包加载和缺库退化回归：
 
@@ -445,7 +445,7 @@ python3 $DORA_TEST_REPO/Test/Godot/tests/bindings/verify_async_error.py /absolut
 
 Wa 的公共 Emit 必须导入 dora_emit，与宿主导出一致。若刻意复用修复前的封存 vendor 树，可显式传入 --wa-import-overlay /absolute/path/to/fixed/dora.wa；入口只接受这一行精确替换并记录前后 SHA，不改变封存源码。错误校验只接受当前封存运行库的精确预期诊断，额外错误或非零 pending 均拒绝。该回归覆盖错误反馈与 Dora 继续运行；有效 Godot 纹理共享、同进程场景恢复和其他平台另行验收。
 
-Godot 整合 1.0 不提供 C# GodotNode 绑定，也不启用 Godot .NET/Mono 项目脚本；Dora 原有 C# 功能保留。此前 C# 实验与测试入口仅作为历史保存在 [history/2026-10-29-pre-1.0](history/2026-10-29-pre-1.0/INDEX.md)。
+Godot 整合 1.0 不提供 C# GodotNode 绑定，也不启用 Godot .NET/Mono 项目脚本；Dora 原有 C# 功能保留。此前 C# 实验与测试入口仅作为历史保存在 history/2026-10-29-pre-1.0（`history/2026-10-29-pre-1.0/INDEX.md`）。
 
 ## 宿主音频接入
 
@@ -481,11 +481,11 @@ Godot 对象泄漏警告。Linux EGL 与 Windows WGL 的音频 ABI 2 实际运�
 
 ## 当前边界
 
-这是实验集成。运行库为标准原生 Godot 构建，未启用 Godot Mono/C# 项目运行时；GodotNode 不提供 C# 宿主绑定；Dora 原有 C# 功能保留。macOS Metal 有原生运行证据，Linux、Windows、Android 的现有运行证据限虚拟机/模拟器；Web 已通过 Chrome、Firefox、Playwright WebKit，macOS原生Safari26.6.2的2/3/4矩阵也已通过；移动浏览器、完整DOM/IME和真实后台策略仍需单独验收。iOS 保持 Dora Apple2 / Godot Apple4，模拟器仅验证普通 Dora 与 Godot 安全拒绝边界。各平台最新范围与报告统一见 [TRACKING.md](TRACKING.md)。
+1.0 候选的范围与交付缺口见 [RELEASE_1_0.md](RELEASE_1_0.md)。运行库为标准原生 Godot 构建，未启用 Godot Mono/C# 项目运行时；GodotNode 不提供 C# 宿主绑定；Dora 原有 C# 功能保留。macOS Metal 有原生运行证据，Linux、Windows、Android 的现有运行证据限虚拟机/模拟器；Web 已通过 Chrome、Firefox、Playwright WebKit，macOS原生Safari26.6.2的2/3/4矩阵也已通过；移动浏览器、完整DOM/IME和真实后台策略仍需单独验收。iOS 保持 Dora Apple2 / Godot Apple4，模拟器仅验证普通 Dora 与 Godot 安全拒绝边界。各平台最新范围与报告统一见 [TRACKING.md](TRACKING.md)。
 
 当前支持单运行时、单个活动 GodotNode。匹配的 macOS Metal、Linux EGL、Windows x64 WGL、Android EGL 和 WebGL2 运行库默认支持卸载工程后切换不同源码目录/PCK，同时保留 LibGodot；尺寸和2/3/4缓冲环可随工程重建。通过 `unloadAsync` 完成通知或 `GodotPlayer` 串行切换，限制见 [PROJECT_SWITCH.md](PROJECT_SWITCH.md)。其他后端仍保留既有项目边界；节点移除不卸载运行库，最终 shutdown 后不承诺再次初始化。设备丢失恢复、多项目并行、完整 IME、物理控制器热插拔/震动及最终分发仍待完成。
 
-`tests/protocol.sh` 的 macOS/Linux 结果证明共享的 C ABI、缓冲所有权 CPU 协议，以及内嵌着色器源码的有界长度。`tests/embedded_shader.py` 使用全新字节列表，覆盖带/不带末尾零与带/不带末尾逗号的四种组合，编译实际 string_view 封装头，检查长度和与上游源码的逐字节一致性，避免旧生成头掩盖干净构建缺陷。`tests/abi_targets.sh` 只证明目标头文件可编译，均不等于平台 GPU 测试。实验历史见 [迁移实施历史](history/2026-11-02-vendor-xmake-progress/MIGRATION_LOG.md)，当前任务状态见 [TRACKING.md](TRACKING.md)。
+`tests/protocol.sh` 的 macOS/Linux 结果证明共享的 C ABI、缓冲所有权 CPU 协议，以及内嵌着色器源码的有界长度。`tests/embedded_shader.py` 使用全新字节列表，覆盖带/不带末尾零与带/不带末尾逗号的四种组合，编译实际 string_view 封装头，检查长度和与上游源码的逐字节一致性，避免旧生成头掩盖干净构建缺陷。`tests/abi_targets.sh` 只证明目标头文件可编译，均不等于平台 GPU 测试。实验历史见 迁移实施历史（`history/2026-11-02-vendor-xmake-progress/MIGRATION_LOG.md`），当前任务状态见 [TRACKING.md](TRACKING.md)。
 
 ## Linux EGL 验证
 
@@ -1481,7 +1481,7 @@ python3 $DORA_TEST_REPO/Test/Godot/tests/android/run_ordinary_release.py \
 使用Godot自身get_image生成PNG，Lua触发640×360→800×450 resize，独立验证条码、墙钟、实际尺寸及零blit。
 控制器在完成后调用Activity.finish，验证Godot停止、Logger析构后才清理Java缓存进程。
 结果可用`tests/verify_timing_cap.py /fresh/readback-2 --engine-readback --android-execution --buffers 2`复查。
-当前通过范围为专用SwiftShader模拟器的冷安装；保留缓存重启的shader binary告警仍单列待办，不关闭缓存或放宽默认告警门槛。
+当前通过范围为专用SwiftShader模拟器的冷安装；保留缓存重启仍被严格shader binary告警门槛拒绝，已定位为模拟器转译层的链接状态兼容限制。按用户决定只接受真正binary恢复，不关闭缓存、放宽告警、忽略link失败或增加磁盘源码缓存；详见MAINTENANCE。
 
 独立检查模拟器GLES program binary可使用同一控制器APK的独立Instrumentation（目标是控制器自身，不启动Dora/LibGodot）：
 
@@ -1552,3 +1552,17 @@ python3 "$DORA_TEST_REPO/Test/Godot/tests/web/verify_project_switch.py" "$RESULT
 ```
 
 主组合成功后，另用宿主包副本、同一`WORK`及`--smoke`准备A→B→A包；依次设置`DORA_BROWSER_ENGINE=firefox`、调用原生`run_project_switch_safari.py PACKAGE RESULT`、设置`DORA_BROWSER_ENGINE=webkit`，每项运行后调用同一校验器。浏览器不得并行，每项成功后不重复。Safari依赖已授权的远程自动化开关，不由测试修改系统设置。`project_copy_contract.mjs /absolute/path/to/Tools/Godot/web/runtime_bridge.js`仅验证文件所有权/回滚和能力协商的CPU契约，不能替代浏览器验收。
+
+### Android binary 缓存最小配对
+
+先按上文构建普通Release读回APK及独立生命周期控制器。宿主Gradle固定使用JDK17。专用`DoraGodotRC1_`模拟器应没有旧的测试目标安装；以下入口仅三缓冲、一次冷启动和一次保留缓存重启，第二次`install -r`保持应用数据：
+
+```sh
+python3 "$DORA_TEST_REPO/Test/Godot/tests/android/run_warm_cache.py" \
+  --sdk "$ANDROID_HOME" --serial emulator-5580 --owned-avd DoraGodotRC1_example \
+  --apk /path/to/ordinary-readback.apk --runtime-package /path/to/runtime-package \
+  --lifecycle-apk /path/to/lifecycle-controller.apk --output /fresh/cold-warm-results \
+  --probe /path/to/independent-gles-probe.json
+```
+
+入口保持严格校验失败码，要求两次是不同应用进程、暖启动前缓存哈希与冷退出后完全一致，并读取专用userdebug模拟器的实际GLSC binary内容保存证据。可选`--probe`仅生成明确失败的补充诊断，不能通过验收；不重复启动、不改驱动能力或cache开关。结束后由任务所有者归档证据、卸载本轮测试APK并关闭模拟器。实际长度保存的CPU回归为`Test/Godot/test_shader_cache_binary.py --output /fresh/length --baseline-ref b206381f2`，不替代真实binary恢复验证。

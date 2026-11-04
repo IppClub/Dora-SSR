@@ -33,7 +33,7 @@
     "modules/mono/glue/GodotSharp/GodotSharpEditor/GodotSharpEditor.csproj",
     "platform/android/java/gradlew.bat"
   ],
-  "delta_patch_sha256": "7bf44f1e8e45e0ff4afc0dc37f666950dd2f6ca0209028347b8cb9c607c3ecc6",
+  "delta_patch_sha256": "5e7b948a46fe13d8f44fa9dbcb954c40bd18c0b2c2d47ed0d7e46e91155b3412",
   "files": [
     {
       "path": "UPSTREAM.json",
@@ -137,7 +137,7 @@
       "path": "drivers/gles3/shader_gles3.cpp",
       "status": "modified",
       "mode": "100644",
-      "canonical_sha256": "fec140378a1ce5df18091ccbdc0a22811a898e6d99e7f04af3a5e40cfe7f4bb1",
+      "canonical_sha256": "a490a8d873b364f26a6ebe006a077952a903c637bcadb786307a18853bbd956e",
       "upstream_canonical_sha256": "56576cb999475bce5d9ecba811b7dc66c13faca1a71eb23757e0ba8e7166660b"
     },
     {

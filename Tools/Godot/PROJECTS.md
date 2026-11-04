@@ -70,7 +70,7 @@ python3 Tools/Godot/project.py run /path/to/game.dora-game \
 
 当前支持 Godot 4 的 GDScript/SceneTree 工程。Godot C#/Mono 与原生 GDExtension sidecar 分发明确拒绝；Dora 原有 C# 功能不受影响。作者工程依赖特定渲染器的效果仍需实际验证，不做自动等价转换。Git LFS、子模块等资源须在输入仓库中完整可用。
 
-此入口每次试玩启动一个普通 Dora 进程，遵守现有 GUI 单实例规则，不向已运行的 Dora 强行切换工程。**常驻 Dora 内切换已另有 [macOS Metal默认能力](PROJECT_SWITCH.md)，未接入本命令；其他平台与兼容性工作仍见 PROJECT-SWITCH-01**；本流程为其提供已准备目录/已验证 PCK。浏览器、移动端的分发 UI、存档隔离和来源信任机制尚未接入。
+此入口每次试玩启动一个普通 Dora 进程，遵守现有 GUI 单实例规则，不向已运行的 Dora 强行切换工程。**常驻 Dora 内切换已另有 [macOS Metal / Linux EGL / Windows x64 WGL / Android EGL / WebGL2默认能力](PROJECT_SWITCH.md)，未接入本命令；其他平台与兼容性工作仍见 PROJECT-SWITCH-01**；本流程为其提供已准备目录/已验证 PCK。浏览器、移动端的分发 UI、存档隔离和来源信任机制尚未接入。
 
 ## 本地验证
 

@@ -679,14 +679,17 @@ void ShaderGLES3::_save_to_cache(Version *p_version) {
 			PackedByteArray compiled_program;
 			compiled_program.resize(program_size);
 			GLenum binary_format = 0;
-			glGetProgramBinary(specialization->id, program_size, nullptr, &binary_format, compiled_program.ptrw());
-			if (program_size != compiled_program.size()) {
+			GLsizei binary_size = 0;
+			glGetProgramBinary(specialization->id, program_size, &binary_size, &binary_format, compiled_program.ptrw());
+			// The length query is a capacity. Persist only the bytes the driver
+			// actually returned, and never publish an empty/invalid binary.
+			if (binary_size <= 0 || binary_size > compiled_program.size()) {
 				f->store_32(0);
 				continue;
 			}
-			f->store_32(program_size);
+			f->store_32(binary_size);
 			f->store_32(binary_format);
-			f->store_buffer(compiled_program.ptr(), compiled_program.size());
+			f->store_buffer(compiled_program.ptr(), binary_size);
 		}
 	}
 #endif // WEB_ENABLED

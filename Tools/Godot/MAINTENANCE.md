@@ -1,6 +1,6 @@
 # Godot vendor 与 xmake 维护指南
 
-更新：2026-11-03。当前完成状态以 [TRACKING.md](TRACKING.md) 为准，实际测试命令见 [README.md](README.md)。本页规定源码更新、构建、可选包和排障流程，不代替运行验收报告。
+更新：2026-11-04。当前完成状态以 [TRACKING.md](TRACKING.md) 为准，实际测试命令见 [README.md](README.md)，1.0支持范围和候选包缺口见 [RELEASE_1_0.md](RELEASE_1_0.md)。本页规定源码更新、构建、可选包和排障流程，不代替运行验收报告。
 
 ## 源码与构建入口
 
@@ -8,7 +8,7 @@ Godot 完整源码位于 `Source/3rdParty/Godot`，不是 submodule。固定版�
 
 `prepare.py`、`prepare_android.py`、`prepare_ios.py`、`prepare_web.py` 目前是只读检查入口，不再下载或给源码打补丁。`vendor_source.py` 检查固定来源、关键修改标记及双端协议头一致性；它不是完整源码完整性校验。需要证明构建不改源码时，应分别保存构建前后所有源码文件的清单和哈希。
 
-完整来源与当前Dora差异另由 [源码审计工具](https://github.com/IppClub/Dora-Example/blob/master/Test/Godot/audit_vendor_provenance.py) 和 [登记清单](vendor/SOURCE_DELTA.json) 校验；[复查及更新流程](vendor/README.md)说明固定归档/上游Git树/首次导入提交、Git换行政策和零fuzz补丁重建。它是独立维护审计，不给普通构建新增下载或历史依赖。当前35个修改文件、42个新增文件均显式登记；后续源码修改需同步该清单并重验，不能仅靠标记检查。该范围包含登记及未忽略源码，忽略的SCons缓存和构建产物另行处理。
+完整来源与当前Dora差异另由 [源码审计工具](https://github.com/IppClub/Dora-Example/blob/master/Test/Godot/audit_vendor_provenance.py) 和 [登记清单](vendor/SOURCE_DELTA.json) 校验；[复查及更新流程](vendor/README.md)说明固定归档/上游Git树/首次导入提交、Git换行政策和零fuzz补丁重建。它是独立维护审计，不给普通构建新增下载或历史依赖。当前50个修改文件、44个新增文件均显式登记；后续源码修改需同步该清单并重验，不能仅靠标记检查。该范围包含登记及未忽略源码，忽略的SCons缓存和构建产物另行处理。
 
 从仓库根目录构建。先准备 xmake 3.x、Python 3 和平台工具链；Android 另需 SDK/NDK 28.1.13356709，Web 使用 Dora 管理的 Emscripten。不要用 PATH 中另一个 SDK 的版本代替实际编译器证据。
 
@@ -110,3 +110,11 @@ Godot C#/Mono 关闭不影响 Dora 原有 C#；不要通过删掉 Dora 的 C# �
 每项证据记录源码/宿主/运行库摘要、命令、工具链、环境、原始日志、截图和明确未覆盖范围。新实验写新目录；失败报告保留，修复后另建报告，不覆盖成成功。测试结束后关闭任务启动的服务、调度任务、模拟器/VM，保留产物与证据；大目录和虚拟机删除需按用户授权范围处理。
 
 测试与独立审计程序由 Dora-Example 的 `Test/Godot` 维护；引擎 CI 先解析测试仓库的固定 revision。测试迁移或新增依赖须先发布 Dora-Example，再发布引擎的调用变更。正常运行库构建只依赖本仓库生产工具，包/SDK完整性校验不依赖测试仓库。
+
+### Android 模拟器 binary 缓存边界
+
+只把真正的`glProgramBinary`恢复成功计为暖缓存通过。按用户决定，不增加磁盘GLSL源码缓存，不关闭缓存、过滤告警或忽略失败的link状态。当前Emulator37.1.11／API35／SwiftShader的独立GLES探针能完整导出binary，但同/新context恢复均报告false，源码重编译像素正确；此问题保留为模拟器环境限制。
+
+上游[gfxstream特性说明](https://android.googlesource.com/platform/hardware/google/gfxstream/+/refs/heads/emu-main-dev/host/features/include/gfxstream/host/features.h)解释了`GlProgramBinaryLinkStatus`：为了兼容旧guest的`samplerExternalOES`编码，host正确的binary链接状态更新默认受特性保护。本机`-feature GlProgramBinaryLinkStatus`被明确拒绝，不能把该gfxstream特性当作可用的普通模拟器CLI开关，也不能绕过失败继续查uniform。
+
+`ShaderGLES3::_save_to_cache`现接收`glGetProgramBinary`实际返回长度，只持久化有效字节；容量与返回长度不同不再写入未返回的尾部。此修复通过生产方法CPU边界/负向控制测试，不宣称修复模拟器状态返回问题。最小冷/暖配对使用Dora-Example的`tests/android/run_warm_cache.py`，同一普通Release APK、三缓冲、严格告警检查、缓存哈希逐项一致；模拟器证据不替代物理驱动支持。
