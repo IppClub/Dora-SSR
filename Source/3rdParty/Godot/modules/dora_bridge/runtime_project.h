@@ -109,6 +109,12 @@ inline bool load(GodotInstance *instance, const char *path, const char *scene, i
         return false;
     }
     if (!supported(error)) return false;
+#ifdef WEB_ENABLED
+    // ProjectSettings::setup restores Web's Sample default on every load.
+    // The embedded PCM driver needs the mixer, just as on initial startup.
+    settings->set("audio/general/default_playback_type", 0);
+    settings->set("audio/general/default_playback_type.web", 0);
+#endif
     if (scene && *scene) settings->set("application/run/main_scene", String::utf8(scene));
     const String main_scene = GLOBAL_GET("application/run/main_scene");
     if (main_scene.is_empty()) { error = "Godot project has no main scene"; return false; }

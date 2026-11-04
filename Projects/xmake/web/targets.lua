@@ -234,6 +234,7 @@ target("dora-web-player")
             "--preload-file @web@/runtime-assets@/builtin", "--shell-file @web@/player-shell.html"}) do linkflag(t, c, flag) end
         if c.godot then
             linkflag(t,c,"--pre-js @web@/web-godot.js")
+            linkflag(t,c,"--preload-file @root@/Assets/Script/Lib/GodotPlayer.lua@/builtin/Script/Lib/GodotPlayer.lua")
         end
         local exports = "['_main','_dora_web_stop','_dora_web_set_suspended','_dora_web_release_input','_dora_web_text_input','_dora_web_text_editing','_dora_web_asset_complete'"
         if c.studio_agent_host then exports = exports .. ",'_dora_web_agent_request'" end

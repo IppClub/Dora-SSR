@@ -199,7 +199,7 @@ int dora_gl_bind_targets(void *p,uint32_t width,uint32_t height,const uint32_t *
     glFlush(); return check(t);
 }
 
-#if defined(LINUXBSD_ENABLED) || defined(WINDOWS_ENABLED) || defined(ANDROID_ENABLED)
+#if defined(LINUXBSD_ENABLED) || defined(WINDOWS_ENABLED) || defined(ANDROID_ENABLED) || defined(WEB_ENABLED)
 int dora_gl_reset_targets(void *p,uint32_t width,uint32_t height,uint32_t buffers) {
     auto *t=get(p);
     if (!t || !width || !height || width>8192 || height>8192 || buffers<2 || buffers>4) return 0;

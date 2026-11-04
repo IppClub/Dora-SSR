@@ -4,9 +4,9 @@
 
 ## 当前可用范围
 
-macOS Metal、Linux EGL、Windows x64 WGL 和 Android EGL 的项目卸载和切换默认启用，无需环境变量。能力由匹配运行库的项目生命周期接口确认；旧实验环境开关已移除。保留基础 bridge ABI 1，增加可选的项目生命周期扩展；宿主用它确认项目清理成功，没有增加动态库。
+macOS Metal、Linux EGL、Windows x64 WGL、Android EGL 和 WebGL2 的项目卸载和切换默认启用，无需环境变量。能力由匹配运行库的项目生命周期接口确认；旧实验环境开关已移除。保留基础 bridge ABI 1，增加可选的项目生命周期扩展；宿主用它确认项目清理成功，没有增加动态库。
 
-在 macOS Metal / Linux EGL / Windows x64 WGL / Android EGL 上，移除一个活动 `GodotNode` 会在宿主 GPU 读取排空、PCM 生产线程停止之后卸载工程。卸载完成后，可创建另一个 `GodotNode` 加载已导入的工程目录或独立 PCK。一次只允许一个活动节点；同工程重开也会清理项目状态。`restartScene` 仍是当前项目的场景重启。
+在 macOS Metal / Linux EGL / Windows x64 WGL / Android EGL / WebGL2 上，移除一个活动 `GodotNode` 会在宿主 GPU 读取排空、PCM 生产停止之后卸载工程。卸载完成后，可创建另一个 `GodotNode` 加载已导入的工程目录或独立 PCK。一次只允许一个活动节点；同工程重开也会清理项目状态。`restartScene` 仍是当前项目的场景重启。
 
 当前清理包括：
 
@@ -19,9 +19,9 @@ macOS Metal、Linux EGL、Windows x64 WGL 和 Android EGL 的项目卸载和切�
 
 ## 限制与未完成项
 
-macOS Metal、Linux EGL、Windows x64 WGL、Android EGL 已作为默认功能开放；下述平台与项目兼容性边界仍然适用。
+macOS Metal、Linux EGL、Windows x64 WGL、Android EGL、WebGL2 已作为默认功能开放；下述平台与项目兼容性边界仍然适用。
 
-- 已接入 macOS Metal、Linux EGL、Windows x64 WGL 和 Android EGL；Linux ARM64 Debug 已在 Ubuntu / Mesa virgl 虚拟机动态验收；Linux x64、Release 及长期显存稳定性仍待验证。Windows x64 Debug WGL 已在 Parallels Windows 11 ARM VM 的 x64 普通进程通过：复用先前五次加载/边界控制证据，修复阴影采样后只复验 B→A→B 的完整画面与同步；物理 Windows GPU、Release 和长期稳定性未覆盖；Android arm64 Release EGL已在API35／SwiftShader模拟器完成五次真实项目切换，保留已知shader binary回退告警，严格缓存无告警仍未验收；WebGL2、iOS 和 D3D12 尚未接入项目切换。
+- 已接入 macOS Metal、Linux EGL、Windows x64 WGL、Android EGL 和 WebGL2；Linux ARM64 Debug 已在 Ubuntu / Mesa virgl 虚拟机动态验收；Linux x64、Release 及长期显存稳定性仍待验证。Windows x64 Debug WGL 已在 Parallels Windows 11 ARM VM 的 x64 普通进程通过：复用先前五次加载/边界控制证据，修复阴影采样后只复验 B→A→B 的完整画面与同步；物理 Windows GPU、Release 和长期稳定性未覆盖；Android arm64 Release EGL已在API35／SwiftShader模拟器完成五次真实项目切换，保留已知shader binary回退告警，严格缓存无告警仍未验收；WebGL2默认Release已在宿主浏览器验收，见下文；iOS 和 D3D12 尚未接入项目切换。
 - 使用标准 SceneTree 与 GDScript。Godot C#/Mono、原生 GDExtension 不支持；Dora 原有 C# 不变。未 join 的脚本 Thread 会被拒绝。关闭时发现不支持状态，会保留暂停树用于最终退出，并拒绝再次打开项目。
 - 工程必须释放自己创建的树外对象、线程、网络连接及外部回调。当前实现不保证任意第三方工程的全部全局副作用都被隔离；附加翻译域、服务器全局状态、树外引用和实际联网仍须审计。
 - 首次引擎初始化失败后需重启 Dora；已成功启动后的无主场景项目拒绝与后续有效工程恢复已验证，其他失败阶段仍须补充。
@@ -139,3 +139,13 @@ python3 "$DORA_TEST_REPO/Test/Godot/run_android_project_switch.py" \
 驱动只接受显式命名的专用模拟器，单进程执行 `A源码(2) → B的PCK(3) → A(4) → B(2) → A(3)`，补一次无主场景失败恢复、启动取消、活动实例拒绝及重复卸载通知；控制器在Lua完成后调用正常Activity.finish并导出平面证据及作者文件/PCK摘要。`--verify-only` 仅复核已导出的证据，不重启应用。模拟器创建、启动和关闭由调用者管理。
 
 本轮范围：API35 ARM64、arm64非debuggable Release、SwiftShader／ANGLE GLES3.1。五次共享帧250/252/254/265/245、15图、2D公开输入约273像素位移、有效PCM、零blit/错误/未完成读取/欠载通过；作者源码/资源及PCK前后摘要一致，12个导入元数据文件的Godot4.6生成变化单独登记。重复2D/3D卸载对象245/242、资源1、节点0。复用现有Android普通Release对已知模拟器告警的分类，报告完整保留一次shader binary源码回退告警及 `shader_cache_clean=false`；不等同跨进程暖缓存或严格无告警验收。该缺口继续由ANDROID-SHADER-CACHE-01跟踪，不关闭缓存或隐藏告警。完整功能报告为 `build/godot-project-android-v1/acceptance-v2/verification.json`；首轮文件系统路径失败证据保留在同级 `acceptance/`，不增加其他平台或压力测试。
+
+### WebGL2
+
+匹配的默认Release Web宿主与运行库保留一个Godot WASM实例及其worker池，共用Dora的WebGL2 context。桥接只传递标量状态，函数指针不跨WASM表；Init能力协商保留旧协议，旧运行库不支持时卸载返回明确失败。启用Godot的Web包内置`GodotPlayer.lua`。
+
+项目关闭先排空宿主读取和PCM，再卸载场景、解除借用纹理并回收复制到Godot文件系统的工程文件，之后才通知`unloadAsync`完成。只删除桥接拥有的副本及空目录，保留工程自行创建的其他文件和进程shader缓存；原Dora文件系统中的工程与`user://`数据不随卸载删除。资源复制失败会回滚，文件冲突会拒绝，不覆盖现存文件。重载后重新应用PCM混音模式，避免Web的Sample默认值绕过宿主音频。
+
+本轮默认`dora-preset`、无原生诊断日志Release在宿主串行通过：Chrome156五次官方Dodge源码/Squash Web PCK交替（2/3/4/2/3缓冲），Firefox153、原生Safari26.6.2和Playwright WebKit26.5各A→B→A。共42张Dora合成截图，公开输入位移、动态画面、每轮非零PCM、GPU读取排空、零blit、工程副本哈希及卸载回收通过；同一实例、不同场景树，重复清理对象数稳定，资源1、节点0。Chrome补一次最终卸载后的真实context loss：平台服务关闭、拒绝重新加载，恢复仍需页面重载；不承诺丢失context内原地恢复。Firefox保留深度纹理比较过滤可能退化为NEAREST的驱动提示，Emscripten主线程等待提示也保持原有边界。
+
+复现工具在Dora-Example `Test/Godot/tests/web/`：`prepare_project_switch.py`准备源码/PCK与主/冒烟包，`run_project_switch.cjs`串行运行Chrome/Firefox/WebKit，`run_project_switch_safari.py`使用已授权的原生Safari WebDriver，最后用`verify_project_switch.py`核对像素、资源哈希及生产C ABI计数。命令见README；详细证据暂存 `build/godot-project-web-v1/`。所有成功项通过后停止，未新增其他平台、移动浏览器或长期显存测试。

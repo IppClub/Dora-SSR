@@ -96,19 +96,44 @@ function writeString(host,pointer,capacity,value) {
   host.HEAPU8.set(bytes.subarray(0,size),pointer);host.HEAPU8[pointer+size]=0;
 }
 GodotWebBridge.prototype.copyProject=function(path) {
-  const source=this.host.FS,target=this.godot.FS,ancestors=new Set();
+  if(this.projectCopies?.length)throw new Error('Previous Godot project files are still owned');
+  const source=this.host.FS,target=this.godot.FS,ancestors=new Set(),created=[];
+  this.projectCopies=created;
+  const mkdir=path=>{
+    if(!path || target.analyzePath(path).exists)return;
+    mkdir(path.slice(0,path.lastIndexOf('/'))||'/');
+    target.mkdir(path);created.push({path,directory:true});
+  };
   const copy=path=>{
     const node=source.lookupPath(path,{follow:true}).node;
     if(source.isDir(node.mode)) {
       if(ancestors.has(node))throw new Error('Cyclic Godot project resource link');
-      ancestors.add(node);target.mkdirTree(path);
+      ancestors.add(node);mkdir(path);
       for(const name of source.readdir(path))if(name!=='.'&&name!=='..')copy(path.replace(/\/$/,'')+'/'+name);
       ancestors.delete(node);
     }else {
-      target.mkdirTree(path.slice(0,path.lastIndexOf('/'))||'/');target.writeFile(path,source.readFile(path));
+      if(target.analyzePath(path).exists)throw new Error('Godot project copy collides with an existing file: '+path);
+      mkdir(path.slice(0,path.lastIndexOf('/'))||'/');
+      created.push({path,directory:false});target.writeFile(path,source.readFile(path));
     }
   };
-  copy(path);
+  try {copy(path);}catch(error){this.releaseProjectCopy();throw error;}
+};
+GodotWebBridge.prototype.releaseProjectCopy=function() {
+  const fs=this.godot.FS,copies=this.projectCopies||[],cwd=fs.cwd();
+  if(copies.some(entry=>entry.directory && (cwd===entry.path || cwd.startsWith(entry.path+'/'))))fs.chdir('/');
+  for(const entry of (this.projectCopies||[]).slice().reverse()) {
+    if(!fs.analyzePath(entry.path).exists)continue;
+    if(entry.directory) {
+      // A project may create its own files. Remove only empty directories that
+      // the bridge created, never unrelated/user-created contents.
+      if(fs.readdir(entry.path).every(name=>name==='.'||name==='..'))fs.rmdir(entry.path);
+    }else fs.unlink(entry.path);
+  }
+  this.projectCopies=[];
+};
+GodotWebBridge.prototype.projectState=function() {
+  return typeof this.godot._dora_web_project_state==='function'?this.godot._dora_web_project_state():0;
 };
 // Operation numbers match Source/Godot/GodotWebAPI.cpp. Struct layout is asserted
 // there for wasm32; pointer-bearing text is copied into the receiving heap.
@@ -121,10 +146,13 @@ GodotWebBridge.prototype.dispatch=function(operation,data,a,b,c,d) {
     if(ok)h.HEAPU8.set(g.HEAPU8.subarray(scratch,scratch+size),data);return ok;
   };
   switch(operation) {
-    case 0:return 1;
+    case 0:return 1|(a===1 && typeof g._dora_web_project_state==='function'?2:0);
     case 1:writeString(h,data,a,g.UTF8ToString(g._dora_web_version()));return 1;
     case 2:writeString(h,data,a,this.host.doraGodotBridge.lastError||this.error());return 1;
-    case 3:{const project=text(u32(20)),scene=text(u32(24));this.copyProject(project);return this.open(project,scene,u32(8),u32(12),u32(16))?1:0;}
+    case 3:{const project=text(u32(20)),scene=text(u32(24));this.copyProject(project);
+      const opened=this.open(project,scene,u32(8),u32(12),u32(16));
+      if(!opened && this.projectState()===2)this.releaseProjectCopy();
+      return opened?1:0;}
     case 4:{const target=this.targets[a];if(!target || g._dora_web_slot(a)!==target.id)return 0;
       [28,this.width,this.height,1,target.hostId,0,0].forEach((value,i)=>view.setUint32(data+i*4,value,true));return 1;}
     case 5:{const value=g._dora_web_advance(a,ticket);view.setBigUint64(data,value,true);return value?1:0;}
@@ -132,7 +160,7 @@ GodotWebBridge.prototype.dispatch=function(operation,data,a,b,c,d) {
       try{g.HEAPU32[(scratch+32)/4]=inputText;return g._dora_web_input(scratch);}finally{g._free(inputText);}}
     case 7:return g._dora_web_pause(a);
     case 8:{const scene=g.stringToNewUTF8(text(data));try{return g._dora_web_restart(scene);}finally{g._free(scene);}}
-    case 9:{const stats=g._dora_web_close();if(data)h.HEAPU8.set(g.HEAPU8.subarray(stats,stats+40),data);this.releaseTargets();return 1;}
+    case 9:{const stats=g._dora_web_close();if(data)h.HEAPU8.set(g.HEAPU8.subarray(stats,stats+40),data);this.releaseTargets();if(this.projectState()===2)this.releaseProjectCopy();return 1;}
     case 10:this.shutdown();return 1;
     case 11:return g._dora_web_can_produce(a,ticket);
     case 12:return g._dora_web_consumer_begin(a,ticket);
@@ -145,12 +173,17 @@ GodotWebBridge.prototype.dispatch=function(operation,data,a,b,c,d) {
     case 19:{const count=g._dora_web_audio_read(this.audioBuffer,a);if(count)h.HEAPF32.set(g.HEAPF32.subarray(this.audioBuffer/4,this.audioBuffer/4+count*2),data/4);return count;}
     case 20:return copyResult(40,pointer=>g._dora_web_audio_stats(pointer));
     case 21:return copyResult(24,pointer=>g._dora_web_ime(pointer));
+    case 22:{const state=this.projectState();
+      // Native unloading alone is insufficient if JS-side cleanup failed.
+      // Never acknowledge an unloaded client while its borrowed names or
+      // copied resource bytes are still owned by this bridge.
+      return state===2 && (this.targets.length||this.projectCopies?.length)?3:state;}
     default:throw new Error('Unknown Dora/Godot Web operation '+operation);
   }
 };
 
 GodotWebBridge.prototype.shutdown=function() {
-  const g=this.godot;g._dora_web_shutdown();
+  const g=this.godot;g._dora_web_shutdown();this.releaseProjectCopy();
   g.GL.currentContext.GLctx.deleteVertexArray(this.defaultVAO);g.GL.vaos[0]=null;
   this.boundary.states.delete('godot');
   if(this.scratch)g._free(this.scratch);if(this.audioBuffer)g._free(this.audioBuffer);

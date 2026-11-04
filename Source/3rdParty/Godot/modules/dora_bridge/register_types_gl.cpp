@@ -9,7 +9,7 @@
 #include "GodotAudioQueue.h"
 #include "runtime_timing.h"
 #include "runtime_output.h"
-#if defined(LINUXBSD_ENABLED) || defined(WINDOWS_ENABLED) || defined(ANDROID_ENABLED)
+#if defined(LINUXBSD_ENABLED) || defined(WINDOWS_ENABLED) || defined(ANDROID_ENABLED) || defined(WEB_ENABLED)
 #define DORA_GODOT_GL_PROJECT_LIFECYCLE
 #endif
 #ifdef DORA_GODOT_GL_PROJECT_LIFECYCLE

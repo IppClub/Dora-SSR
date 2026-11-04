@@ -9,9 +9,11 @@
 - Godot C#/Mono 关闭，Dora C# 保留；Dora Apple2 / Godot Apple4；Windows x64 WGL 为本轮验收后端；保留 D3D12 适配并跳过本轮 D3D12 验收，不新增 Windows ARM64 目标验收。
 - 浏览器验收在宿主执行；不在虚拟机内增加浏览器测试，不自动扩展额外压力轮次。
 - Godot保持完整独立LibGodot运行时，包含各平台原有第三方实现；Dora与Godot分别构建依赖，不复用第三方二进制或宿主codec函数表。共享库实验与相关待办已撤销，[历史完整保留](history/2026-11-03-library-sharing-removed/README.md)。
-- 不做进程内 LibGodot 重初始化；按最新决定保留同一 LibGodot，实现项目级卸载与切换，macOS Metal、Linux EGL、Windows x64 WGL和Android EGL默认开放，见 [PROJECT_SWITCH.md](PROJECT_SWITCH.md)。缺少真机时可用 VM/模拟器，明确证据边界。
+- 不做进程内 LibGodot 重初始化；按最新决定保留同一 LibGodot，实现项目级卸载与切换，macOS Metal、Linux EGL、Windows x64 WGL、Android EGL和WebGL2默认开放，见 [PROJECT_SWITCH.md](PROJECT_SWITCH.md)。缺少真机时可用 VM/模拟器，明确证据边界。
 
 ## 已完成
+
+- [x] **PROJECT-SWITCH-WEB-01｜WebGL2 同实例卸载与切换**：默认Release `dora-preset`保留同一LibGodot/WASM实例和共享WebGL2 context，接入卸载状态与2/3/4纹理环重建；回收JS侧工程副本，保留用户文件和进程缓存。修复重载工程设置后Web Sample默认值绕过PCM的问题。Chrome完成官方Dodge源码→Squash Web PCK→A→B→A及失败恢复/取消/重复通知/活动实例拒绝；Firefox、原生Safari和WebKit各补A→B→A，共42图，动态画面/公开输入/有效PCM、GPU排空、零blit及副本哈希/回收通过，重复清理对象稳定、资源1、节点0。Chrome卸载后context loss安全停止和拒绝再开通过；保留Firefox阴影过滤实现差异提示及既有Emscripten主线程等待提示，不声称无告警或任意工程隔离。浏览器、服务和驱动已清理；证据暂存 `build/godot-project-web-v1/`。
 
 - [x] **GLES-CACHE-CLEANUP-01｜缓存失败的GL program回收**：缓存加载期间统一持有临时program，完整成功后才转交给Version；链接失败、跨变体部分成功后失败及读取截断均释放已创建program。实际生产加载/初始化/清理方法的C++故障注入覆盖13类路径及500次重复失败，成功路径和源码回退保持，旧代码负向控制复现泄漏。源码登记审计通过；未启动模拟器或扩展平台矩阵。测试在Dora-Example，证据暂存 `build/godot-shader-cache-cleanup-v1/`；不关闭shader binary兼容/暖缓存待办。
 
@@ -85,7 +87,7 @@
 
 ## 待完成
 
-- [ ] **PROJECT-SWITCH-01｜项目切换正式化**：macOS Metal、Linux ARM64 Debug EGL、Windows x64 Debug WGL、Android arm64 Release EGL功能验收已通过，本轮不重复验收。先复用当前CI，Linux x64/Release仅补未覆盖的受影响项；下一项为WebGL2，每个新增后端只做一轮串行组合验收（两次A↔B往返，源码/PCK、2/3/4缓冲、一次失败恢复/取消和卸载通知），通过即停止。iOS受限环境、D3D12、长期显存/额外压力及扩展兼容性保持待办，不自动扩测或标为通过。详见 [最小计划](PLAN.md#剩余工作的最小执行计划)。
+- [ ] **PROJECT-SWITCH-01｜项目切换正式化**：macOS Metal、Linux ARM64 Debug EGL、Windows x64 Debug WGL、Android arm64 Release EGL、WebGL2默认Release功能验收已通过，本轮不重复验收。先复用当前CI，Linux x64/Release仅补未覆盖的受影响项；WebGL2已按一轮组合及其余浏览器最小冒烟完成并停止，不重跑既有矩阵。iOS受限环境、D3D12、长期显存/额外压力及扩展兼容性保持待办，不自动扩测或标为通过。详见 [最小计划](PLAN.md#剩余工作的最小执行计划)。
 
 执行规则：复用已有通过证据，先包/导出/ABI后动态；局部失败仅复验失败项和直接受影响项。已有渲染/读回/await完整矩阵不随项目切换移植反复重跑；本地任务串行，结束关闭本次启动的VM/模拟器。D3D12与第三方库共享等既定范围不变。
 

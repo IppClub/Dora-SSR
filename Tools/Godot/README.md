@@ -17,7 +17,7 @@ Web PCM 更新（2026-10-29）：宿主与 Godot 运行在同一 window 线程�
 
 ## 工程导入、导出与试玩
 
-仓库/Git URL/源码 ZIP 的隔离导入、PCK 试玩包导出、归档安装和普通 Dora 试玩入口见 [工程与试玩包](PROJECTS.md)。游戏数据包复用宿主 LibGodot，不重复包含引擎二进制；常驻实例的跨工程卸载/切换已在 [macOS Metal / Linux EGL / Windows x64 WGL / Android EGL 默认支持](PROJECT_SWITCH.md)，无需实验开关；已提供卸载完成通知及Lua串行控制器，官方2D/3D源码和PCK反复切换通过，正式化和其他平台单列跟踪。
+仓库/Git URL/源码 ZIP 的隔离导入、PCK 试玩包导出、归档安装和普通 Dora 试玩入口见 [工程与试玩包](PROJECTS.md)。游戏数据包复用宿主 LibGodot，不重复包含引擎二进制；常驻实例的跨工程卸载/切换已在 [macOS Metal / Linux EGL / Windows x64 WGL / Android EGL / WebGL2 默认支持](PROJECT_SWITCH.md)，无需实验开关；已提供卸载完成通知及Lua串行控制器，官方2D/3D源码和PCK反复切换通过，正式化和其他平台单列跟踪。
 
 ## 构建和验证
 
@@ -483,7 +483,7 @@ Godot 对象泄漏警告。Linux EGL 与 Windows WGL 的音频 ABI 2 实际运�
 
 这是实验集成。运行库为标准原生 Godot 构建，未启用 Godot Mono/C# 项目运行时；GodotNode 不提供 C# 宿主绑定；Dora 原有 C# 功能保留。macOS Metal 有原生运行证据，Linux、Windows、Android 的现有运行证据限虚拟机/模拟器；Web 已通过 Chrome、Firefox、Playwright WebKit，macOS原生Safari26.6.2的2/3/4矩阵也已通过；移动浏览器、完整DOM/IME和真实后台策略仍需单独验收。iOS 保持 Dora Apple2 / Godot Apple4，模拟器仅验证普通 Dora 与 Godot 安全拒绝边界。各平台最新范围与报告统一见 [TRACKING.md](TRACKING.md)。
 
-当前支持单运行时、单个活动 GodotNode、同一项目移除后重建；运行时驻留到进程退出。不同项目不能在该进程内切换；节点移除不卸载运行库，最终 shutdown 后不承诺再次初始化。GL 运行时还要求重建时缓冲数一致，内部目标模式需保持尺寸一致；外部目标尺寸协商另行处理。设备丢失恢复、多项目并行、完整 IME、物理控制器热插拔/震动及最终分发仍待完成。
+当前支持单运行时、单个活动 GodotNode。匹配的 macOS Metal、Linux EGL、Windows x64 WGL、Android EGL 和 WebGL2 运行库默认支持卸载工程后切换不同源码目录/PCK，同时保留 LibGodot；尺寸和2/3/4缓冲环可随工程重建。通过 `unloadAsync` 完成通知或 `GodotPlayer` 串行切换，限制见 [PROJECT_SWITCH.md](PROJECT_SWITCH.md)。其他后端仍保留既有项目边界；节点移除不卸载运行库，最终 shutdown 后不承诺再次初始化。设备丢失恢复、多项目并行、完整 IME、物理控制器热插拔/震动及最终分发仍待完成。
 
 `tests/protocol.sh` 的 macOS/Linux 结果证明共享的 C ABI、缓冲所有权 CPU 协议，以及内嵌着色器源码的有界长度。`tests/embedded_shader.py` 使用全新字节列表，覆盖带/不带末尾零与带/不带末尾逗号的四种组合，编译实际 string_view 封装头，检查长度和与上游源码的逐字节一致性，避免旧生成头掩盖干净构建缺陷。`tests/abi_targets.sh` 只证明目标头文件可编译，均不等于平台 GPU 测试。实验历史见 [迁移实施历史](history/2026-11-02-vendor-xmake-progress/MIGRATION_LOG.md)，当前任务状态见 [TRACKING.md](TRACKING.md)。
 
@@ -1537,3 +1537,18 @@ python3 "$DORA_TEST_REPO/Test/Godot/test_shader_cache_cleanup.py" \
 ```
 
 从实际vendor源码提取缓存加载、初始化与清理方法，使用C++17和确定性的GL故障驱动，检查链接失败、部分加载/数据截断、成功所有权移交、源码回退及重复失败的program释放。可加 `--baseline-ref ac9882929` 验证修复前泄漏的负向控制。无需GPU或模拟器；这不证明SwiftShader二进制缓存兼容或暖缓存无告警。
+
+## Web 项目卸载与切换最小复验
+
+使用本页Web构建命令生成默认`dora-preset` Release宿主和匹配LibGodot，准备固定的官方demo仓库与Godot4.6编辑器。测试源在Dora-Example；下列`PACKAGE`为本轮专用宿主包副本，`WORK`和结果目录须为新目录。
+
+```sh
+python3 "$DORA_TEST_REPO/Test/Godot/tests/web/prepare_project_switch.py" \
+  --engine "$PWD" --source /path/to/official-demo-repository \
+  --editor /path/to/Godot-4.6 --work "$WORK" --package "$PACKAGE" --runtime "$RUNTIME_PACKAGE"
+DORA_PLAYWRIGHT_MODULE=/path/to/playwright-core DORA_BROWSER_ENGINE=chromium \
+  node "$DORA_TEST_REPO/Test/Godot/tests/web/run_project_switch.cjs" "$PACKAGE" "$RESULT" --context-loss
+python3 "$DORA_TEST_REPO/Test/Godot/tests/web/verify_project_switch.py" "$RESULT" "$PACKAGE"
+```
+
+主组合成功后，另用宿主包副本、同一`WORK`及`--smoke`准备A→B→A包；依次设置`DORA_BROWSER_ENGINE=firefox`、调用原生`run_project_switch_safari.py PACKAGE RESULT`、设置`DORA_BROWSER_ENGINE=webkit`，每项运行后调用同一校验器。浏览器不得并行，每项成功后不重复。Safari依赖已授权的远程自动化开关，不由测试修改系统设置。`project_copy_contract.mjs /absolute/path/to/Tools/Godot/web/runtime_bridge.js`仅验证文件所有权/回滚和能力协商的CPU契约，不能替代浏览器验收。

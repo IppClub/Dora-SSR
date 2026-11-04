@@ -4,7 +4,7 @@
 #include "Godot/GodotAudio.h"
 #include "Godot/GodotBridgeOutput.h"
 #include "Godot/GodotBridgeIME.h"
-#if BX_PLATFORM_LINUX || BX_PLATFORM_WINDOWS || BX_PLATFORM_ANDROID
+#if BX_PLATFORM_LINUX || BX_PLATFORM_WINDOWS || BX_PLATFORM_ANDROID || BX_PLATFORM_EMSCRIPTEN
 #include "Godot/GodotBridgeProject.h"
 #endif
 #include "Godot/GodotFrameRing.h"
@@ -42,7 +42,7 @@ DoraGodotAudioAPI audioAPI{};
 DoraGodotOutputAPI outputAPI{};
 DoraGodotIMEAPI imeAPI{};
 DoraGodotGLTargetsAPI targetsAPI{};
-#if BX_PLATFORM_LINUX || BX_PLATFORM_WINDOWS || BX_PLATFORM_ANDROID
+#if BX_PLATFORM_LINUX || BX_PLATFORM_WINDOWS || BX_PLATFORM_ANDROID || BX_PLATFORM_EMSCRIPTEN
 DoraGodotProjectAPI projectAPI{};
 #endif
 void *library=nullptr,*activeHandle=nullptr;
@@ -53,7 +53,7 @@ void shutdownInterop(bgfx::RendererType::Enum,void *);
 bool loadAPI() {
     if (api.open) return true;
 #if BX_PLATFORM_EMSCRIPTEN
-    if(!loadGodotWebAPI(api,glAPI,audioAPI,targetsAPI,outputAPI,imeAPI,loaderError))return false;
+    if(!loadGodotWebAPI(api,glAPI,audioAPI,targetsAPI,outputAPI,imeAPI,projectAPI,loaderError))return false;
 #else
 #if BX_PLATFORM_WINDOWS
     // Read the OS Unicode environment directly; CRT getenv may use a local
@@ -163,7 +163,7 @@ bool loadAPI() {
         loaderError="incompatible or unconfigured Dora/Godot Android platform bridge";return false;
     }
 #endif
-#if BX_PLATFORM_LINUX || BX_PLATFORM_WINDOWS || BX_PLATFORM_ANDROID
+#if BX_PLATFORM_LINUX || BX_PLATFORM_WINDOWS || BX_PLATFORM_ANDROID || BX_PLATFORM_EMSCRIPTEN
     projectAPI={};
 #if BX_PLATFORM_WINDOWS
     auto getProject=reinterpret_cast<DoraGodotGetProjectAPI>(GetProcAddress(module,"dora_godot_get_project_api"));
@@ -434,7 +434,7 @@ public:
             activeSession.reset();
         }
         _handle=nullptr; clientReserved=false;
-#if BX_PLATFORM_LINUX || BX_PLATFORM_WINDOWS || BX_PLATFORM_ANDROID
+#if BX_PLATFORM_LINUX || BX_PLATFORM_WINDOWS || BX_PLATFORM_ANDROID || BX_PLATFORM_EMSCRIPTEN
         const bool unloaded=!api.open || (projectAPI.get_state && projectAPI.get_state()==DORA_GODOT_PROJECT_UNLOADED);
         std::string reason;
         if (!unloaded) {
@@ -507,7 +507,7 @@ void shutdownInterop(bgfx::RendererType::Enum,void *) {
         }
         api.shutdown(); api={}; glAPI={};
         activeSession.reset(); audioAPI={}; targetsAPI={}; outputAPI={}; imeAPI={};
-#if BX_PLATFORM_LINUX || BX_PLATFORM_WINDOWS || BX_PLATFORM_ANDROID
+#if BX_PLATFORM_LINUX || BX_PLATFORM_WINDOWS || BX_PLATFORM_ANDROID || BX_PLATFORM_EMSCRIPTEN
         projectAPI={};
 #endif
     }

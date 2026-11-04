@@ -10,12 +10,13 @@ static_assert(sizeof(DoraGodotInput)==56 && offsetof(DoraGodotInput,text)==32);
 static_assert(sizeof(DoraGodotSlot)==28 && sizeof(DoraGodotStats)==40);
 static_assert(sizeof(DoraGodotAudioStats)==40 && sizeof(DoraGodotOutputSize)==16);
 static_assert(sizeof(DoraGodotIMEState)==24 && offsetof(DoraGodotIMEState,revision)==16);
-enum Operation {Init,Version,Error,Open,Slot,Advance,Input,Pause,Restart,Close,Shutdown,CanProduce,ConsumerBegin,ConsumerEnd,CanAdvance,BindTargets,Output,AudioFormat,AudioStart,AudioRead,AudioStats,IME};
+enum Operation {Init,Version,Error,Open,Slot,Advance,Input,Pause,Restart,Close,Shutdown,CanProduce,ConsumerBegin,ConsumerEnd,CanAdvance,BindTargets,Output,AudioFormat,AudioStart,AudioRead,AudioStats,IME,ProjectState};
 EM_JS(int,dispatch,(int operation,void *data,uint32_t a,uint32_t b,uint32_t c,uint32_t d),{
     const bridge=Module['doraGodotBridge'];
     if(!bridge)return 0;
     return bridge.dispatch(operation,data>>>0,a>>>0,b>>>0,c>>>0,d>>>0);
 });
+uint32_t projectState(){return uint32_t(dispatch(ProjectState,nullptr,0,0,0,0));}
 bool opened=false;
 char versionText[256]{},errorText[4096]{};
 bool valid(void *handle){return opened && handle==(void*)1;}
@@ -44,13 +45,17 @@ int audioStart(void *handle){return valid(handle)&&dispatch(AudioStart,nullptr,0
 uint32_t audioRead(void *handle,float *samples,uint32_t frames){return valid(handle)&&samples&&frames&&frames<=DORA_GODOT_AUDIO_MAX_FRAMES?dispatch(AudioRead,samples,frames,0,0,0):0;}
 int audioStats(void *handle,DoraGodotAudioStats *value){return valid(handle)&&value&&value->size>=sizeof(*value)&&dispatch(AudioStats,value,0,0,0,0);}
 }
-bool loadGodotWebAPI(DoraGodotAPI &api,DoraGodotGLAPI &gl,DoraGodotAudioAPI &audio,DoraGodotGLTargetsAPI &targets,DoraGodotOutputAPI &out,DoraGodotIMEAPI &imeAPI,std::string &error){
-    if(!dispatch(Init,nullptr,0,0,0,0)){error="Godot Web runtime must be preloaded with a canvas GL boundary: ";dispatch(Error,errorText,sizeof(errorText),0,0,0);error+=errorText;return false;}
+bool loadGodotWebAPI(DoraGodotAPI &api,DoraGodotGLAPI &gl,DoraGodotAudioAPI &audio,DoraGodotGLTargetsAPI &targets,DoraGodotOutputAPI &out,DoraGodotIMEAPI &imeAPI,DoraGodotProjectAPI &project,std::string &error){
+    const int capabilities=dispatch(Init,nullptr,1,0,0,0);
+    if(!capabilities){error="Godot Web runtime must be preloaded with a canvas GL boundary: ";dispatch(Error,errorText,sizeof(errorText),0,0,0);error+=errorText;return false;}
     api={sizeof(api),DORA_GODOT_ABI_VERSION,version,open,lastError,slot,advance,input,pause,restart,close,shutdown};
     gl={sizeof(gl),DORA_GODOT_GL_ABI_VERSION,canProduce,begin,end,canAdvance,advance};
     audio={sizeof(audio),DORA_GODOT_AUDIO_ABI_VERSION,audioFormat,audioStart,audioRead,audioStats};
     targets={sizeof(targets),DORA_GODOT_GL_TARGETS_ABI_VERSION,bind};
     out={sizeof(out),DORA_GODOT_OUTPUT_ABI_VERSION,output};
-    imeAPI={sizeof(imeAPI),DORA_GODOT_IME_ABI_VERSION,ime};return true;
+    imeAPI={sizeof(imeAPI),DORA_GODOT_IME_ABI_VERSION,ime};
+    project={};
+    if(capabilities&2)project={sizeof(project),DORA_GODOT_PROJECT_ABI_VERSION,projectState};
+    return true;
 }
 }

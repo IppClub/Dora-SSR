@@ -5,7 +5,8 @@
 #include "Godot/GodotBridgeAudio.h"
 #include "Godot/GodotBridgeOutput.h"
 #include "Godot/GodotBridgeIME.h"
+#include "Godot/GodotBridgeProject.h"
 #include <string>
 namespace Dora {
-bool loadGodotWebAPI(DoraGodotAPI &,DoraGodotGLAPI &,DoraGodotAudioAPI &,DoraGodotGLTargetsAPI &,DoraGodotOutputAPI &,DoraGodotIMEAPI &,std::string &);
+bool loadGodotWebAPI(DoraGodotAPI &,DoraGodotGLAPI &,DoraGodotAudioAPI &,DoraGodotGLTargetsAPI &,DoraGodotOutputAPI &,DoraGodotIMEAPI &,DoraGodotProjectAPI &,std::string &);
 }

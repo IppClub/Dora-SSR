@@ -5,6 +5,7 @@
 #include "../GodotBridgeAudio.h"
 #include "../GodotBridgeOutput.h"
 #include "../GodotBridgeIME.h"
+#include "../GodotBridgeProject.h"
 #include <emscripten.h>
 #include <emscripten/html5.h>
 #include <cstdlib>
@@ -59,5 +60,10 @@ EMSCRIPTEN_KEEPALIVE int dora_web_audio_stats(DoraGodotAudioStats *value){return
 EMSCRIPTEN_KEEPALIVE int dora_web_audio_start(){return runtime && audio.start_capture(runtime);}
 EMSCRIPTEN_KEEPALIVE unsigned dora_web_audio_read(float *samples,unsigned frames){return runtime?audio.read_pcm(runtime,samples,frames):0;}
 EMSCRIPTEN_KEEPALIVE const DoraGodotStats *dora_web_close(){stats={sizeof(stats)};if(runtime)api.close(runtime,&stats);runtime=nullptr;return &stats;}
+EMSCRIPTEN_KEEPALIVE unsigned dora_web_project_state(){
+    DoraGodotProjectAPI project{};project.size=sizeof(project);
+    return dora_godot_get_project_api(DORA_GODOT_PROJECT_ABI_VERSION,&project) && project.get_state
+        ?project.get_state():uint32_t(DORA_GODOT_PROJECT_UNSUPPORTED);
+}
 EMSCRIPTEN_KEEPALIVE void dora_web_shutdown(){if(api.shutdown)api.shutdown();runtime=nullptr;}
 }

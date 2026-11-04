@@ -33,7 +33,7 @@
     "modules/mono/glue/GodotSharp/GodotSharpEditor/GodotSharpEditor.csproj",
     "platform/android/java/gradlew.bat"
   ],
-  "delta_patch_sha256": "78b6f9df1694bf8cc51ca91417648c46f36ed62a42806de2f8e1ba8dd7fb3a4c",
+  "delta_patch_sha256": "7bf44f1e8e45e0ff4afc0dc37f666950dd2f6ca0209028347b8cb9c607c3ecc6",
   "files": [
     {
       "path": "UPSTREAM.json",
@@ -340,7 +340,7 @@
       "path": "modules/dora_bridge/gl/gl_transport.h",
       "status": "added",
       "mode": "100644",
-      "canonical_sha256": "bdd45dee06064172118177d5505b91ff69a9047c2f12d80efc2356ede4b7affc",
+      "canonical_sha256": "0e20aec61271c2042c4ebcd966bd17696534395cb883fa560b97c864678ca506",
       "upstream_canonical_sha256": null
     },
     {
@@ -354,7 +354,7 @@
       "path": "modules/dora_bridge/gl/texture_ring.inc",
       "status": "added",
       "mode": "100644",
-      "canonical_sha256": "b4887f26ef103a2a316d0f17f10132c3cf90063b446be19b6f7eee6976221c9c",
+      "canonical_sha256": "ded707125f31410bd0ecdf72b3574b90b8d6655e478519be8a68494b0654c153",
       "upstream_canonical_sha256": null
     },
     {
@@ -403,7 +403,7 @@
       "path": "modules/dora_bridge/register_types_gl.cpp",
       "status": "added",
       "mode": "100644",
-      "canonical_sha256": "46b83d8426d443051d7cb9653eb71fcaaa4af6d81f5df268eedcb611bd4c4800",
+      "canonical_sha256": "a1107b3c33d62dd86e1183d779f66cee7030b6bb3f9d21593b719aef0c60229a",
       "upstream_canonical_sha256": null
     },
     {
@@ -438,7 +438,7 @@
       "path": "modules/dora_bridge/runtime_project.h",
       "status": "added",
       "mode": "100644",
-      "canonical_sha256": "c78839d002b53f09c97f608523a7cc46d2be8482944e289d040db12c29efabd0",
+      "canonical_sha256": "9bc69a5093b9dfd64dca3d0c6198d4c792601a2ef6d4c635e3e3806c9bff03f3",
       "upstream_canonical_sha256": null
     },
     {
@@ -459,7 +459,7 @@
       "path": "modules/dora_bridge/web/web_api.cpp",
       "status": "added",
       "mode": "100644",
-      "canonical_sha256": "ffee4bdccb3aa177b134bf9f5644e2118527d678bf19e77db64176ff9e14fe28",
+      "canonical_sha256": "411ed6682df9cda53a4080dd13bee362aae14e7b9459771a3fd1444f77313280",
       "upstream_canonical_sha256": null
     },
     {
