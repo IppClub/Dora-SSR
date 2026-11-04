@@ -78,6 +78,12 @@ python3 Tools/Godot/verify_package.py /absolute/path/to/package
 
 不能直接对带补丁 vendor 运行上游更新脚本覆盖文件。SCons 对照会生成源码旁文件，必须使用独立 checkout；Dora 入口不原地生成；如手工上游参考构建产生残留，先保存源码清单与生成物，恢复干净输入后再做原生验收。不要直接清空整个 `build`，其中可能保存唯一证据、补丁或 VM 备份。
 
+## CI轻量构建
+
+仅运行Lua队列契约时，用独立配置加载 `dora_host_tools_only` 图，再构建 `dora-tolua`。该图只包含bundled Lua宿主及绑定生成器，不解析Dora引擎的Rust/Go包；不要在普通工程配置上仅指定target就认为依赖图已经隔离。CI步骤使用独立 `XMAKE_CONFIGDIR`，不改变常规引擎配置。
+
+原生变体增量夹具需要两轮归档产物的时间戳位于不同的秒级tick：xmake 3.1.1可能把同秒内重编译的对象视为未改变，跳过重新归档。夹具等待时间戳边界，仍执行增量构建及16→160实际值检查；不使用强制重编译替代增量验证。失败时检查 `proof-*.log`、`build-*.log` 和保留的归档文件。
+
 ## 运行时与项目边界
 
 当前是进程内 LibGodot、一次活动运行时。按最新用户决定，保留同一 LibGodot 实现项目级卸载和切换；不执行进程内 LibGodot 销毁/重初始化，也不继续 Worker 进程方案。macOS Metal 默认采用项目卸载协议；其他后端仍按既有同工程协议执行。

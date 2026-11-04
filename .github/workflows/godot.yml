@@ -46,8 +46,11 @@ jobs:
       - name: Project discovery, game integrity and archive extraction boundaries
         run: python3 "$DORA_TEST_REPO/Test/Godot/test_project_delivery.py"
       - name: Serialized Godot player contracts (bundled Lua, no GPU)
+        env:
+          XMAKE_CONFIGDIR: ${{ github.workspace }}/build/godot-protocol-host-tools-config
         run: |
-          xmake build dora-tolua
+          xmake f -c -y --dora_host_tools_only=y
+          xmake build -y dora-tolua
           python3 "$DORA_TEST_REPO/Test/Godot/test_godot_player.py"
       - uses: actions/upload-artifact@v4
         if: always()
@@ -123,6 +126,7 @@ jobs:
           name: godot-linux-egl
           path: |
             build/godot-runtime/ci-linux/
+            build/godot-native-variants-ci/
             build/godot-runtime/ci-linux-release/
             build/godot-runtime/ci-ownership-trap/weston/
             build/godot-runtime/ci-ownership-trap/case/*.json

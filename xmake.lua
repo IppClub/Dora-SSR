@@ -19,6 +19,11 @@ add_repositories("dora-packages Projects/xmake/packages")
 
 includes("Projects/xmake/options.lua")
 includes("Projects/xmake/web/options.lua")
+-- Small host-only contracts must not configure unrelated Rust/Go packages.
+if has_config("dora_host_tools_only") then
+    includes("Projects/xmake/rules/generated_lua.lua")
+    return
+end
 -- Standalone runtime builds require C/C++ and Python, not Dora's Go/Rust tools.
 if has_config("dora_godot_standalone") then
     if is_plat("wasm") then

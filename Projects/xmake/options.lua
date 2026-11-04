@@ -1,3 +1,9 @@
+option("dora_host_tools_only")
+    set_default(false)
+    set_showmenu(true)
+    set_description("Load only the bundled Lua host/generator targets, without engine toolchains")
+option_end()
+
 option("dora_native_tests")
     set_default(false)
     set_showmenu(true)

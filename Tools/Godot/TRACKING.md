@@ -13,6 +13,8 @@
 
 ## 已完成
 
+- [x] **CI-PRECHECK-01｜轻量测试构建与增量夹具修复**：Lua契约改用独立host-tools配置，避免触发Rust/Go依赖；解释器按宿主OS/架构选择。Linux快速构建复现xmake秒级mtime导致静态库未重打包，夹具跨时间戳tick后保留增量与运行断言；补实际值日志/CI产物。macOS及Linux VM本地验证通过，VM已关闭；远程CI另行核对。记录暂存 `build/godot-ci-fix-v1/`。
+
 - [x] **PROJECT-DEFAULT-MAC-01｜macOS Metal默认卸载与切换**：移除实验环境开关，按运行库能力默认提供项目卸载；默认配置7次隔离/通知夹具、官方2D/3D源码/PCK交替8次24图、2/3/4缓冲与音频/GPU排空、启动取消、旧库拒绝及分发试玩通过。文档已同步；其余后端和长期兼容性留待办。证据暂存 `build/godot-project-default-v1/`。
 
 - [x] **PROJECT-CONTROLLER-MAC-01｜卸载通知、串行控制与真实项目**：C++/Lua `GodotNode.unloadAsync` 在GPU/音频和项目清理后通知，重复/完成后订阅均支持；生产Lua `GodotPlayer` 以原生通知处理FIFO、失败、超时和关闭。官方2D/3D项目源码/PCK交替8次、24图、公开输入、音频、2/3/4缓冲与GPU排空通过，重复访问后对象/资源计数稳定且场景节点0；修复常驻Renderer相对shader缓存根切换。8项控制器契约、原生取消/未开启拒绝和通知夹具通过。后续已默认化；当前验收仍限macOS；用法见 [PROJECT_SWITCH.md](PROJECT_SWITCH.md)，详情暂存 `build/godot-project-controller-v1/`。
