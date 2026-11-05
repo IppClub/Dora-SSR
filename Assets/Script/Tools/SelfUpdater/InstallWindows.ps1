@@ -28,3 +28,6 @@ if (-not $NoLaunch) {
     if (Test-Path -LiteralPath $dora) { Start-Process -FilePath $dora -WorkingDirectory $InstallRoot }
 }
 if (-not $ok) { exit $process.ExitCode }
+# Called with &, a script otherwise leaves the caller's $LASTEXITCODE unchanged.
+# Normalize both successful MSI codes (0 and reboot-required 3010) to success.
+exit 0
