@@ -3,7 +3,8 @@ task("dora-android-prepare")
     set_menu {
         usage = "xmake dora-android-prepare --sdk=ANDROID_SDK",
         description = "Prepare the xmake-managed Wa AAR and Android assets for Gradle",
-        options = {{nil, "sdk", "kv", nil, "Android SDK directory"}}
+        options = {{nil, "sdk", "kv", nil, "Android SDK directory"},
+            {nil, "ndk-version", "kv", "28.1.13356709", "NDK version selected by the Gradle host"}}
     }
     on_run(function ()
         import("core.base.option")
@@ -12,8 +13,10 @@ task("dora-android-prepare")
             sdk = path.join(os.getenv("HOME"), "Library/Android/sdk")
         end
         assert(sdk and os.isdir(sdk), "Android SDK not found; set ANDROID_HOME")
-        local ndk = path.join(sdk, "ndk/26.1.10909125")
-        assert(os.isdir(ndk), "Android NDK 26.1.10909125 not found: " .. ndk)
+        local ndk_version = option.get("ndk-version")
+        assert(ndk_version:match("^%d+%.%d+%.%d+$"), "Invalid Android NDK version")
+        local ndk = path.join(sdk, "ndk", ndk_version)
+        assert(os.isdir(ndk), "Android NDK " .. ndk_version .. " not found: " .. ndk)
         local root = os.projectdir()
         local configdir = path.join(root, "build/android-gradle/wa")
         local envs = {XMAKE_CONFIGDIR = configdir, ANDROID_HOME = sdk}

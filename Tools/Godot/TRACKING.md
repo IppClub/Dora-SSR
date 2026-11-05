@@ -13,6 +13,8 @@
 
 ## 已完成
 
+- [x] **DEFAULT-CI-01｜默认组件冷构建入口修复**：修正Windows版本探针按系统代码页解码UTF-8的错误；Android Wa准备入口与Gradle共享NDK版本，默认28.1、显式裁剪仍为26.1，doctor同步。Windows旧错误负向控制/新探针及Android缺失AAR冷配置、NDK28依赖重建/Debug任务图通过；两平台完整构建仍待本次修复后的CI确认。证据`build/godot-ci-fix-v1/`。
+
 - [x] **DEFAULT-COMPONENT-01｜1.10.0默认正式组件**：普通构建/封包、Android/Web、Studio Agent及游戏Player默认包含Godot，保留显式裁剪；Docs站作品Player显式关闭Godot；macOS默认arm64，Windows默认x64/WGL。版本及自更新架构文件名同步。macOS默认Release实际运行/缺库回退、Studio双Player及浏览器动态画面、Android arm64组件准备和Release任务图通过；macOS最终ZIP运行/缺库回退及资源/签名核对通过；Docs双语生产构建及11个Dora作品资源检查通过，Godot禁用和残留运行库由部署门禁拒绝。完整核对结果暂存`build/godot-production-v1/`。其余平台新候选CI和设备边界继续由RELEASE-DELIVERY-01跟踪，不视为全平台动态验收。
 
 - [x] **RELEASE-SCOPE-01｜1.0范围与交付缺口整理**：汇总后端/模式/设备证据，固定Godot最小修改与原生binary失败回退策略；区分功能验收、模拟器限制、候选包及公开发布。更新默认切换平台、源码登记计数和失效历史引用，不重建history，不增加测试轮次。见 [收口清单](RELEASE_1_0.md)。

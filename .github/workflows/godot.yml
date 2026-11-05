@@ -42,7 +42,9 @@ jobs:
       - name: Runtime package positive and negative checks
         run: python3 "$DORA_TEST_REPO/Test/Godot/tests/package_integrity.py"
       - name: Standalone xmake entrypoints and native source variants
-        run: python3 "$DORA_TEST_REPO/Test/Godot/test_xmake_only.py"
+        run: |
+          python3 "$DORA_TEST_REPO/Test/Godot/test_xmake_only.py"
+          python3 "$DORA_TEST_REPO/Test/Godot/test_windows_output_encoding.py"
       - name: Project discovery, game integrity and archive extraction boundaries
         run: python3 "$DORA_TEST_REPO/Test/Godot/test_project_delivery.py"
       - name: Serialized Godot player contracts (bundled Lua, no GPU)

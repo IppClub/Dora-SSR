@@ -28,7 +28,7 @@ source=root/'Source/3rdParty/Godot'
 subprocess.run([sys.executable,str(root/'Tools/Godot/prepare.py'),str(source)],check=True)
 xmake=shutil.which(args.xmake)
 if not xmake:parser.error('Configured xmake executable is missing: '+args.xmake)
-version_output=subprocess.check_output([xmake,'--version'],text=True)
+version_output=subprocess.check_output([xmake,'--version'],encoding='utf-8',errors='replace')
 version=re.search(r'xmake\s+v(\d+)\.',version_output)
 if not version or int(version[1])<3:
     parser.error('Godot xmake migration requires xmake 3.x or newer; use --xmake to select it: '+xmake)
