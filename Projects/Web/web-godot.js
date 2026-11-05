@@ -13,7 +13,7 @@
   Module.preRun.push(function() {
     // Ordinary Dora projects, including file:// HTML exports, do not need the
     // threaded Godot module. Godot content is rejected explicitly above.
-    if(!globalThis.crossOriginIsolated)return;
+    if(Module.doraGodotEnabled===false||!globalThis.crossOriginIsolated)return;
     const dependency='dora-godot-runtime';addRunDependency(dependency);
     const stage=name=>Module.doraGodotStartupTrace?.(name);
     stage('begin');

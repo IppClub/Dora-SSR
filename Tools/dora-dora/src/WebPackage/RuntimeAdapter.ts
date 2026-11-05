@@ -9,3 +9,14 @@ export function prepareHtmlRuntime(bytes: Uint8Array): Uint8Array {
   }
   return strToU8(source);
 }
+
+// Existing installed IDEs may carry the pre-optional production runtime.
+// Adapt only its known Godot bootstrap guard, leaving core engine code intact.
+export function prepareOptionalGodotRuntime(bytes: Uint8Array): Uint8Array {
+  const source = strFromU8(bytes);
+  const guard = 'if(!globalThis.crossOriginIsolated)return;';
+  const optional = 'if(Module.doraGodotEnabled===false||!globalThis.crossOriginIsolated)return;';
+  if (source.includes(optional)) return bytes;
+  if (source.split(guard).length !== 2) throw new Error('Invalid optional Godot runtime adapter');
+  return strToU8(source.replace(guard, optional));
+}

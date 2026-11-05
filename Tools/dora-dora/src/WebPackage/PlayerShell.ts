@@ -1,7 +1,7 @@
 import type {WebPackageFormat} from './Archive';
 
 // Keep the boot policy in sync with Projects/Web/player-shell.html.
-export function createPlayerShell(format: WebPackageFormat): string {
+export function createPlayerShell(format: WebPackageFormat, includeGodot = false): string {
   return String.raw`<!doctype html>
 <html lang="en" data-dora-state="booting">
 <head>
@@ -109,6 +109,7 @@ export function createPlayerShell(format: WebPackageFormat): string {
 		};
 		window.addEventListener("error", startupError);
 		var Module = {
+			doraGodotEnabled: ${includeGodot},
 			canvas: document.getElementById("canvas"),
 			setStatus: function(status) {
 				const match = /\((\d+)\/(\d+)\)/.exec(status || "");

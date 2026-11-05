@@ -1,5 +1,6 @@
 import * as Service from '../Service';
 import Info from '../Info';
+import {projectNeedsGodot} from './GodotDependency';
 import {toUrlPath} from '../PathUtils';
 import {strToU8} from 'fflate';
 import {createWebArchive, digest, readProjectZip, runtimeFiles, godotRuntimeFiles, type PackageFiles, type WebPackageFormat} from './Archive';
@@ -66,12 +67,12 @@ export async function packageDirectory(directory: string, writablePath: string, 
   }
 }
 
-async function loadRuntime(): Promise<PackageFiles> {
+async function loadRuntime(includeGodot: boolean): Promise<PackageFiles> {
   try {
     const base = new URL('web-player/', document.baseURI);
     const index = JSON.parse(new TextDecoder().decode(await fetchBytes(new URL('runtime.json', base).href, 65536)));
     const files: PackageFiles = Object.create(null);
-    for (const file of runtimeFiles.concat(godotRuntimeFiles, ['LICENSE-Dora.txt', 'LICENSES.3rdparty.md', 'NOTICE.txt'])) {
+    for (const file of runtimeFiles.concat(includeGodot ? godotRuntimeFiles : [], ['LICENSE-Dora.txt', 'LICENSES.3rdparty.md', 'NOTICE.txt'])) {
       const entry = index.files?.[file];
       if (!entry || !Number.isSafeInteger(entry.size) || entry.size <= 0 || entry.size > 128 * 1024 * 1024) throw new Error('Invalid runtime index');
       const bytes = await fetchBytes(new URL(file, base).href, entry.size);
@@ -87,7 +88,6 @@ async function loadRuntime(): Promise<PackageFiles> {
 
 export async function packageWebProject(projectRoot: string, writablePath: string, format: WebPackageFormat): Promise<Uint8Array> {
   // The runtime is distributed with the IDE. Game code never leaves the user's Dora host.
-  const runtime = await loadRuntime();
   const id = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
   const zipFile = Info.path.join(writablePath, '.download', `web-package-${id}.zip`);
   try {
@@ -95,7 +95,9 @@ export async function packageWebProject(projectRoot: string, writablePath: strin
     if (!result.success) throw new Error('webPackage.snapshotFailed');
     const relative = toUrlPath(Info.path.relative(writablePath, zipFile), Info.path);
     const bytes = await fetchBytes(Service.addr('/' + relative.split('/').map(encodeURIComponent).join('/')), 256 * 1024 * 1024);
-    return await createWebArchive(readProjectZip(bytes), runtime, format);
+    const project = readProjectZip(bytes);
+    const runtime = await loadRuntime(projectNeedsGodot(project));
+    return await createWebArchive(project, runtime, format);
   } finally {
     await Service.deleteFile({path: zipFile}).catch(() => undefined);
   }

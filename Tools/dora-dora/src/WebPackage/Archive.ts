@@ -3,6 +3,8 @@ import {sha256} from '@noble/hashes/sha2.js';
 import {bytesToHex} from '@noble/hashes/utils.js';
 import {createHtmlFiles} from './HtmlArchive';
 import {createPlayerShell} from './PlayerShell';
+import {projectNeedsGodot} from './GodotDependency';
+import {prepareOptionalGodotRuntime} from './RuntimeAdapter';
 
 export type PackageFiles = Record<string, Uint8Array>;
 export type WebPackageFormat = 'html' | 'http';
@@ -51,7 +53,9 @@ export async function createWebArchive(project: PackageFiles, runtime: PackageFi
     if (!runtime[file]?.length) throw new Error(`Missing Web runtime file: ${file}`);
   }
   const features = JSON.parse(strFromU8(runtime['dora-web-features.json']));
-  if (features.modules?.godotNode) {
+  const includeGodot = projectNeedsGodot(Object.fromEntries(Object.entries(project).filter(([name]) => allowed(name))));
+  if (includeGodot) {
+    if (!features.modules?.godotNode) throw new Error('Godot runtime is unavailable for this project');
     for (const file of godotRuntimeFiles) if (!runtime[file]?.length) throw new Error(`Missing Godot runtime file: ${file}`);
   }
   if (features.activeProfile !== 'dora-preset' || features.modules?.threads || features.modules?.crossOriginIsolationRequired
@@ -61,15 +65,17 @@ export async function createWebArchive(project: PackageFiles, runtime: PackageFi
     throw new Error('Unsupported Web runtime profile');
   }
   const metadata = JSON.parse(strFromU8(runtime['runtime.json'] || new Uint8Array()));
-  if (format === 'html' && Object.keys(project).some(name => /(?:^|\/)project\.godot$|\.pck$/i.test(name))) {
+  if (format === 'html' && includeGodot) {
     throw new Error('Godot projects require the HTTP export with COOP/COEP response headers');
   }
   if (!/^\d+\.\d+\.\d+$/.test(metadata.engineVersion)) throw new Error('Invalid Web runtime version');
   const output: PackageFiles = {...runtime};
-  output['index.html'] = strToU8(createPlayerShell(format));
-  output['runtime.json'] = strToU8(JSON.stringify({...metadata, files: {...metadata.files,
-    'index.html': {size: output['index.html'].length, sha256: digest(output['index.html'])},
-  }}));
+  if (!includeGodot) {
+    for (const name of Object.keys(output)) if (name.startsWith('godot/')) delete output[name];
+    if (features.modules?.godotNode) output['dora-player-runtime.js'] = prepareOptionalGodotRuntime(output['dora-player-runtime.js']);
+  }
+  output['index.html'] = strToU8(createPlayerShell(format, includeGodot));
+  output['runtime.json'] = strToU8(JSON.stringify({...metadata, files: Object.fromEntries(Object.entries(output).filter(([name]) => name !== 'runtime.json').map(([name, bytes]) => [name, {size: bytes.length, sha256: digest(bytes)}]))}));
   let total = 0;
   const files = Object.keys(project).sort().filter(name => {
     validatePath(name);
