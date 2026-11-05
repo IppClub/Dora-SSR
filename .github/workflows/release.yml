@@ -141,7 +141,7 @@ jobs:
     needs: web-assets
     strategy:
       fail-fast: false
-      max-parallel: 1
+      max-parallel: 2
       matrix:
         backend: [d3d12, wgl]
     runs-on: windows-2025-vs2026
