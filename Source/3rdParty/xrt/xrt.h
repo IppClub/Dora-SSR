@@ -12133,7 +12133,9 @@ XXAPI int xrtChain(str sPath, size_t iSize)
 #  endif
 #endif
 /* align macros */
-#if defined (__STDC_VERSION__) && (__STDC_VERSION__ >= 201112L)   /* C11+ */
+/* MSVC toolsets older than 14.4x report __STDC_VERSION__ >= 201112L in C11
+   mode without providing the alignas keyword; keep them on __declspec. */
+#if defined (__STDC_VERSION__) && (__STDC_VERSION__ >= 201112L) && !defined(_MSC_VER)   /* C11+ */
 #  include <stdalign.h>
 #  define NMH_ALIGN(n)      alignas(n)
 #elif defined(__GNUC__)
