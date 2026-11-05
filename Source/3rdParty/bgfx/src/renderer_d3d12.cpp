@@ -875,7 +875,7 @@ namespace bgfx { namespace d3d12
 
 				D3D_FEATURE_LEVEL featureLevel[] =
 				{
-					D3D_FEATURE_LEVEL_12_2,
+					D3D_FEATURE_LEVEL(0xc200), // D3D_FEATURE_LEVEL_12_2 (not declared by SDK 19041).
 					D3D_FEATURE_LEVEL_12_1,
 					D3D_FEATURE_LEVEL_12_0,
 					D3D_FEATURE_LEVEL_11_1,
@@ -1062,6 +1062,10 @@ namespace bgfx { namespace d3d12
 				break;
 			}
 
+// Query only the optional trace types present in the included D3D12 headers.
+// D3D12_SDK_VERSION also works with Agility/DirectX-Headers and MinGW,
+// without relying on the unrelated Windows SDK ntverp.h.
+#if defined(D3D12_SDK_VERSION) && D3D12_SDK_VERSION >= 3
 			for (D3D12_FEATURE_DATA_D3D12_OPTIONS8 options8; SUCCEEDED(m_device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS8, &options8, sizeof(options8)));)
 			{
 				BX_TRACE("D3D12 options 8:");
@@ -1081,6 +1085,9 @@ namespace bgfx { namespace d3d12
 				break;
 			}
 
+#endif // D3D12_SDK_VERSION
+
+#if defined(D3D12_SDK_VERSION) && D3D12_SDK_VERSION >= 5
 			for (D3D12_FEATURE_DATA_D3D12_OPTIONS10 options10; SUCCEEDED(m_device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS10, &options10, sizeof(options10)));)
 			{
 				BX_TRACE("D3D12 options 10:");
@@ -1096,6 +1103,9 @@ namespace bgfx { namespace d3d12
 				break;
 			}
 
+#endif // D3D12_SDK_VERSION
+
+#if defined(D3D12_SDK_VERSION) && D3D12_SDK_VERSION >= 602
 			for (D3D12_FEATURE_DATA_D3D12_OPTIONS12 options12; SUCCEEDED(m_device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS12, &options12, sizeof(options12)));)
 			{
 				BX_TRACE("D3D12 options 12:");
@@ -1117,6 +1127,9 @@ namespace bgfx { namespace d3d12
 				break;
 			}
 
+#endif // D3D12_SDK_VERSION
+
+#if defined(D3D12_SDK_VERSION) && D3D12_SDK_VERSION >= 606
 			for (D3D12_FEATURE_DATA_D3D12_OPTIONS14 options14; SUCCEEDED(m_device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS14, &options14, sizeof(options14)));)
 			{
 				BX_TRACE("D3D12 options 14:");
@@ -1133,6 +1146,7 @@ namespace bgfx { namespace d3d12
 				BX_TRACE("\tDynamicIndexBufferStripCutSupported %d", options15.DynamicIndexBufferStripCutSupported);
 				break;
 			}
+#endif // D3D12_SDK_VERSION
 
 			initHeapProperties(m_device);
 
