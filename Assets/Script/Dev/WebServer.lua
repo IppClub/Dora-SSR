@@ -3792,7 +3792,7 @@ HttpServer:post("/info", function(req) -- 1459
 	end -- 1462
 	local webProfiler, drawerWidth, webIDETourCompleted = config.webProfiler, config.drawerWidth, config.webIDETourCompleted -- 1464
 	local engineDev = Entry.getEngineDev() -- 1465
-	Entry.connectWebIDE() -- 1466
+	Entry.connectWebIDE(req.body and req.body.embedded == true) -- 1466
 	return { -- 1468
 		platform = App.platform, -- 1468
 		locale = App.locale, -- 1469

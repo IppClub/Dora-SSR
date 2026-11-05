@@ -10,7 +10,7 @@ import type { TreeDataType } from "./FileTree";
 import { ProfilerInfo } from "./ProfilerInfo";
 import { TypedEmitter } from "./utils/typedEmitter";
 import { LogBuffer } from "./LogBuffer";
-import { runWithNativeIDE } from "./NativeIDERun";
+import { isNativeIDE, runWithNativeIDE } from "./NativeIDERun";
 import { canonicalizeAuthPath, createAuthHeaders, signAuthPayload, authNonce } from "./AuthSignature";
 
 let authRequired = false;
@@ -687,7 +687,7 @@ export interface InfoResponse {
 	webIDETourCompleted: boolean;
 };
 export const info = (req?: InfoRequest) => {
-	return post<InfoResponse>("/info", req ?? {});
+	return post<InfoResponse>("/info", { ...req, embedded: isNativeIDE() });
 };
 
 // LLM Config

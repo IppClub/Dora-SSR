@@ -17,6 +17,7 @@ import Info from './Info';
 import Path from './3rdParty/Path';
 import AuthDialog, { AuthDialogProps, AuthSession } from './AuthDialog';
 import { createAuthHeaders } from './AuthSignature';
+import { isNativeIDE } from './NativeIDERun';
 
 const origFetch = window.fetch.bind(window);
 
@@ -25,7 +26,7 @@ const checkAuthRequired = async () => {
 		const probe = await origFetch(Service.addr('/info'), {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
-			body: '{}',
+			body: JSON.stringify({ embedded: isNativeIDE() }),
 			cache: 'no-store',
 		});
 		if (probe.status === 401 || probe.ok) {

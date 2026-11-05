@@ -221,10 +221,10 @@ export.getEngineDev = ->
 	return false unless App.debugging
 	config.engineDev
 
-export.connectWebIDE = ->
+export.connectWebIDE = (embedded = false) ->
 	unless config.webIDEConnected
 		config.webIDEConnected = true
-		if App.platform in ["Windows", "Linux", "macOS"]
+		if not embedded and App.platform in ["Windows", "Linux", "macOS"]
 			ratio = App.winSize.width / App.visualSize.width
 			App.winSize = Size 640 * ratio, 480 * ratio
 

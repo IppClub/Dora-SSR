@@ -6,6 +6,11 @@ type NativeRunWindow = Window & {
 	DoraIDERun?: { postMessage(message: string): void };
 };
 
+export function isNativeIDE(): boolean {
+	const host = window as NativeRunWindow;
+	return host.top === host && !!(host.webkit?.messageHandlers?.doraIDERun || host.DoraIDERun || host.chrome?.webview);
+}
+
 export async function runWithNativeIDE<T extends { success: boolean; err?: string }>(run: () => Promise<T>): Promise<T> {
 	const host = window as NativeRunWindow;
 	const send = (message: string) => {

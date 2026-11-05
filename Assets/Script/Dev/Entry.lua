@@ -339,10 +339,13 @@ local _anon_func_0 = function() -- 227
 	local _val_0 = App.platform -- 227
 	return "Windows" == _val_0 or "Linux" == _val_0 or "macOS" == _val_0 -- 227
 end -- 227
-_module_0.connectWebIDE = function() -- 224
+_module_0.connectWebIDE = function(embedded) -- 224
+	if embedded == nil then -- 224
+		embedded = false -- 224
+	end -- 224
 	if not config.webIDEConnected then -- 225
 		config.webIDEConnected = true -- 226
-		if _anon_func_0() then -- 227
+		if not embedded and _anon_func_0() then -- 227
 			local ratio = App.winSize.width / App.visualSize.width -- 228
 			App.winSize = Size(640 * ratio, 480 * ratio) -- 229
 		end -- 227

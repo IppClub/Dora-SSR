@@ -1463,7 +1463,7 @@ HttpServer\post "/info", (req) ->
 		config.webIDETourCompleted = webIDETourCompleted == true
 	:webProfiler, :drawerWidth, :webIDETourCompleted = config
 	engineDev = Entry.getEngineDev!
-	Entry.connectWebIDE!
+	Entry.connectWebIDE req.body and req.body.embedded == true
 	return
 		platform: App.platform
 		locale: App.locale
