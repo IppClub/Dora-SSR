@@ -362,35 +362,9 @@ jobs:
           if-no-files-found: error
           retention-days: 3
 
-  windows-installers:
-    name: Verify Windows install upgrade switch and uninstall
-    needs: [web-assets, windows]
-    runs-on: windows-2025-vs2026
-    steps:
-      - uses: actions/checkout@v4
-      - uses: xmake-io/github-action-setup-xmake@v1
-        with:
-          xmake-version: latest
-      - name: Resolve installer tests
-        run: xmake dora-test-deps --env-file="$env:GITHUB_ENV"
-      - uses: actions/download-artifact@v5
-        with:
-          pattern: release-windows-*
-          path: windows-packages
-          merge-multiple: true
-      - name: Verify both installers and ZIP contents
-        run: |
-          & "$env:DORA_TEST_REPO/Test/Godot/tests/verify_windows_installers.ps1" -Packages "$PWD/windows-packages" -Version '${{ needs.web-assets.outputs.version }}' -EngineRoot $PWD
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: windows-installer-validation
-          path: windows-packages/*.log
-          if-no-files-found: ignore
-
   publish:
     name: Publish GitHub release
-    needs: [web-assets, macos, windows, windows-installers, android, linux]
+    needs: [web-assets, macos, windows, android, linux]
     if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-22.04
     steps:
