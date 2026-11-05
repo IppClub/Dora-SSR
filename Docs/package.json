@@ -1,6 +1,6 @@
 {
   "name": "dora-ssr",
-  "version": "0.1.0",
+  "version": "1.10.0",
   "private": true,
   "packageManager": "pnpm@10.13.0",
   "scripts": {
@@ -55,6 +55,6 @@
     ]
   },
   "engines": {
-    "node": ">=16.14"
+    "node": ">=20.0"
   }
 }

@@ -43,6 +43,8 @@ jobs:
     env:
       JOBS: '2'
       DORA_WEB_JOBS: '2'
+      # Docs games use Dora only; keep the default production Godot package out.
+      DORA_WEB_GODOT: '0'
     steps:
       - name: Checkout
         uses: actions/checkout@v4

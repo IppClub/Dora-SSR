@@ -49,12 +49,13 @@ with io.open "../../Projects/Android/Dora/app/build.gradle", "r"
 -- Keep shipped Web metadata and the documentation version in sync with Apps.
 for {file, pattern} in *{
 	{"xmake.lua", '(set_version%(")[^"]+("%))'}
+	{"Docs/package.json", '("version": ")[^"]+(")'}
 	{"Studio/package.json", '("version": ")[^"]+(")'}
 	{"Projects/Web/web-loader.js", '(input.engineVersion !== ")[^"]+(")'}
 	{"Projects/Web/web-package.js", '(options.currentEngineVersion || ")[^"]+(")'}
 	{"Projects/xmake/tools/web/package_web_game.mjs", '(engineVersion: ")[^"]+(")'}
 	{"Docs/src/version.js", "(version: ')[^']+(')"}
-	{"Docs/i18n/zh-Hans/docusaurus-plugin-content-docs/current.json", '(版本 )%d+%.%d+%.%d+()'}
+	{"Docs/i18n/zh-Hans/docusaurus-plugin-content-docs/current.json", '(版本 )%d+%.%d+%.%d+(")'}
 }
 	file = "../../" .. file
 	with io.open file, "rb"

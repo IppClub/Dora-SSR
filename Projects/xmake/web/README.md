@@ -116,6 +116,10 @@ LibGodot Web package by default. `DORA_WEB_GODOT_RUNTIME_DIR` selects an explici
 verified package; `DORA_WEB_GODOT=0` is an explicit Dora-only build. Standard output
 contains `godot/` with JS/WASM, bridge modules, manifest and upstream notices.
 
+The documentation gallery (`xmake dora-gallery`) always builds a Dora-only
+Player with `DORA_WEB_GODOT=0`; its deployment gate rejects enabled Godot or a
+packaged `godot/` runtime. The Docs website uses Node.js 20 or newer.
+
 Godot content requires COOP/COEP even with a single-thread Dora host, because the
 Godot heap uses threads. Ordinary Dora HTML exports can still run without
 isolation and skip Godot initialization. Godot projects use the HTTP export on
