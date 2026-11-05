@@ -4,7 +4,6 @@ on:
   push:
     branches: [ main ]
     paths:
-      - 'Assets/Script/Lib/**'
       - 'Projects/Web/**'
       - 'xmake.lua'
       - 'Projects/xmake/**'
@@ -16,7 +15,6 @@ on:
   pull_request:
     branches: [ main ]
     paths:
-      - 'Assets/Script/Lib/**'
       - 'Projects/Web/**'
       - 'xmake.lua'
       - 'Projects/xmake/**'

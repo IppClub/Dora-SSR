@@ -13,7 +13,6 @@ on:
       - 'Projects/iOS/**'
       - 'xmake.lua'
       - 'Projects/xmake/**'
-      - 'Assets/**'
       - '.github/workflows/ios.yml'
   pull_request:
     branches: [ main ]
@@ -25,7 +24,6 @@ on:
       - 'Projects/iOS/**'
       - 'xmake.lua'
       - 'Projects/xmake/**'
-      - 'Assets/**'
       - '.github/workflows/ios.yml'
   workflow_dispatch:
 
