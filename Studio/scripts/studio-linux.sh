@@ -65,7 +65,7 @@ check_package() {
 	expected="$(manifest_value ARCH)"
 	actual="$(machine_arch)"
 	[[ "$expected" == "$actual" ]] || die "Package architecture is $expected, host architecture is $actual."
-	for path in bin/dora-studio-server web/index.html agent-support/manifest.json agent-engine/dora-web-features.json runtime/studio-runtime.json deployment/dora-studio.service deployment/studio.env.example; do
+	for path in bin/dora-studio-server web/index.html agent-support/manifest.json agent-engine/dora-web-features.json agent-engine/godot/manifest.json agent-engine/godot/dora-godot.wasm runtime/studio-runtime.json runtime/godot/manifest.json runtime/godot/dora-godot.wasm deployment/dora-studio.service deployment/studio.env.example; do
 		[[ -f "$PACKAGE_ROOT/$path" ]] || die "Package file is missing: $path"
 	done
 	[[ -x "$PACKAGE_ROOT/bin/dora-studio-server" ]] || die 'Server binary is not executable.'

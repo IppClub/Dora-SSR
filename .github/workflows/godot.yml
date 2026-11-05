@@ -64,7 +64,7 @@ jobs:
 
   linux-egl:
     runs-on: ubuntu-24.04
-    timeout-minutes: 120
+    timeout-minutes: 180
     env:
       LIBGL_ALWAYS_SOFTWARE: '1'
       DORA_GODOT_SKIP_PREBOOT_ABI: '0'
@@ -104,6 +104,12 @@ jobs:
           > build/godot-runtime/ci-linux/prepare-web-regression.log
       - name: Optimized ordinary Release shutdown and fallback checks
         run: python3 "$DORA_TEST_REPO/Test/Godot/tests/ci_linux_release.py" --jobs 2
+      - name: One default full Release project switch using the existing host and runtime
+        run: >-
+          python3 "$DORA_TEST_REPO/Test/Godot/tests/run_candidate_release_switch.py"
+          --artifact "$PWD/build" --output "$PWD/build/godot-runtime/ci-release-switch"
+          --engine-sha "$GITHUB_SHA" --run-id "$GITHUB_RUN_ID"
+          --runtime-package "$PWD/build/godot-component/linux/x86_64/release/package"
       - name: Wasm initializer trap releases exported Object references
         run: >-
           python3 "$DORA_TEST_REPO/Test/Godot/tests/with_weston.py"
@@ -128,6 +134,8 @@ jobs:
             build/godot-runtime/ci-linux/
             build/godot-native-variants-ci/
             build/godot-runtime/ci-linux-release/
+            build/godot-runtime/ci-release-switch/
+            build/godot-component/linux/x86_64/release/package/
             build/godot-runtime/ci-ownership-trap/weston/
             build/godot-runtime/ci-ownership-trap/case/*.json
             build/godot-runtime/ci-ownership-trap/case/*.log

@@ -1,7 +1,11 @@
 // @preview-file off
 import { App, Content, json, Path, PlatformType } from "Dora";
 
-export type UpdatePlatform = "android" | "windows-x86" | "macos-universal";
+export type UpdatePlatform = "android" | "windows-x86" | "macos-universal" | "windows-x64" | "macos-arm64";
+
+export const updatePlatformsForVersion = (version: string): UpdatePlatform[] => compareVersions(version, "v1.10.0") >= 0
+	? ["android", "windows-x64", "macos-arm64"]
+	: ["android", "windows-x86", "macos-universal"];
 
 export interface UpdatePackage {
 	ref: string;
@@ -18,7 +22,7 @@ export interface UpdateManifest {
 	version: string;
 	revision: number;
 	publishedAt: string;
-	packages: Record<UpdatePlatform, UpdatePackage>;
+	packages: Partial<Record<UpdatePlatform, UpdatePackage>>;
 }
 
 export interface ManifestParseResult {
@@ -114,11 +118,12 @@ export const parseUpdateManifest = (text: string): ManifestParseResult => {
 	if (typeof value.packages !== "object" || value.packages === undefined) {
 		return { message: "update manifest packages are missing" };
 	}
-	if (!hasOnlyKeys(value.packages as object, ["android", "windows-x86", "macos-universal"])) {
+	const platforms = updatePlatformsForVersion(value.version);
+	if (!hasOnlyKeys(value.packages as object, platforms)) {
 		return { message: "update manifest contains unsupported platforms" };
 	}
-	const packages = {} as Record<UpdatePlatform, UpdatePackage>;
-	for (const platform of ["android", "windows-x86", "macos-universal"] as UpdatePlatform[]) {
+	const packages: Partial<Record<UpdatePlatform, UpdatePackage>> = {};
+	for (const platform of platforms) {
 		const packageResult = parsePackage(
 			(value.packages as Partial<Record<UpdatePlatform, UpdatePackage>>)[platform],
 			platform,
@@ -146,17 +151,32 @@ export const loadUpdateManifest = (repoPath: string) => {
 	return parseUpdateManifest(Content.load(file));
 };
 
+let installedPlatformChecked = false;
+let installedPlatform: UpdatePlatform | undefined;
 export const updatePlatformForApp = (): UpdatePlatform | undefined => {
+	if (installedPlatformChecked) return installedPlatform;
+	installedPlatformChecked = true;
 	switch (App.platform) {
 		case PlatformType.Android:
-			return "android";
+			installedPlatform = "android";
+			return installedPlatform;
 		case PlatformType.Windows:
-			return "windows-x86";
 		case PlatformType.macOS:
-			return "macos-universal";
+			break;
 		default:
 			return undefined;
 	}
+	// Only official default packages participate in the new architecture
+	// channels. A slim legacy build must not auto-install a different CPU ABI.
+	const file = "GodotRuntimeNotices/manifest.json";
+	if (!Content.exist(file)) return undefined;
+	const [metadata, error] = json.decode(Content.load(file));
+	if (error !== undefined || typeof metadata !== "object" || metadata === undefined) return undefined;
+	const architectures = (metadata as { architectures?: unknown }).architectures;
+	if (!Array.isArray(architectures)) return undefined;
+	if (App.platform === PlatformType.Windows && (architectures.includes("x86_64") || architectures.includes("x64"))) installedPlatform = "windows-x64";
+	if (App.platform === PlatformType.macOS && architectures.includes("arm64")) installedPlatform = "macos-arm64";
+	return installedPlatform;
 };
 
 export const compareVersions = (left: string, right: string) => {

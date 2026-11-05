@@ -9,6 +9,7 @@ on:
       - 'xmake.lua'
       - 'Projects/xmake/**'
       - 'Source/**'
+      - 'Tools/Godot/**'
       - 'Tools/Godot/web/**'
       - 'Tools/tolua\+\+/**'
       - '.github/workflows/web.yml'
@@ -20,6 +21,7 @@ on:
       - 'xmake.lua'
       - 'Projects/xmake/**'
       - 'Source/**'
+      - 'Tools/Godot/**'
       - 'Tools/Godot/web/**'
       - 'Tools/tolua\+\+/**'
       - '.github/workflows/web.yml'
@@ -37,6 +39,9 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: recursive
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
       - name: Setup xmake
         uses: xmake-io/github-action-setup-xmake@v1
         with:
@@ -111,6 +116,9 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: recursive
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
       - name: Setup xmake
         uses: xmake-io/github-action-setup-xmake@v1
         with:

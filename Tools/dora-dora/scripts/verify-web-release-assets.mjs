@@ -40,6 +40,8 @@ const required = [
 	'audio-worklet.js',
 	'dora-audio-mixer.wasm',
 	'dora-logo.png',
+  ...['dora-godot.js', 'dora-godot.wasm', 'shared_gl.mjs', 'runtime_bridge.mjs',
+    'manifest.json', 'LICENSE.txt', 'COPYRIGHT.txt', 'AUTHORS.md'].map(name => 'godot/' + name),
 ];
 for (const name of required) {
 	const expected = metadata.files[name];
@@ -53,7 +55,7 @@ for (const name of required) {
 }
 
 const features = await loadJson(path.join(playerRoot, 'dora-web-features.json'));
-for (const name of ['model3D', 'jolt3D', 'rustBridge']) {
+for (const name of ['model3D', 'jolt3D', 'rustBridge', 'godotNode']) {
 	if (features.modules?.[name] !== true) throw new Error(`Required Web export feature is disabled: ${name}`);
 }
 

@@ -1,5 +1,5 @@
 set_project("Dora-SSR")
-set_version("1.0.0")
+set_version("1.10.0")
 set_xmakever("3.0.0")
 
 set_allowedmodes("debug", "release")
@@ -49,6 +49,7 @@ includes("Projects/xmake/rules/generated_lua.lua")
 if is_plat("wasm") then
     includes("Projects/xmake/web/targets.lua")
 else
+    includes("Projects/xmake/godot/component_targets.lua")
     includes("Projects/xmake/engine.lua")
 end
 includes("Projects/xmake/tasks/doctor.lua")

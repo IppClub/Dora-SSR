@@ -6,6 +6,7 @@ on:
     paths:
       # Shared engine code — triggers all platforms
       - 'Source/**'
+      - 'Tools/Godot/**'
       - 'Tools/tolua\+\+/**'
       - 'Tools/dora-rust/**'
       # Platform-specific code
@@ -18,6 +19,7 @@ on:
     branches: [ main ]
     paths:
       - 'Source/**'
+      - 'Tools/Godot/**'
       - 'Tools/tolua\+\+/**'
       - 'Tools/dora-rust/**'
       - 'Projects/iOS/**'
@@ -38,6 +40,9 @@ jobs:
     if: "!contains(github.event.head_commit.message, '[skip CI]') && !contains(github.event.head_commit.message, '[skip iOS]')"
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
       - uses: xmake-io/github-action-setup-xmake@v1
         with:
           xmake-version: latest

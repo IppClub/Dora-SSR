@@ -1,8 +1,10 @@
 # Godot vendor 与 xmake 维护指南
 
-更新：2026-11-04。当前完成状态以 [TRACKING.md](TRACKING.md) 为准，实际测试命令见 [README.md](README.md)，1.0支持范围和候选包缺口见 [RELEASE_1_0.md](RELEASE_1_0.md)。本页规定源码更新、构建、可选包和排障流程，不代替运行验收报告。
+更新：2026-11-04。当前完成状态以 [TRACKING.md](TRACKING.md) 为准，实际测试命令见 [README.md](README.md)，1.0支持范围和候选包缺口见 [RELEASE_1_0.md](RELEASE_1_0.md)。本页规定源码更新、构建、默认组件包和排障流程，不代替运行验收报告。
 
 ## 源码与构建入口
+
+Dora 1.10.0默认构建完整LibGodot组件，详见[默认正式组件](README.md#默认正式组件dora-1100)。`Tools/Godot/build_component.py`负责模式/架构/后端匹配及部署，沿用下表的独立原生xmake构建器；不会静默取用Debug库满足Release。macOS默认arm64、Windows默认x64/WGL；iOS门槛和既有动态验收缺口保持不变。Godot的三方依赖仍独立维护，不新增共享库方案。
 
 Godot 完整源码位于 `Source/3rdParty/Godot`，不是 submodule。固定版本与导入来源见 [UPSTREAM.json](../../Source/3rdParty/Godot/UPSTREAM.json)；该文件描述上游导入基线，不是当前带 Dora 修改的整棵源码树摘要。桥接实现位于其中的 `modules/dora_bridge`，宿主实现和协议位于 `Source/Godot`。
 
@@ -10,7 +12,7 @@ Godot 完整源码位于 `Source/3rdParty/Godot`，不是 submodule。固定版�
 
 完整来源与当前Dora差异另由 [源码审计工具](https://github.com/IppClub/Dora-Example/blob/master/Test/Godot/audit_vendor_provenance.py) 和 [登记清单](vendor/SOURCE_DELTA.json) 校验；[复查及更新流程](vendor/README.md)说明固定归档/上游Git树/首次导入提交、Git换行政策和零fuzz补丁重建。它是独立维护审计，不给普通构建新增下载或历史依赖。当前50个修改文件、44个新增文件均显式登记；后续源码修改需同步该清单并重验，不能仅靠标记检查。该范围包含登记及未忽略源码，忽略的SCons缓存和构建产物另行处理。
 
-从仓库根目录构建。先准备 xmake 3.x、Python 3 和平台工具链；Android 另需 SDK/NDK 28.1.13356709，Web 使用 Dora 管理的 Emscripten。不要用 PATH 中另一个 SDK 的版本代替实际编译器证据。
+从仓库根目录构建。先准备 xmake 3.x、Python 3.11+ 和平台工具链；Android 另需 SDK/NDK 28.1.13356709，Web 使用 Dora 管理的 Emscripten。不要用 PATH 中另一个 SDK 的版本代替实际编译器证据。
 
 | 配置 | 当前入口 | 默认构建器与范围 |
 | --- | --- | --- |
@@ -49,7 +51,7 @@ Android Java/AAR 默认从 vendor 构建，`--builder maven` 仅为显式参考�
 | iOS | `DoraGodot.framework`（含库、Info.plist、Godot 许可与签名）及 manifest | 应用 `Frameworks/DoraGodot.framework/DoraGodot` |
 | Web | `dora-godot.js`、`dora-godot.wasm`、`shared_gl.mjs`、`runtime_bridge.mjs`、LICENSE/COPYRIGHT/AUTHORS 及 manifest | Web 打包入口及 JS 初始化配置；不是桌面动态库加载 |
 
-桌面/移动端原生加载器支持 `DORA_GODOT_LIBRARY` 覆盖路径，仅用于明确指定运行库；普通随包验收应取消该覆盖，验证默认查找。Android Gradle 通过 `dora.godot.runtimePackage` 和 `dora.godot.javaAar` 选包，`dora.godot=true` 启用，未启用时保持普通 Dora 构建图。
+桌面/移动端原生加载器支持 `DORA_GODOT_LIBRARY` 覆盖路径，仅用于明确指定运行库；普通随包验收应取消该覆盖，验证默认查找。Android Gradle 通过 `dora.godot.runtimePackage` 和 `dora.godot.javaAar` 选包，默认启用Godot并构建vendor Java及匹配ABI原生库；只有显式`dora.godot=false`才裁剪Godot。
 
 ```sh
 python3 Tools/Godot/verify_package.py /absolute/path/to/package

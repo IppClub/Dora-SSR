@@ -137,6 +137,15 @@ func (a *AgentService) loadAssets(engineDir string) error {
 	if err = json.Unmarshal(a.assets["dora-web-features.json"], &features); err != nil || features["studioAgentHost"] != true || features["activeProfile"] != "dora-preset" {
 		return errors.New("not a dedicated agent engine")
 	}
+	if modules, ok := features["modules"].(map[string]any); ok && modules["godotNode"] == true {
+		files, loadErr := loadGodotAssets(engineDir)
+		if loadErr != nil {
+			return loadErr
+		}
+		for name, bytes := range files {
+			a.assets[name] = bytes
+		}
+	}
 	raw, err := os.ReadFile(filepath.Join(engineDir, "dora-web-manifest.json"))
 	if err != nil {
 		return err

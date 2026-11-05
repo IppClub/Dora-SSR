@@ -1,15 +1,19 @@
-// Optional independent LibGodot runtime. Included only by dora_web_godot builds.
+// Independent production LibGodot runtime. Dora-only packages can omit it.
 (function() {
   const previous=Module.doraPrepareRuntime;
   Module.doraPrepareRuntime=async function() {
     if(previous)await previous();
     const files=Module.doraManifest?.files||[],roots=files.filter(file=>file.path==='project.godot'||file.path.endsWith('/project.godot')).map(file=>file.path.slice(0,-'project.godot'.length));
     const selected=files.filter(file=>file.path.endsWith('.pck')||roots.some(root=>file.path.startsWith(root)));
+    if(selected.length&&!globalThis.crossOriginIsolated)throw new Error('Godot projects require COOP/COEP response headers; use the HTTP export on an isolated origin');
     let index=0;
     await Promise.all(Array.from({length:Math.min(4,selected.length)},async()=>{for(;;){const file=selected[index++];if(!file)return;await globalThis.DoraWebLoader.fetchPath(Module,file.path);}}));
   };
   Module.preRun=Module.preRun||[];
   Module.preRun.push(function() {
+    // Ordinary Dora projects, including file:// HTML exports, do not need the
+    // threaded Godot module. Godot content is rejected explicitly above.
+    if(!globalThis.crossOriginIsolated)return;
     const dependency='dora-godot-runtime';addRunDependency(dependency);
     const stage=name=>Module.doraGodotStartupTrace?.(name);
     stage('begin');

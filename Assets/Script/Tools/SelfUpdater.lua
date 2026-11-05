@@ -12,10 +12,10 @@ local thread = ____Dora.thread -- 21
 local threadLoop = ____Dora.threadLoop -- 21
 local Vec2 = ____Dora.Vec2 -- 21
 local ImGui = require("ImGui") -- 23
-local ____Manifest = require("Script.Tools.SelfUpdater.Manifest") -- 24
+local ____Manifest = require("Tools.SelfUpdater.Manifest") -- 24
 local compareVersions = ____Manifest.compareVersions -- 25
 local updatePlatformForApp = ____Manifest.updatePlatformForApp -- 26
-local ____UpdateSync = require("Script.Tools.SelfUpdater.UpdateSync") -- 29
+local ____UpdateSync = require("Tools.SelfUpdater.UpdateSync") -- 29
 local checkGitHubRelease = ____UpdateSync.checkGitHubRelease -- 30
 local loadCachedUpdateManifest = ____UpdateSync.loadCachedUpdateManifest -- 31
 local prepareUpdatePackage = ____UpdateSync.prepareUpdatePackage -- 32
@@ -133,245 +133,255 @@ local function installPreparedPackage(pending) -- 170
 	local platform = ____pending_1.platform -- 171
 	local value = ____pending_1.update -- 171
 	local version = snapshotVersion(valueSnapshot) -- 172
-	local packageInfo = valueSnapshot.source == "AtomGit" and valueSnapshot.manifest.packages[platform] or valueSnapshot.packages[platform] -- 173
-	installing = true -- 176
-	if pending.installPath and Content:exist(pending.installPath) then -- 176
-		progress = {progress = 1, message = zh and "正在启动安装程序…" or "Starting installer…", source = value.source} -- 178
-		App:install(pending.installPath) -- 179
-		installing = false -- 180
-		progress = nil -- 181
-		return -- 182
-	end -- 182
-	progress = {progress = 0.94, message = zh and "正在解压更新…" or "Extracting update…", source = value.source} -- 184
-	thread(function() -- 185
-		local unzipPath = Path( -- 186
-			Path:getPath(value.file), -- 186
-			"unpacked" -- 186
-		) -- 186
-		if Content:exist(unzipPath) then -- 186
-			Content:remove(unzipPath) -- 187
-		end -- 187
-		extractedPath = unzipPath -- 188
-		local success = Content:unzipAsync(value.file, unzipPath) -- 189
-		if not success then -- 189
-			installing = false -- 191
-			progress = nil -- 192
-			Content:remove(value.cleanupPath) -- 193
-			prepared = nil -- 194
-			extractedPath = "" -- 195
-			showPopup(zh and "解压失败" or "Failed to extract update", zh and "无法解压文件：" .. packageInfo.file or "Failed to extract: " .. packageInfo.file) -- 196
-			return -- 200
-		end -- 200
-		progress = {progress = 1, message = zh and "正在启动安装程序…" or "Starting installer…", source = value.source} -- 202
-		local installPath = platform == "android" and Path(unzipPath, ("dora-ssr-" .. version) .. "-android.apk") or (platform == "macos-universal" and Path(unzipPath, "Dora.app") or unzipPath) -- 203
-		if not Content:exist(installPath) then -- 203
-			installing = false -- 209
-			progress = nil -- 210
-			Content:remove(value.cleanupPath) -- 211
-			prepared = nil -- 212
-			extractedPath = "" -- 213
-			showPopup(zh and "安装包无效" or "Invalid update package", zh and "更新包缺少预期的安装入口。" or "The update package does not contain the expected installer.") -- 214
-			return -- 218
-		end -- 218
-		pending.installPath = installPath -- 220
-		App:install(installPath) -- 221
-		installing = false -- 222
-		progress = nil -- 223
-	end) -- 185
+	local ____temp_2 -- 173
+	if valueSnapshot.source == "AtomGit" then -- 173
+		____temp_2 = valueSnapshot.manifest.packages[platform] -- 174
+	else -- 174
+		____temp_2 = valueSnapshot.packages[platform] -- 175
+	end -- 175
+	local packageInfo = ____temp_2 -- 173
+	if not packageInfo then -- 173
+		prepared = nil -- 176
+		return -- 176
+	end -- 176
+	installing = true -- 177
+	if pending.installPath and Content:exist(pending.installPath) then -- 177
+		progress = {progress = 1, message = zh and "正在启动安装程序…" or "Starting installer…", source = value.source} -- 179
+		App:install(pending.installPath) -- 180
+		installing = false -- 181
+		progress = nil -- 182
+		return -- 183
+	end -- 183
+	progress = {progress = 0.94, message = zh and "正在解压更新…" or "Extracting update…", source = value.source} -- 185
+	thread(function() -- 186
+		local unzipPath = Path( -- 187
+			Path:getPath(value.file), -- 187
+			"unpacked" -- 187
+		) -- 187
+		if Content:exist(unzipPath) then -- 187
+			Content:remove(unzipPath) -- 188
+		end -- 188
+		extractedPath = unzipPath -- 189
+		local success = Content:unzipAsync(value.file, unzipPath) -- 190
+		if not success then -- 190
+			installing = false -- 192
+			progress = nil -- 193
+			Content:remove(value.cleanupPath) -- 194
+			prepared = nil -- 195
+			extractedPath = "" -- 196
+			showPopup(zh and "解压失败" or "Failed to extract update", zh and "无法解压文件：" .. packageInfo.file or "Failed to extract: " .. packageInfo.file) -- 197
+			return -- 201
+		end -- 201
+		progress = {progress = 1, message = zh and "正在启动安装程序…" or "Starting installer…", source = value.source} -- 203
+		local installPath = platform == "android" and Path(unzipPath, ("dora-ssr-" .. version) .. "-android.apk") or ((platform == "macos-universal" or platform == "macos-arm64") and Path(unzipPath, "Dora.app") or unzipPath) -- 204
+		if not Content:exist(installPath) then -- 204
+			installing = false -- 210
+			progress = nil -- 211
+			Content:remove(value.cleanupPath) -- 212
+			prepared = nil -- 213
+			extractedPath = "" -- 214
+			showPopup(zh and "安装包无效" or "Invalid update package", zh and "更新包缺少预期的安装入口。" or "The update package does not contain the expected installer.") -- 215
+			return -- 219
+		end -- 219
+		pending.installPath = installPath -- 221
+		App:install(installPath) -- 222
+		installing = false -- 223
+		progress = nil -- 224
+	end) -- 186
 end -- 170
-local function beginUpdate() -- 227
-	if not snapshot or preparing or installing then -- 227
-		return -- 228
-	end -- 228
-	local platform = updatePlatformForApp() -- 229
-	if not platform then -- 229
-		return -- 230
-	end -- 230
-	preparing = true -- 231
-	canceled = false -- 232
-	progress = {progress = 0, message = zh and "正在准备下载…" or "Preparing download…"}; -- 233
-	(function() -- 234
-		return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 234
-			local valueSnapshot = snapshot -- 235
-			local value = __TS__Await(prepareUpdatePackage( -- 236
-				valueSnapshot, -- 236
-				platform, -- 236
-				{ -- 236
-					isCanceled = function() return canceled end, -- 237
-					onProgress = function(____, status) -- 238
-						progress = status -- 239
-					end -- 238
-				} -- 238
-			)) -- 238
-			preparing = false -- 242
-			if not value then -- 242
-				progress = nil -- 244
-				if not canceled then -- 244
-					showPopup(zh and "下载更新失败" or "Failed to download update", zh and valueSnapshot.source .. " 下载不可用，或安装包校验失败。" or valueSnapshot.source .. " is unavailable, or the package did not pass verification.") -- 246
-				end -- 246
-				return ____awaiter_resolve(nil) -- 246
-			end -- 246
-			prepared = {snapshot = valueSnapshot, platform = platform, update = value} -- 253
-			installPreparedPackage(prepared) -- 258
-		end) -- 258
-	end)() -- 234
-end -- 227
-local function cancelCurrentOperation() -- 262
-	canceled = true -- 263
-	progress = nil -- 264
-end -- 262
-local function drawMessagePopup() -- 267
-	ImGui.Text(popupTitle) -- 268
-	ImGui.Separator() -- 269
-	ImGui.PushTextWrapPos( -- 270
-		360, -- 270
-		function() return ImGui.TextWrapped(popupMessage) end -- 270
-	) -- 270
-	if ImGui.Button( -- 270
-		zh and "确认" or "OK", -- 271
-		Vec2(360, 30) -- 271
-	) then -- 271
-		ImGui.CloseCurrentPopup() -- 272
-	end -- 272
-end -- 267
-local function drawPlatformMessage() -- 276
-	repeat -- 276
-		local ____switch43 = App.platform -- 276
-		local ____cond43 = ____switch43 == "Linux" -- 276
-		if ____cond43 then -- 276
-			ImGui.TextWrapped(zh and "请通过 Dora SSR PPA，使用 apt 工具管理更新。" or "Use the Dora SSR PPA and apt to manage updates.") -- 279
-			return true -- 284
-		end -- 284
-		____cond43 = ____cond43 or ____switch43 == "macOS" -- 284
-		if ____cond43 then -- 284
-			ImGui.TextWrapped(zh and "可直接在应用内更新 Dora SSR；如果当前安装由 Homebrew 管理，也可以继续使用 brew upgrade。" or "Dora SSR can update itself in the app. If this installation is managed by Homebrew, you can continue to use brew upgrade.") -- 286
-			return false -- 291
-		end -- 291
-		do -- 291
-			return false -- 293
-		end -- 293
-	until true -- 293
-end -- 276
-threadLoop(function() -- 297
-	local ____App_visualSize_2 = App.visualSize -- 298
-	local width = ____App_visualSize_2.width -- 298
-	ImGui.SetNextWindowPos( -- 299
-		Vec2(width - 10, 10), -- 299
-		"Always", -- 299
-		Vec2(1, 0) -- 299
-	) -- 299
-	ImGui.SetNextWindowSize( -- 300
-		Vec2(430, 0), -- 300
-		"Always" -- 300
+local function beginUpdate() -- 228
+	if not snapshot or preparing or installing then -- 228
+		return -- 229
+	end -- 229
+	local platform = updatePlatformForApp() -- 230
+	if not platform then -- 230
+		return -- 231
+	end -- 231
+	preparing = true -- 232
+	canceled = false -- 233
+	progress = {progress = 0, message = zh and "正在准备下载…" or "Preparing download…"}; -- 234
+	(function() -- 235
+		return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 235
+			local valueSnapshot = snapshot -- 236
+			local value = __TS__Await(prepareUpdatePackage( -- 237
+				valueSnapshot, -- 237
+				platform, -- 237
+				{ -- 237
+					isCanceled = function() return canceled end, -- 238
+					onProgress = function(____, status) -- 239
+						progress = status -- 240
+					end -- 239
+				} -- 239
+			)) -- 239
+			preparing = false -- 243
+			if not value then -- 243
+				progress = nil -- 245
+				if not canceled then -- 245
+					showPopup(zh and "下载更新失败" or "Failed to download update", zh and valueSnapshot.source .. " 下载不可用，或安装包校验失败。" or valueSnapshot.source .. " is unavailable, or the package did not pass verification.") -- 247
+				end -- 247
+				return ____awaiter_resolve(nil) -- 247
+			end -- 247
+			prepared = {snapshot = valueSnapshot, platform = platform, update = value} -- 254
+			installPreparedPackage(prepared) -- 259
+		end) -- 259
+	end)() -- 235
+end -- 228
+local function cancelCurrentOperation() -- 263
+	canceled = true -- 264
+	progress = nil -- 265
+end -- 263
+local function drawMessagePopup() -- 268
+	ImGui.Text(popupTitle) -- 269
+	ImGui.Separator() -- 270
+	ImGui.PushTextWrapPos( -- 271
+		360, -- 271
+		function() return ImGui.TextWrapped(popupMessage) end -- 271
+	) -- 271
+	if ImGui.Button( -- 271
+		zh and "确认" or "OK", -- 272
+		Vec2(360, 30) -- 272
+	) then -- 272
+		ImGui.CloseCurrentPopup() -- 273
+	end -- 273
+end -- 268
+local function drawPlatformMessage() -- 277
+	repeat -- 277
+		local ____switch44 = App.platform -- 277
+		local ____cond44 = ____switch44 == "Linux" -- 277
+		if ____cond44 then -- 277
+			ImGui.TextWrapped(zh and "请通过 Dora SSR PPA，使用 apt 工具管理更新。" or "Use the Dora SSR PPA and apt to manage updates.") -- 280
+			return true -- 285
+		end -- 285
+		____cond44 = ____cond44 or ____switch44 == "macOS" -- 285
+		if ____cond44 then -- 285
+			ImGui.TextWrapped(zh and "可直接在应用内更新 Dora SSR；如果当前安装由 Homebrew 管理，也可以继续使用 brew upgrade。" or "Dora SSR can update itself in the app. If this installation is managed by Homebrew, you can continue to use brew upgrade.") -- 287
+			return false -- 292
+		end -- 292
+		do -- 292
+			return false -- 294
+		end -- 294
+	until true -- 294
+end -- 277
+threadLoop(function() -- 298
+	local ____App_visualSize_3 = App.visualSize -- 299
+	local width = ____App_visualSize_3.width -- 299
+	ImGui.SetNextWindowPos( -- 300
+		Vec2(width - 10, 10), -- 300
+		"Always", -- 300
+		Vec2(1, 0) -- 300
 	) -- 300
-	ImGui.Begin( -- 301
-		"Dora Updater", -- 301
-		windowFlags, -- 301
-		function() -- 301
-			ImGui.Text(zh and "Dora SSR 自更新工具" or "Dora SSR Self Updater") -- 302
-			ImGui.SameLine() -- 303
-			ImGui.TextDisabled("(?)") -- 304
-			if ImGui.IsItemHovered() then -- 304
-				ImGui.BeginTooltip(function() -- 306
-					ImGui.PushTextWrapPos( -- 307
-						340, -- 307
-						function() -- 307
-							ImGui.Text(zh and "可手动切换 GitHub 和 AtomGit 两种完整更新模式。中文环境默认使用 AtomGit，其它语言默认使用 GitHub；两种模式都会核对安装包大小和 SHA-256。" or "Choose either the complete GitHub or AtomGit update mode. Chinese locales default to AtomGit; other locales default to GitHub. Both modes verify package size and SHA-256.") -- 308
-						end -- 307
-					) -- 307
-				end) -- 306
-			end -- 306
-			ImGui.Separator() -- 316
-			drawPlatformMessage() -- 317
-			ImGui.TextColored(themeColor, zh and "更新模式：" or "Update mode:") -- 319
-			ImGui.SameLine() -- 320
-			local sourceChanged, sourceIndex = ImGui.Combo("##update-source", currentSource, sources) -- 321
-			if sourceChanged and not checking and not preparing and not installing then -- 321
-				currentSource = sourceIndex -- 323
-				loadSnapshotForSelectedSource() -- 324
-			end -- 324
-			ImGui.TextColored(themeColor, zh and "当前版本：" or "Current version:") -- 327
-			ImGui.SameLine() -- 328
-			ImGui.Text(currentDisplayVersion) -- 329
-			if snapshot then -- 329
-				local visibleSnapshot = snapshot -- 331
-				ImGui.TextColored(themeColor, zh and "稳定版本：" or "Stable version:") -- 332
-				ImGui.SameLine() -- 333
-				ImGui.Text(snapshotDisplayVersion(visibleSnapshot)) -- 334
-				local comparison = compareSnapshotWithCurrent(visibleSnapshot) -- 335
-				ImGui.PushTextWrapPos( -- 336
-					410, -- 336
-					function() -- 336
-						if comparison < 0 then -- 336
-							ImGui.TextColored(themeColor, zh and "有可用更新！" or "Update available!") -- 338
-						elseif comparison == 0 then -- 338
-							ImGui.TextColored(themeColor, visibleSnapshot.source == "GitHub" and (zh and "Release 版本相同，可重新下载以获取可能更新的 revision。" or "The Release version matches; redownload to get a possible newer revision.") or (zh and "已是最新版，可按需重新下载。" or "Already up to date; you can redownload when needed.")) -- 340
-						else -- 340
-							ImGui.TextColored(themeColor, zh and "当前版本高于稳定版本。" or "Current version is newer than stable.") -- 347
-						end -- 347
-					end -- 336
-				) -- 336
-			end -- 336
-			if progress then -- 336
-				ImGui.Separator() -- 353
-				ImGui.TextWrapped((progress.source and progress.source .. " · " or "") .. progress.message) -- 354
-				ImGui.ProgressBar( -- 357
-					progress.progress, -- 357
-					Vec2(-1, 28) -- 357
-				) -- 357
-				if not installing and ImGui.Button( -- 357
-					zh and "取消" or "Cancel", -- 358
-					Vec2(-1, 30) -- 358
-				) then -- 358
-					cancelCurrentOperation() -- 359
-				end -- 359
-			else -- 359
-				if ImGui.Button( -- 359
-					zh and "检查更新" or "Check for updates", -- 362
-					Vec2(-1, 30) -- 362
-				) then -- 362
-					checkForUpdates() -- 363
-				end -- 363
-				local platform = updatePlatformForApp() -- 365
-				local installSupported = platform == "android" or platform == "windows-x86" or platform == "macos-universal" -- 366
-				if installSupported then -- 366
-					if prepared then -- 366
-						local pending = prepared -- 371
-						ImGui.TextColored(themeColor, zh and pending.update.source .. " 安装包已下载并验证。" or pending.update.source .. " package is downloaded and verified.") -- 372
-						if ImGui.Button( -- 372
-							zh and "继续安装" or "Continue installation", -- 378
-							Vec2(-1, 30) -- 378
-						) then -- 378
-							installPreparedPackage(pending) -- 379
-						end -- 379
-					elseif snapshot then -- 379
-						local comparison = compareSnapshotWithCurrent(snapshot) -- 382
-						if ImGui.Button( -- 382
-							comparison < 0 and (zh and "下载并安装" or "Download and install") or (zh and "重新下载并安装" or "Redownload and install"), -- 384
-							Vec2(-1, 30) -- 387
-						) then -- 387
-							beginUpdate() -- 389
-						end -- 389
-					end -- 389
-				end -- 389
-			end -- 389
-			if popupShow then -- 389
-				popupShow = false -- 396
-				ImGui.OpenPopup("SelfUpdaterMessage") -- 397
-			end -- 397
-			ImGui.BeginPopupModal("SelfUpdaterMessage", messagePopupFlags, drawMessagePopup) -- 399
-		end -- 301
+	ImGui.SetNextWindowSize( -- 301
+		Vec2(430, 0), -- 301
+		"Always" -- 301
 	) -- 301
-	return false -- 401
-end) -- 297
-local node = Node() -- 404
-node:onCleanup(function() -- 405
-	canceled = true -- 406
-	if prepared then -- 406
-		Content:remove(prepared.update.cleanupPath) -- 407
-	end -- 407
-	if extractedPath ~= "" then -- 407
-		Content:remove(extractedPath) -- 408
-	end -- 408
-end) -- 405
-return ____exports -- 405
+	ImGui.Begin( -- 302
+		"Dora Updater", -- 302
+		windowFlags, -- 302
+		function() -- 302
+			ImGui.Text(zh and "Dora SSR 自更新工具" or "Dora SSR Self Updater") -- 303
+			ImGui.SameLine() -- 304
+			ImGui.TextDisabled("(?)") -- 305
+			if ImGui.IsItemHovered() then -- 305
+				ImGui.BeginTooltip(function() -- 307
+					ImGui.PushTextWrapPos( -- 308
+						340, -- 308
+						function() -- 308
+							ImGui.Text(zh and "可手动切换 GitHub 和 AtomGit 两种完整更新模式。中文环境默认使用 AtomGit，其它语言默认使用 GitHub；两种模式都会核对安装包大小和 SHA-256。" or "Choose either the complete GitHub or AtomGit update mode. Chinese locales default to AtomGit; other locales default to GitHub. Both modes verify package size and SHA-256.") -- 309
+						end -- 308
+					) -- 308
+				end) -- 307
+			end -- 307
+			ImGui.Separator() -- 317
+			drawPlatformMessage() -- 318
+			ImGui.TextColored(themeColor, zh and "更新模式：" or "Update mode:") -- 320
+			ImGui.SameLine() -- 321
+			local sourceChanged, sourceIndex = ImGui.Combo("##update-source", currentSource, sources) -- 322
+			if sourceChanged and not checking and not preparing and not installing then -- 322
+				currentSource = sourceIndex -- 324
+				loadSnapshotForSelectedSource() -- 325
+			end -- 325
+			ImGui.TextColored(themeColor, zh and "当前版本：" or "Current version:") -- 328
+			ImGui.SameLine() -- 329
+			ImGui.Text(currentDisplayVersion) -- 330
+			if snapshot then -- 330
+				local visibleSnapshot = snapshot -- 332
+				ImGui.TextColored(themeColor, zh and "稳定版本：" or "Stable version:") -- 333
+				ImGui.SameLine() -- 334
+				ImGui.Text(snapshotDisplayVersion(visibleSnapshot)) -- 335
+				local comparison = compareSnapshotWithCurrent(visibleSnapshot) -- 336
+				ImGui.PushTextWrapPos( -- 337
+					410, -- 337
+					function() -- 337
+						if comparison < 0 then -- 337
+							ImGui.TextColored(themeColor, zh and "有可用更新！" or "Update available!") -- 339
+						elseif comparison == 0 then -- 339
+							ImGui.TextColored(themeColor, visibleSnapshot.source == "GitHub" and (zh and "Release 版本相同，可重新下载以获取可能更新的 revision。" or "The Release version matches; redownload to get a possible newer revision.") or (zh and "已是最新版，可按需重新下载。" or "Already up to date; you can redownload when needed.")) -- 341
+						else -- 341
+							ImGui.TextColored(themeColor, zh and "当前版本高于稳定版本。" or "Current version is newer than stable.") -- 348
+						end -- 348
+					end -- 337
+				) -- 337
+			end -- 337
+			if progress then -- 337
+				ImGui.Separator() -- 354
+				ImGui.TextWrapped((progress.source and progress.source .. " · " or "") .. progress.message) -- 355
+				ImGui.ProgressBar( -- 358
+					progress.progress, -- 358
+					Vec2(-1, 28) -- 358
+				) -- 358
+				if not installing and ImGui.Button( -- 358
+					zh and "取消" or "Cancel", -- 359
+					Vec2(-1, 30) -- 359
+				) then -- 359
+					cancelCurrentOperation() -- 360
+				end -- 360
+			else -- 360
+				if ImGui.Button( -- 360
+					zh and "检查更新" or "Check for updates", -- 363
+					Vec2(-1, 30) -- 363
+				) then -- 363
+					checkForUpdates() -- 364
+				end -- 364
+				local platform = updatePlatformForApp() -- 366
+				local installSupported = platform == "android" or platform == "windows-x86" or platform == "macos-universal" or platform == "windows-x64" or platform == "macos-arm64" -- 367
+				if installSupported then -- 367
+					if prepared then -- 367
+						local pending = prepared -- 374
+						ImGui.TextColored(themeColor, zh and pending.update.source .. " 安装包已下载并验证。" or pending.update.source .. " package is downloaded and verified.") -- 375
+						if ImGui.Button( -- 375
+							zh and "继续安装" or "Continue installation", -- 381
+							Vec2(-1, 30) -- 381
+						) then -- 381
+							installPreparedPackage(pending) -- 382
+						end -- 382
+					elseif snapshot then -- 382
+						local comparison = compareSnapshotWithCurrent(snapshot) -- 385
+						if ImGui.Button( -- 385
+							comparison < 0 and (zh and "下载并安装" or "Download and install") or (zh and "重新下载并安装" or "Redownload and install"), -- 387
+							Vec2(-1, 30) -- 390
+						) then -- 390
+							beginUpdate() -- 392
+						end -- 392
+					end -- 392
+				end -- 392
+			end -- 392
+			if popupShow then -- 392
+				popupShow = false -- 399
+				ImGui.OpenPopup("SelfUpdaterMessage") -- 400
+			end -- 400
+			ImGui.BeginPopupModal("SelfUpdaterMessage", messagePopupFlags, drawMessagePopup) -- 402
+		end -- 302
+	) -- 302
+	return false -- 404
+end) -- 298
+local node = Node() -- 407
+node:onCleanup(function() -- 408
+	canceled = true -- 409
+	if prepared then -- 409
+		Content:remove(prepared.update.cleanupPath) -- 410
+	end -- 410
+	if extractedPath ~= "" then -- 410
+		Content:remove(extractedPath) -- 411
+	end -- 411
+end) -- 408
+return ____exports -- 408

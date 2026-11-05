@@ -32,7 +32,7 @@ function main(target)
         if c.testweb then script("check_web_api_parity.mjs") end
         local replacements = {DORA_WEB_PROFILE = c.profile, DORA_WEB_STUDIO_AGENT_HOST_JSON = tostring(not not c.studio_agent_host),
             DORA_WEB_RUST_BRIDGE_JSON = tostring(c.rust), DORA_WEB_THREADS_JSON = tostring(not not c.pthreads),
-            DORA_WEB_CROSS_ORIGIN_ISOLATION_JSON = tostring(not not (c.pthreads or c.godot)), DORA_WEB_GODOT_JSON = tostring(not not c.godot)}
+            DORA_WEB_CROSS_ORIGIN_ISOLATION_JSON = tostring(not not c.pthreads), DORA_WEB_GODOT_JSON = tostring(not not c.godot)}
         for feature, enabled in pairs(c.features) do replacements["DORA_WEB_FEATURE_" .. feature:upper() .. "_JSON"] = tostring(enabled) end
         local json = io.readfile(path.join(c.web, "web-features.json.in")):gsub("@([%w_]+)@", function (key) return assert(replacements[key], key) end)
         io.writefile(path.join(c.out, "dora-web-features.json"), json)

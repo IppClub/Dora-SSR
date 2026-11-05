@@ -24,7 +24,7 @@ for name in frameworks:assert (sdk/'System/Library/Frameworks'/(name+'.framework
 command=[clang,'-target',target,'-isysroot',str(sdk),'-dynamiclib','-Wl,-all_load',str(archive),'-Wl,-dead_strip','-Wl,-exported_symbols_list,'+str(source/'dora_bridge.exports'),'-install_name','@rpath/DoraGodot.framework/DoraGodot','-L'+str(sdk/'usr/lib/swift'),'-L'+str(toolchain/'usr/lib/swift'/'iphonesimulator' if a.device=='simulator' else toolchain/'usr/lib/swift/iphoneos'),'-lc++','-lresolv','-lz','-liconv','-o',str(framework/'DoraGodot')]
 for name in frameworks:command+=['-weak_framework' if name=='MetalFX' else '-framework',name]
 with (build/'link.log').open('w') as log:subprocess.run(command,stdout=log,stderr=subprocess.STDOUT,check=True)
-plist={'CFBundleIdentifier':'org.ippclub.dorassr.godot.runtime','CFBundleExecutable':'DoraGodot','CFBundleName':'DoraGodot','CFBundlePackageType':'FMWK','CFBundleShortVersionString':'0.1.0','CFBundleVersion':'1','MinimumOSVersion':'14.0','CFBundleSupportedPlatforms':['iPhoneSimulator' if a.device=='simulator' else 'iPhoneOS']}
+plist={'CFBundleIdentifier':'org.ippclub.dorassr.godot.runtime','CFBundleExecutable':'DoraGodot','CFBundleName':'DoraGodot','CFBundlePackageType':'FMWK','CFBundleShortVersionString':'4.6.0','CFBundleVersion':'1','MinimumOSVersion':'14.0','CFBundleSupportedPlatforms':['iPhoneSimulator' if a.device=='simulator' else 'iPhoneOS']}
 with (framework/'Info.plist').open('wb') as file:plistlib.dump(plist,file)
 for origin,dest in [('LICENSE.txt','GODOT-LICENSE.txt'),('COPYRIGHT.txt','GODOT-THIRD-PARTY-NOTICES.txt')]:shutil.copy2(source/origin,framework/dest)
 subprocess.run(['codesign','--force','--timestamp=none','--sign','-',str(framework)],check=True)

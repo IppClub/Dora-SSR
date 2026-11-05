@@ -3,6 +3,7 @@ import { Content, HttpClient, json, Path, thread } from "Dora";
 import { gitHeadFromStatus, quoteGitArgument, runGit, type GitOperationStatus } from "Script/Tools/ResourceDownloader/Git";
 import {
 	loadUpdateManifest,
+	updatePlatformsForVersion,
 	type UpdateManifest,
 	type UpdatePackage,
 	type UpdatePlatform,
@@ -41,7 +42,7 @@ export interface GitHubUpdateSnapshot {
 	source: "GitHub";
 	version: string;
 	publishedAt: string;
-	packages: Record<UpdatePlatform, GitHubUpdatePackage>;
+	packages: Partial<Record<UpdatePlatform, GitHubUpdatePackage>>;
 }
 
 export type UpdateSnapshot = AtomGitUpdateSnapshot | GitHubUpdateSnapshot;
@@ -282,8 +283,8 @@ export const checkGitHubRelease = (
 			resolve({ success: false, message: "GitHub latest release metadata is incomplete" });
 			return;
 		}
-		const packages = {} as Record<UpdatePlatform, GitHubUpdatePackage>;
-		for (const platform of ["android", "windows-x86", "macos-universal"] as UpdatePlatform[]) {
+		const packages: Partial<Record<UpdatePlatform, GitHubUpdatePackage>> = {};
+		for (const platform of updatePlatformsForVersion(release.tag_name)) {
 			const file = `dora-ssr-${release.tag_name}-${platform}.zip`;
 			let matched: GitHubReleaseAsset | undefined;
 			for (const value of release.assets) {
@@ -449,8 +450,10 @@ export const prepareUpdatePackage = async (
 	if (options.isCanceled && options.isCanceled()) return undefined;
 	if (snapshot.source === "AtomGit") {
 		const item = snapshot.manifest.packages[platform];
+		if (!item) return undefined;
 		return prepareFromAtomGit(item, options);
 	}
 	const item = snapshot.packages[platform];
+	if (!item) return undefined;
 	return prepareFromGitHub(item, options);
 };

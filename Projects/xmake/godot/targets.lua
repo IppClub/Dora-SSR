@@ -77,7 +77,7 @@ target("godot-codegen")
     set_values("godot.generated_root", generated_root)
     on_build(function ()
         assert(has_config("dora_godot_runtime"),
-            "godot-codegen is experimental; configure with --dora_godot_runtime=y")
+            "Godot source generation requires --dora_godot_runtime=y")
         -- Reject source-side generated headers before variant dependencies compile.
         local conflicts = os.files(path.join(godot_root, "**.gen.*"))
         table.join2(conflicts, os.files(path.join(godot_root, ".sconsign*")))
@@ -123,10 +123,8 @@ target("godot-codegen")
     end)
 target_end()
 
--- XMAKE-01 deliberately establishes only the dependency and output skeleton.
--- XMAKE-02 will attach generated headers/sources and XMAKE-03+ will add the
--- platform-specific source manifests and flags. Keeping these targets disabled
--- by default prevents an incomplete migration from affecting normal Dora builds.
+-- Subsystem targets are built through godot-runtime. The production component
+-- selects the appropriate standalone toolchain without linking Godot into Dora.
 for _, stage in ipairs(stages) do
     target(stage.name)
         -- Upstream links Android's platform/JNI translation units directly.
@@ -141,6 +139,8 @@ for _, stage in ipairs(stages) do
         if is_plat("wasm") then
             set_toolchains("emcc@dora_emscripten")
             add_packages("dora_emscripten")
+            add_cxflags("-ffile-prefix-map=" .. os.projectdir() .. "=.",
+                "-fdebug-prefix-map=" .. os.projectdir() .. "=.", {force = true})
             -- Emscripten's SSE emulation flags are valid together with SIMD128.
             -- Probing each flag alone can discard required Jolt definitions.
             set_policy("check.auto_ignore_flags", false)
@@ -215,7 +215,7 @@ target("godot-runtime")
     set_values("godot.migration_stage", "XMAKE-01")
     before_build(function (target)
         assert(has_config("dora_godot_runtime"),
-            "godot-runtime is experimental; configure with --dora_godot_runtime=y")
+            "Godot runtime was explicitly disabled; configure with --dora_godot_runtime=y")
         -- This final target has no source files of its own, so xmake never
         -- creates its dependency directory as a side effect of compilation.
         -- The linker still writes libdora_godot.so.d there.

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Build the pinned full Android runtime with Dora's host-driven EGL bridge."""
-import argparse,hashlib,json,os,re,shutil,subprocess
+import argparse,hashlib,json,os,re,shutil,subprocess,sys
 from pathlib import Path
 root=Path(__file__).resolve().parents[2]
 p=argparse.ArgumentParser();p.add_argument('--sdk',type=Path,required=True);p.add_argument('--jobs',type=int,default=2);p.add_argument('--arch',choices=['arm64','x86_64','arm32'],default='arm64')
@@ -20,7 +20,7 @@ ndk=a.sdk/'ndk/28.1.13356709';assert (ndk/'source.properties').is_file(),'Instal
 assert 1<=a.jobs<=16
 expected='b451eaa16d3abe0c7430e9ce1c4e83b146e5670e5b683dd8995c931fc82b57a0'
 source=root/'Source/3rdParty/Godot'
-for script in ('prepare.py','prepare_android.py'):subprocess.run(['python3',str(root/'Tools/Godot'/script),str(source)],check=True)
+for script in ('prepare.py','prepare_android.py'):subprocess.run([sys.executable,str(root/'Tools/Godot'/script),str(source)],check=True)
 env=os.environ.copy();env['ANDROID_HOME']=str(a.sdk.resolve())
 if a.builder=='xmake':
     xmake=shutil.which(a.xmake)
@@ -48,7 +48,7 @@ output=root/'build/godot-xmake/android'/xmake_arch
 if mode=='debug':output=output/'debug'
 library=output/'lib/libgodot_android.so'
 assert library.is_file(),library
-package_command=['python3',str(root/'Tools/Godot/package_runtime.py'),'--source',str(source),'--library',str(library),'--library-name','libgodot_android.so','--output',str(package),'--build-target',a.target,'--graphics-backend','egl']
+package_command=[sys.executable,str(root/'Tools/Godot/package_runtime.py'),'--source',str(source),'--library',str(library),'--library-name','libgodot_android.so','--output',str(package),'--build-target',a.target,'--graphics-backend','egl']
 package_command+=['--architecture',a.arch]
 subprocess.run(package_command,check=True)
 jni=package/'jni'/abi;jni.mkdir(parents=True,exist_ok=True)

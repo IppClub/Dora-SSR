@@ -24,3 +24,7 @@ Dora Studio 是基于 Dora Web 引擎的浏览器游戏创作产品：浏览器�
 服务端已统一迁移到 Go，入口为 `cmd/studio-server`，不再保留 Node.js 后端实现。`pnpm build:server` 生成 `build/bin/dora-studio-server`，`pnpm test:server` 执行含竞态检测的服务端测试。环境变量、双 HTTPS 来源和启动示例见 [Go 服务说明](apps/server/README.md)。
 
 macOS 一键开发启停与 Linux 部署包构建使用 `scripts/studio-macos.sh`；`dev start/restart` 会校验并按需重建 Agent 引擎及带音乐生成能力的 Studio 隔离 Player，`dev rebuild` 可强制重建两者。部署包支持 `linux/amd64` 和 `linux/arm64`，包含前端、Agent 支持资源、专用 Agent 引擎及独立 Player。Linux 解包后使用包内 `studio-linux.sh` 安装和管理 systemd 服务，详见 [部署说明](deployment/README.md)。
+
+## 1.10.0 默认 Godot 组件
+
+`pnpm build`先通过`xmake dora-studio`构建包含Godot的Agent引擎和pthread游戏Player，再构建前端、支持包和Go服务。游戏Player及Agent引擎均保留`godot/`运行库、manifest和许可；准备脚本、Linux服务包与Go资源白名单共同保证这些文件可达。Godot内容继续要求COOP/COEP；源码工程仍须使用Godot4.6导入，默认随包不等于工程仓库浏览/导入界面已实现。

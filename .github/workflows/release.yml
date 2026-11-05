@@ -21,6 +21,9 @@ jobs:
         with:
           submodules: recursive
 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
       - name: Setup xmake
         uses: xmake-io/github-action-setup-xmake@v1
         with:
@@ -86,6 +89,9 @@ jobs:
       - name: Verify shared Web IDE assets
         run: node Tools/dora-dora/scripts/verify-web-release-assets.mjs Assets/www
 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
       - uses: xmake-io/github-action-setup-xmake@v1
         with:
           xmake-version: latest
@@ -99,13 +105,13 @@ jobs:
           cp Tools/dora-wa/wa.mod Assets/dora-wa
           cp -r Tools/dora-wa/vendor Assets/dora-wa
           xmake dora-package --platform=macosx --mode=release
-          cp build/package/macosx/release/dora-ssr-macos-universal.zip "$GITHUB_WORKSPACE/dora-ssr-${{ github.ref_name }}-macos-universal.zip"
+          cp build/package/macosx/arm64/release/dora-ssr-macos-arm64.zip "$GITHUB_WORKSPACE/dora-ssr-${{ github.ref_name }}-macos-arm64.zip"
 
       - name: Upload macOS package
         uses: actions/upload-artifact@v4
         with:
           name: release-macos
-          path: dora-ssr-${{ github.ref_name }}-macos-universal.zip
+          path: dora-ssr-${{ github.ref_name }}-macos-arm64.zip
           if-no-files-found: error
           retention-days: 3
 
@@ -125,24 +131,27 @@ jobs:
       - name: Verify shared Web IDE assets
         run: node Tools/dora-dora/scripts/verify-web-release-assets.mjs Assets/www
 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
       - uses: xmake-io/github-action-setup-xmake@v1
         with:
           xmake-version: latest
 
       - uses: msys2/setup-msys2@v2
         with:
-          msystem: MINGW32
+          msystem: MINGW64
           path-type: inherit
-          install: mingw-w64-i686-gcc
+          install: mingw-w64-x86_64-gcc
 
-      - name: Setup MinGW32 for Go cgo
+      - name: Setup MinGW64 for Go cgo
         shell: msys2 {0}
         run: |
-          mingw32_bin="$(cygpath -w /mingw32/bin)"
-          mingw32_gcc="$(cygpath -w /mingw32/bin/gcc.exe)"
-          test -x /mingw32/bin/gcc.exe
-          echo "${mingw32_bin}" >> "${GITHUB_PATH}"
-          echo "CC=${mingw32_gcc}" >> "${GITHUB_ENV}"
+          mingw64_bin="$(cygpath -w /mingw64/bin)"
+          mingw64_gcc="$(cygpath -w /mingw64/bin/gcc.exe)"
+          test -x /mingw64/bin/gcc.exe
+          echo "${mingw64_bin}" >> "${GITHUB_PATH}"
+          echo "CC=${mingw64_gcc}" >> "${GITHUB_ENV}"
 
       - name: Record xmake version
         run: xmake --version
@@ -154,13 +163,13 @@ jobs:
         run: |
           Remove-Item Env:MSYSTEM -ErrorAction SilentlyContinue
           xmake dora-package --platform=windows --mode=release
-          Move-Item build\package\windows\x86\release\dora-ssr-windows-x86.zip dora-ssr-${{ github.ref_name }}-windows-x86.zip
+          Move-Item build\package\windows\x64\release\dora-ssr-windows-x64.zip dora-ssr-${{ github.ref_name }}-windows-x64.zip
 
       - name: Upload Windows package
         uses: actions/upload-artifact@v4
         with:
           name: release-windows
-          path: dora-ssr-${{ github.ref_name }}-windows-x86.zip
+          path: dora-ssr-${{ github.ref_name }}-windows-x64.zip
           if-no-files-found: error
           retention-days: 3
 
@@ -181,6 +190,9 @@ jobs:
       - name: Verify shared Web IDE assets
         run: node Tools/dora-dora/scripts/verify-web-release-assets.mjs Assets/www
 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
       - uses: xmake-io/github-action-setup-xmake@v1
         with:
           xmake-version: latest
@@ -197,7 +209,7 @@ jobs:
           log-accepted-android-sdk-licenses: false
 
       - name: Install Android native toolchain
-        run: sdkmanager --install 'ndk;26.1.10909125' 'cmake;3.22.1' 'platforms;android-34' 'build-tools;34.0.0'
+        run: sdkmanager --install 'ndk;28.1.13356709' 'cmake;3.22.1' 'platforms;android-35' 'build-tools;34.0.0' 'build-tools;35.0.0'
 
       - name: Record xmake version
         run: xmake --version
@@ -273,6 +285,9 @@ jobs:
             libgbm-dev libegl1-mesa-dev libwayland-dev libwayland-bin \
             wayland-protocols libxkbcommon-dev libdecor-0-dev
 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
       - uses: xmake-io/github-action-setup-xmake@v1
         with:
           xmake-version: latest
@@ -315,8 +330,8 @@ jobs:
       - name: Verify release package set
         run: |
           test -s release-assets/web-ide-files.zip
-          test -s release-assets/dora-ssr-${{ github.ref_name }}-macos-universal.zip
-          test -s release-assets/dora-ssr-${{ github.ref_name }}-windows-x86.zip
+          test -s release-assets/dora-ssr-${{ github.ref_name }}-macos-arm64.zip
+          test -s release-assets/dora-ssr-${{ github.ref_name }}-windows-x64.zip
           test -s release-assets/dora-ssr-${{ github.ref_name }}-android.zip
           test -s release-assets/dora-ssr-${{ github.ref_name }}-linux-x86_64.AppImage
           test -s release-assets/dora-ssr-${{ github.ref_name }}-linux-aarch64.AppImage
@@ -347,13 +362,13 @@ jobs:
       - name: Update Homebrew cask
         env:
           DORA_VERSION: ${{ github.ref_name }}
-          HOMEBREW_PACKAGE: release-assets/dora-ssr-${{ github.ref_name }}-macos-universal.zip
+          HOMEBREW_PACKAGE: release-assets/dora-ssr-${{ github.ref_name }}-macos-arm64.zip
         run: |
           set -euo pipefail
           version="${DORA_VERSION#v}"
           sha256="$(sha256sum "$HOMEBREW_PACKAGE" | awk '{print $1}')"
           cask="homebrew-tap/Casks/dora-ssr.rb"
-          DORA_VERSION="$version" DORA_SHA256="$sha256" ruby -0pi -e 'version = ENV.fetch("DORA_VERSION"); sha256 = ENV.fetch("DORA_SHA256"); gsub(/version "[^"]+"/, "version \"#{version}\""); gsub(/sha256 "[a-fA-F0-9]+"/, "sha256 \"#{sha256}\"")' "$cask"
+          DORA_VERSION="$version" DORA_SHA256="$sha256" ruby -0pi -e 'version = ENV.fetch("DORA_VERSION"); sha256 = ENV.fetch("DORA_SHA256"); gsub(/version "[^"]+"/, "version \"#{version}\""); gsub(/macos-universal\.zip/, "macos-arm64.zip"); gsub(/depends_on :macos(?:\n  depends_on arch: :arm64)?/, "depends_on :macos\n  depends_on arch: :arm64"); gsub(/sha256 "[a-fA-F0-9]+"/, "sha256 \"#{sha256}\"")' "$cask"
           if git -C homebrew-tap diff --quiet -- Casks/dora-ssr.rb; then
             exit 0
           fi

@@ -109,20 +109,19 @@ the existing 15-second audio initialization budget. Game WASM/data/assets remain
 required; optional browser API failures retain their normal return semantics.
 
 
-## Optional Godot runtime
+## Default Godot component
 
-`DORA_WEB_GODOT=1 xmake dora-web` includes the experimental GodotNode adapter and
-stages the separately built runtime from `build/godot-web/package` (override with
-`DORA_WEB_GODOT_RUNTIME_DIR`). Build it first with
-`python3 Tools/Godot/build_web_runtime.py --jobs 2`. Keep experimental outputs in
-explicit separate build/probe/player directories. This option requires COOP/COEP
-even with a single-threaded Dora host; the Godot WASM heap uses threads. It cannot
-use the experimental main-worker host. Default builds remain unchanged.
+Dora 1.10.0 includes the GodotNode adapter and builds/stages the complete matching
+LibGodot Web package by default. `DORA_WEB_GODOT_RUNTIME_DIR` selects an explicit
+verified package; `DORA_WEB_GODOT=0` is an explicit Dora-only build. Standard output
+contains `godot/` with JS/WASM, bridge modules, manifest and upstream notices.
+
+Godot content requires COOP/COEP even with a single-thread Dora host, because the
+Godot heap uses threads. Ordinary Dora HTML exports can still run without
+isolation and skip Godot initialization. Godot projects use the HTTP export on
+an isolated origin. The experimental main-worker host remains incompatible.
 
 Godot directories/PCKs are prefetched through the verified game manifest before
-main. Directory packages include their `.godot` resource cache. The source and
-Godot resource filesystems are startup snapshots; user:// persistence is not yet
-shared. `DORA_WEB_GODOT_DIAGNOSTICS=1` enables only interop/PCM test logs. Actual
-Chrome/M1 Pro node output, lifecycle/resize/aliases/manual input and PCM tests
-passed; DOM input, low latency, browser coverage and release packaging remain.
-See `Tools/Godot/README.md` for repeatable tests and precise evidence.
+main; imported directories include their `.godot` cache. `DORA_WEB_GODOT_DIAGNOSTICS=1`
+is limited to interop/PCM diagnostics. Current project switching, browser and
+hardware evidence boundaries are maintained in `Tools/Godot/RELEASE_1_0.md`.

@@ -2,7 +2,7 @@ import * as Service from '../Service';
 import Info from '../Info';
 import {toUrlPath} from '../PathUtils';
 import {strToU8} from 'fflate';
-import {createWebArchive, digest, readProjectZip, runtimeFiles, type PackageFiles, type WebPackageFormat} from './Archive';
+import {createWebArchive, digest, readProjectZip, runtimeFiles, godotRuntimeFiles, type PackageFiles, type WebPackageFormat} from './Archive';
 
 async function fetchBytes(url: string, limit: number): Promise<Uint8Array> {
   const response = await fetch(url, {signal: AbortSignal.timeout(120000)});
@@ -71,7 +71,7 @@ async function loadRuntime(): Promise<PackageFiles> {
     const base = new URL('web-player/', document.baseURI);
     const index = JSON.parse(new TextDecoder().decode(await fetchBytes(new URL('runtime.json', base).href, 65536)));
     const files: PackageFiles = Object.create(null);
-    for (const file of runtimeFiles.concat(['LICENSE-Dora.txt', 'LICENSES.3rdparty.md', 'NOTICE.txt'])) {
+    for (const file of runtimeFiles.concat(godotRuntimeFiles, ['LICENSE-Dora.txt', 'LICENSES.3rdparty.md', 'NOTICE.txt'])) {
       const entry = index.files?.[file];
       if (!entry || !Number.isSafeInteger(entry.size) || entry.size <= 0 || entry.size > 128 * 1024 * 1024) throw new Error('Invalid runtime index');
       const bytes = await fetchBytes(new URL(file, base).href, entry.size);

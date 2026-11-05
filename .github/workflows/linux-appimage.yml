@@ -7,6 +7,7 @@ on:
     paths:
       - '.github/workflows/linux-appimage.yml'
       - 'Source/**'
+      - 'Tools/Godot/**'
       - 'Tools/tolua\+\+/**'
       - 'Tools/dora-rust/**'
       - 'Tools/dora-dora/**'
@@ -21,6 +22,7 @@ on:
     paths:
       - '.github/workflows/linux-appimage.yml'
       - 'Source/**'
+      - 'Tools/Godot/**'
       - 'Tools/tolua\+\+/**'
       - 'Tools/dora-rust/**'
       - 'Tools/dora-dora/**'
@@ -49,6 +51,9 @@ jobs:
         with:
           submodules: recursive
 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
       - name: Setup xmake
         uses: xmake-io/github-action-setup-xmake@v1
         with:
@@ -136,6 +141,9 @@ jobs:
             libgbm-dev libegl1-mesa-dev libwayland-dev libwayland-bin \
             wayland-protocols libxkbcommon-dev libdecor-0-dev
 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
       - uses: xmake-io/github-action-setup-xmake@v1
         with:
           xmake-version: latest

@@ -23,6 +23,7 @@ task("dora-web")
         local probes = enabled("BUILD_LOVE_PROBE", (option.get("tests") or threads) and "1" or "0")
         local love_player = enabled("BUILD_LOVE_PTHREAD_PLAYER", threads and "1" or "0")
         local studio = enabled("STUDIO_AGENT_HOST", "0")
+        local godot = enabled("GODOT", "1")
         local out = path.absolute(env("BUILD_DIR", path.join(root, "build/web-xmake", profile, threads and "pthread" or "single", mode)), root)
         local probe_dir = path.absolute(env("PACKAGE_DIR", path.join(root, "result/dora-web-build-probe")), root)
         local player_dir = path.absolute(env("PLAYER_PACKAGE_DIR", path.join(root, threads and "result/dora-web-player-pthreads" or "result/dora-web-player")), root)
@@ -79,7 +80,7 @@ task("dora-web")
             "--dora_web_outdir=" .. out, "--dora_web_profile=" .. profile,
             "--dora_web_testdir=" .. envs.DORA_TEST_WEB}
         for key, value in pairs({engine = engine, link_player = player, love_probe = probes, love_pthread_player = love_player,
-            pthreads = threads, godot = enabled("GODOT", "0"), godot_diagnostics = enabled("GODOT_DIAGNOSTICS", "0"), diagnostics = enabled("DIAGNOSTICS", "0"), studio_agent_host = studio,
+            pthreads = threads, godot = godot, godot_diagnostics = enabled("GODOT_DIAGNOSTICS", "0"), diagnostics = enabled("DIAGNOSTICS", "0"), studio_agent_host = studio,
             experimental_main_worker = not studio and enabled("EXPERIMENTAL_MAIN_WORKER", "0")}) do
             table.insert(args, "--dora_web_" .. key .. "=" .. (value and "y" or "n"))
         end
@@ -124,14 +125,17 @@ task("dora-web")
         end
         stage(probe_dir, "dora-player")
         if player then stage(player_dir, "dora-player-runtime", {"dora-player-runtime.data", "dora-web-manifest.json", "dora-web-features.json", "dora-audio-mixer.wasm", "audio-worklet.js", "assets"}) end
-        if player and enabled("GODOT", "0") then
-            local runtime = path.absolute(env("GODOT_RUNTIME_DIR", path.join(root,"build/godot-web/package")),root)
-            assert(os.isfile(path.join(runtime,"manifest.json")),"Build Tools/Godot/build_web_runtime.py first")
+        if player and godot then
+            import("lib.detect.find_tool")
+            local python = assert(find_tool("python3") or find_tool("python"), "Godot requires Python 3")
             local destination=path.join(player_dir,"godot")
-            os.mkdir(destination)
-            for _, file in ipairs(os.files(path.join(runtime,"**"))) do
-                local target=path.join(destination,path.relative(file,runtime));os.mkdir(path.directory(target));os.cp(file,target)
-            end
+            local component_args = {path.join(root,"Tools/Godot/build_component.py"), "--platform", "web", "--arch", "wasm32", "--mode", mode,
+                "--jobs", jobs, "--stage", destination}
+            local runtime = env("GODOT_RUNTIME_DIR", "")
+            if runtime ~= "" then table.join2(component_args, {"--runtime-package", runtime}) end
+            os.vrunv(python.program, component_args, {curdir = root, envs = {DORA_XMAKE = os.programfile()}})
+        elseif player then
+            os.tryrm(path.join(player_dir,"godot"))
         end
         if love_player then stage(love_dir, "love-pthread-player", {"love-pthread-player.data", "dora-audio-mixer.wasm", "audio-worklet.js"}) end
     end)

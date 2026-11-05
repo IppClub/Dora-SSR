@@ -47,20 +47,26 @@
 ## 最终交付仍缺少的证据
 
 - [ ] **候选身份和 CI**：运行时代码候选及实际测试 revision 已核对，当前结果见下方清单；仍须补齐 Linux 完整 Release 组合，并保留 macOS runner 未分配的缺口，不据工作流定义或部分通过推断全部成功。
-- [ ] **候选包对应关系**：将拟分发的宿主、LibGodot manifest、架构/后端和许可逐项对应到候选源码；通用 `dora-package` 的 Godot 包参数是可选的，常规 Dora 构建成功不能证明含有匹配 LibGodot。旧测试包和本地 QA 签名不充作最终发布包。
+- [ ] **候选包对应关系**：将拟分发的宿主、LibGodot manifest、架构/后端和许可逐项对应到候选源码；`1.10.0`已将Godot改为默认正式组件，仍须独立核对各平台新包包含匹配LibGodot及许可。旧测试包和本地 QA 签名不充作最终发布包。
 - [ ] **仅补缺失覆盖**：先查当前 CI 中普通宿主 A→B→A 的产物与报告；Linux x64/Release 只补确实缺少的项目切换证据。既有通过矩阵不重复。iOS/D3D12/物理设备/长期压力及扩展兼容性维持已注明的延期或未覆盖状态。
 
 公开 Release、tag、发布签名、公证、上传及 Hub 工程浏览界面不在本轮执行动作内。后续发布单独确认交付清单；本页不声称已公开发布。
 
 ## 当前候选核对
 
-运行时代码候选固定为`2bdad734a372499cfc606d0c4d493f722d0fe0b8`，原CI日志实际解析的Dora-Example版本为`aec520851ba747a9315997e2c5d9bf2b521902e5`。后续单项验收入口提交仅修改CI编排和测试驱动，不改变该候选运行时代码。
+以下为上一轮`1.9.4`候选审计，不能代替当前`1.10.0`默认组件产物的验收。上一轮运行时代码候选为`2bdad734a372499cfc606d0c4d493f722d0fe0b8`，原CI日志实际解析的Dora-Example版本为`aec520851ba747a9315997e2c5d9bf2b521902e5`。后续单项验收入口提交仅修改CI编排和测试驱动，不改变该候选运行时代码。
 
 - [x] 原CI实际测试revision已从[Ubuntu协议任务](https://github.com/IppClub/Dora-SSR/actions/runs/41854885101/job/126660702194)日志确认。
 - [x] 两架构AppImage已下载静态检查：均不包含LibGodot或GodotRuntimeNotices，不能当作Godot最终包。
-- [x] [Godot Linux任务](https://github.com/IppClub/Dora-SSR/actions/runs/41854885101/job/126660702345)的构建、原有矩阵、普通Release宿主退出/回退、Wasm trap、3D工程及上传步骤均成功；产物`godot-linux-egl`（ID `13341903137`）已生成。任务总状态尚未完成，不能记为整个工作流通过。
-- [ ] 等原Linux任务正式成功后，单独消费其Release宿主；若运行库为Debug，只补建一次LibGodot Release，再运行一次A→B→A。入口为`godot-release-candidate.yml`，测试入口固定`2d1e2d15dd6d379ad29224187356baf7705550aa`；不重编译宿主或重跑旧矩阵，分别核对优化标志、runtime target、源码和测试fixture身份。此次单项动态验收尚未执行。
+- [x] [Godot Linux任务](https://github.com/IppClub/Dora-SSR/actions/runs/41854885101/job/126660702345)的构建、原有矩阵、普通Release宿主退出/回退、Wasm trap、3D工程及上传步骤均成功；产物`godot-linux-egl`（ID `13341903137`）已生成。该job已于2026-11-04 16:18:41 UTC正式成功；不能据此记为其他平台或当前1.10.0工作流通过。
+- [ ] 原Linux任务已正式成功，后续单独消费其Release宿主；若运行库为Debug，只补建一次LibGodot Release，再运行一次A→B→A。入口为`godot-release-candidate.yml`，测试入口固定`2d1e2d15dd6d379ad29224187356baf7705550aa`；不重编译宿主或重跑旧矩阵，分别核对优化标志、runtime target、源码和测试fixture身份。此次单项动态验收尚未执行。
 - [ ] macOS、iOS设备Debug/Release及模拟器Release、macOS Web：对应子任务未取得GitHub runner，未执行代码；Web子任务只重试一次后仍因容量被取消。iOS模拟器Debug子任务已通过，但普通Dora构建不证明Godot Apple4正向运行。保留其余基础设施缺口，不据此修改源码或记为通过。
-- [ ] GitHub Actions状态恢复：北京时间2026-11-05 00:18:38，Linux最后一个步骤已成功结束，但job/check-run总状态仍为`in_progress`；同期[官方Actions故障](https://www.githubstatus.com/incidents/xr3myzj7ms51)仍在调查。状态延迟原因尚未独立确认，不绕过成功状态门槛或重复原矩阵。
+- [x] 原Linux job总状态延迟已恢复并正式成功；其余runner缺口独立保留。
 
 当前核对记录暂存`build/godot-1.0-candidate-v2/`。候选CI、单项验收与最终分发包仍须分别满足前述交付门槛。
+
+## 1.10.0 默认组件
+
+- [x] Godot进入普通构建/打包和Studio双Player默认链路，仍可显式裁剪；macOS默认arm64，Windows默认x64/WGL。
+- [x] 版本及自更新文件名同步；1.10.0清单采用新架构名，保留旧版清单读取。旧客户端不自动跨CPU架构迁移，更新渠道发布数据另行审核发布。
+- [ ] 当前改动提交后的跨平台CI与最终候选包核对；本地macOS/Studio动态验证不代替其他平台设备验收。

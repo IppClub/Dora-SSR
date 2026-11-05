@@ -49,6 +49,10 @@ target("Dora")
     -- common to every native host, including direct Android builds: Release
     -- must define NDEBUG so App.debugging and LLM context dumps are disabled.
     add_rules("mode.debug", "mode.release")
+    if is_plat("macosx", "iphoneos", "linux", "windows") then
+        if has_config("dora_godot_runtime") then add_deps("godot-component", {inherit = false}) end
+        add_rules("dora.godot-component")
+    end
     add_deps("dora-lua-bindings", "SDL2", "love", "theoradec", "bgfx", "shaderc-lib")
     if is_plat("macosx", "linux", "windows", "iphoneos") then
         add_deps("dora-rust-runtime", "dora-wa-runtime")

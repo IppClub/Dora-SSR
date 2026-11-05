@@ -96,8 +96,11 @@ jobs:
       - name: Check whether the source runtime is Release
         id: runtime
         run: |
-          python3 Tools/Godot/verify_package.py candidate-artifact/godot-linux/package
-          python3 -c 'import json; from pathlib import Path; m=json.loads(Path("candidate-artifact/godot-linux/package/manifest.json").read_text()); print("release="+str(m.get("build_target")=="template_release").lower())' >> "$GITHUB_OUTPUT"
+          runtime="$PWD/candidate-artifact/godot-component/linux/x86_64/release/package"
+          if [ ! -f "$runtime/manifest.json" ]; then runtime="$PWD/candidate-artifact/godot-linux/package"; fi
+          python3 Tools/Godot/verify_package.py "$runtime"
+          echo "directory=$runtime" >> "$GITHUB_OUTPUT"
+          python3 -c 'import json,sys; from pathlib import Path; m=json.loads((Path(sys.argv[1])/"manifest.json").read_text()); print("release="+str(m.get("build_target")=="template_release").lower())' "$runtime" >> "$GITHUB_OUTPUT"
 
       - uses: xmake-io/github-action-setup-xmake@v1
         if: steps.runtime.outputs.release != 'true'
@@ -113,11 +116,13 @@ jobs:
         run: bash Tools/Godot/build_linux_runtime.sh
 
       - name: Select the verified runtime package
+        env:
+          SOURCE_RUNTIME: ${{ steps.runtime.outputs.directory }}
         run: |
           if [ -f build/godot-candidate-release/runtime/package/manifest.json ]; then
             echo "CANDIDATE_RUNTIME=$PWD/build/godot-candidate-release/runtime/package" >> "$GITHUB_ENV"
           else
-            echo "CANDIDATE_RUNTIME=$PWD/candidate-artifact/godot-linux/package" >> "$GITHUB_ENV"
+            echo "CANDIDATE_RUNTIME=$SOURCE_RUNTIME" >> "$GITHUB_ENV"
           fi
 
       - name: One optimized ordinary-host A to B to A case

@@ -28,6 +28,7 @@ type runtimeManifest struct {
 	EngineVersion string `json:"engineVersion"`
 	Profile       string `json:"profile"`
 	Entry         string `json:"entry"`
+	Godot         bool   `json:"godot"`
 }
 
 // NewRuntimeHandler serves the immutable game Player on a dedicated origin.
@@ -51,6 +52,19 @@ func NewRuntimeHandler(root string) (http.Handler, error) {
 			return nil, errors.New("incomplete Studio Player build")
 		}
 	}
+	publicFiles := make(map[string]string, len(runtimeFiles)+8)
+	for url, name := range runtimeFiles {
+		publicFiles[url] = name
+	}
+	if manifest.Godot {
+		files, loadErr := loadGodotAssets(root)
+		if loadErr != nil {
+			return nil, loadErr
+		}
+		for name := range files {
+			publicFiles["/"+name] = name
+		}
+	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cross-Origin-Opener-Policy", "same-origin")
 		w.Header().Set("Cross-Origin-Embedder-Policy", "require-corp")
@@ -66,7 +80,7 @@ func NewRuntimeHandler(root string) (http.Handler, error) {
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 			return
 		}
-		name, ok := runtimeFiles[r.URL.Path]
+		name, ok := publicFiles[r.URL.Path]
 		query := r.URL.Query()
 		validBuildQuery := r.URL.RawQuery == "" || (len(query) == 1 && query.Get("engineBuild") == manifest.EngineBuild)
 		if !ok || !validBuildQuery || r.URL.Fragment != "" || strings.Contains(r.URL.Path, "..") {

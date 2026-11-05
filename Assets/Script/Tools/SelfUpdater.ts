@@ -173,6 +173,7 @@ const installPreparedPackage = (pending: PreparedInstallation) => {
 	const packageInfo = valueSnapshot.source === "AtomGit"
 		? valueSnapshot.manifest.packages[platform]
 		: valueSnapshot.packages[platform];
+	if (!packageInfo) { prepared = undefined; return; }
 	installing = true;
 	if (pending.installPath && Content.exist(pending.installPath)) {
 		progress = { progress: 1, message: zh ? "正在启动安装程序…" : "Starting installer…", source: value.source };
@@ -202,7 +203,7 @@ const installPreparedPackage = (pending: PreparedInstallation) => {
 		progress = { progress: 1, message: zh ? "正在启动安装程序…" : "Starting installer…", source: value.source };
 		const installPath = platform === "android"
 			? Path(unzipPath, `dora-ssr-${version}-android.apk`)
-			: platform === "macos-universal"
+			: (platform === "macos-universal" || platform === "macos-arm64")
 				? Path(unzipPath, "Dora.app")
 				: unzipPath;
 		if (!Content.exist(installPath)) {
@@ -365,7 +366,9 @@ threadLoop(() => {
 			const platform = updatePlatformForApp();
 			const installSupported = platform === "android"
 				|| platform === "windows-x86"
-				|| platform === "macos-universal";
+				|| platform === "macos-universal"
+				|| platform === "windows-x64"
+				|| platform === "macos-arm64";
 			if (installSupported) {
 				if (prepared) {
 					const pending = prepared;

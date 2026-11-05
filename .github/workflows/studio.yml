@@ -8,6 +8,7 @@ on:
       - '.github/actions/setup-engine-lua/**'
       - 'Studio/**'
       - 'Source/**'
+      - 'Tools/Godot/**'
       - 'Assets/**'
       - 'Tools/dora-dora/**'
       - 'Tools/tolua\+\+/**'
@@ -24,6 +25,7 @@ on:
       - '.github/actions/setup-engine-lua/**'
       - 'Studio/**'
       - 'Source/**'
+      - 'Tools/Godot/**'
       - 'Assets/**'
       - 'Tools/dora-dora/**'
       - 'Tools/tolua\+\+/**'
@@ -41,6 +43,7 @@ permissions:
 jobs:
   check:
     runs-on: ubuntu-latest
+    timeout-minutes: 180
     steps:
       - uses: actions/checkout@v4
       - name: Setup pnpm
@@ -59,6 +62,9 @@ jobs:
         uses: xmake-io/github-action-setup-xmake@v1
         with:
           xmake-version: latest
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
@@ -73,8 +79,21 @@ jobs:
       - name: Resolve Dora-Example tests once
         working-directory: .
         run: xmake dora-test-deps --env-file="$GITHUB_ENV"
+      - name: Build default Studio products including Godot
+        run: pnpm --dir Studio build
       - name: Test Studio frontend and Go backend with built Agent host
         run: xmake dora-test --suite=studio
+      - name: Retain default Studio products
+        uses: actions/upload-artifact@v4
+        with:
+          name: dora-studio-linux-amd64
+          path: |
+            Studio/build/bin/dora-studio-server
+            Studio/apps/web/dist/
+            Studio/dist/agent-host/
+            result/dora-studio-agent-engine/
+            build/studio-runtime/
+          if-no-files-found: error
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4

@@ -14,6 +14,8 @@ const runtimeNames = [
   'dora-web-features.json',
   'audio-worklet.js',
   'dora-audio-mixer.wasm',
+  ...['dora-godot.js', 'dora-godot.wasm', 'shared_gl.mjs', 'runtime_bridge.mjs',
+    'manifest.json', 'LICENSE.txt', 'COPYRIGHT.txt', 'AUTHORS.md'].map(name => 'godot/' + name),
 ];
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 const describe = bytes => ({size: bytes.length, sha256: hash(bytes)});
@@ -24,9 +26,11 @@ const hasExportFeatures = runtime => {
   try {
     const features = JSON.parse(runtime['dora-web-features.json']);
     return features?.modules?.model3D === true
+      && features.studioAgentHost !== true
       && features.modules.jolt3D === true
       && features.modules.rustBridge === true
       && features.modules.loveNode === true
+      && features.modules.godotNode === true
       && features.modules.yueCompiler === false
       && features.modules.tealCompiler === false
       && features.modules.xmlCompiler === false;
@@ -59,6 +63,7 @@ async function publish(runtime, version, sourceState) {
       const bytes = runtime[name];
       if (!bytes?.length) throw new Error(`Missing locally built Web runtime file: ${name}`);
       files[name] = describe(bytes);
+      await fs.mkdir(path.dirname(path.join(stage, name)), {recursive: true});
       await fs.writeFile(path.join(stage, name), bytes);
     }
     for (const [name, bytes] of Object.entries(localFiles)) {
@@ -160,6 +165,7 @@ if (process.env.DORA_WEB_RUNTIME_LOCK) {
         DORA_WEB_BUILD_LOVE_PTHREAD_PLAYER: '0',
         DORA_WEB_PTHREADS: '0',
         DORA_WEB_PROFILE: 'dora-preset',
+        DORA_WEB_GODOT: '1',
         DORA_WEB_FEATURE_YUE: 'OFF',
         DORA_WEB_FEATURE_MUSIC: 'OFF',
         DORA_WEB_ALLOW_TOOLCHAIN_DRIFT: process.env.DORA_WEB_ALLOW_TOOLCHAIN_DRIFT ?? (process.env.CI ? '0' : '1'),

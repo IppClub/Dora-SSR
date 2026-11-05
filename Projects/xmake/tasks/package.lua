@@ -66,10 +66,12 @@ local function package_macos(mode, arch, api)
     local build_architectures = arch == "universal" and {"arm64", "x86_64"} or {arch}
     for _, build_arch in ipairs(build_architectures) do
         cprint("${bright}building macOS %s %s with xmake${clear}", build_arch, mode)
-        os.vrunv(xmake, {"f", "-P", projectdir, "-y", "-p", "macosx", "-a", build_arch, "-m", mode}, {
+        os.vrunv(xmake, {"f", "-P", projectdir, "-y", "-p", "macosx", "-a", build_arch, "-m", mode,
+            "--dora_godot_runtime=" .. (api.godot_runtime and "y" or "n")}, {
             curdir = projectdir
         })
-        os.vrunv(xmake, {"build", "-P", projectdir, "Dora"}, {curdir = projectdir})
+        os.vrunv(xmake, {"build", "-P", projectdir, "Dora"}, {curdir = projectdir,
+            envs = {DORA_GODOT_RUNTIME_DIR = api.godot_override or ""}})
         local app = path.join(projectdir, "build/macosx", build_arch, mode, "Dora.app")
         ensure(os.isdir(app), "missing xmake macOS output: " .. app)
         apps[build_arch] = app
@@ -132,7 +134,8 @@ local function package_linux(mode, arch, api)
 
     local projectdir = os.projectdir()
     local xmake = os.programfile()
-    local config_args = {"f", "-P", projectdir, "-y", "-p", "linux", "-a", arch, "-m", mode}
+    local config_args = {"f", "-P", projectdir, "-y", "-p", "linux", "-a", arch, "-m", mode,
+        "--dora_godot_runtime=" .. (api.godot_runtime and "y" or "n")}
     local host_arch = os.arch()
     if host_arch ~= arch and not (host_arch == "aarch64" and arch == "arm64") then
         table.insert(config_args, "--cross=" .. (arch == "x86_64"
@@ -140,7 +143,8 @@ local function package_linux(mode, arch, api)
     end
     cprint("${bright}building Linux %s %s with xmake${clear}", arch, mode)
     os.vrunv(xmake, config_args, {curdir = projectdir})
-    os.vrunv(xmake, {"build", "-P", projectdir, "Dora"}, {curdir = projectdir})
+    os.vrunv(xmake, {"build", "-P", projectdir, "Dora"}, {curdir = projectdir,
+        envs = {DORA_GODOT_RUNTIME_DIR = api.godot_override or ""}})
 
     local binary = path.join(projectdir, "build/linux", arch, mode, "Dora")
     ensure(os.isfile(binary), "missing xmake Linux output: " .. binary)
@@ -171,7 +175,13 @@ local function package_linux(mode, arch, api)
         end
     end
 
+    local dependency_roots = {[staged_binary] = true}
     local dependencies = os.iorunv(lddtree.program, {"-l", staged_binary}, {envs = lddtree_envs})
+    if api.godot_runtime then
+        local library = path.join(appdir, "usr/share/dora-ssr/Assets/libdora_godot.so")
+        dependency_roots[library] = true
+        dependencies = dependencies .. "\n" .. os.iorunv(lddtree.program, {"-l", library}, {envs = lddtree_envs})
+    end
     for dependency in dependencies:gmatch("[^\r\n]+") do
         local name = path.filename(dependency)
         local system_runtime = name:find("^ld%-linux")
@@ -188,7 +198,7 @@ local function package_linux(mode, arch, api)
         local graphics_runtime = name:find("^libGL") or name:find("^libEGL")
             or name:find("^libdrm") or name:find("^libgbm")
             or name:find("^libvulkan")
-        if dependency ~= staged_binary and not dependency:find("^linux%-vdso")
+        if not dependency_roots[dependency] and not dependency:find("^linux%-vdso")
             and not system_runtime and not graphics_runtime then
             ensure(os.isfile(dependency), "unresolved runtime dependency: " .. dependency)
             os.cp(dependency, path.join(appdir, "usr/lib", name), {symlink = false})
@@ -282,10 +292,12 @@ local function package_windows(mode, arch, api)
     local projectdir = os.projectdir()
     local xmake = os.programfile()
     cprint("${bright}building Windows %s %s with xmake${clear}", arch, mode)
-    os.vrunv(xmake, {"f", "-P", projectdir, "-y", "-p", "windows", "-a", arch, "-m", mode}, {
+    os.vrunv(xmake, {"f", "-P", projectdir, "-y", "-p", "windows", "-a", arch, "-m", mode,
+        "--dora_godot_runtime=" .. (api.godot_runtime and "y" or "n")}, {
         curdir = projectdir
     })
-    os.vrunv(xmake, {"build", "-P", projectdir, "Dora"}, {curdir = projectdir})
+    os.vrunv(xmake, {"build", "-P", projectdir, "Dora"}, {curdir = projectdir,
+        envs = {DORA_GODOT_RUNTIME_DIR = api.godot_override or ""}})
 
     local targetdir = path.join(projectdir, "build/windows", arch, mode)
     local assets = path.join(projectdir, "Assets")
@@ -345,7 +357,8 @@ task("dora-package")
             {nil, "format", "kv", nil, "Package format: Android apk/aab, iOS zip/ipa"},
             {nil, "appledev", "kv", "simulator", "iOS SDK: simulator or device"},
             {nil, "profile", "kv", nil, "Web profile: core, dora-preset or custom"},
-            {nil, "godot-runtime", "kv", nil, "Optional verified Dora/Godot runtime package directory"},
+            {nil, "godot-runtime", "kv", nil, "Override the default built Godot runtime with a verified matching package"},
+            {nil, "without-godot", "k", nil, "Explicitly build a Dora-only package"},
             {nil, "pthreads", "k", nil, "Enable the pthread Web profile"}
         }
     }
@@ -357,21 +370,31 @@ task("dora-package")
         local platform = option.get("platform")
         local mode = option.get("mode") or "debug"
         assert(mode == "debug" or mode == "release", "--mode must be debug or release")
+        local without_godot = option.get("without-godot")
+        local godot_override = option.get("godot-runtime") or os.getenv("DORA_GODOT_RUNTIME_DIR")
+        assert(not (without_godot and godot_override), "--without-godot cannot select a runtime package")
         if platform == "web" or platform == "wasm" then
             local args = {"dora-web", "-P", os.projectdir(), "--mode=" .. mode}
             if option.get("profile") then table.insert(args, "--profile=" .. option.get("profile")) end
             if option.get("pthreads") then table.insert(args, "--pthreads") end
-            os.vrunv(os.programfile(), args, {curdir = os.projectdir()})
+            os.vrunv(os.programfile(), args, {curdir = os.projectdir(), envs = {
+                DORA_WEB_GODOT = without_godot and "0" or "1", DORA_WEB_GODOT_RUNTIME_DIR = godot_override or ""}})
             return
         end
         if platform == "iphoneos" or platform == "ios" then
             import("Projects.xmake.tasks.ios_package", {rootdir = os.projectdir(), anonymous = true})({
-                mode = mode, arch = option.get("arch"), appledev = option.get("appledev"), format = option.get("format")
+                mode = mode, arch = option.get("arch"), appledev = option.get("appledev"), format = option.get("format"),
+                godot = not without_godot, godot_runtime = godot_override
             })
             return
         end
         local format = option.get("format") or "apk"
-        local godot_runtime = option.get("godot-runtime") or os.getenv("DORA_GODOT_RUNTIME_DIR")
+        local default_arch = platform == "macosx" and (without_godot and "universal" or "arm64")
+            or (platform == "windows" and (without_godot and "x86" or "x64") or os.arch())
+        local arch = option.get("arch") or default_arch
+        local runtime_arch = arch == "x64" and "x86_64" or (arch == "aarch64" and "arm64" or arch)
+        local godot_runtime = not without_godot and (godot_override or
+            path.join(os.projectdir(), "build/godot-component", platform, runtime_arch, mode, "package")) or nil
         assert(platform == "android" or platform == "linux" or platform == "macosx"
             or platform == "windows",
             "dora-package supports android, linux, macosx and windows")
@@ -380,11 +403,12 @@ task("dora-package")
             "--format=aab is supported for Android release only")
 
         if platform == "macosx" then
-            package_macos(mode, option.get("arch") or (godot_runtime and "arm64" or "universal"), {
+            package_macos(mode, arch, {
                 ensure = assert,
                 cprint = cprint,
                 find_tool = find_tool,
                 godot_runtime = godot_runtime,
+                godot_override = godot_override,
                 json = json,
                 os = os,
                 path = path
@@ -393,11 +417,12 @@ task("dora-package")
         end
 
         if platform == "linux" then
-            package_linux(mode, option.get("arch") or os.arch(), {
+            package_linux(mode, runtime_arch, {
                 ensure = assert,
                 cprint = cprint,
                 find_tool = find_tool,
                 godot_runtime = godot_runtime,
+                godot_override = godot_override,
                 json = json,
                 os = os,
                 path = path
@@ -407,11 +432,12 @@ task("dora-package")
 
 
         if platform == "windows" then
-            package_windows(mode, option.get("arch") or (godot_runtime and "x64" or "x86"), {
+            package_windows(mode, arch, {
                 ensure = assert,
                 cprint = cprint,
                 find_tool = find_tool,
                 godot_runtime = godot_runtime,
+                godot_override = godot_override,
                 json = json,
                 os = os,
                 path = path
@@ -443,7 +469,8 @@ task("dora-package")
         local gradlew = path.join(gradle_root, os.host() == "windows" and "gradlew.bat" or "gradlew")
         local gradle_task = format == "aab" and "bundleRelease"
             or (mode == "debug" and "assembleDebug" or "assembleRelease")
-        local gradle_args = {gradle_task}
+        local gradle_args = {gradle_task, "-Pdora.godot=" .. (without_godot and "false" or "true")}
+        if godot_override then table.insert(gradle_args, "-Pdora.godot.runtimePackage=" .. path.absolute(godot_override)) end
         local signing = {
             store = os.getenv("DORA_ANDROID_SIGNING_STORE_FILE"),
             store_password = os.getenv("DORA_ANDROID_SIGNING_STORE_PASSWORD"),

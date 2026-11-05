@@ -175,18 +175,22 @@ dev_logs() {
 
 valid_runtime() {
 	local directory=$1
+	[[ -s "$directory/godot/manifest.json" && -s "$directory/godot/dora-godot.wasm" ]] || return 1
+	python3 "$ROOT_DIR/Tools/Godot/verify_package.py" "$directory/godot" >/dev/null || return 1
 	[[ -s "$directory/studio-runtime.json" && -s "$directory/dora-web-features.json" && -s "$directory/index.html" \
 		&& -s "$directory/dora-player-runtime.js" && -s "$directory/dora-player-runtime.wasm" && -s "$directory/dora-player-runtime.data" ]] || return 1
-	node -e 'const f=JSON.parse(require("node:fs").readFileSync(process.argv[1],"utf8"));if(f.profile!=="dora-preset"||!f.engineBuild)process.exit(1)' "$directory/studio-runtime.json"
-	node -e 'const f=JSON.parse(require("node:fs").readFileSync(process.argv[1],"utf8"));if(f.activeProfile!=="dora-preset"||f.studioAgentHost!==false||f.modules?.threads!==true||f.modules?.crossOriginIsolationRequired!==true||f.modules?.musicGenerator!==true||f.modules?.rustBridge!==true)process.exit(1)' "$directory/dora-web-features.json"
+	node -e 'const f=JSON.parse(require("node:fs").readFileSync(process.argv[1],"utf8"));if(f.profile!=="dora-preset"||f.godot!==true||f.engineVersion!==require(process.argv[2]).version||!f.engineBuild)process.exit(1)' "$directory/studio-runtime.json" "$STUDIO_DIR/package.json"
+	node -e 'const f=JSON.parse(require("node:fs").readFileSync(process.argv[1],"utf8"));if(f.activeProfile!=="dora-preset"||f.studioAgentHost!==false||f.modules?.godotNode!==true||f.modules?.threads!==true||f.modules?.crossOriginIsolationRequired!==true||f.modules?.musicGenerator!==true||f.modules?.rustBridge!==true)process.exit(1)' "$directory/dora-web-features.json"
 	node -e 'const b=require("node:fs").readFileSync(process.argv[1]);if(!b.includes(Buffer.from("Audio.renderMusicAsync should be run in a thread")))process.exit(1)' "$directory/dora-player-runtime.wasm"
 	node -e 'const s=require("node:fs").readFileSync(process.argv[1],"utf8"),m=s.match(/\/builtin\/Font\/sarasa-mono-sc-regular\.ttf.{0,64}?start:(\d+),end:(\d+)/s);if(s.includes("Streaming is only supported when FETCH_STREAMING is enabled")||!m||Number(m[2])-Number(m[1])<1_000_000)process.exit(1)' "$directory/dora-player-runtime.js"
 }
 
 valid_agent_engine() {
 	local directory=$1
+	[[ -s "$directory/godot/manifest.json" && -s "$directory/godot/dora-godot.wasm" ]] || return 1
+	python3 "$ROOT_DIR/Tools/Godot/verify_package.py" "$directory/godot" >/dev/null || return 1
 	[[ -s "$directory/dora-web-features.json" && -s "$directory/dora-player-runtime.js" && -s "$directory/dora-player-runtime.wasm" ]] || return 1
-	node -e 'const f=JSON.parse(require("node:fs").readFileSync(process.argv[1],"utf8"));if(f.studioAgentHost!==true||f.activeProfile!=="dora-preset"||f.modules?.musicGenerator!==true||f.modules?.rustBridge!==true)process.exit(1)' "$directory/dora-web-features.json"
+	node -e 'const f=JSON.parse(require("node:fs").readFileSync(process.argv[1],"utf8"));if(f.studioAgentHost!==true||f.activeProfile!=="dora-preset"||f.modules?.godotNode!==true||f.modules?.musicGenerator!==true||f.modules?.rustBridge!==true)process.exit(1)' "$directory/dora-web-features.json"
 	node -e 'const b=require("node:fs").readFileSync(process.argv[1]);if(!b.includes(Buffer.from("Audio.renderMusicAsync should be run in a thread")))process.exit(1)' "$directory/dora-player-runtime.wasm"
 	node -e 'const s=require("node:fs").readFileSync(process.argv[1],"utf8");if(s.includes("Streaming is only supported when FETCH_STREAMING is enabled"))process.exit(1)' "$directory/dora-player-runtime.js"
 }
@@ -211,7 +215,7 @@ prepare_engines() {
 			DORA_WEB_PACKAGE_DIR="$temporary/probe" \
 			DORA_WEB_PLAYER_PACKAGE_DIR="$source_player" \
 			DORA_WEB_BUILTIN_FONT="$ROOT_DIR/Assets/Font/sarasa-mono-sc-regular.ttf" \
-			DORA_WEB_BUILD_ENGINE=1 DORA_WEB_LINK_PLAYER=1 DORA_WEB_PTHREADS=1 \
+			DORA_WEB_BUILD_ENGINE=1 DORA_WEB_LINK_PLAYER=1 DORA_WEB_PTHREADS=1 DORA_WEB_GODOT=1 \
 			DORA_WEB_BUILD_LOVE_PROBE=0 DORA_WEB_BUILD_LOVE_PTHREAD_PLAYER=0 \
 			DORA_WEB_PROFILE=dora-preset DORA_WEB_FEATURE_YUE=OFF DORA_WEB_FEATURE_MUSIC=ON \
 			DORA_WEB_FEATURE_PHYSICS_2D=ON DORA_WEB_FEATURE_ENTITY=ON DORA_WEB_FEATURE_PLATFORMER=ON \
@@ -272,7 +276,7 @@ package_all() {
 	STUDIO_PACKAGE_PUBLIC_ORIGIN="$public_origin"
 	STUDIO_PACKAGE_AGENT_HOST_ORIGIN="$agent_origin"
 	STUDIO_PACKAGE_RUNTIME_ORIGIN="$runtime_origin"
-	version_label="$(git -C "$ROOT_DIR" describe --tags --always | tr '/ ' '--')-$(git -C "$ROOT_DIR" rev-parse --short=12 HEAD)-$(date -u +%Y%m%dT%H%M%SZ)"
+	version_label="$(node -p 'require(process.argv[1]).version' "$STUDIO_DIR/package.json")-$(git -C "$ROOT_DIR" rev-parse --short=12 HEAD)-$(date -u +%Y%m%dT%H%M%SZ)"
 	STUDIO_PACKAGE_VERSION="${STUDIO_PACKAGE_VERSION:-$version_label}"
 	[[ "$STUDIO_PACKAGE_VERSION" =~ ^[A-Za-z0-9._-]+$ ]] || die 'STUDIO_PACKAGE_VERSION contains unsupported characters.'
 	export STUDIO_PACKAGE_PUBLIC_ORIGIN STUDIO_PACKAGE_AGENT_HOST_ORIGIN STUDIO_PACKAGE_RUNTIME_ORIGIN STUDIO_PACKAGE_VERSION

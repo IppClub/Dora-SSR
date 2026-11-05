@@ -19,6 +19,16 @@ Web PCM 更新（2026-10-29）：宿主与 Godot 运行在同一 window 线程�
 
 仓库/Git URL/源码 ZIP 的隔离导入、PCK 试玩包导出、归档安装和普通 Dora 试玩入口见 [工程与试玩包](PROJECTS.md)。游戏数据包复用宿主 LibGodot，不重复包含引擎二进制；常驻实例的跨工程卸载/切换已在 [macOS Metal / Linux EGL / Windows x64 WGL / Android EGL / WebGL2 默认支持](PROJECT_SWITCH.md)，无需实验开关；已提供卸载完成通知及Lua串行控制器，官方2D/3D源码和PCK反复切换通过，正式化和其他平台单列跟踪。
 
+## 默认正式组件（Dora 1.10.0）
+
+Godot 默认参与构建并随产物打包，不需要预先运行独立实验脚本。桌面 `xmake build Dora` 构建匹配模式的运行库；`xmake dora-package --platform=macosx|linux|windows --mode=release` 自动封包。默认 macOS 为 arm64、Windows 为 x64/WGL，Linux 支持 x86_64/arm64。运行库和许可证必须完整，缺失或模式/架构不符会失败，不静默输出缺功能的包。
+
+Android 的默认 Gradle APK/AAB包含各选定ABI的Godot运行库及vendor Java AAR；原生库按ABI串行构建，正式库采用Release。`xmake dora-web` 默认包含WebGL2桥接和独立Godot JS/WASM。`xmake dora-studio` 同时生成专用Agent引擎和pthread游戏Player，`Studio/pnpm build`也会执行此步骤。Studio准备、打包和Go静态服务均包含Godot资源及通知；Godot内容要求COOP/COEP，普通Dora离线HTML不初始化Godot。
+
+iOS默认arm64包嵌入`DoraGodot.framework`，Dora Apple2/Godot Apple4门槛保持不变；包含运行库不代表已完成iOS正向渲染验收。需要旧架构或明确裁剪时，桌面用`--dora_godot_runtime=n`、打包用`--without-godot`、Android用`-Pdora.godot=false`、Web用`DORA_WEB_GODOT=0`。`--godot-runtime`仅用于显式替换经过验证且模式/架构/后端匹配的包。
+
+生产运行库输出在`build/godot-component/<platform>/<arch>/<mode>/package`（iOS另分SDK），独立维护脚本及其旧输出位置继续可用。源码、CI、包完整性和GPU验收仍分别记录，见[1.0支持与交付清单](RELEASE_1_0.md)。
+
 ## 构建和验证
 
 官方开源项目回归目前使用 `godotengine/godot-demo-projects` 的
@@ -254,7 +264,7 @@ GPU 纹理与 fence 协议。`tests/particle_key.py` 单独检查材质键的填
 
 ## 节点使用
 
-普通 macOS / Linux / Windows Dora 构建包含节点适配层。各平台的 LibGodot 是运行时可选依赖。必须使用本目录脚本构建的 Dora bridge 运行库；上游原版 LibGodot 没有此 C ABI，不能直接替换。指定 `DORA_GODOT_LIBRARY` 为 `build/godot-runtime/package/libdora_godot.dylib` 的绝对路径，或将匹配动态库放到资源根目录的 `libdora_godot.dylib`。Linux 对应 `build/godot-linux/package/libdora_godot.so`。请以构建脚本实际输出的 package 路径为准。
+普通 macOS / Linux / Windows Dora 构建包含节点适配层。默认构建随附各平台 LibGodot，显式裁剪的 Dora-only 构建仍可在缺库时安全返回不支持。必须使用本目录脚本构建的 Dora bridge 运行库；上游原版 LibGodot 没有此 C ABI，不能直接替换。指定 `DORA_GODOT_LIBRARY` 为 `build/godot-runtime/package/libdora_godot.dylib` 的绝对路径，或将匹配动态库放到资源根目录的 `libdora_godot.dylib`。Linux 对应 `build/godot-linux/package/libdora_godot.so`。请以构建脚本实际输出的 package 路径为准。
 
 正式桌面包使用版本1运行库目录，而不是只传单个动态库。打包入口先验证Godot 4.6、bridge ABI、逐文件哈希和许可清单，再把库放入默认资源根，将清单与许可放入`GodotRuntimeNotices/`：
 
@@ -264,7 +274,7 @@ xmake dora-package --platform=macosx --arch=arm64 --mode=release \
   --godot-runtime="$PWD/build/godot-runtime/release/package"
 ```
 
-macOS Godot整合1.0限定Apple Silicon；普通Dora仍保留原有universal包。Windows Godot包使用`--arch=x64`，Linux使用与运行库清单一致的`--arch=x86_64`或`--arch=arm64`。未传`--godot-runtime`时，普通Dora的既有打包行为不变。
+macOS Godot整合1.0限定Apple Silicon，默认输出arm64包；显式`--without-godot --arch=universal`可构建原有Dora-only universal包。Windows Godot包使用`--arch=x64`，Linux使用与运行库清单一致的`--arch=x86_64`或`--arch=arm64`。未传`--godot-runtime`时，自动构建并打包正式Godot组件。
 
 Windows优化运行库使用`python Tools/Godot/build_windows_runtime.py --target template_release --arch x86_64`；Linux使用`DORA_GODOT_TARGET=template_release Tools/Godot/build_linux_runtime.sh`。Debug仍是两个入口的默认值，Release应使用独立build目录，避免把旧目标的产物误当成当前包。
 

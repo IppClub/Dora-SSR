@@ -5,7 +5,7 @@
  */
 
 module.exports = {
-	version: '1.9.4',
+	version: '1.10.0',
 	// Helper function to get version with 'v' prefix
 	getVersionLabel: () => `v${module.exports.version}`,
 	// Helper function to get version for Chinese translation

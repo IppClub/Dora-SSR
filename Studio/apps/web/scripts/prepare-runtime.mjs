@@ -12,7 +12,10 @@ const output = new URL('../../../../build/studio-runtime/', import.meta.url);
 const features = JSON.parse(await readFile(resolve(source, 'dora-web-features.json')));
 validateGameRuntimeProfile(features);
 const names = ['dora-player-runtime.html', 'dora-player-runtime.js', 'dora-player-runtime.wasm',
-  'dora-player-runtime.data', 'dora-web-features.json', 'audio-worklet.js', 'dora-audio-mixer.wasm'];
+  'dora-player-runtime.data', 'dora-web-features.json', 'audio-worklet.js', 'dora-audio-mixer.wasm',
+  ...['dora-godot.js', 'dora-godot.wasm', 'shared_gl.mjs', 'runtime_bridge.mjs',
+    'manifest.json', 'LICENSE.txt', 'COPYRIGHT.txt', 'AUTHORS.md'].map(name => 'godot/' + name)];
+if (!features.modules?.godotNode) throw new Error('Studio production Player requires Godot support');
 const contents = new Map(await Promise.all(names.map(async name => [name, await readFile(resolve(source, name))])));
 const engineSource = contents.get('dora-player-runtime.js').toString();
 const builtinFont = engineSource.match(/\/builtin\/Font\/sarasa-mono-sc-regular\.ttf.{0,64}?start:(\d+),end:(\d+)/s);
@@ -29,7 +32,10 @@ const html = contents.get('dora-player-runtime.html').toString();
 const engineScript = /<script\s+async\s+src=["']?dora-player-runtime\.js["']?\s*>/;
 if (!engineScript.test(html)) throw new Error('Unknown Player shell structure; refusing unsafe injection');
 await mkdir(output, { recursive: true });
-for (const name of names.filter(name => !name.endsWith('.html'))) await copyFile(resolve(source, name), new URL(name, output));
+for (const name of names.filter(name => !name.endsWith('.html'))) {
+  await mkdir(new URL('.', new URL(name, output)), {recursive: true});
+  await copyFile(resolve(source, name), new URL(name, output));
+}
 await build({ entryPoints: [new URL('../src/runtime-entry.ts', import.meta.url).pathname],
   outfile: new URL('studio-runtime.js', output).pathname, bundle: true, platform: 'browser', format: 'iife',
   target: 'es2022', define: {
@@ -37,5 +43,5 @@ await build({ entryPoints: [new URL('../src/runtime-entry.ts', import.meta.url).
     __STUDIO_ENGINE_VERSION__: JSON.stringify(engineVersion),
   } });
 await writeFile(new URL('index.html', output), html.replace(engineScript, match => `<script src="studio-runtime.js"></script>${match}`));
-await writeFile(new URL('studio-runtime.json', output), JSON.stringify({ engineBuild, engineVersion, profile: 'dora-preset', entry: 'index.html' }, null, 2));
+await writeFile(new URL('studio-runtime.json', output), JSON.stringify({ engineBuild, engineVersion, godot: true, profile: 'dora-preset', entry: 'index.html' }, null, 2));
 console.log(`Studio runtime prepared: ${output.pathname} (${engineBuild})`);

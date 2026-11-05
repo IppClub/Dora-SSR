@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-BUILD="$ROOT/build/godot-runtime"
+BUILD="${DORA_GODOT_BUILD_DIR:-$ROOT/build/godot-runtime}"
 TARGET="${DORA_GODOT_TARGET:-template_debug}"
 ARCH="${DORA_GODOT_ARCH:-arm64}"
 case "$TARGET" in
@@ -9,6 +9,8 @@ case "$TARGET" in
     template_release) OPTIMIZE=speed; PACKAGE="$BUILD/release/package"; LOG="$BUILD/build-release.log" ;;
     *) printf 'Unsupported DORA_GODOT_TARGET: %s\n' "$TARGET" >&2; exit 2 ;;
 esac
+if [[ -n "${DORA_GODOT_BUILD_DIR:-}" ]]; then PACKAGE="$BUILD/package"; LOG="$BUILD/build.log"; fi
+mkdir -p "$BUILD"
 [[ "$ARCH" == arm64 ]] || {
     printf 'Godot Metal runtime 1.0 supports macOS arm64 only: %s\n' "$ARCH" >&2
     exit 2

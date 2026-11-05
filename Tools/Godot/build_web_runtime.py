@@ -18,7 +18,7 @@ mode='release' if a.target=='template_release' else 'debug'
 build=(a.build_dir or (root/'build/godot-web' if a.target=='template_debug' else root/'build/godot-web/release')).resolve();build.mkdir(parents=True,exist_ok=True)
 expected='b451eaa16d3abe0c7430e9ce1c4e83b146e5670e5b683dd8995c931fc82b57a0'
 source=root/'Source/3rdParty/Godot'
-for script in ('prepare.py','prepare_web.py'):subprocess.run(['python3',str(root/'Tools/Godot'/script),str(source)],check=True)
+for script in ('prepare.py','prepare_web.py'):subprocess.run([sys.executable,str(root/'Tools/Godot'/script),str(source)],check=True)
 env=os.environ.copy();env['BINARYEN_CORES']=str(a.jobs)
 toolchain=None
 migration_inputs={}
@@ -60,5 +60,10 @@ r={'passed':True,'scope':'Web standard-module LibGodot compilation only; no brow
 r['licenses']=['LICENSE.txt','COPYRIGHT.txt','AUTHORS.md'];seal(package,r)
 r['migration_inputs_sha256']=migration_inputs
 r['profiling_functions']=a.builder=='xmake' and env.get('DORA_GODOT_WEB_PROFILE_FUNCTIONS')=='1'
-report.write_text(json.dumps(r,indent=2)+'\n');(package/'manifest.json').write_text(json.dumps(r,indent=2)+'\n');print(json.dumps(r,indent=2))
+report.write_text(json.dumps(r,indent=2)+'\n')
+# Keep local compiler paths/commands in compilation.json, outside public assets.
+deployment={key:r[key] for key in ('package_format','package_version','godot_version','bridge_abi',
+ 'source_archive_sha256','build_target','graphics_backend','licenses','artifacts')}
+deployment['toolchain']={'arch':'wasm32'}
+(package/'manifest.json').write_text(json.dumps(deployment,indent=2)+'\n');print(json.dumps(r,indent=2))
 verify(package)

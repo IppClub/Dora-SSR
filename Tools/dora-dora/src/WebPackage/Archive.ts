@@ -7,6 +7,8 @@ import {createPlayerShell} from './PlayerShell';
 export type PackageFiles = Record<string, Uint8Array>;
 export type WebPackageFormat = 'html' | 'http';
 export const runtimeFiles = ['dora-player-runtime.js', 'dora-player-runtime.wasm', 'dora-player-runtime.data', 'dora-web-features.json', 'audio-worklet.js', 'dora-audio-mixer.wasm', 'dora-logo.png'];
+export const godotRuntimeFiles = ['dora-godot.js', 'dora-godot.wasm', 'shared_gl.mjs', 'runtime_bridge.mjs',
+  'manifest.json', 'LICENSE.txt', 'COPYRIGHT.txt', 'AUTHORS.md'].map(name => 'godot/' + name);
 const maxFileBytes = 64 * 1024 * 1024;
 const maxTotalBytes = 256 * 1024 * 1024;
 
@@ -49,6 +51,9 @@ export async function createWebArchive(project: PackageFiles, runtime: PackageFi
     if (!runtime[file]?.length) throw new Error(`Missing Web runtime file: ${file}`);
   }
   const features = JSON.parse(strFromU8(runtime['dora-web-features.json']));
+  if (features.modules?.godotNode) {
+    for (const file of godotRuntimeFiles) if (!runtime[file]?.length) throw new Error(`Missing Godot runtime file: ${file}`);
+  }
   if (features.activeProfile !== 'dora-preset' || features.modules?.threads || features.modules?.crossOriginIsolationRequired
     || features.modules?.model3D !== true || features.modules?.jolt3D !== true || features.modules?.rustBridge !== true
     || features.modules?.loveNode !== true || features.modules?.yueCompiler !== false
@@ -56,6 +61,9 @@ export async function createWebArchive(project: PackageFiles, runtime: PackageFi
     throw new Error('Unsupported Web runtime profile');
   }
   const metadata = JSON.parse(strFromU8(runtime['runtime.json'] || new Uint8Array()));
+  if (format === 'html' && Object.keys(project).some(name => /(?:^|\/)project\.godot$|\.pck$/i.test(name))) {
+    throw new Error('Godot projects require the HTTP export with COOP/COEP response headers');
+  }
   if (!/^\d+\.\d+\.\d+$/.test(metadata.engineVersion)) throw new Error('Invalid Web runtime version');
   const output: PackageFiles = {...runtime};
   output['index.html'] = strToU8(createPlayerShell(format));
@@ -80,7 +88,7 @@ export async function createWebArchive(project: PackageFiles, runtime: PackageFi
   const manifest = JSON.stringify({format: 'dora-web-game', version: 1, engineVersion: metadata.engineVersion, profile: 'dora-preset', entry: 'init.lua', files}, null, 2);
   if (strToU8(manifest).length > 1024 * 1024) throw new Error('Project manifest is too large');
   output['dora-web-manifest.json'] = strToU8(manifest);
-  output['README-Web.txt'] = strToU8('Web 游戏 / Web game\n\n将整个目录部署到静态网站，通过 HTTPS 或 localhost 打开 index.html。\nDeploy this entire directory to a static web host and open index.html over HTTPS or localhost.\n不能通过 file:// 双击运行。 / Opening index.html directly via file:// is not supported.\n');
+  output['README-Web.txt'] = strToU8('Web 游戏 / Web game\n\n将整个目录部署到静态网站，通过 HTTPS 或 localhost 打开 index.html。\nDeploy this entire directory to a static web host and open index.html over HTTPS or localhost.\nGodot 项目需要 / Godot projects require: Cross-Origin-Opener-Policy: same-origin; Cross-Origin-Embedder-Policy: require-corp.\n不能通过 file:// 双击运行。 / Opening index.html directly via file:// is not supported.\n');
   const packaged = format === 'html' ? createHtmlFiles(output, digest) : output;
   return new Promise((resolve, reject) => zip(packaged, {level: 6}, (error, data) => error ? reject(error) : resolve(data)));
 }

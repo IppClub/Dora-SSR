@@ -13,6 +13,8 @@
 
 ## 已完成
 
+- [x] **DEFAULT-COMPONENT-01｜1.10.0默认正式组件**：普通构建/封包、Android/Web、Studio Agent及游戏Player默认包含Godot，保留显式裁剪；macOS默认arm64，Windows默认x64/WGL。版本及自更新架构文件名同步。macOS默认Release实际运行/缺库回退、Studio双Player及浏览器动态画面、Android arm64组件准备和Release任务图通过；完整产品资源/包的核对结果暂存`build/godot-production-v1/`。其余平台新候选CI和设备边界继续由RELEASE-DELIVERY-01跟踪，不视为全平台动态验收。
+
 - [x] **RELEASE-SCOPE-01｜1.0范围与交付缺口整理**：汇总后端/模式/设备证据，固定Godot最小修改与原生binary失败回退策略；区分功能验收、模拟器限制、候选包及公开发布。更新默认切换平台、源码登记计数和失效历史引用，不重建history，不增加测试轮次。见 [收口清单](RELEASE_1_0.md)。
 
 - [x] **GLES-CACHE-LENGTH-01｜binary有效长度保存与最小冷/暖配对**：接收并校验`glGetProgramBinary`实际返回长度，只写有效字节；生产保存方法7项边界及旧代码负向控制通过。arm64普通非debuggable Release在Emulator37.1.11／API35／SwiftShader仅跑三缓冲一次冷启动和一次保留缓存重启：冷启动通过，5文件／19条binary保存；暖启动前哈希逐项等于冷退出后，仍因binary链接告警严格失败，回退后的像素/时钟/resize/GPU排空/完整退出诊断通过，不算binary恢复通过。按用户决定保留模拟器环境限制，不加源码缓存、不忽略失败或过滤告警；测试APK与进程已清理，模拟器已关闭。源码登记审计通过；证据 `build/godot-android-warm-cache-v1/`，测试在Dora-Example。
@@ -91,7 +93,7 @@
 
 ## 待完成
 
-- [ ] **RELEASE-DELIVERY-01｜候选CI与最终包对应**：候选`2bdad734a`及实际测试`aec520851`已确认，两架构普通AppImage均未含LibGodot。Linux原有任务全部步骤成功，job最终状态仍等待GitHub Actions服务恢复；macOS等runner容量缺口保留。后续核对匹配的宿主/运行库清单/架构/后端/许可和产物摘要，仅补完整Release单项切换，不复跑既有矩阵，不把本地QA签名作为正式发布。见 [交付缺口](RELEASE_1_0.md#最终交付仍缺少的证据)。
+- [ ] **RELEASE-DELIVERY-01｜候选CI与最终包对应**：上一轮1.9.4候选`2bdad734a`及实际测试`aec520851`已确认，两架构普通AppImage均未含LibGodot。Linux原有job已正式成功（2026-11-04 16:18:41 UTC）；macOS等runner容量缺口保留。本轮1.10.0默认组件产物另行核对，后续核对匹配的宿主/运行库清单/架构/后端/许可和产物摘要，仅补完整Release单项切换，不复跑既有矩阵，不把本地QA签名作为正式发布。见 [交付缺口](RELEASE_1_0.md#最终交付仍缺少的证据)。
 
 - [ ] **PROJECT-SWITCH-01｜项目切换正式化**：macOS Metal、Linux ARM64 Debug EGL、Windows x64 Debug WGL、Android arm64 Release EGL、WebGL2默认Release功能验收已通过，本轮不重复验收。先复用当前CI，Linux x64/Release仅补未覆盖的受影响项；当前CI为Release宿主配Debug运行库，完整Release组合由单项产物复用入口补齐，不混记通过；WebGL2已按一轮组合及其余浏览器最小冒烟完成并停止，不重跑既有矩阵。iOS受限环境、D3D12、长期显存/额外压力及扩展兼容性保持待办，不自动扩测或标为通过。详见 [最小计划](PLAN.md#剩余工作的最小执行计划)。
 

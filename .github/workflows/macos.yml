@@ -6,6 +6,7 @@ on:
     paths:
       # Shared engine code — triggers all platforms
       - 'Source/**'
+      - 'Tools/Godot/**'
       - 'Tools/tolua\+\+/**'
       - 'Tools/dora-rust/**'
       - 'Tools/dora-wa/**'
@@ -18,6 +19,7 @@ on:
     branches: [ main ]
     paths:
       - 'Source/**'
+      - 'Tools/Godot/**'
       - 'Tools/tolua\+\+/**'
       - 'Tools/dora-rust/**'
       - 'Tools/dora-wa/**'
@@ -44,6 +46,9 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22.14.0'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
       - uses: xmake-io/github-action-setup-xmake@v1
         with:
           xmake-version: latest
@@ -71,13 +76,13 @@ jobs:
           cp Tools/dora-wa/wa.mod Assets/dora-wa
           cp -r Tools/dora-wa/vendor Assets/dora-wa
           xmake dora-package --platform=macosx --mode=release
-          cp build/package/macosx/release/dora-ssr-macos-universal.zip "$GITHUB_WORKSPACE/dora-ssr-${{ github.ref_name }}-macos-universal.zip"
+          cp build/package/macosx/arm64/release/dora-ssr-macos-arm64.zip "$GITHUB_WORKSPACE/dora-ssr-${{ github.ref_name }}-macos-arm64.zip"
       - name: Release
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: |
-            dora-ssr-${{ github.ref_name }}-macos-universal.zip
+            dora-ssr-${{ github.ref_name }}-macos-arm64.zip
             web-ide-files.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -101,7 +106,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         env:
           DORA_VERSION: ${{ github.ref_name }}
-          HOMEBREW_PACKAGE: dora-ssr-${{ github.ref_name }}-macos-universal.zip
+          HOMEBREW_PACKAGE: dora-ssr-${{ github.ref_name }}-macos-arm64.zip
         run: |
           set -euo pipefail
 
@@ -110,7 +115,7 @@ jobs:
           cask="homebrew-tap/Casks/dora-ssr.rb"
           cask_path="Casks/dora-ssr.rb"
 
-          DORA_VERSION="$version" DORA_SHA256="$sha256" ruby -0pi -e 'version = ENV.fetch("DORA_VERSION"); sha256 = ENV.fetch("DORA_SHA256"); gsub(/version "[^"]+"/, "version \"#{version}\""); gsub(/sha256 "[a-fA-F0-9]+"/, "sha256 \"#{sha256}\"")' "$cask"
+          DORA_VERSION="$version" DORA_SHA256="$sha256" ruby -0pi -e 'version = ENV.fetch("DORA_VERSION"); sha256 = ENV.fetch("DORA_SHA256"); gsub(/version "[^"]+"/, "version \"#{version}\""); gsub(/macos-universal\.zip/, "macos-arm64.zip"); gsub(/depends_on :macos(?:\n  depends_on arch: :arm64)?/, "depends_on :macos\n  depends_on arch: :arm64"); gsub(/sha256 "[a-fA-F0-9]+"/, "sha256 \"#{sha256}\"")' "$cask"
 
           git -C homebrew-tap diff -- "$cask_path"
           if git -C homebrew-tap diff --quiet -- "$cask_path"; then

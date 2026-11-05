@@ -10,10 +10,11 @@ function main(options)
     assert(format == "zip" or (format == "ipa" and device == "device"), "IPA packaging requires an iOS device build")
     local root = os.projectdir()
     local configdir = path.join(root, "build/ios-config", device, arch, mode)
-    local envs = {XMAKE_CONFIGDIR = configdir}
+    local envs = {XMAKE_CONFIGDIR = configdir, DORA_GODOT_RUNTIME_DIR = options.godot_runtime or ""}
     local args = {"f", "-y", "-p", "iphoneos", "-a", arch, "-m", mode,
         "--appledev=" .. (device == "simulator" and "simulator" or "iphoneos"),
-        "--builddir=" .. path.join(configdir, "build"), "--ccache=n"}
+        "--builddir=" .. path.join(configdir, "build"), "--ccache=n",
+        "--dora_godot_runtime=" .. (options.godot == false and "n" or "y")}
     local identity = os.getenv("DORA_IOS_SIGN_IDENTITY") or "-"
     table.insert(args, "--dora_ios_sign_identity=" .. identity)
     if identity == "-" then table.insert(args, "--xcode_codesign_identity=n") end

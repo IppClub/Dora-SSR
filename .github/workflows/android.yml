@@ -7,6 +7,7 @@ on:
       - '.github/workflows/android.yml'
       # Shared engine code — triggers all platforms
       - 'Source/**'
+      - 'Tools/Godot/**'
       - 'Tools/tolua\+\+/**'
       - 'Tools/dora-rust/**'
       - 'Tools/dora-wa/**'
@@ -19,6 +20,7 @@ on:
     paths:
       - '.github/workflows/android.yml'
       - 'Source/**'
+      - 'Tools/Godot/**'
       - 'Tools/tolua\+\+/**'
       - 'Tools/dora-rust/**'
       - 'Tools/dora-wa/**'
@@ -41,6 +43,9 @@ jobs:
           package_json_file: 'Tools/dora-dora/package.json'
           cache: true
           cache_dependency_path: 'Tools/dora-dora/pnpm-lock.yaml'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
       - uses: xmake-io/github-action-setup-xmake@v1
         with:
           xmake-version: latest
@@ -54,7 +59,7 @@ jobs:
           packages: platform-tools
           log-accepted-android-sdk-licenses: false
       - name: Install Android native toolchain
-        run: sdkmanager --install 'ndk;26.1.10909125' 'cmake;3.22.1' 'platforms;android-34' 'build-tools;34.0.0'
+        run: sdkmanager --install 'ndk;28.1.13356709' 'cmake;3.22.1' 'platforms;android-35' 'build-tools;34.0.0' 'build-tools;35.0.0'
       - name: Record xmake version
         run: xmake --version
       - name: Build Android
