@@ -17,8 +17,29 @@ ROOT = Path(__file__).resolve().parents[2]
 
 def run(script, *args, env=None):
     program = 'bash' if script.endswith('.sh') else sys.executable
-    subprocess.run([program, str(ROOT / 'Tools/Godot' / script), *map(str, args)],
-                   cwd=ROOT, env=env, check=True)
+    try:
+        subprocess.run([program, str(ROOT / 'Tools/Godot' / script), *map(str, args)],
+                       cwd=ROOT, env=env, check=True)
+    except subprocess.CalledProcessError:
+        # Standalone builders retain compiler output in build.log. Surface its
+        # tail as well, so a normal host build exposes the original error.
+        directory = (env or {}).get('DORA_GODOT_BUILD_DIR')
+        if '--build-dir' in args:
+            directory = args[args.index('--build-dir') + 1]
+        log_name = 'link.log' if script == 'link_ios_runtime.py' else 'build.log'
+        log = Path(directory) / log_name if directory else None
+        if log and log.is_file():
+            with log.open('rb') as stream:
+                stream.seek(max(0, log.stat().st_size - 96 * 1024))
+                tail = stream.read().decode('utf-8', errors='replace').splitlines()[-180:]
+            message = f'Godot compiler log: {log}\n' + '\n'.join(tail) + '\n'
+            if hasattr(sys.stderr, 'buffer'):
+                sys.stderr.buffer.write(message.encode('utf-8'))
+                sys.stderr.buffer.flush()
+            else:
+                sys.stderr.write(message)
+                sys.stderr.flush()
+        raise
 
 
 def copy_file(source, destination):

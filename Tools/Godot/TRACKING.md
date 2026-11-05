@@ -95,6 +95,8 @@
 
 ## 待完成
 
+- [ ] **DEFAULT-CI-02｜默认组件构建余项**：macOS、Web、Docs、UI与入口检查已通过。iOS多Xcode/SDK选择不一致已绑定活动SDK并提前校验；Studio干净环境缺contracts产物已补构建依赖；Linux Embree链接缺失已定位到继承AVX2默认ISA，并固定x86基线。上述修复的本地正负控制、实际SDK探针和Studio缺缓存入口通过，完整修复后CI待确认；Windows后续编译阶段仍须凭新日志确认，不推定与Linux相同。已补组件失败日志转发和Windows/iOS/Linux日志留存。证据`build/godot-ci-fix-v2/`。
+
 - [ ] **RELEASE-DELIVERY-01｜候选CI与最终包对应**：上一轮1.9.4候选`2bdad734a`及实际测试`aec520851`已确认，两架构普通AppImage均未含LibGodot。Linux原有job已正式成功（2026-11-04 16:18:41 UTC）；macOS等runner容量缺口保留。本轮1.10.0默认组件产物另行核对，后续核对匹配的宿主/运行库清单/架构/后端/许可和产物摘要，仅补完整Release单项切换，不复跑既有矩阵，不把本地QA签名作为正式发布。见 [交付缺口](RELEASE_1_0.md#最终交付仍缺少的证据)。
 
 - [ ] **PROJECT-SWITCH-01｜项目切换正式化**：macOS Metal、Linux ARM64 Debug EGL、Windows x64 Debug WGL、Android arm64 Release EGL、WebGL2默认Release功能验收已通过，本轮不重复验收。先复用当前CI，Linux x64/Release仅补未覆盖的受影响项；当前CI为Release宿主配Debug运行库，完整Release组合由单项产物复用入口补齐，不混记通过；WebGL2已按一轮组合及其余浏览器最小冒烟完成并停止，不重跑既有矩阵。iOS受限环境、D3D12、长期显存/额外压力及扩展兼容性保持待办，不自动扩测或标为通过。详见 [最小计划](PLAN.md#剩余工作的最小执行计划)。

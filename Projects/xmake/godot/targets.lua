@@ -146,6 +146,12 @@ for _, stage in ipairs(stages) do
             set_policy("check.auto_ignore_flags", false)
         end
         set_languages("gnu17", "gnuxx17")
+        if is_plat("linux", "mingw", "android") and is_arch("x86_64", "x64") then
+            -- Imported Embree sources select the SSE baseline. Newer compiler
+            -- defaults may enable AVX2, which changes its namespace/templates
+            -- without adding the corresponding AVX translation units.
+            add_cxflags("-march=x86-64", {force = true})
+        end
         set_optimize(debug_runtime and "none" or "fastest")
         if debug_runtime then set_symbols("debug") end
         if is_plat("iphoneos") then

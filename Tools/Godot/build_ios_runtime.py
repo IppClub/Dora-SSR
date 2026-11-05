@@ -32,6 +32,12 @@ def main():
     if sys.platform != 'darwin':
         p.error('iOS builds require macOS and Xcode')
     a.builder = 'xmake'
+    sdk_name = 'iphonesimulator' if a.device == 'simulator' else 'iphoneos'
+    sdk = subprocess.check_output(['xcrun', '--sdk', sdk_name, '--show-sdk-path'], text=True).strip()
+    sdk_version = subprocess.check_output(['xcrun', '--sdk', sdk_name, '--show-sdk-version'], text=True).strip()
+    xcode = next((parent for parent in Path(sdk).parents if parent.suffix == '.app'), None)
+    if not xcode:
+        p.error('Cannot identify the active Xcode application from SDK: ' + sdk)
     mode = 'release' if a.target == 'template_release' else 'debug'
     build = (a.build_dir or ROOT / 'build/godot-ios' / a.device).resolve()
     build.mkdir(parents=True, exist_ok=True)
@@ -58,7 +64,7 @@ def main():
             p.error('Godot xmake migration requires xmake 3.x or newer')
         env['XMAKE_CONFIGDIR'] = str(build / 'xmake-config')
         commands = [[xmake, 'f', '-P', str(ROOT), '-c', '-p', 'iphoneos', '-a', 'arm64', '-m', mode,
-                     '--appledev=' + appledev, '--dora_godot_runtime=y','--dora_godot_standalone=y', '--ccache=n', '-y'],
+                     '--appledev=' + appledev, '--xcode=' + str(xcode), '--xcode_sdkver=' + sdk_version, '--dora_godot_runtime=y','--dora_godot_standalone=y', '--ccache=n', '-y'],
                     [xmake, 'l', '-P', str(ROOT), 'Projects/xmake/godot/toolchain_info.lua', str(build / 'toolchain.json')],
                     [xmake, 'build', '-P', str(ROOT), '-j' + str(a.jobs), 'godot-runtime']]
     (build / 'commands.json').write_text(json.dumps(commands, indent=2) + '\n')
@@ -68,15 +74,14 @@ def main():
                                     env=env, stdout=log, stderr=subprocess.STDOUT)
             if result.returncode:
                 raise SystemExit(result.returncode)
+            if command is commands[1]:
+                toolchain = json.loads((build / 'toolchain.json').read_text())
+                assert toolchain['plat'] == 'iphoneos' and toolchain['arch'] == 'arm64', toolchain
+                assert toolchain['appledev'] == appledev and toolchain['target_minver'] == '14.0', toolchain
+                assert Path(toolchain['sdk']).resolve() == Path(sdk).resolve(), f"xmake SDK {toolchain['sdk']} differs from active xcrun SDK {sdk}"
     if any(digest(ROOT / name) != value for name, value in inputs.items()):
         raise RuntimeError('Godot migration inputs changed during build')
-    sdk_name = 'iphonesimulator' if a.device == 'simulator' else 'iphoneos'
-    sdk = subprocess.check_output(['xcrun', '--sdk', sdk_name, '--show-sdk-path'], text=True).strip()
     if a.builder == 'xmake':
-        toolchain = json.loads((build / 'toolchain.json').read_text())
-        assert toolchain['plat'] == 'iphoneos' and toolchain['arch'] == 'arm64', toolchain
-        assert toolchain['appledev'] == appledev and toolchain['target_minver'] == '14.0', toolchain
-        assert Path(toolchain['sdk']).resolve() == Path(sdk).resolve(), toolchain
         archive = Path(toolchain['targetfile'])
         if not archive.is_absolute():
             archive = ROOT / archive

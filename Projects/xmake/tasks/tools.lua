@@ -26,6 +26,11 @@ task("dora-studio")
     set_menu {usage = "xmake dora-studio", description = "Build Godot-enabled Studio Agent and game Players"}
     on_run(function ()
         local root = os.projectdir()
+        import("lib.detect.find_tool")
+        local pnpm = assert(find_tool("pnpm"), "Studio production builds require pnpm")
+        -- The runtime bundler imports this package before the recursive UI
+        -- build. A clean checkout has no contracts/dist yet.
+        os.vrunv(pnpm.program, {"--dir", path.join(root, "Studio"), "--filter", "@dora-studio/contracts", "build"}, {curdir = root})
         local output = path.join(root, "result/dora-studio-agent-engine")
         os.vrunv(os.programfile(), {"dora-web"}, {curdir = root, envs = {
             DORA_WEB_STUDIO_AGENT_HOST = "1", DORA_WEB_BUILD_ENGINE = "1", DORA_WEB_LINK_PLAYER = "1",

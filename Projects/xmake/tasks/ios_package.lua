@@ -15,6 +15,13 @@ function main(options)
         "--appledev=" .. (device == "simulator" and "simulator" or "iphoneos"),
         "--builddir=" .. path.join(configdir, "build"), "--ccache=n",
         "--dora_godot_runtime=" .. (options.godot == false and "n" or "y")}
+    -- setup-xcode selects through DEVELOPER_DIR; xmake may otherwise discover
+    -- a different /Applications/Xcode.app. Match the active xcrun SDK exactly.
+    local sdk_name = device == "simulator" and "iphonesimulator" or "iphoneos"
+    local sdk = os.iorunv("xcrun", {"--sdk", sdk_name, "--show-sdk-path"}):trim()
+    local sdk_version = os.iorunv("xcrun", {"--sdk", sdk_name, "--show-sdk-version"}):trim()
+    local xcode = assert(sdk:match("^(.-%.app)/Contents/Developer/"), "Cannot identify the active Xcode from SDK: " .. sdk)
+    table.join2(args, {"--xcode=" .. xcode, "--xcode_sdkver=" .. sdk_version})
     local identity = os.getenv("DORA_IOS_SIGN_IDENTITY") or "-"
     table.insert(args, "--dora_ios_sign_identity=" .. identity)
     if identity == "-" then table.insert(args, "--xcode_codesign_identity=n") end

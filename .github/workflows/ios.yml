@@ -53,3 +53,13 @@ jobs:
         run: |
           xmake --version
           xmake dora-package --platform=ios --appledev=${{ matrix.device }} --mode=${{ matrix.mode }}
+
+      - name: Retain failed Godot component build logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-godot-${{ matrix.device }}-${{ matrix.mode }}-failure
+          path: |
+            build/godot-component/ios/**/build.log
+            build/godot-component/ios/**/link.log
+          if-no-files-found: warn

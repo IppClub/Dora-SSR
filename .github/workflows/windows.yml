@@ -68,3 +68,11 @@ jobs:
           Remove-Item Env:MSYSTEM -ErrorAction SilentlyContinue
           xmake f -y -p windows -a x64 -m debug
           xmake build Dora
+
+      - name: Retain failed Godot component build logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-godot-build-failure
+          path: build/godot-component/windows/**/build.log
+          if-no-files-found: warn
