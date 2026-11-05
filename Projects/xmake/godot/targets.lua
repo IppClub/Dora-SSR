@@ -316,7 +316,7 @@ if is_plat("mingw") and (is_arch("x86_64") or is_arch("arm64")) and has_config("
             "-static", "-static-libgcc", "-static-libstdc++",
             {force = true}
         )
-        after_load(function (target)
+        on_config(function (target)
             -- The stage archives are explicit shflags and can appear after
             -- xmake's implicit C++ libraries. Repeat the C++ runtime last so
             -- static archive references resolve on fresh GCC toolchains too.

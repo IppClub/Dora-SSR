@@ -48,7 +48,7 @@ python3 $DORA_TEST_REPO/Test/Godot/test_nir_notice_inheritance.py \
 
 通知来源 schema 2 增加两段原历史声明：Collabora/Red Hat 的 Nouveau 辅助函数声明、VMware 的旧 CSV 格式表声明，分别由 [nouveau-parent.NOTICE.txt](nouveau-parent.NOTICE.txt) 和 [formats-csv-parent.NOTICE.txt](formats-csv-parent.NOTICE.txt) 原文保存。另三项父文件的完整声明已在原通知包中。生成器将新增声明及其来源写入随包材料，校验器核对文本和固定摘要；旧 schema 1 只保留历史包完整性校验能力，新封包要求 schema 2。
 
-初步继承关系工具曾保留12项待确认；现已由下述逐项发行通知复核收口。运行库和SDK不变，通知修订须重新封包。
+初步继承关系工具曾保留12项待确认；现已由下述逐项发行通知复核收口。审计工具已接入完成记录，使用固定源码、上游BLAKE3及完整历史输入复验后余项为0；缺历史输入仍明确报告缺口，不把元数据声明当作来源验证。运行库和SDK不变，通知修订须重新封包。
 
 ## 修改来源与版本头生成补证
 
