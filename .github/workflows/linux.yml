@@ -62,3 +62,21 @@ jobs:
       run: |
         xmake f -y -p linux -a x86_64 -m debug
         xmake build Dora
+
+    - name: Show failed Godot component build logs
+      if: failure()
+      shell: bash
+      run: |
+        shopt -s nullglob
+        for log in build/godot-component/linux/*/*/build.log; do
+          echo "::group::$log"
+          tail -n 180 "$log"
+          echo "::endgroup::"
+        done
+    - name: Retain failed Godot component build logs
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: linux-godot-build-failure
+        path: build/godot-component/linux/**/build.log
+        if-no-files-found: warn
