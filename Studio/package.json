@@ -1,6 +1,6 @@
 {
   "name": "dora-studio",
-  "version": "1.10.0",
+  "version": "1.10.1",
   "private": true,
   "type": "module",
   "packageManager": "pnpm@10.33.0",

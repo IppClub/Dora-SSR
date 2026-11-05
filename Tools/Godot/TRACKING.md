@@ -1,6 +1,6 @@
 # Godot vendor / xmake 迁移清单
 
-更新：2026-11-04。执行顺序见 [PLAN.md](PLAN.md)，命令见 [README.md](README.md)。本页只维护已完成项和待办。1.0平台支持矩阵与最终交付缺口见 [RELEASE_1_0.md](RELEASE_1_0.md)。旧 history 目录已按用户整理移除；本次新记录暂存 `build/godot-xmake-only-v1/PROGRESS-DRAFT.md`，不重建历史目录。
+更新：2026-11-05。执行顺序见 [PLAN.md](PLAN.md)，命令见 [README.md](README.md)。本页只维护已完成项和待办。1.0平台支持矩阵与最终交付缺口见 [RELEASE_1_0.md](RELEASE_1_0.md)。旧 history 目录已按用户整理移除；本次新记录暂存 `build/godot-xmake-only-v1/PROGRESS-DRAFT.md`，不重建历史目录。
 
 ## 固定范围
 
@@ -12,6 +12,9 @@
 - 不做进程内 LibGodot 重初始化；按最新决定保留同一 LibGodot，实现项目级卸载与切换，macOS Metal、Linux EGL、Windows x64 WGL、Android EGL和WebGL2默认开放，见 [PROJECT_SWITCH.md](PROJECT_SWITCH.md)。缺少真机时可用 VM/模拟器，明确证据边界。
 
 ## 已完成
+
+- [x] **RELEASE-PACKAGING-02**：桌面封包复制并验证runtime manifest的完整附属文件清单，修复D3D12溯源JSON漏包；Windows ZIP/MSI打包入口拒绝缺失或篡改的附属文件。真实staging函数及缺失/损坏负向回归通过。Android三ABI的C++库差异已由NDK28.1剥离符号逐字节重现，未发现替换依赖。
+- [x] **WEB-EXPORT-OPTIONAL-GODOT-01**：Web导出按源码API/WASM导入或Godot工程、场景、PCK识别依赖；普通项目不下载/封包/启动Godot。HTTP/HTML、注释排除、隔离页面和旧运行时适配回归及本地WebIDE构建通过。
 
 - [x] **DEFAULT-CI-01｜默认组件冷构建入口修复**：修正Windows版本探针按系统代码页解码UTF-8的错误；Android Wa准备入口与Gradle共享NDK版本，默认28.1、显式裁剪仍为26.1，doctor同步。Windows旧错误负向控制/新探针及Android缺失AAR冷配置、NDK28依赖重建/Debug任务图通过；两平台完整构建仍待本次修复后的CI确认。证据`build/godot-ci-fix-v1/`。
 
@@ -101,6 +104,8 @@
 - [ ] **WIN-UPDATER-02**：按当前后端及ZIP/MSI安装方式更新；允许同版本手动切换并重启。MSI共用升级身份，通过Windows Installer替换，保留用户数据；两源清单、Lua与测试同步。本地严格TS/Lua、平台选择、MSI双向切换/修复/卸载与两源命名检查通过；全新Release预演CI待确认，证据 `build/windows-release-v1/`。
 
 ## 待完成
+
+- [ ] **RELEASE-1.10.1-01**：补丁版本正式发布及公开生成物核对；发布后使用独立手动verify-windows-release任务下载最终ZIP/MSI，验收安装/切换/repair/卸载；不阻塞发布、不重编译。上一轮本地VM启动失败不计为通过。
 
 - [ ] **DEFAULT-CI-02｜默认组件构建余项**：Linux Embree基线与iOS活动SDK修复已有CI通过证据；`a765d7265`的Linux、Docs、UI、入口检查已通过。Studio已补contracts、教程生成依赖和正式构建的xmake工具环境继承，本地完整生产构建通过；新提交的完整CI仍待确认，Windows、Android、Web等不推定通过。失败日志已留存；Windows新工具链的C++静态运行库链接顺序已补正，链接器查询移至on_config并通过实际配置/链接及早期查询负控制；完整Windows新构建仍待CI。推送后取消旧commit未结束任务，仅跟踪最新commit。证据`build/godot-ci-fix-v2/`至`build/godot-ci-fix-v4/`。
 

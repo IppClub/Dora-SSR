@@ -1,0 +1,47 @@
+name: Verify published Windows installers
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Published release tag to validate'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: windows-2025-vs2026
+    env:
+      RELEASE_TAG: ${{ inputs.tag }}
+    steps:
+      - name: Validate release tag
+        shell: pwsh
+        run: |
+          if ($env:RELEASE_TAG -notmatch '^v[0-9]+\.[0-9]+\.[0-9]+$') { throw 'Expected a release version tag' }
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag }}
+      - uses: xmake-io/github-action-setup-xmake@v1
+        with:
+          xmake-version: latest
+      - name: Resolve installer tests
+        run: xmake dora-test-deps --env-file="$env:GITHUB_ENV"
+      - name: Download published Windows packages
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download $env:RELEASE_TAG --repo IppClub/Dora-SSR --dir windows-packages --pattern "dora-ssr-$($env:RELEASE_TAG)-windows-x64*.zip" --pattern "dora-ssr-$($env:RELEASE_TAG)-windows-x64*.msi"
+          if ($LASTEXITCODE -ne 0) { throw 'Release download failed' }
+      - name: Verify installation switching repair and uninstall
+        run: |
+          & "$env:DORA_TEST_REPO/Test/Godot/tests/verify_windows_installers.ps1" -Packages "$PWD/windows-packages" -Version $env:RELEASE_TAG -EngineRoot $PWD
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: published-windows-installation-logs
+          path: windows-packages/*.log
+          if-no-files-found: ignore
+          retention-days: 7

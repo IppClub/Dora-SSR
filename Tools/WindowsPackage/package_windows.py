@@ -45,6 +45,18 @@ def package(stage, output, backend, format, version=None, mode="release"):
             raise ValueError('Wrong Godot backend or build mode')
         if manifest.get('architectures') != ['x86_64'] or hashlib.file_digest((stage/'dora_godot.dll').open('rb'),'sha256').hexdigest() != manifest.get('library_sha256'):
             raise ValueError('Godot DLL architecture or digest mismatch')
+        artifacts=manifest.get('artifacts')
+        if not isinstance(artifacts,dict) or not artifacts:
+            raise ValueError('Missing Godot runtime artifact inventory')
+        for relative, expected in artifacts.items():
+            if relative == manifest['library']: continue
+            relative_path=Path(relative)
+            if relative_path.is_absolute() or '..' in relative_path.parts or '\\' in relative:
+                raise ValueError('Unsafe Godot runtime artifact path')
+            artifact=manifest_file.parent/relative_path
+            if not artifact.is_file() or hashlib.sha256(artifact.read_bytes()).hexdigest()!=expected:
+                raise ValueError('Missing or changed Godot runtime artifact: '+relative)
+
     elif (stage/'dora_godot.dll').exists():
         raise ValueError('Godot DLL has no runtime manifest')
     (stage/'DoraDistribution.json').write_text(json.dumps({'schema':1,'architecture':'x64','backend':backend,'version':version},indent=2)+'\n')

@@ -63,6 +63,8 @@ def prepareGodotNotices = godotEnabled ? tasks.register('prepareGodotNotices') {
         godotRuntimePackages.eachWithIndex { runtime, i ->
             def manifest = new File(godotNoticeAssets, "GodotRuntimeNotices/${i}/manifest.json")
             manifest.parentFile.mkdirs()
+            // This sealed receipt describes build inputs. AGP strips native debug
+            // symbols later, so final APK libc++ hashes differ from this receipt.
             manifest.bytes = new File(runtime, 'manifest.json').bytes
         }
     }
@@ -102,8 +104,8 @@ android {
 		applicationId (godotTest ? "org.ippclub.dorassr.godotprototype" : "org.ippclub.dorassr")
 		minSdkVersion 28
 		targetSdkVersion 34
-		versionCode 124
-		versionName "1.10.0"
+		versionCode 125
+		versionName "1.10.1"
 		testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
 		ndk {
 			abiFilters.addAll(doraAbis)

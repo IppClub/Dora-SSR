@@ -38,12 +38,14 @@ local function stage_godot_runtime(runtime_dir, asset_root, expected_library, re
     os.rm(notices)
     os.mkdir(notices)
     os.cp(manifest_file, path.join(notices, "manifest.json"))
-    for _, relative in ipairs(manifest.licenses) do
-        local source = path.join(runtime, relative)
-        local destination = path.join(notices, relative)
-        ensure(os.isfile(source), "missing Godot runtime notice: " .. relative)
-        os.mkdir(path.directory(destination))
-        os.cp(source, destination)
+    for relative, _ in pairs(manifest.artifacts) do
+        if relative ~= manifest.library then
+            local source = path.join(runtime, relative)
+            local destination = path.join(notices, relative)
+            ensure(os.isfile(source), "missing Godot runtime artifact: " .. relative)
+            os.mkdir(path.directory(destination))
+            os.cp(source, destination)
+        end
     end
     api.cprint("${green}Godot runtime staged: %s${clear}", path.join(asset_root, manifest.library))
 end

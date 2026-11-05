@@ -1,5 +1,5 @@
 set_project("Dora-SSR")
-set_version("1.10.0")
+set_version("1.10.1")
 set_xmakever("3.0.0")
 
 set_allowedmodes("debug", "release")
