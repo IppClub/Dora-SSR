@@ -67,10 +67,10 @@ option("dora_godot_runtime")
 option_end()
 
 option("dora_godot_windows_backend")
-    set_default("wgl")
+    set_default(os.getenv("DORA_GODOT_WINDOWS_GL") == "1" and "wgl" or "d3d12")
     set_values("wgl", "d3d12")
     set_showmenu(true)
-    set_description("Single graphics backend for the standalone Windows Godot runtime")
+    set_description("Windows host and Godot graphics backend (d3d12 default, wgl compatibility)")
 option_end()
 
 option("dora_godot_mesa_libs")

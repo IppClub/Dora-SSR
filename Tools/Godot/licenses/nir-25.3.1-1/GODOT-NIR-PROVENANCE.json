@@ -1,5 +1,5 @@
 {
-  "schema": 2,
+  "schema": 3,
   "godot_nir_tag": "25.3.1-1",
   "mesa_commit": "5005a50879b11b953ade113fccd13a208f706ba0",
   "mesa_source_sha256": "15a688666aca976d1479c8bd43d319a55613da9a91aaf42a07691daec96ba7be",
@@ -1310,7 +1310,7 @@
     "generated/src/util/format/u_format_pack.h",
     "src/compiler/spirv/spirv_info.h"
   ],
-  "notice_sha256": "9ed27a3de278994520bfba5a5bb216bbf5a51af791542212b8cc28903702abfc",
+  "notice_sha256": "e8f03e1f914c179c19b56c18c9933532598e28984a9370a15ad7f39226f62efb",
   "files": [
     {
       "path": "mesa/VERSION",
@@ -5182,5 +5182,274 @@
     }
   ],
   "source_lineage_registry_sha256": "5e0fe5110647e7f86dd044961009c8504cba4e7ee025bd115be7b2e292f54460",
-  "scope": "Conservative notice inventory, not a binary link contribution or legal opinion"
+  "scope": "Conservative notice inventory, not a binary link contribution or legal opinion",
+  "license_review": {
+    "schema": 1,
+    "godot_nir_tag": "25.3.1-1",
+    "mesa_commit": "5005a50879b11b953ade113fccd13a208f706ba0",
+    "inheritance_review_complete": true,
+    "scope": "Distribution notice review of all 19 inputs lacking inline notice blocks, with retained component licenses, history and generated/build-only classification; no claim of a full binary contribution analysis.",
+    "evidence": {
+      "review-evidence/u_format_etc.c.commits.json": "73ce07a6b15d7ab95e39c029ca45027e8bcc92f3fbde15525d81fae4d97d8bad",
+      "review-evidence/u_format_etc.c.initial-diff.json": "434ba970d64361c7c11478c5a608748643541b55ecf08a195dcec3c11a88f40f",
+      "review-evidence/nir_shader_bisect.c.commits.json": "d48853c4d8f0f19595e3f87d0e8aa168f45e9c7e3d6352bfbcdab6d19953fef3",
+      "review-evidence/nir_shader_bisect.c.initial-diff.json": "adafc527f8e144bee5c5df3800759499acf4fc2186cda1f601625487144fed0a",
+      "review-evidence/dxil_validator.cpp.initial-diff.json": "dad5128e95c7bc31b1385248b3402490fa056c55d125c79363daa63d38ba7bea",
+      "review-evidence/box.h.commits.json": "fa0f02bfc0b8d37cca6748d7e4257772a0583df392de68f1137fe0f64bea5995",
+      "review-evidence/license.rst": "0d1a0472ecc81830e75c20d59b0ea02841e3db21255e0ebad97ab682c54d6615",
+      "review-evidence/box.h.initial-diff.json": "3cc4fe1baddab7b3ed8fade41497c9d2ddd8633424fc93a01b8d126f82d8f600",
+      "review-evidence/dxil_validator.cpp.commits.json": "0a41ecd9d2f32e17ddf9a2d26992283de6ca20a480a16ecc2379894b27841abc",
+      "review-evidence/source-derivations.json": "50c07513f512c77558f634c7e65d766014cca183026d6415c7d4c8070ba42b5e",
+      "review-evidence/nir.h.NOTICE.txt": "e5ee52f2a382ba5d238ac382cccddee37af50969365083dd9218f46652382c95",
+      "review-evidence/p_state.h.NOTICE.txt": "aa14e6e42e561dabbb989154f90a6cba94b6939a98d5e8e20936830dc0780ab1",
+      "review-evidence/dxil_validator.h.NOTICE.txt": "01d7a5481430215a6795145931f580e293390a351e4780c397eb3cd60f12e2c2",
+      "review-evidence/u_format_etc.h.NOTICE.txt": "1fe0f416efc0e99740b7160537ccecb0231b2caac09315d79164b9ae77a9c110"
+    },
+    "files": [
+      {
+        "path": "mesa/VERSION",
+        "sha256": "cce61a5c7233a3e05e40c16a9a9b59b2f5c91d98f3a4cf3aa7a83a961e68dc54",
+        "reviewed": true,
+        "license": "metadata",
+        "basis": "Version identifier or generated constant string, with no copied generator implementation. Fixed-source derivation is recorded; retain provenance.",
+        "evidence": [
+          "review-evidence/license.rst",
+          "review-evidence/source-derivations.json"
+        ]
+      },
+      {
+        "path": "mesa/bin/git_sha1_gen.py",
+        "sha256": "472666d4a41de23d698b54bd8218ff100cd5915719cb76c8271befd6fad1da87",
+        "reviewed": true,
+        "license": "build-input-only",
+        "basis": "Build-time generator not shipped as source or executable code in LibGodot. Only its generated constant string is included; source hash retained for reproduction.",
+        "evidence": [
+          "review-evidence/license.rst",
+          "review-evidence/source-derivations.json"
+        ]
+      },
+      {
+        "path": "mesa/src/compiler/nir/nir_inline_helpers.h",
+        "sha256": "c2caf5337b034eb161096be409f8bb70c27557f29c68a0561bc57a08fdb58b7e",
+        "reviewed": true,
+        "license": "MIT",
+        "basis": "Historical extraction/conversion; retain original parent notices and exact pinned source lineage.",
+        "evidence": [
+          "SOURCE_LINEAGE.json"
+        ]
+      },
+      {
+        "path": "mesa/src/compiler/nir/nir_shader_bisect.c",
+        "sha256": "bc32bd8d7a1da8b9d5b272c892be86325b7668016b43eb0d115a1c8e781cce31",
+        "reviewed": true,
+        "license": "MIT",
+        "basis": "New NIR implementation introduced by d01aae2fb1e04ede53ea10090e3aa98b7dc72567, with no separate license or extracted third-party source. NIR component MIT notice plus Mesa component contribution policy apply; retain NIR notice already in bundle.",
+        "evidence": [
+          "review-evidence/nir_shader_bisect.c.initial-diff.json",
+          "review-evidence/nir.h.NOTICE.txt",
+          "review-evidence/license.rst"
+        ]
+      },
+      {
+        "path": "mesa/src/mesa/main/extensions_table.h",
+        "sha256": "37a72ed68492432dbe117f5d581395b0750d645b8abf510f62bba24a81b7f189",
+        "reviewed": true,
+        "license": "MIT",
+        "basis": "Historical extraction/conversion; retain original parent notices and exact pinned source lineage.",
+        "evidence": [
+          "SOURCE_LINEAGE.json"
+        ]
+      },
+      {
+        "path": "mesa/src/mesa/main/glconfig.h",
+        "sha256": "709478e94be7a9d1419bd2fd22e88c209dea64c82f0ad83704c522df443d116d",
+        "reviewed": true,
+        "license": "MIT",
+        "basis": "Historical extraction/conversion; retain original parent notices and exact pinned source lineage.",
+        "evidence": [
+          "SOURCE_LINEAGE.json"
+        ]
+      },
+      {
+        "path": "mesa/src/microsoft/compiler/dxil_validator.cpp",
+        "sha256": "83354e08b83b1a2cd7e7bcc21739a12d6c2cbfff099ce7968909d942c03b34b1",
+        "reviewed": true,
+        "license": "MIT",
+        "basis": "Implementation and Microsoft MIT-licensed companion API header introduced together by 193cf76c095ccbaa7f5a0a08a8fa0e9abe080abc. Retain the Microsoft notice from the companion header already in bundle.",
+        "evidence": [
+          "review-evidence/dxil_validator.cpp.initial-diff.json",
+          "review-evidence/dxil_validator.h.NOTICE.txt"
+        ]
+      },
+      {
+        "path": "mesa/src/util/blake3/README",
+        "sha256": "d85e66d85119bffe0cc4ee649165d7865ccd8d832e705e7233dacc54e8e0a44d",
+        "reviewed": true,
+        "license": "Apache-2.0",
+        "basis": "BLAKE3 1.8.2 component license choice, including documented local integration changes. Mesa contribution policy requires the component license. Keep upstream Apache text, the alternative license texts, and Mesa README change list; do not describe modified files as verbatim upstream.",
+        "evidence": [
+          "blake3-1.8.2/README.md",
+          "blake3-1.8.2/LICENSE_A2",
+          "review-evidence/license.rst",
+          "review-evidence/source-derivations.json"
+        ]
+      },
+      {
+        "path": "mesa/src/util/blake3/blake3.c",
+        "sha256": "53aba7db8bbffd57bf3745b60496edefb76368750d8812765a0257d28f23e15d",
+        "reviewed": true,
+        "license": "Apache-2.0",
+        "basis": "BLAKE3 1.8.2 component license choice, including documented local integration changes. Mesa contribution policy requires the component license. Keep upstream Apache text, the alternative license texts, and Mesa README change list; do not describe modified files as verbatim upstream.",
+        "evidence": [
+          "blake3-1.8.2/README.md",
+          "blake3-1.8.2/LICENSE_A2",
+          "review-evidence/license.rst",
+          "review-evidence/source-derivations.json"
+        ]
+      },
+      {
+        "path": "mesa/src/util/blake3/blake3.h",
+        "sha256": "875039b6a5dc3a7529e704a07c961c508db2c2f6559a59d0e00ea0dce237f0f7",
+        "reviewed": true,
+        "license": "Apache-2.0",
+        "basis": "BLAKE3 1.8.2 component license choice, including documented local integration changes. Mesa contribution policy requires the component license. Keep upstream Apache text, the alternative license texts, and Mesa README change list; do not describe modified files as verbatim upstream.",
+        "evidence": [
+          "blake3-1.8.2/README.md",
+          "blake3-1.8.2/LICENSE_A2",
+          "review-evidence/license.rst",
+          "review-evidence/source-derivations.json"
+        ]
+      },
+      {
+        "path": "mesa/src/util/blake3/blake3_dispatch.c",
+        "sha256": "a6cef5c497d95c8f7fcde6e1a8e140637f3260b31e911319e69cf5069459b635",
+        "reviewed": true,
+        "license": "Apache-2.0",
+        "basis": "BLAKE3 1.8.2 component license choice, including documented local integration changes. Mesa contribution policy requires the component license. Keep upstream Apache text, the alternative license texts, and Mesa README change list; do not describe modified files as verbatim upstream.",
+        "evidence": [
+          "blake3-1.8.2/README.md",
+          "blake3-1.8.2/LICENSE_A2",
+          "review-evidence/license.rst",
+          "review-evidence/source-derivations.json"
+        ]
+      },
+      {
+        "path": "mesa/src/util/blake3/blake3_impl.h",
+        "sha256": "9dab2a24a6adf4124a1590878fb0dc8861280f356cb950bd78c1735bba1c7cad",
+        "reviewed": true,
+        "license": "Apache-2.0",
+        "basis": "BLAKE3 1.8.2 component license choice, including documented local integration changes. Mesa contribution policy requires the component license. Keep upstream Apache text, the alternative license texts, and Mesa README change list; do not describe modified files as verbatim upstream.",
+        "evidence": [
+          "blake3-1.8.2/README.md",
+          "blake3-1.8.2/LICENSE_A2",
+          "review-evidence/license.rst",
+          "review-evidence/source-derivations.json"
+        ]
+      },
+      {
+        "path": "mesa/src/util/blake3/blake3_portable.c",
+        "sha256": "2bc25b0dad67b4329d0b49cfa075ab2b0d04e424addbddc4e9c389c52a192524",
+        "reviewed": true,
+        "license": "Apache-2.0",
+        "basis": "BLAKE3 1.8.2 component license choice, including documented local integration changes. Mesa contribution policy requires the component license. Keep upstream Apache text, the alternative license texts, and Mesa README change list; do not describe modified files as verbatim upstream.",
+        "evidence": [
+          "blake3-1.8.2/README.md",
+          "blake3-1.8.2/LICENSE_A2",
+          "review-evidence/license.rst",
+          "review-evidence/source-derivations.json"
+        ]
+      },
+      {
+        "path": "mesa/src/util/blake3/mesa_blake3_visibility.h",
+        "sha256": "073d6b149d1d7f9a4f43833becb4ca26dabf825a31b07a430169cd127cdf938a",
+        "reviewed": true,
+        "license": "Apache-2.0",
+        "basis": "BLAKE3 1.8.2 component license choice, including documented local integration changes. Mesa contribution policy requires the component license. Keep upstream Apache text, the alternative license texts, and Mesa README change list; do not describe modified files as verbatim upstream.",
+        "evidence": [
+          "blake3-1.8.2/README.md",
+          "blake3-1.8.2/LICENSE_A2",
+          "review-evidence/license.rst",
+          "review-evidence/source-derivations.json"
+        ]
+      },
+      {
+        "path": "mesa/src/util/box.h",
+        "sha256": "9a55269f5cbea3fd736a8571a059fa5739160f5927b5c643d708f4cf05c267e6",
+        "reviewed": true,
+        "license": "MIT",
+        "basis": "Gallium pipe_box helpers and structure; preserve the Gallium pipe state component copyright and MIT notice. Introduction/renaming history is retained rather than relying only on Mesa majority licensing.",
+        "evidence": [
+          "review-evidence/box.h.initial-diff.json",
+          "review-evidence/p_state.h.NOTICE.txt",
+          "box-component.NOTICE.txt",
+          "review-evidence/license.rst"
+        ]
+      },
+      {
+        "path": "mesa/src/util/drm_is_nouveau.h",
+        "sha256": "320f2bf9e670b0fc809c35cbb01d4699c76858ecbd8d69a08c94f039da4d032b",
+        "reviewed": true,
+        "license": "MIT",
+        "basis": "Historical extraction/conversion; retain original parent notices and exact pinned source lineage.",
+        "evidence": [
+          "SOURCE_LINEAGE.json"
+        ]
+      },
+      {
+        "path": "mesa/src/util/format/u_format.yaml",
+        "sha256": "936ea82aa8b5764281023268b8c7392d17bd696480947e97b69bceb16547d141",
+        "reviewed": true,
+        "license": "MIT",
+        "basis": "Historical extraction/conversion; retain original parent notices and exact pinned source lineage.",
+        "evidence": [
+          "SOURCE_LINEAGE.json"
+        ]
+      },
+      {
+        "path": "mesa/src/util/format/u_format_etc.c",
+        "sha256": "b0513e3d6237c6128c26fa2035582e15c97bd7db9c2fca7869bfb6a02b217731",
+        "reviewed": true,
+        "license": "MIT",
+        "basis": "ETC implementation and LunarG MIT-licensed companion header introduced together by 5c31eb78e5fa4c4cfcc82df3c9a2c34fcd4b402c. Included ETC decoding template also has LunarG MIT notice. Both notices are already retained.",
+        "evidence": [
+          "review-evidence/u_format_etc.c.initial-diff.json",
+          "review-evidence/u_format_etc.h.NOTICE.txt"
+        ]
+      },
+      {
+        "path": "sdk-generated/bin/git_sha1.h",
+        "sha256": "59d9b7733fcb766c102b2fade83202741f7f90e7aec968a39ed056959d235b52",
+        "reviewed": true,
+        "license": "metadata",
+        "basis": "Version identifier or generated constant string, with no copied generator implementation. Fixed-source derivation is recorded; retain provenance.",
+        "evidence": [
+          "review-evidence/license.rst",
+          "review-evidence/source-derivations.json"
+        ]
+      }
+    ],
+    "header_notice_sources": [
+      {
+        "source": "src/compiler/nir/nir.h",
+        "source_sha256": "d55e5995967cda8595c760a0448ffa7600d3ec79b4bc8866e29fbd4d024f819b",
+        "notice_file": "review-evidence/nir.h.NOTICE.txt"
+      },
+      {
+        "source": "src/gallium/include/pipe/p_state.h",
+        "source_sha256": "00f0dfa0b9d2c50bc57928f98d40c66edb604f642da8a42e8dc98a400ceb86f9",
+        "notice_file": "review-evidence/p_state.h.NOTICE.txt"
+      },
+      {
+        "source": "src/microsoft/compiler/dxil_validator.h",
+        "source_sha256": "5beb8a42290e16c2119c75faabba87b61ccfca5f1a12ea4c26cec482d51212a1",
+        "notice_file": "review-evidence/dxil_validator.h.NOTICE.txt"
+      },
+      {
+        "source": "src/util/format/u_format_etc.h",
+        "source_sha256": "5af29da0b566e0994d1bc1529e50643b80b1747a67a316ec0975e2f8db76dd90",
+        "notice_file": "review-evidence/u_format_etc.h.NOTICE.txt"
+      }
+    ]
+  },
+  "license_review_sha256": "d5b9bd549387edce835a0d58c32771bb275904eea82b14007735201dc3dbc24d"
 }

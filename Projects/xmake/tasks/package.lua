@@ -282,28 +282,27 @@ local function package_windows(mode, arch, api)
     local os = api.os
     local path = api.path
     ensure(os.host() == "windows", "Windows ZIP packaging requires a Windows host")
-    ensure(arch == "x86" or arch == "x64", "Windows packaging architecture must be x86 or x64")
+    ensure(arch == "x64", "Windows packages support x64 only")
     if api.godot_runtime then
         ensure(arch == "x64", "Godot-enabled Windows packages require the verified x64 runtime")
     end
-    local seven_zip = find_tool("7z") or find_tool("7za")
-    ensure(seven_zip, "Windows ZIP packaging requires 7-Zip")
 
     local projectdir = os.projectdir()
     local xmake = os.programfile()
+    local backend = api.backend
+    local builddir = path.join(projectdir, "build/windows-host", backend)
+    local config_env = {XMAKE_CONFIGDIR = path.join(projectdir, "build/windows-package-config", backend)}
     cprint("${bright}building Windows %s %s with xmake${clear}", arch, mode)
     os.vrunv(xmake, {"f", "-P", projectdir, "-y", "-p", "windows", "-a", arch, "-m", mode,
-        "--dora_godot_runtime=" .. (api.godot_runtime and "y" or "n")}, {
-        curdir = projectdir
-    })
-    os.vrunv(xmake, {"build", "-P", projectdir, "Dora"}, {curdir = projectdir,
-        envs = {DORA_GODOT_RUNTIME_DIR = api.godot_override or ""}})
+        "--dora_godot_runtime=" .. (api.godot_runtime and "y" or "n"),
+        "--dora_godot_windows_backend=" .. backend, "--builddir=" .. builddir}, {curdir = projectdir, envs = config_env})
+    config_env.DORA_GODOT_RUNTIME_DIR = api.godot_override or ""
+    os.vrunv(xmake, {"build", "-P", projectdir, "Dora"}, {curdir = projectdir, envs = config_env})
 
-    local targetdir = path.join(projectdir, "build/windows", arch, mode)
+    local targetdir = path.join(builddir, "windows", arch, mode)
     local assets = path.join(projectdir, "Assets")
-    local package_dir = path.join(projectdir, "build/package/windows", arch, mode)
+    local package_dir = path.join(projectdir, "build/package/windows", arch, mode, backend)
     local stage = path.join(package_dir, "stage")
-    local output = path.join(package_dir, "dora-ssr-windows-" .. arch .. ".zip")
     for _, name in ipairs({"Dora.exe", "wa.dll"}) do
         ensure(os.isfile(path.join(targetdir, name)), "missing Windows output: " .. name)
     end
@@ -338,11 +337,10 @@ local function package_windows(mode, arch, api)
     os.cp(wa_mod, path.join(stage, "dora-wa/wa.mod"))
     os.cp(wa_vendor, path.join(stage, "dora-wa/vendor"))
 
-    os.vrunv(seven_zip.program, {
-        "a", "-tzip", "-xr!.DS_Store", "-xr!._*", output, "."
-    }, {curdir = stage})
-    ensure(os.isfile(output), "Windows packaging completed without the expected ZIP")
-    cprint("${green}Windows ZIP: %s${clear}", output)
+    local python = ensure(find_tool("python3") or find_tool("python"), "Windows packaging requires Python")
+    os.vrunv(python.program, {path.join(projectdir, "Tools/WindowsPackage/package_windows.py"),
+        "--stage", stage, "--output", package_dir, "--backend", backend, "--format", api.format, "--mode", mode}, {curdir = projectdir})
+
 end
 
 task("dora-package")
@@ -352,9 +350,10 @@ task("dora-package")
         description = "Build and package Dora through the platform-native packager",
         options = {
             {nil, "platform", "kv", nil, "Package platform: android, ios, web, linux, macosx or windows"},
-            {nil, "arch", "kv", nil, "Target architecture (macOS: arm64 or universal; iOS/Linux: arm64 or x86_64; Windows: x86 or x64)"},
+            {nil, "arch", "kv", nil, "Target architecture (macOS: arm64 or universal; iOS/Linux: arm64 or x86_64; Windows: x64)"},
             {nil, "mode", "kv", "debug", "Build mode: debug or release"},
-            {nil, "format", "kv", nil, "Package format: Android apk/aab, iOS zip/ipa"},
+            {nil, "format", "kv", nil, "Package format: Windows zip/msi/both, Android apk/aab, iOS zip/ipa"},
+            {nil, "windows-backend", "kv", "d3d12", "Windows renderer: d3d12 (default) or wgl"},
             {nil, "appledev", "kv", "simulator", "iOS SDK: simulator or device"},
             {nil, "profile", "kv", nil, "Web profile: core, dora-preset or custom"},
             {nil, "godot-runtime", "kv", nil, "Override the default built Godot runtime with a verified matching package"},
@@ -388,18 +387,21 @@ task("dora-package")
             })
             return
         end
-        local format = option.get("format") or "apk"
+        local format = option.get("format") or (platform == "windows" and "zip" or "apk")
+        local windows_backend = option.get("windows-backend") or "d3d12"
+        assert(windows_backend == "d3d12" or windows_backend == "wgl", "invalid Windows backend")
         local default_arch = platform == "macosx" and (without_godot and "universal" or "arm64")
-            or (platform == "windows" and (without_godot and "x86" or "x64") or os.arch())
+            or (platform == "windows" and "x64" or os.arch())
         local arch = option.get("arch") or default_arch
         local runtime_arch = arch == "x64" and "x86_64" or (arch == "aarch64" and "arm64" or arch)
         local godot_runtime = not without_godot and (godot_override or
             path.join(os.projectdir(), "build/godot-component", platform, runtime_arch, mode, "package")) or nil
+        if platform == "windows" and godot_runtime and not godot_override then godot_runtime = path.join(os.projectdir(), "build/godot-component/windows", runtime_arch, mode, windows_backend, "package") end
         assert(platform == "android" or platform == "linux" or platform == "macosx"
             or platform == "windows",
             "dora-package supports android, linux, macosx and windows")
         assert(mode == "debug" or mode == "release", "--mode must be debug or release")
-        assert(format == "apk" or (platform == "android" and mode == "release" and format == "aab"),
+        assert((platform == "windows" and (format == "zip" or format == "msi" or format == "both")) or format == "apk" or (platform == "android" and mode == "release" and format == "aab"),
             "--format=aab is supported for Android release only")
 
         if platform == "macosx" then
@@ -433,6 +435,7 @@ task("dora-package")
 
         if platform == "windows" then
             package_windows(mode, arch, {
+                backend = windows_backend, format = format,
                 ensure = assert,
                 cprint = cprint,
                 find_tool = find_tool,

@@ -1,6 +1,6 @@
 local godot_root = path.join(os.projectdir(), "Source/3rdParty/Godot")
 local output_root = path.join(os.projectdir(), "build/godot-xmake")
-local windows_backend = get_config("dora_godot_windows_backend") or "wgl"
+local windows_backend = get_config("dora_godot_windows_backend") or "d3d12"
 local platform_output_root = output_root
 if is_plat("linux") then
     -- Linux is commonly cross-built for both supported architectures from the
@@ -316,6 +316,14 @@ if is_plat("mingw") and (is_arch("x86_64") or is_arch("arm64")) and has_config("
             "-static", "-static-libgcc", "-static-libstdc++",
             {force = true}
         )
+        after_load(function (target)
+            -- The stage archives are explicit shflags and can appear after
+            -- xmake's implicit C++ libraries. Repeat the C++ runtime last so
+            -- static archive references resolve on fresh GCC toolchains too.
+            local linker = target:tool("sh") or ""
+            target:add("shflags", path.filename(linker):find("clang", 1, true)
+                and "-lc++" or "-lstdc++", {force = true})
+        end)
     target_end()
 end
 

@@ -817,17 +817,28 @@ bool BGFXDora::init(const bgfx::PlatformData& data) {
 	}
 #endif // BX_PLATFORM_LINUX
 #if BX_PLATFORM_WINDOWS
-    // The experimental Godot WGL bridge shares native OpenGL textures. Keep
-    // the ordinary host's renderer selection unless this mode is requested.
-    if (const char *mode=std::getenv("DORA_GODOT_WINDOWS_GL"); mode && std::strcmp(mode,"1")==0)
-        init.type=bgfx::RendererType::OpenGL;
-    if (const char *mode=std::getenv("DORA_GODOT_WINDOWS_D3D12"); mode && std::strcmp(mode,"1")==0)
-        init.type=bgfx::RendererType::Direct3D12;
+    // The release flavour selects one host renderer and matching Godot bridge.
+#if defined(DORA_GODOT_WINDOWS_D3D12_BACKEND)
+    init.type=bgfx::RendererType::Direct3D12;
+#elif defined(DORA_GODOT_WINDOWS_GL_BACKEND)
+    init.type=bgfx::RendererType::OpenGL;
+#endif
     if (const char *warp=std::getenv("DORA_GODOT_D3D12_WARP"); warp && std::strcmp(warp,"1")==0)
         init.vendorId=BGFX_PCI_ID_SOFTWARE_RASTERIZER;
 #endif
 	bx::memCopy(&init.platformData, &data, sizeof(bgfx::PlatformData));
 	_initialized = bgfx::init(init);
+#if BX_PLATFORM_WINDOWS && defined(DORA_GODOT_WINDOWS_D3D12_BACKEND) && !defined(DORA_AS_LIB)
+    if (!_initialized) {
+        // This path cannot rely on ImGui or SelfUpdater: no renderer exists.
+        if (MessageBoxW(nullptr,
+                L"Dora SSR could not initialize Direct3D 12.\n\n"
+                L"Install the Windows x64 OpenGL compatibility version instead.\n"
+                L"Open the download page?", L"Dora SSR", MB_YESNO | MB_ICONERROR) == IDYES) {
+            SDL_OpenURL("https://github.com/IppClub/Dora-SSR/releases/latest");
+        }
+    }
+#endif
 #if BX_PLATFORM_IOS
     if (_initialized) {
         std::string reason;
@@ -2137,6 +2148,34 @@ void Application::install(String path) {
 	AssertUnless(SharedContent.isAbsolutePath(path), "expecting an absolute path");
 	auto assetPath = SharedContent.getAssetPath();
 	auto appPath = path.toString();
+    if (Path::getExt(appPath) == "msi"sv) {
+        auto helper = Path::concat({assetPath, "Script/Tools/SelfUpdater/InstallWindows.ps1"sv});
+        if (!fs::is_regular_file(fs::u8path(appPath)) || !fs::is_regular_file(fs::u8path(helper))) {
+            Error("Application.install() is missing its Windows MSI package or helper");
+            return;
+        }
+        // Windows paths cannot contain quotes. Keep every path argument quoted;
+        // the helper waits for this process before asking MSI to replace files.
+        std::string command = "powershell.exe -NoProfile -ExecutionPolicy Bypass -File \"" + helper
+            + "\" -Installer \"" + appPath + "\" -InstallRoot \"" + assetPath
+            + "\" -DoraProcessId " + std::to_string(GetCurrentProcessId());
+        auto wide = CodeCvt::utf8to16(command);
+        STARTUPINFOW si{}; si.cb=sizeof(si);
+        PROCESS_INFORMATION pi{};
+        if (!CreateProcessW(nullptr, reinterpret_cast<LPWSTR>(wide.data()), nullptr, nullptr, FALSE,
+                CREATE_NO_WINDOW, nullptr, nullptr, &si, &pi)) {
+            Error("Application.install() failed to launch the Windows MSI helper: {}", GetLastError());
+            return;
+        }
+        CloseHandle(pi.hThread); CloseHandle(pi.hProcess);
+        Application::setDevMode(false);
+        Application::shutdown();
+        return;
+    }
+    if (fs::exists(fs::u8path(Path::concat({assetPath, "DoraInstallation.json"sv})))) {
+        Error("This installation is managed by Windows Installer; update it with an MSI package");
+        return;
+    }
 	auto bakPath = Path::concat({assetPath, "Bak"sv});
 	if (SharedContent.exist(bakPath) && !SharedContent.remove(bakPath)) {
 		Error("Application.install() failed to remove the previous Windows update backup");

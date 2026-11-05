@@ -45,6 +45,8 @@ jobs:
         run: |
           python3 "$DORA_TEST_REPO/Test/Godot/test_xmake_only.py"
           python3 "$DORA_TEST_REPO/Test/Godot/test_windows_output_encoding.py"
+          python3 "$DORA_TEST_REPO/Test/Godot/test_windows_production_backends.py"
+          python3 "$DORA_TEST_REPO/Test/Godot/test_nir_package_notices.py"
           python3 "$DORA_TEST_REPO/Test/Godot/test_component_failure_log.py"
           python3 "$DORA_TEST_REPO/Test/Godot/test_ios_sdk_selection.py"
           python3 "$DORA_TEST_REPO/Test/Godot/test_embree_isa_baseline.py"

@@ -4,6 +4,7 @@ import { gitHeadFromStatus, quoteGitArgument, runGit, type GitOperationStatus } 
 import {
 	loadUpdateManifest,
 	updatePlatformsForVersion,
+	updatePackageFilename,
 	type UpdateManifest,
 	type UpdatePackage,
 	type UpdatePlatform,
@@ -285,7 +286,7 @@ export const checkGitHubRelease = (
 		}
 		const packages: Partial<Record<UpdatePlatform, GitHubUpdatePackage>> = {};
 		for (const platform of updatePlatformsForVersion(release.tag_name)) {
-			const file = `dora-ssr-${release.tag_name}-${platform}.zip`;
+			const file = updatePackageFilename(release.tag_name, platform);
 			let matched: GitHubReleaseAsset | undefined;
 			for (const value of release.assets) {
 				if (value.name === file) {

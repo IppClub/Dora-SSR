@@ -232,12 +232,13 @@ def main():
                      entry['applies_to'], '\nSource: ', entry['source_path'],
                      '\nSource commit: ', entry['source_ref'], '\n\n', data.decode(), '\n'])
         inherited.append(dict(entry, notice_text=data.decode()))
+    text.extend(['\n' + '=' * 72 + '\nGallium pipe_box component notice\n\n', (lineage_path.parent / 'box-component.NOTICE.txt').read_text()])
     for block, paths in sorted(groups.items(), key=lambda item: item[1][0]):
         text.extend(['\n' + '=' * 72 + '\nFiles:\n', '\n'.join(paths), '\n\n', block, '\n'])
     args.output.mkdir(parents=True, exist_ok=True)
     notice = args.output / 'GODOT-NIR-THIRD-PARTY-NOTICES.txt'
     notice.write_text(''.join(text), encoding='utf-8')
-    provenance = {'schema': 2, 'godot_nir_tag': '25.3.1-1', 'mesa_commit': MESA_COMMIT,
+    provenance = {'schema': 3, 'godot_nir_tag': '25.3.1-1', 'mesa_commit': MESA_COMMIT,
                   'mesa_source_sha256': MESA_SHA, 'nir_source_sha256': NIR_SHA,
                   'object_sources': object_sources,
                   'object_mapping_scope': 'All 309 static archive members matched by unique source basename or literal upstream generator metadata; not a full rebuild or final-link contribution proof',
@@ -249,6 +250,18 @@ def main():
                   'historical_notice_sources': inherited,
                   'source_lineage_registry_sha256': digest(lineage_path.read_bytes()),
                   'scope': 'Conservative notice inventory, not a binary link contribution or legal opinion'}
+    review_file = lineage_path.parent / 'LICENSE_REVIEW.json'
+    review = json.loads(review_file.read_text())
+    from verify_nir_review import verify_review
+    verify_review(review, provenance, require_hash=False)
+    for name, expected in review['evidence'].items():
+        assert digest((lineage_path.parent / name).read_bytes()) == expected, 'License review evidence changed: ' + name
+    for header in review.get('header_notice_sources', []):
+        data = mesa[header['source']]
+        assert digest(data) == header['source_sha256'], 'License header source changed'
+        assert (lineage_path.parent / header['notice_file']).read_text().strip() == '\n\n'.join(comments(data.decode())), 'License header notice changed'
+    provenance['license_review'] = review
+    provenance['license_review_sha256'] = digest(review_file.read_bytes())
     (args.output / 'GODOT-NIR-PROVENANCE.json').write_text(json.dumps(provenance, indent=2) + '\n')
     print(json.dumps({'files': len(records), 'notice_groups': len(groups), 'bytes': notice.stat().st_size}))
 

@@ -1,5 +1,13 @@
 # SelfUpdater 的 GitHub Release 与 AtomGit LFS 双源方案
 
+## v1.10.0 起的 Windows 发行
+
+仅提供x64。`dora-ssr-vX.Y.Z-windows-x64.zip/.msi` 为D3D12默认版，`dora-ssr-vX.Y.Z-windows-x64-opengl.zip/.msi` 为OpenGL兼容版。更新清单平台键为 `windows-x64`、`windows-x64-opengl`、`windows-x64-msi`、`windows-x64-opengl-msi`，MSI文件名不包含末尾的平台键 `-msi`，而使用 `.msi` 扩展名。
+
+普通更新保持当前后端和安装方式，当前后端来自随包Godot清单；仅MSI安装时写入 `DoraInstallation.json`。用户可手动切换到同版本或更新版本的另一后端，安装前提示退出重启。ZIP版仍走文件替换；MSI版在退出Dora后启动Windows Installer，两个后端共用UpgradeCode，支持同版本切换及同版本修复，避免ZIP直接覆盖MSI管理的文件。用户项目和设置保留在用户数据目录。
+
+AtomGit发布脚本和schema同步支持上述四个Windows平台以及Android、macOS arm64；旧版平台仍可校验，但不继续发布32位Windows包。发布脚本更新不代表已发布新稳定清单。下文旧版命名示例作为协议历史保留。
+
 ## 目标
 
 SelfUpdater 不再依赖 IppClub 私有服务器，并恢复可由用户切换的两种完整更新模式：
@@ -13,7 +21,7 @@ Dora SSR GitHub Release。
 
 ## 仓库布局
 
-仓库使用四个互不合并的分支：
+旧版v1.9仓库使用四个互不合并的分支：
 
 | 分支 | 内容 |
 | --- | --- |

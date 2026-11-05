@@ -791,7 +791,7 @@ interface App {
 
 	/**
 	 * A function used for self updating the game engine.
-	 * @param path The path to the new engine file.
+	 * @param path Absolute path to the update. Windows accepts an extracted portable package directory or an MSI file; MSI installations must update through MSI.
 	 */
 	install(path: string): void;
 

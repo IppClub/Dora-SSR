@@ -284,7 +284,7 @@ target("Dora")
         -- into a host. Like Godot's rendering-driver selection, the backend is
         -- fixed for the lifetime of the process rather than hot-switched.
         add_syslinks("opengl32")
-        if os.getenv("DORA_GODOT_WINDOWS_D3D12") == "1" then
+        if (get_config("dora_godot_windows_backend") or "d3d12") == "d3d12" then
             add_files(rootpath("Source/Godot/GodotRuntimeD3D12.cpp"))
             add_defines("DORA_GODOT_WINDOWS_D3D12_BACKEND=1")
             add_syslinks("d3d12", "dxgi")

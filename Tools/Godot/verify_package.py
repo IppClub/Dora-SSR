@@ -45,9 +45,9 @@ def verify(package):
         if (dependency.get('godot_nir_tag') != '25.3.1-1' or
                 dependency.get('notice_sha256') != artifacts[notice]):
             raise ValueError('D3D12 NIR notice provenance mismatch')
-        if dependency.get('schema') not in (1, 2):
+        if dependency.get('schema') not in (1, 2, 3):
             raise ValueError('Unsupported D3D12 NIR notice schema')
-        if dependency['schema'] == 2:
+        if dependency['schema'] >= 2:
             expected = {
                 'mesa/src/util/drm_is_nouveau.h': '10e68930ffc4bd3919989b33ac4ec0c0174174c95d20c4ed1339143063e25e2a',
                 'mesa/src/util/format/u_format.yaml': '8cc08434fdf13defe70ab210941ac18d04332d2148af680794fe8e7b6a14bacf',
@@ -68,6 +68,9 @@ def verify(package):
                         hashlib.sha256(text.encode()).hexdigest() != expected[target]):
                     raise ValueError('D3D12 inherited notices missing or invalid')
                 seen.add(target)
+    if graphics_backend == 'd3d12' and dependency['schema'] >= 3:
+        from verify_nir_review import verify_review
+        verify_review(dependency.get('license_review'), dependency)
     library=manifest.get('library')
     if not library and not {'dora-godot.js','dora-godot.wasm','runtime_bridge.mjs','shared_gl.mjs'}.issubset(artifacts):
         raise ValueError('Missing native library or complete Web runtime payload')

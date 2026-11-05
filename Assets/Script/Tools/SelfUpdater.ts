@@ -24,6 +24,8 @@ import * as ImGui from "ImGui";
 import {
 	compareVersions,
 	updatePlatformForApp,
+	windowsUpdatePlatform,
+	isWindowsUpdatePlatform,
 	type UpdatePlatform,
 } from "Script/Tools/SelfUpdater/Manifest";
 import {
@@ -65,6 +67,8 @@ const messagePopupFlags = [
 ];
 
 let snapshot: UpdateSnapshot | undefined;
+const installedPlatform = updatePlatformForApp();
+let targetBackend = installedPlatform && installedPlatform.includes("-opengl") ? 2 : 1;
 let checking = false;
 let preparing = false;
 let installing = false;
@@ -182,6 +186,13 @@ const installPreparedPackage = (pending: PreparedInstallation) => {
 		progress = undefined;
 		return;
 	}
+    if (platform.endsWith("-msi")) {
+        pending.installPath = value.file;
+        App.install(value.file);
+        installing = false;
+        progress = undefined;
+        return;
+    }
 	progress = { progress: 0.94, message: zh ? "正在解压更新…" : "Extracting update…", source: value.source };
 	thread(() => {
 		const unzipPath = Path(Path.getPath(value.file), "unpacked");
@@ -225,9 +236,8 @@ const installPreparedPackage = (pending: PreparedInstallation) => {
 	});
 };
 
-const beginUpdate = () => {
+const beginUpdate = (platform: UpdatePlatform | undefined = updatePlatformForApp()) => {
 	if (!snapshot || preparing || installing) return;
-	const platform = updatePlatformForApp();
 	if (!platform) return;
 	preparing = true;
 	canceled = false;
@@ -328,6 +338,11 @@ threadLoop(() => {
 		ImGui.TextColored(themeColor, zh ? "当前版本：" : "Current version:");
 		ImGui.SameLine();
 		ImGui.Text(currentDisplayVersion);
+        if (installedPlatform && isWindowsUpdatePlatform(installedPlatform)) {
+            ImGui.Text((zh ? "当前图形版本：" : "Current graphics: ")
+                + (installedPlatform.includes("-opengl") ? "OpenGL" : "D3D12")
+                + (installedPlatform.endsWith("-msi") ? " · MSI" : " · ZIP"));
+        }
 		if (snapshot) {
 			const visibleSnapshot = snapshot;
 			ImGui.TextColored(themeColor, zh ? "稳定版本：" : "Stable version:");
@@ -367,7 +382,7 @@ threadLoop(() => {
 			const installSupported = platform === "android"
 				|| platform === "windows-x86"
 				|| platform === "macos-universal"
-				|| platform === "windows-x64"
+				|| (platform !== undefined && isWindowsUpdatePlatform(platform))
 				|| platform === "macos-arm64";
 			if (installSupported) {
 				if (prepared) {
@@ -394,6 +409,21 @@ threadLoop(() => {
 				}
 			}
 		}
+
+        if (installedPlatform && isWindowsUpdatePlatform(installedPlatform)
+            && snapshot && !checking && !preparing && !installing && !prepared) {
+            ImGui.Separator();
+            const [changed, choice] = ImGui.Combo(zh ? "切换图形版本" : "Switch graphics", targetBackend, ["D3D12", "OpenGL"]);
+            if (changed) targetBackend = choice;
+            const target = windowsUpdatePlatform(targetBackend === 2 ? "wgl" : "d3d12", installedPlatform.endsWith("-msi"));
+            const packages = snapshot.source === "AtomGit" ? snapshot.manifest.packages : snapshot.packages;
+            if (target !== installedPlatform) {
+                ImGui.TextWrapped(zh ? "切换将安装所选版本并重新启动，保留用户项目和设置。" : "Switching installs the selected version and restarts Dora, preserving user projects and settings.");
+                if (packages[target] && compareVersions(snapshotVersion(snapshot), currentVersion) >= 0) {
+                    if (ImGui.Button(zh ? "下载切换版本并重启" : "Download, switch and restart", Vec2(-1, 30))) beginUpdate(target);
+                } else ImGui.TextWrapped(zh ? "当前更新源没有可切换的同版本或更新版本安装包。" : "This source has no matching or newer package for the selected backend.");
+            }
+        }
 
 		if (popupShow) {
 			popupShow = false;

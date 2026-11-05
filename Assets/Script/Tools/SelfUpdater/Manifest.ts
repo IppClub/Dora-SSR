@@ -1,11 +1,21 @@
 // @preview-file off
 import { App, Content, json, Path, PlatformType } from "Dora";
 
-export type UpdatePlatform = "android" | "windows-x86" | "macos-universal" | "windows-x64" | "macos-arm64";
+export type UpdatePlatform = "android" | "windows-x86" | "macos-universal" | "windows-x64" | "windows-x64-opengl" | "windows-x64-msi" | "windows-x64-opengl-msi" | "macos-arm64";
 
 export const updatePlatformsForVersion = (version: string): UpdatePlatform[] => compareVersions(version, "v1.10.0") >= 0
-	? ["android", "windows-x64", "macos-arm64"]
+	? ["android", "windows-x64", "windows-x64-opengl", "windows-x64-msi", "windows-x64-opengl-msi", "macos-arm64"]
 	: ["android", "windows-x86", "macos-universal"];
+
+export const updatePackageFilename = (version: string, platform: UpdatePlatform): string =>
+    platform.endsWith("-msi")
+        ? `dora-ssr-${version}-${string.sub(platform, 1, -5)}.msi`
+        : `dora-ssr-${version}-${platform}.zip`;
+
+export const windowsUpdatePlatform = (backend: "d3d12" | "wgl", msi: boolean): UpdatePlatform =>
+    `windows-x64${backend === "wgl" ? "-opengl" : ""}${msi ? "-msi" : ""}` as UpdatePlatform;
+
+export const isWindowsUpdatePlatform = (platform: UpdatePlatform): boolean => platform.startsWith("windows-x64");
 
 export interface UpdatePackage {
 	ref: string;
@@ -73,7 +83,7 @@ const parsePackage = (
 		return { message: `${platform} package commit is invalid` };
 	}
 	if (typeof item.file !== "string"
-		|| item.file !== `dora-ssr-${version}-${platform}.zip`
+		|| item.file !== updatePackageFilename(version, platform)
 		|| Path.getFilename(item.file) !== item.file) {
 		return { message: `${platform} package file is invalid` };
 	}
@@ -173,8 +183,19 @@ export const updatePlatformForApp = (): UpdatePlatform | undefined => {
 	const [metadata, error] = json.decode(Content.load(file));
 	if (error !== undefined || typeof metadata !== "object" || metadata === undefined) return undefined;
 	const architectures = (metadata as { architectures?: unknown }).architectures;
+    const backend = (metadata as { graphics_backend?: unknown }).graphics_backend;
 	if (!Array.isArray(architectures)) return undefined;
-	if (App.platform === PlatformType.Windows && (architectures.includes("x86_64") || architectures.includes("x64"))) installedPlatform = "windows-x64";
+	if (App.platform === PlatformType.Windows && (architectures.includes("x86_64") || architectures.includes("x64"))) {
+        if (backend !== "d3d12" && backend !== "wgl") return undefined;
+        let msi = false;
+        if (Content.exist("DoraInstallation.json")) {
+            const [installation, err] = json.decode(Content.load("DoraInstallation.json"));
+            if (err !== undefined || typeof installation !== "object" || installation === undefined
+                || (installation as { format?: unknown }).format !== "msi") return undefined;
+            msi = true;
+        }
+        installedPlatform = windowsUpdatePlatform(backend, msi);
+    }
 	if (App.platform === PlatformType.macOS && architectures.includes("arm64")) installedPlatform = "macos-arm64";
 	return installedPlatform;
 };

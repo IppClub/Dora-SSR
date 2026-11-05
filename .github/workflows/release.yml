@@ -3,6 +3,12 @@ name: Release
 on:
   push:
     tags: 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      windows_only:
+        description: 'Validate only Windows packages without publishing'
+        type: boolean
+        default: true
 
 permissions:
   contents: write
@@ -15,11 +21,25 @@ jobs:
   web-assets:
     name: Build Web IDE assets
     runs-on: ubuntu-22.04
+    outputs:
+      version: ${{ steps.version.outputs.version }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
         with:
           submodules: recursive
+
+      - name: Resolve and validate release version
+        id: version
+        run: |
+          python3 - <<'PYVERSION'
+          import os, re
+          from pathlib import Path
+          version = 'v' + re.search(r'#define DORA_VERSION "([0-9.]+)"', Path('Source/Basic/Application.cpp').read_text()).group(1)
+          if os.environ['GITHUB_REF'].startswith('refs/tags/'):
+              assert os.environ['GITHUB_REF_NAME'] == version, 'Tag and engine version differ'
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as out: out.write('version=' + version + '\n')
+          PYVERSION
 
       - uses: actions/setup-python@v5
         with:
@@ -74,6 +94,7 @@ jobs:
           retention-days: 3
 
   macos:
+    if: github.event_name != 'workflow_dispatch' || !inputs.windows_only
     name: Build macOS release
     needs: web-assets
     runs-on: macos-26
@@ -105,19 +126,24 @@ jobs:
           cp Tools/dora-wa/wa.mod Assets/dora-wa
           cp -r Tools/dora-wa/vendor Assets/dora-wa
           xmake dora-package --platform=macosx --mode=release
-          cp build/package/macosx/arm64/release/dora-ssr-macos-arm64.zip "$GITHUB_WORKSPACE/dora-ssr-${{ github.ref_name }}-macos-arm64.zip"
+          cp build/package/macosx/arm64/release/dora-ssr-macos-arm64.zip "$GITHUB_WORKSPACE/dora-ssr-${{ needs.web-assets.outputs.version }}-macos-arm64.zip"
 
       - name: Upload macOS package
         uses: actions/upload-artifact@v4
         with:
           name: release-macos
-          path: dora-ssr-${{ github.ref_name }}-macos-arm64.zip
+          path: dora-ssr-${{ needs.web-assets.outputs.version }}-macos-arm64.zip
           if-no-files-found: error
           retention-days: 3
 
   windows:
-    name: Build Windows release
+    name: Build Windows release (${{ matrix.backend }})
     needs: web-assets
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        backend: [d3d12, wgl]
     runs-on: windows-2025-vs2026
     steps:
       - uses: actions/checkout@v4
@@ -159,21 +185,41 @@ jobs:
       - name: Generate tutorial docs
         run: node Docs/scripts/generate-language-docs.js
 
-      - name: Package Windows
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Install pinned MSI tools
+        run: |
+          dotnet tool install wix --tool-path "$env:RUNNER_TEMP/wix" --version 5.0.2
+          "$env:RUNNER_TEMP/wix" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          & "$env:RUNNER_TEMP/wix/wix.exe" extension add -g WixToolset.UI.wixext/5.0.2
+      - name: Package Windows ZIP and MSI
         run: |
           Remove-Item Env:MSYSTEM -ErrorAction SilentlyContinue
-          xmake dora-package --platform=windows --mode=release
-          Move-Item build\package\windows\x64\release\dora-ssr-windows-x64.zip dora-ssr-${{ github.ref_name }}-windows-x64.zip
-
-      - name: Upload Windows package
+          xmake dora-package --platform=windows --arch=x64 --mode=release --windows-backend=${{ matrix.backend }} --format=both
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Upload Windows packages
         uses: actions/upload-artifact@v4
         with:
-          name: release-windows
-          path: dora-ssr-${{ github.ref_name }}-windows-x64.zip
+          name: release-windows-${{ matrix.backend }}
+          path: |
+            build/package/windows/x64/release/${{ matrix.backend }}/*.zip
+            build/package/windows/x64/release/${{ matrix.backend }}/*.msi
           if-no-files-found: error
           retention-days: 3
+      - name: Retain failed Windows build logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-release-failure-${{ matrix.backend }}
+          path: |
+            build/godot-component/windows/**/build.log
+            build/package/windows/**/installer/*.wxs
+          if-no-files-found: ignore
+
 
   android:
+    if: github.event_name != 'workflow_dispatch' || !inputs.windows_only
     name: Build Android release
     needs: web-assets
     runs-on: ubuntu-22.04
@@ -231,20 +277,21 @@ jobs:
           DORA_ANDROID_SIGNING_KEY_PASSWORD="$KEY_PASSWORD" \
             xmake dora-package --platform=android --mode=release
           cd Projects/Android/Dora/app/build/outputs/apk/release
-          mv app-release.apk dora-ssr-${{ github.ref_name }}-android.apk
-          unzip -l dora-ssr-${{ github.ref_name }}-android.apk | grep -F 'assets/www/web-player/runtime.json'
-          zip -q dora-ssr-${{ github.ref_name }}-android.zip dora-ssr-${{ github.ref_name }}-android.apk
-          mv dora-ssr-${{ github.ref_name }}-android.zip "$GITHUB_WORKSPACE/dora-ssr-${{ github.ref_name }}-android.zip"
+          mv app-release.apk dora-ssr-${{ needs.web-assets.outputs.version }}-android.apk
+          unzip -l dora-ssr-${{ needs.web-assets.outputs.version }}-android.apk | grep -F 'assets/www/web-player/runtime.json'
+          zip -q dora-ssr-${{ needs.web-assets.outputs.version }}-android.zip dora-ssr-${{ needs.web-assets.outputs.version }}-android.apk
+          mv dora-ssr-${{ needs.web-assets.outputs.version }}-android.zip "$GITHUB_WORKSPACE/dora-ssr-${{ needs.web-assets.outputs.version }}-android.zip"
 
       - name: Upload Android package
         uses: actions/upload-artifact@v4
         with:
           name: release-android
-          path: dora-ssr-${{ github.ref_name }}-android.zip
+          path: dora-ssr-${{ needs.web-assets.outputs.version }}-android.zip
           if-no-files-found: error
           retention-days: 3
 
   linux:
+    if: github.event_name != 'workflow_dispatch' || !inputs.windows_only
     name: Build Linux release (${{ matrix.arch }})
     needs: web-assets
     strategy:
@@ -305,19 +352,46 @@ jobs:
         run: |
           xmake dora-package --platform=linux --arch="$XMAKE_ARCH" --mode=release
           cp "build/package/linux/$XMAKE_ARCH/release/dora-ssr-linux-${APPIMAGE_ARCH}.AppImage" \
-            "$GITHUB_WORKSPACE/dora-ssr-${{ github.ref_name }}-linux-${APPIMAGE_ARCH}.AppImage"
+            "$GITHUB_WORKSPACE/dora-ssr-${{ needs.web-assets.outputs.version }}-linux-${APPIMAGE_ARCH}.AppImage"
 
       - name: Upload Linux package
         uses: actions/upload-artifact@v4
         with:
           name: release-linux-${{ matrix.arch }}
-          path: dora-ssr-${{ github.ref_name }}-linux-${{ matrix.arch }}.AppImage
+          path: dora-ssr-${{ needs.web-assets.outputs.version }}-linux-${{ matrix.arch }}.AppImage
           if-no-files-found: error
           retention-days: 3
 
+  windows-installers:
+    name: Verify Windows install upgrade switch and uninstall
+    needs: [web-assets, windows]
+    runs-on: windows-2025-vs2026
+    steps:
+      - uses: actions/checkout@v4
+      - uses: xmake-io/github-action-setup-xmake@v1
+        with:
+          xmake-version: latest
+      - name: Resolve installer tests
+        run: xmake dora-test-deps --env-file="$env:GITHUB_ENV"
+      - uses: actions/download-artifact@v5
+        with:
+          pattern: release-windows-*
+          path: windows-packages
+          merge-multiple: true
+      - name: Verify both installers and ZIP contents
+        run: |
+          & "$env:DORA_TEST_REPO/Test/Godot/tests/verify_windows_installers.ps1" -Packages "$PWD/windows-packages" -Version '${{ needs.web-assets.outputs.version }}' -EngineRoot $PWD
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: windows-installer-validation
+          path: windows-packages/*.log
+          if-no-files-found: ignore
+
   publish:
     name: Publish GitHub release
-    needs: [web-assets, macos, windows, android, linux]
+    needs: [web-assets, macos, windows, windows-installers, android, linux]
+    if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-22.04
     steps:
       - name: Download release packages
@@ -330,27 +404,31 @@ jobs:
       - name: Verify release package set
         run: |
           test -s release-assets/web-ide-files.zip
-          test -s release-assets/dora-ssr-${{ github.ref_name }}-macos-arm64.zip
-          test -s release-assets/dora-ssr-${{ github.ref_name }}-windows-x64.zip
-          test -s release-assets/dora-ssr-${{ github.ref_name }}-android.zip
-          test -s release-assets/dora-ssr-${{ github.ref_name }}-linux-x86_64.AppImage
-          test -s release-assets/dora-ssr-${{ github.ref_name }}-linux-aarch64.AppImage
-          sha256sum release-assets/*
-
-      - name: Publish release assets
-        uses: softprops/action-gh-release@v3
-        with:
-          tag_name: ${{ github.ref_name }}
-          fail_on_unmatched_files: true
-          overwrite_files: true
-          files: release-assets/*
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          test -s release-assets/dora-ssr-${{ needs.web-assets.outputs.version }}-macos-arm64.zip
+          test -s release-assets/dora-ssr-${{ needs.web-assets.outputs.version }}-windows-x64.zip
+          test -s release-assets/dora-ssr-${{ needs.web-assets.outputs.version }}-windows-x64-opengl.zip
+          test -s release-assets/dora-ssr-${{ needs.web-assets.outputs.version }}-windows-x64.msi
+          test -s release-assets/dora-ssr-${{ needs.web-assets.outputs.version }}-windows-x64-opengl.msi
+          test -s release-assets/dora-ssr-${{ needs.web-assets.outputs.version }}-android.zip
+          test -s release-assets/dora-ssr-${{ needs.web-assets.outputs.version }}-linux-x86_64.AppImage
+          test -s release-assets/dora-ssr-${{ needs.web-assets.outputs.version }}-linux-aarch64.AppImage
+          sha256sum release-assets/* > release-assets/SHA256SUMS
+          cat release-assets/SHA256SUMS
 
       - name: Check Homebrew tap token
         env:
           HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
         run: test -n "$HOMEBREW_TAP_TOKEN"
+
+      - name: Publish release assets
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ needs.web-assets.outputs.version }}
+          fail_on_unmatched_files: true
+          overwrite_files: true
+          files: release-assets/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Checkout Homebrew tap
         uses: actions/checkout@v4
@@ -361,8 +439,8 @@ jobs:
 
       - name: Update Homebrew cask
         env:
-          DORA_VERSION: ${{ github.ref_name }}
-          HOMEBREW_PACKAGE: release-assets/dora-ssr-${{ github.ref_name }}-macos-arm64.zip
+          DORA_VERSION: ${{ needs.web-assets.outputs.version }}
+          HOMEBREW_PACKAGE: release-assets/dora-ssr-${{ needs.web-assets.outputs.version }}-macos-arm64.zip
         run: |
           set -euo pipefail
           version="${DORA_VERSION#v}"

@@ -21,11 +21,15 @@ function main(target, staging)
         "--platform", platform, "--arch", target:arch(), "--mode", config.mode()}
     local runtime = os.getenv("DORA_GODOT_RUNTIME_DIR")
     if runtime and runtime ~= "" then table.join2(args, {"--runtime-package", runtime}) end
+    if platform == "windows" then
+        table.join2(args, {"--windows-backend", config.get("dora_godot_windows_backend") or "d3d12"})
+        if config.get("dora_godot_mesa_libs") then table.join2(args, {"--mesa-libs", config.get("dora_godot_mesa_libs")}) end
+    end
     if platform == "ios" then
         table.join2(args, {"--device", config.get("appledev") == "simulator" and "simulator" or "device"})
     end
     local output = path.join(root, "build/godot-component/receipts", platform,
-        target:arch(), config.mode(), (config.get("appledev") or "host"), staging and "stage.json" or "build.json")
+        target:arch(), config.mode(), (platform == "windows" and config.get("dora_godot_windows_backend") or config.get("appledev") or "host"), staging and "stage.json" or "build.json")
     table.join2(args, {"--output", output})
     if staging then
         local bundle = target:data("xcode.bundle.rootdir")

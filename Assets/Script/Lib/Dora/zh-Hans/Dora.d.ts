@@ -792,8 +792,8 @@ interface App {
 	getClipboardText(): string;
 
 	/**
-	 * 用于自更新游戏引擎。
-	 * @param path 新版本引擎文件的路径。
+	 * 安装引擎更新。
+	 * @param path 更新的绝对路径。Windows 接受解压后的便携包目录或 MSI 文件；MSI 安装版须通过 MSI 更新。
 	 */
 	install(path: string): void;
 

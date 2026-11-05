@@ -6,7 +6,7 @@
 
 - 完整 vendor Godot 4.6-stable 至 `Source/3rdParty/Godot`，不用 submodule；维护来源、版本、许可证与 Dora 补丁。
 - 原生 xmake 管理生成、编译、链接与封包；允许复用上游 Python 生成器，生成物不写回源码。构建入口统一 xmake；保留上游构建文件与历史对照，不保留 SCons 安装/调用/回退。动态验收另行跟踪。
-- Godot C#/Mono 关闭，Dora C# 保留；Dora Apple2 / Godot Apple4；Windows x64 WGL 为本轮验收后端；保留 D3D12 适配并跳过本轮 D3D12 验收，不新增 Windows ARM64 目标验收。
+- Godot C#/Mono 关闭，Dora C# 保留；Dora Apple2 / Godot Apple4；Windows仅发布x64，D3D12默认、OpenGL兼容；D3D12动态验收由用户在其它设备完成并确认通过，不新增 Windows ARM64 目标验收。
 - 浏览器验收在宿主执行；不在虚拟机内增加浏览器测试，不自动扩展额外压力轮次。
 - Godot保持完整独立LibGodot运行时，包含各平台原有第三方实现；Dora与Godot分别构建依赖，不复用第三方二进制或宿主codec函数表。共享库实验与相关待办已撤销，历史完整保留（`history/2026-11-03-library-sharing-removed/README.md`）。
 - 不做进程内 LibGodot 重初始化；按最新决定保留同一 LibGodot，实现项目级卸载与切换，macOS Metal、Linux EGL、Windows x64 WGL、Android EGL和WebGL2默认开放，见 [PROJECT_SWITCH.md](PROJECT_SWITCH.md)。缺少真机时可用 VM/模拟器，明确证据边界。
@@ -93,6 +93,13 @@
 - [x] **CLEANUP-01｜已验收配置旧构建退场**：macOS arm64、Linux ARM64/x64、WGL x64、Android arm64及Web的Release入口已使用原生xmake；17项分派核对与8次真实prepare只读检查通过，13,884个源码文件摘要不变。这是原Release入口收口阶段；后续Debug、其他架构、iOS/D3D12及SCons显式入口的全量退场见XMAKE-ONLY-01，不删除历史产物。见入口收口记录（`history/2026-11-03-build-entrypoint-cleanup.md`）。
 - [x] **DOC-01**：[维护指南](MAINTENANCE.md)、构建、升级与封包说明。
 
+- [x] **NIR-LICENSE-01｜D3D12 SDK许可核对**：19个无独立声明输入已逐项复核，原12项余项收口；schema 3随包保留完成记录及必要版权文本，封包正向与篡改拒绝通过。仅针对固定SDK的发行通知，不扩大为全二进制贡献证明。见[许可材料](licenses/nir-25.3.1-1/README.md)。
+
+## Windows双后端发行
+
+- [ ] **WIN-RELEASE-02**：仅x64；标准ZIP/MSI为D3D12，`-opengl`为兼容版。构建与运行后端、独立输出、SHA-256和许可材料须一致；手动Release预演不发布，两个后端串行。
+- [ ] **WIN-UPDATER-02**：按当前后端及ZIP/MSI安装方式更新；允许同版本手动切换并重启。MSI共用升级身份，通过Windows Installer替换，保留用户数据；两源清单、Lua与测试同步。本地严格TS/Lua、平台选择、MSI双向切换/修复/卸载与两源命名检查通过；全新Release预演CI待确认，证据 `build/windows-release-v1/`。
+
 ## 待完成
 
 - [ ] **DEFAULT-CI-02｜默认组件构建余项**：Linux Embree基线与iOS活动SDK修复已有CI通过证据；`a765d7265`的Linux、Docs、UI、入口检查已通过。Studio已补contracts、教程生成依赖和正式构建的xmake工具环境继承，本地完整生产构建通过；新提交的完整CI仍待确认，Windows、Android、Web等不推定通过。失败日志已留存，推送后取消旧commit未结束任务，仅跟踪最新commit。证据`build/godot-ci-fix-v2/`至`build/godot-ci-fix-v4/`。
@@ -114,8 +121,7 @@
 
 ## 本轮跳过，保留后续
 
-- [ ] **NIR-LICENSE-01｜D3D12 SDK许可核对**：NIR仍有12项许可继承关系待确认，仅在恢复D3D12验收/封包时处理；当前WGL等其他后端不引入NIR通知材料，不作为本轮收口门槛。见[许可材料](licenses/nir-25.3.1-1/README.md)。
-- [ ] **XMAKE-09｜Windows D3D12**：按用户决定跳过本轮动态验收，保留适配、构建与已有 WARP 证据；官方项目崩溃及物理 GPU/纯 GPU fence 仍未验收。不标记通过，构建入口仅使用 xmake，GPU 验收保持开放。
+- [ ] **XMAKE-09｜Windows D3D12同步升级**：动态验收已由用户在其它设备完成并确认通过，不再要求本机重复GPU验收；纯GPU fence升级仍保留后续。用户设备详情与测试矩阵未在本地复核，不补写额外通过范围。
 
 ## 验收与维护规则
 

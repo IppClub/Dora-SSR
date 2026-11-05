@@ -84,6 +84,8 @@ def main():
     p.add_argument('--runtime-package', type=Path)
     p.add_argument('--stage', type=Path)
     p.add_argument('--stage-only', action='store_true')
+    p.add_argument('--windows-backend', choices=['d3d12', 'wgl'], default='d3d12')
+    p.add_argument('--mesa-libs', type=Path)
     p.add_argument('--sdk', type=Path)
     p.add_argument('--output', type=Path)
     a = p.parse_args()
@@ -99,6 +101,8 @@ def main():
     build = ROOT / 'build/godot-component' / a.platform / arch / a.mode
     if a.platform == 'ios':
         build /= a.device
+    if a.platform == 'windows':
+        build /= a.windows_backend
     package = (a.runtime_package or build / 'package').resolve()
     target = 'template_' + a.mode
     env = os.environ.copy()
@@ -112,8 +116,13 @@ def main():
                 env.setdefault('DORA_GODOT_LINUX_CROSS', 'aarch64-linux-gnu-' if arch == 'arm64' else 'x86_64-linux-gnu-')
             run('build_runtime.sh' if a.platform == 'macosx' else 'build_linux_runtime.sh', env=env)
         elif a.platform == 'windows':
+            extra = []
+            if a.windows_backend == 'd3d12':
+                from ensure_nir_sdk import ensure_sdk
+                sdk = a.mesa_libs or ensure_sdk()
+                extra = ['--mesa-libs', sdk]
             run('build_windows_runtime.py', '--build-dir', build, '--arch', arch, '--target', target,
-                '--backend', 'WGL', '--jobs', a.jobs, env=env)
+                '--backend', a.windows_backend.upper(), '--jobs', a.jobs, *extra, env=env)
         elif a.platform == 'web':
             run('build_web_runtime.py', '--build-dir', build, '--target', target, '--jobs', a.jobs, env=env)
         elif a.platform == 'ios':
@@ -129,7 +138,7 @@ def main():
     architectures = metadata.get('architectures', []) if a.platform != 'web' else [metadata.get('toolchain', {}).get('arch')]
     if arch not in architectures:
         p.error('Godot runtime architecture does not match the host')
-    backend = {'macosx': 'metal', 'ios': 'metal', 'linux': 'egl', 'android': 'egl', 'windows': 'wgl', 'web': 'webgl2'}[a.platform]
+    backend = {'macosx': 'metal', 'ios': 'metal', 'linux': 'egl', 'android': 'egl', 'windows': a.windows_backend, 'web': 'webgl2'}[a.platform]
     if metadata.get('graphics_backend') != backend:
         p.error('Godot runtime graphics backend does not match the production host')
     if a.platform == 'ios' and metadata.get('device') != a.device:

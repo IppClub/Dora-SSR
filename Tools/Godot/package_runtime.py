@@ -36,7 +36,7 @@ if args.graphics_backend == 'd3d12':
     notices = Path(__file__).parent / 'licenses/nir-25.3.1-1'
     args.license_file.append(notices / 'GODOT-NIR-THIRD-PARTY-NOTICES.txt')
     provenance = notices / 'GODOT-NIR-PROVENANCE.json'
-    assert json.loads(provenance.read_text()).get('schema') == 2, 'Regenerate current NIR notices before packaging D3D12'
+    assert json.loads(provenance.read_text()).get('schema') == 3, 'Regenerate current NIR notices before packaging D3D12'
     shutil.copy2(provenance, args.output / provenance.name)
     dependency_provenance.append(provenance.name)
 for notice in args.license_file:

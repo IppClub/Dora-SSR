@@ -22,7 +22,7 @@ python3 $DORA_TEST_REPO/Test/Godot/test_nir_package_notices.py
 
 生成器先验证两个归档摘要及 SDK 410 项文件，再按上游复制清单收集源码、头文件、生成器和数据，并补充 Vulkan、BLAKE3 许可。包括 SPIR-V JSON 的 copyright 字段。不会执行上游更新脚本，也不改写 vendor 或 SDK。
 
-本清单保守包含可能未进入二进制的头文件通知，不等于最终链接贡献分析。来源清单显式列出没有独立通知段落的文件；仍须结合源码继承关系核对，不能把生成成功视为整个依赖审计完成。来源清单还覆盖全部309个静态对象：299个以唯一源码名对应，10个对应上游 literal 生成命令；该映射不等于复编译或最终链接贡献证明。无独立通知文件的继承关系、最终链接矩阵和组件审计继续由 DEPS-01 跟踪。封包测试使用不执行的 DLL 占位文件，只证明封包/拒绝行为，不证明运行库 ABI 或渲染正确。
+本清单保守包含可能未进入二进制的头文件通知，不等于最终链接贡献分析。来源清单显式列出没有独立通知段落的文件；仍须结合源码继承关系核对，不能把生成成功视为整个依赖审计完成。来源清单还覆盖全部309个静态对象：299个以唯一源码名对应，10个对应上游 literal 生成命令；该映射不等于复编译或最终链接贡献证明。封包测试使用不执行的 DLL 占位文件，只证明封包/拒绝行为，不证明运行库 ABI 或渲染正确。
 
 
 ## 无独立通知段落的文件核对
@@ -48,7 +48,7 @@ python3 $DORA_TEST_REPO/Test/Godot/test_nir_notice_inheritance.py \
 
 通知来源 schema 2 增加两段原历史声明：Collabora/Red Hat 的 Nouveau 辅助函数声明、VMware 的旧 CSV 格式表声明，分别由 [nouveau-parent.NOTICE.txt](nouveau-parent.NOTICE.txt) 和 [formats-csv-parent.NOTICE.txt](formats-csv-parent.NOTICE.txt) 原文保存。另三项父文件的完整声明已在原通知包中。生成器将新增声明及其来源写入随包材料，校验器核对文本和固定摘要；旧 schema 1 只保留历史包完整性校验能力，新封包要求 schema 2。
 
-完整补证后仍有12项待确认，`inheritance_review_complete=false`；不以脚本通过代替全部许可审计。运行库和SDK均未改变，通知修订需要重新封包。
+初步继承关系工具曾保留12项待确认；现已由下述逐项发行通知复核收口。运行库和SDK不变，通知修订须重新封包。
 
 ## 修改来源与版本头生成补证
 
@@ -63,4 +63,10 @@ python3 $DORA_TEST_REPO/Test/Godot/audit_nir_source_derivations.py \
   --output /path/to/fresh-source-derivations
 ```
 
-两个版本 override 用例及重复生成检查通过，空版本头与固定SDK逐字节一致；未知源码词元和改动生成头被拒绝。词元比对忽略注释和空白，不证明编译行为等价或 Mesa 修改许可。来源补证与许可继承分别记录，仍有12项许可核对开放，不更新随包声明或其来源摘要。
+两个版本 override 用例及重复生成检查通过，空版本头与固定SDK逐字节一致；未知源码词元和改动生成头被拒绝。词元比对忽略注释和空白，不证明编译行为等价或 Mesa 修改许可。来源补证与许可判断分别记录，完整复核见下节。
+
+## 发行通知核对完成
+
+[LICENSE_REVIEW.json](LICENSE_REVIEW.json) 覆盖全部19个无独立许可头输入，`inheritance_review_complete=true`。先前12项分为：版本/生成常量及仅构建时使用的生成器；保留上游许可选项与Mesa修改说明的BLAKE3组件；NIR、Microsoft DXIL验证器、LunarG ETC和Gallium辅助代码。对应组件声明、同提交引入的头文件、固定历史差异和源码派生验证摘要保留在 `review-evidence/`，逐项记录适用依据，不把Mesa多数代码为MIT当作全部文件的许可。
+
+BLAKE3选择Apache-2.0并保留已有替代许可文本及本地修改说明；新增Gallium pipe_box组件的原始声明。schema 3通知来源清单内嵌完成记录，新D3D12封包必须使用此版本；缺少记录、来源摘要不符或未完成条目均被拒绝。旧schema仅用于历史包校验。该复核针对当前固定SDK的发行通知，不宣称完成最终链接贡献分析。

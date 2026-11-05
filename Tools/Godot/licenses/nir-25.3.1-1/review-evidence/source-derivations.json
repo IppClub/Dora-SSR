@@ -1,0 +1,113 @@
+{
+  "passed": true,
+  "license_review_complete": false,
+  "scope": "Verify selected pinned NIR source derivations without assigning licenses.\n\nThe three reviewed BLAKE3 transformations are compared as C preprocessing\nlexemes (comments/whitespace excluded), not compiled or tested for behavior.\nThe pinned Mesa version-header generator is executed in an isolated directory\nwith an explicit version override. No SDK, vendor or production output changes.\n",
+  "audit_sha256": "b775283acd64f4c471894f631487955fb0718f6d58c76c212d810503d8352a76",
+  "mesa_commit": "5005a50879b11b953ade113fccd13a208f706ba0",
+  "blake3_commit": "df610ddc3b93841ffc59a87e3da659a15910eb46",
+  "archive_sha256": {
+    "mesa": "15a688666aca976d1479c8bd43d319a55613da9a91aaf42a07691daec96ba7be",
+    "blake3": "3b5aab142e171a166eb530876d37eb70c4112ee3a0c9e18562f9c7401048dc2b",
+    "nir": "21ba3c0532caa580b50c530aefc851686b747b41d7984c228bcc0cef7ef5db82"
+  },
+  "sdk": {
+    "passed": true,
+    "scope": "Exact pinned NIR SDK file inventory only; not compiler, linker, license-completeness or GPU acceptance",
+    "sdk": "/Users/Jin/Workspace/Dora-SSR/build/godot-sdk/nir-25.3.1-1-x64-gcc",
+    "godot_nir_tag": "25.3.1-1",
+    "mesa_version": "25.3.1",
+    "files": 410,
+    "inventory_sha256": "139f098e7abe4bf1cc412c4a8d970c0d903af8329a3fc40333cf32f9f808077f",
+    "source_archive_sha256": "a4308ed4c1e2b496c8ab196c16a8a738eaa53554aba03656892f4402c5412914"
+  },
+  "source_derivations": [
+    {
+      "file": "blake3.c",
+      "upstream_sha256": "0cd1d6aa002ac44cbf0b0cff5d3f23df3fd190fdc25dfc6d7f3de2afeffba5bd",
+      "mesa_sha256": "53aba7db8bbffd57bf3745b60496edefb76368750d8812765a0257d28f23e15d",
+      "reviewed_changes": [
+        "Make blake3_compress_subtree_wide file-local; whitespace differs"
+      ],
+      "lexemes": 3063,
+      "transformed_lexemes_sha256": "442355535f1024fc7d39a73fe543d2a2bc6029fe0cd1207d9f0540ec6ddfda7b",
+      "reviewed_lexemes_equal": true,
+      "byte_identical": false,
+      "license_inheritance_verified": false,
+      "behavior_equivalence_verified": false
+    },
+    {
+      "file": "blake3.h",
+      "upstream_sha256": "ca1e562d173c264c19b2a89d179f5fa94000966b6b8f4182b6682e136a8cbfdf",
+      "mesa_sha256": "875039b6a5dc3a7529e704a07c961c508db2c2f6559a59d0e00ea0dce237f0f7",
+      "reviewed_changes": [
+        "Remove DLL/default visibility macro block and API annotations",
+        "Give blake3_hasher its struct tag",
+        "Remove optional TBB update declaration; whitespace differs"
+      ],
+      "lexemes": 247,
+      "transformed_lexemes_sha256": "1bd6952e303082ee66dc678cdbf3d87500fe06ae8210b4e991e494b9aa0dfc43",
+      "reviewed_lexemes_equal": true,
+      "byte_identical": false,
+      "license_inheritance_verified": false,
+      "behavior_equivalence_verified": false
+    },
+    {
+      "file": "blake3_impl.h",
+      "upstream_sha256": "65cf3597897090e8ded5968e3c26304a65b0091e8fabfa434c3d1a5eef29cb17",
+      "mesa_sha256": "9dab2a24a6adf4124a1590878fb0dc8861280f356cb950bd78c1735bba1c7cad",
+      "reviewed_changes": [
+        "Make subtree declaration file-local",
+        "Remove private visibility annotation from optional TBB declaration; whitespace differs"
+      ],
+      "lexemes": 2403,
+      "transformed_lexemes_sha256": "0f62296be8ebb4df3b8d47ff72209013b7c82150f56487bea81dff7b1d11ad47",
+      "reviewed_lexemes_equal": true,
+      "byte_identical": false,
+      "license_inheritance_verified": false,
+      "behavior_equivalence_verified": false
+    }
+  ],
+  "version_data": {
+    "source_sha256": "cce61a5c7233a3e05e40c16a9a9b59b2f5c91d98f3a4cf3aa7a83a961e68dc54",
+    "sdk_equal": true
+  },
+  "generator_source_sha256": "472666d4a41de23d698b54bd8218ff100cd5915719cb76c8271befd6fad1da87",
+  "upstream_invocation": "run_step bin 'git_sha1_gen.py --output $OUTDIR/git_sha1.h'",
+  "generated_header_matches_sdk": true,
+  "generated_header_sha256": "59d9b7733fcb766c102b2fade83202741f7f90e7aec968a39ed056959d235b52",
+  "generator_cases": [
+    {
+      "case": "empty",
+      "override": "",
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "/Users/Jin/Workspace/Dora-SSR/build/windows-release-v1/source-derivations/generator/bin/git_sha1_gen.py",
+        "--output",
+        "/Users/Jin/Workspace/Dora-SSR/build/windows-release-v1/source-derivations/generator/empty.h"
+      ],
+      "output_sha256": "59d9b7733fcb766c102b2fade83202741f7f90e7aec968a39ed056959d235b52",
+      "output": "#define MESA_GIT_SHA1 \"\"",
+      "repeat_preserved_mtime": true
+    },
+    {
+      "case": "pinned-commit",
+      "override": "5005a50879b11b953ade113fccd13a208f706ba0",
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "/Users/Jin/Workspace/Dora-SSR/build/windows-release-v1/source-derivations/generator/bin/git_sha1_gen.py",
+        "--output",
+        "/Users/Jin/Workspace/Dora-SSR/build/windows-release-v1/source-derivations/generator/pinned-commit.h"
+      ],
+      "output_sha256": "91040be9b18cad880dec403c5483158ba4f62d4946168b94c7f636595962c685",
+      "output": "#define MESA_GIT_SHA1 \" (git-5005a50879)\"",
+      "repeat_preserved_mtime": true
+    }
+  ],
+  "negative_source_controls": [
+    "blake3.c",
+    "blake3.h",
+    "blake3_impl.h"
+  ],
+  "modified_generated_header_rejected": true,
+  "runtime_execution": false
+}
