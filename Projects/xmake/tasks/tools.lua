@@ -27,7 +27,11 @@ task("dora-studio")
     on_run(function ()
         local root = os.projectdir()
         import("lib.detect.find_tool")
+        local node = assert(find_tool("node"), "Studio production builds require Node.js")
         local pnpm = assert(find_tool("pnpm"), "Studio production builds require pnpm")
+        -- Agent support packages consume generated tutorials absent from a
+        -- clean checkout. Generate them before building either engine.
+        os.vrunv(node.program, {path.join(root, "Docs/scripts/generate-language-docs.js")}, {curdir = root})
         -- The runtime bundler imports this package before the recursive UI
         -- build. A clean checkout has no contracts/dist yet.
         os.vrunv(pnpm.program, {"--dir", path.join(root, "Studio"), "--filter", "@dora-studio/contracts", "build"}, {curdir = root})
