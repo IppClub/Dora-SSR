@@ -112,12 +112,13 @@ const hasNonEmptyAuxiliaryOptions = (value: string) => {
 		&& Object.keys(auxiliaryOptions).length > 0;
 };
 
+// Keep mobileLLMPresets in sync; audit and provider references: Docs/design/llm-provider-templates.md.
 const BUILTIN_TEMPLATES: LLMTemplate[] = [
 	{
 		id: 'deepseek',
 		label: 'DeepSeek',
 		url: 'https://api.deepseek.com/v1/chat/completions',
-		model: 'deepseek-v4-pro',
+		model: 'deepseek-flash',
 		contextWindow: DEEPSEEK_CONTEXT_WINDOW,
 		maxTokens: DEFAULT_MAX_TOKENS,
 		customOptions: customOptionsWithAuxiliary({
@@ -129,8 +130,9 @@ const BUILTIN_TEMPLATES: LLMTemplate[] = [
 		id: 'moonshot',
 		label: 'Moonshot',
 		url: 'https://api.moonshot.cn/v1/chat/completions',
-		model: 'kimi-k3',
-		// Kimi K3 cannot disable thinking; low is its smallest supported effort.
+		model: 'kimi-k3.1-pro',
+		contextWindow: 1_000_000,
+		// Kimi K3.1 Pro cannot disable thinking; low is its smallest supported effort.
 		customOptions: customOptionsWithAuxiliary({
 			reasoning_effort: 'low',
 		}),
@@ -139,7 +141,8 @@ const BUILTIN_TEMPLATES: LLMTemplate[] = [
 		id: 'qwen',
 		label: 'Qwen',
 		url: 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions',
-		model: 'qwen3.7-max',
+		model: 'qwen3.8-max',
+		contextWindow: 1_000_000,
 		customOptions: customOptionsWithAuxiliary({
 			reasoning_effort: null,
 			enable_thinking: false,
@@ -177,7 +180,7 @@ const BUILTIN_TEMPLATES: LLMTemplate[] = [
 		id: 'siliconflow',
 		label: 'SiliconFlow',
 		url: 'https://api.siliconflow.cn/v1/chat/completions',
-		model: 'deepseek-ai/DeepSeek-V4-Pro',
+		model: 'deepseek-ai/DeepSeek-V4.1-Flash',
 		customOptions: customOptionsWithAuxiliary({
 			reasoning_effort: null,
 			enable_thinking: false,
@@ -227,26 +230,31 @@ const BUILTIN_TEMPLATES: LLMTemplate[] = [
 		id: 'minimax',
 		label: 'MiniMax',
 		url: 'https://api.minimax.io/v1/chat/completions',
-		model: 'MiniMax-M2.7',
-		// MiniMax M2.7 does not expose a supported switch for disabling reasoning.
+		model: 'MiniMax-M3.1-Flash',
+		contextWindow: 1_000_000,
+		// MiniMax M3.1 Flash always thinks; use low effort for auxiliary requests.
 		customOptions: customOptionsWithAuxiliary({
-			reasoning_effort: null,
+			reasoning_effort: 'low',
+			thinking: { type: 'adaptive' },
 		}),
 	},
 	{
 		id: 'minimax-cn',
 		label: 'MiniMax (CN)',
 		url: 'https://api.minimaxi.com/v1/chat/completions',
-		model: 'MiniMax-M2.7',
+		model: 'MiniMax-M3.1-Flash',
+		contextWindow: 1_000_000,
 		customOptions: customOptionsWithAuxiliary({
-			reasoning_effort: null,
+			reasoning_effort: 'low',
+			thinking: { type: 'adaptive' },
 		}),
 	},
 	{
 		id: 'mimo',
 		label: 'Xiaomi MiMo',
 		url: 'https://api.xiaomimimo.com/v1/chat/completions',
-		model: 'mimo-v2.5-pro',
+		model: 'mimo-v2.6-pro',
+		contextWindow: 1_000_000,
 		customOptions: customOptionsWithAuxiliary({
 			reasoning_effort: null,
 			thinking: { type: 'disabled' },
@@ -260,20 +268,26 @@ const BUILTIN_TEMPLATES: LLMTemplate[] = [
 		id: 'zai',
 		label: 'ZAI',
 		url: 'https://open.bigmodel.cn/api/paas/v4/chat/completions',
-		model: 'glm-5.2',
+		model: 'glm-5.3',
+		contextWindow: 1_000_000,
 		customOptions: customOptionsWithAuxiliary({
-			reasoning_effort: null,
-			thinking: { type: 'disabled' },
+			reasoning_effort: 'low',
+			thinking: { type: 'enabled' },
+		}, {
+			thinking: { type: 'enabled' },
 		})
 	},
 	{
 		id: 'zai-coding-plan',
 		label: 'ZAI Coding Plan',
 		url: 'https://open.bigmodel.cn/api/coding/paas/v4/chat/completions',
-		model: 'glm-5.2',
+		model: 'glm-5.3',
+		contextWindow: 1_000_000,
 		customOptions: customOptionsWithAuxiliary({
-			reasoning_effort: null,
-			thinking: { type: 'disabled' },
+			reasoning_effort: 'low',
+			thinking: { type: 'enabled' },
+		}, {
+			thinking: { type: 'enabled' },
 		})
 	},
 	{

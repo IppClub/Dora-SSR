@@ -52,7 +52,7 @@ ____exports.mobileLLMPresets = { -- 37
 		id = "deepseek", -- 38
 		name = "DeepSeek", -- 38
 		url = "https://api.deepseek.com/v1/chat/completions", -- 38
-		model = "deepseek-v4-pro", -- 38
+		model = "deepseek-flash", -- 38
 		contextWindow = 1000000, -- 38
 		maxTokens = AGENT_DEFAULTS.llmMaxTokens, -- 38
 		customOptions = auxiliary("{\"reasoning_effort\":null,\"thinking\":{\"type\":\"disabled\"}}") -- 38
@@ -61,8 +61,8 @@ ____exports.mobileLLMPresets = { -- 37
 		id = "moonshot", -- 39
 		name = "Moonshot", -- 39
 		url = "https://api.moonshot.cn/v1/chat/completions", -- 39
-		model = "kimi-k3", -- 39
-		contextWindow = 128000, -- 39
+		model = "kimi-k3.1-pro", -- 39
+		contextWindow = 1000000, -- 39
 		maxTokens = AGENT_DEFAULTS.llmMaxTokens, -- 39
 		customOptions = auxiliary("{\"reasoning_effort\":\"low\"}") -- 39
 	}, -- 39
@@ -70,8 +70,8 @@ ____exports.mobileLLMPresets = { -- 37
 		id = "qwen", -- 40
 		name = "Qwen", -- 40
 		url = "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions", -- 40
-		model = "qwen3.7-max", -- 40
-		contextWindow = 128000, -- 40
+		model = "qwen3.8-max", -- 40
+		contextWindow = 1000000, -- 40
 		maxTokens = AGENT_DEFAULTS.llmMaxTokens, -- 40
 		customOptions = auxiliary("{\"reasoning_effort\":null,\"enable_thinking\":false}") -- 40
 	}, -- 40
@@ -106,7 +106,7 @@ ____exports.mobileLLMPresets = { -- 37
 		id = "siliconflow", -- 44
 		name = "SiliconFlow", -- 44
 		url = "https://api.siliconflow.cn/v1/chat/completions", -- 44
-		model = "deepseek-ai/DeepSeek-V4-Pro", -- 44
+		model = "deepseek-ai/DeepSeek-V4.1-Flash", -- 44
 		contextWindow = 128000, -- 44
 		maxTokens = AGENT_DEFAULTS.llmMaxTokens, -- 44
 		customOptions = auxiliary("{\"reasoning_effort\":null,\"enable_thinking\":false}") -- 44
@@ -151,26 +151,26 @@ ____exports.mobileLLMPresets = { -- 37
 		id = "minimax", -- 49
 		name = "MiniMax", -- 49
 		url = "https://api.minimax.io/v1/chat/completions", -- 49
-		model = "MiniMax-M2.7", -- 49
-		contextWindow = 128000, -- 49
+		model = "MiniMax-M3.1-Flash", -- 49
+		contextWindow = 1000000, -- 49
 		maxTokens = AGENT_DEFAULTS.llmMaxTokens, -- 49
-		customOptions = auxiliary("{\"reasoning_effort\":null}") -- 49
+		customOptions = auxiliary("{\"reasoning_effort\":\"low\",\"thinking\":{\"type\":\"adaptive\"}}") -- 49
 	}, -- 49
 	{ -- 50
 		id = "minimax-cn", -- 50
 		name = "MiniMax (CN)", -- 50
 		url = "https://api.minimaxi.com/v1/chat/completions", -- 50
-		model = "MiniMax-M2.7", -- 50
-		contextWindow = 128000, -- 50
+		model = "MiniMax-M3.1-Flash", -- 50
+		contextWindow = 1000000, -- 50
 		maxTokens = AGENT_DEFAULTS.llmMaxTokens, -- 50
-		customOptions = auxiliary("{\"reasoning_effort\":null}") -- 50
+		customOptions = auxiliary("{\"reasoning_effort\":\"low\",\"thinking\":{\"type\":\"adaptive\"}}") -- 50
 	}, -- 50
 	{ -- 51
 		id = "mimo", -- 51
 		name = "Xiaomi MiMo", -- 51
 		url = "https://api.xiaomimimo.com/v1/chat/completions", -- 51
-		model = "mimo-v2.5-pro", -- 51
-		contextWindow = 128000, -- 51
+		model = "mimo-v2.6-pro", -- 51
+		contextWindow = 1000000, -- 51
 		maxTokens = AGENT_DEFAULTS.llmMaxTokens, -- 51
 		customOptions = "{\"max_tokens\":null,\"max_completion_tokens\":64000,\"top_p\":0.95,\"auxiliaryOptions\":{\"reasoning_effort\":null,\"thinking\":{\"type\":\"disabled\"}}}" -- 51
 	}, -- 51
@@ -178,19 +178,19 @@ ____exports.mobileLLMPresets = { -- 37
 		id = "zai", -- 52
 		name = "ZAI", -- 52
 		url = "https://open.bigmodel.cn/api/paas/v4/chat/completions", -- 52
-		model = "glm-5.2", -- 52
-		contextWindow = 128000, -- 52
+		model = "glm-5.3", -- 52
+		contextWindow = 1000000, -- 52
 		maxTokens = AGENT_DEFAULTS.llmMaxTokens, -- 52
-		customOptions = auxiliary("{\"reasoning_effort\":null,\"thinking\":{\"type\":\"disabled\"}}") -- 52
+		customOptions = "{\"thinking\":{\"type\":\"enabled\"},\"auxiliaryOptions\":{\"reasoning_effort\":\"low\",\"thinking\":{\"type\":\"enabled\"}}}" -- 52
 	}, -- 52
 	{ -- 53
 		id = "zai-coding-plan", -- 53
 		name = "ZAI Coding Plan", -- 53
 		url = "https://open.bigmodel.cn/api/coding/paas/v4/chat/completions", -- 53
-		model = "glm-5.2", -- 53
-		contextWindow = 128000, -- 53
+		model = "glm-5.3", -- 53
+		contextWindow = 1000000, -- 53
 		maxTokens = AGENT_DEFAULTS.llmMaxTokens, -- 53
-		customOptions = auxiliary("{\"reasoning_effort\":null,\"thinking\":{\"type\":\"disabled\"}}") -- 53
+		customOptions = "{\"thinking\":{\"type\":\"enabled\"},\"auxiliaryOptions\":{\"reasoning_effort\":\"low\",\"thinking\":{\"type\":\"enabled\"}}}" -- 53
 	}, -- 53
 	{ -- 54
 		id = "ollama", -- 54
