@@ -8540,37 +8540,73 @@ interface TIC80NodeClass {
 const tic80NodeClass: TIC80NodeClass;
 export {tic80NodeClass as TIC80Node};
 
-/** A Godot project rendered into a Dora Sprite. Runtime startup is asynchronous. */
+/** Displays a Godot project as a Sprite. Startup is asynchronous; only one node may be active at a time. */
 class GodotNode extends Sprite {
     private constructor();
+    /** Resolved project directory or exported .pck path. */
     readonly projectPath: string;
+    /** Requested scene path; an empty string selects the project main scene. */
     readonly sceneFile: string;
+    /** Most recently reported runtime error; empty when none has been reported. */
     readonly lastError: string;
+    /** Whether asynchronous startup has finished and the node is active. */
     readonly running: boolean;
+    /** Requested scene pause state. */
     readonly paused: boolean;
-    /** True only after project reset has been acknowledged on the logic thread. */
+    /** Whether the project was successfully unloaded. running === false alone does not indicate unload completion. */
     readonly unloaded: boolean;
-    /** Removes the node. Callback follows GPU/audio drain and project reset; unsupported/unsafe resets return false with a reason. */
+    /**
+     * Removes the node and asynchronously unloads its project.
+     * @param callback Called on the logic thread with success and an error message on failure. Wait for success before creating a node for another project. Repeated calls receive the same result asynchronously.
+     */
     unloadAsync(callback: (this: void, ok: boolean, error: string) => void): void;
-    /** Committed native pixel size; asynchronous resize updates this after texture publication. */
+    /** Output resolution in pixels; updated when an asynchronous resize takes effect. */
     readonly viewportSize: Size;
+    /** Pauses the SceneTree asynchronously, including during startup. Rendering and PROCESS_MODE_ALWAYS nodes continue. */
     pause(): void;
+    /** Resumes the SceneTree asynchronously; may also be called during startup. */
     resume(): void;
-    /** Queues a scene reload; asynchronous failures appear in lastError. */
+    /**
+     * Reloads a scene while retaining autoloads; does not switch projects.
+     * @param sceneFile Scene path such as "res://main.tscn". Omitted or empty reloads the current scene.
+     * @returns Whether the request was accepted. Asynchronous errors appear in lastError.
+     */
     restart(sceneFile?: string): boolean;
-    /** Coordinates use the Godot viewport's top-left origin. Buttons: 1 left, 2 right, 3 middle. */
-    /** Preserve scene/audio while replacing viewport textures; requires a matching Metal/GL runtime extension. False when invalid, busy or unsupported. */
+    /**
+     * Requests a new output resolution while preserving the scene, pause state and audio. Display scale is controlled separately by Sprite transforms.
+     * @param width Output width in pixels, an integer from 1 to 8192.
+     * @param height Output height in pixels, an integer from 1 to 8192.
+     * @returns Whether the request was accepted. False when invalid, busy, not yet started or unsupported. Check viewportSize for completion and lastError for asynchronous errors.
+     */
     resizeViewport(width: number, height: number): boolean;
+    /**
+     * Forwards a pointer button event. Node touch and mouse events are also forwarded automatically.
+     * @param x Horizontal output pixel coordinate, before Sprite transforms; origin is at the top left.
+     * @param y Vertical output pixel coordinate, before Sprite transforms; origin is at the top left.
+     * @param button Godot button number: 1 left, 2 right, 3 middle.
+     * @param pressed True for a press, false for a release. Pair each press with a release.
+     */
     sendPointer(x: number, y: number, button: number, pressed: boolean): void;
+    /** Forwards pointer movement in output pixels, with a top-left origin, before Sprite transforms. */
     sendPointerMove(x: number, y: number): void;
+    /** Forwards a named key (for example, "Space"). Pair each press (true) with a release (false). */
     sendKey(name: string, pressed: boolean): void;
+    /** Forwards committed UTF-8 text. */
     sendText(text: string): void;
 }
 export namespace GodotNode { export type Type = GodotNode; }
 interface GodotNodeClass {
-    /** Empty when the GPU/backend supports GodotNode. Does not check the runtime library. */
+    /** Returns an empty string if the GPU/backend is supported, otherwise a reason. Call after renderer initialization; does not validate the runtime library. */
     getUnsupportedReason(this: void): string;
-    /** Requires a matching native runtime library. Defaults: main scene, 640x360, three buffers. */
+    /**
+     * Creates a GodotNode. Requires a matching Godot runtime in the Dora package.
+     * @param projectPath Project directory containing project.godot, or an exported .pck file; resolved through Dora Content.
+     * @param sceneFile Scene path such as "res://main.tscn"; omitted or empty selects the project main scene.
+     * @param width Output width in pixels, an integer from 1 to 8192. Default: 640.
+     * @param height Output height in pixels, an integer from 1 to 8192. Default: 360.
+     * @param buffers Output texture buffer count, an integer from 2 to 4. Default: 3.
+     * @returns The asynchronously starting node, or undefined on immediate validation failure. Check running and lastError for startup results. Before switching projects, wait for the previous node's unloadAsync callback to report success.
+     */
     (this: void, projectPath: string, sceneFile?: string, width?: number, height?: number, buffers?: number): GodotNode | undefined;
 }
 const godotNodeClass: GodotNodeClass;

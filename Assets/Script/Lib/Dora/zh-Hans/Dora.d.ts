@@ -8531,37 +8531,73 @@ interface TIC80NodeClass {
 const tic80NodeClass: TIC80NodeClass;
 export {tic80NodeClass as TIC80Node};
 
-/** 将 Godot 项目离屏画面显示为 Dora Sprite，运行时启动异步完成。 */
+/** 以 Sprite 显示 Godot 项目画面。启动异步完成，同一时间仅允许一个活动节点。 */
 class GodotNode extends Sprite {
     private constructor();
+    /** 解析后的项目目录或导出的 .pck 路径。 */
     readonly projectPath: string;
+    /** 请求的场景路径，空字符串表示项目主场景。 */
     readonly sceneFile: string;
+    /** 最近一次运行错误，未报告错误时为空。 */
     readonly lastError: string;
+    /** 是否已完成异步启动且节点处于活动状态。 */
     readonly running: boolean;
+    /** 请求的场景暂停状态。 */
     readonly paused: boolean;
-    /** True only after project reset has been acknowledged on the logic thread. */
+    /** 项目是否已成功卸载。仅有 running === false 不代表卸载完成。 */
     readonly unloaded: boolean;
-    /** Removes the node. Callback follows GPU/audio drain and project reset; unsupported/unsafe resets return false with a reason. */
+    /**
+     * 移除节点并异步卸载项目。
+     * @param callback 在逻辑线程回调，报告是否成功及失败原因。加载不同项目前须等待成功通知，重复调用会异步收到同一结果。
+     */
     unloadAsync(callback: (this: void, ok: boolean, error: string) => void): void;
-    /** Committed native pixel size; asynchronous resize updates this after texture publication. */
+    /** 输出分辨率，单位为像素，异步尺寸调整生效时更新。 */
     readonly viewportSize: Size;
+    /** 异步暂停 SceneTree，也可在启动期间调用。渲染和 PROCESS_MODE_ALWAYS 节点仍继续执行。 */
     pause(): void;
+    /** 异步恢复 SceneTree，也可在启动期间调用。 */
     resume(): void;
-    /** 请求重载场景，异步失败通过 lastError 报告。 */
+    /**
+     * 重新加载场景并保留 autoload，不用于切换项目。
+     * @param sceneFile 场景路径，例如 "res://main.tscn"。省略或为空时重载当前场景。
+     * @returns 请求是否被接受，异步错误通过 lastError 报告。
+     */
     restart(sceneFile?: string): boolean;
-    /** 坐标以 Godot Viewport 左上角为原点。按键编号：1 左键，2 右键，3 中键。 */
-    /** Preserve scene/audio while replacing viewport textures; requires a matching Metal/GL runtime extension. False when invalid, busy or unsupported. */
+    /**
+     * 请求新的输出分辨率，保留场景、暂停状态和音频。显示缩放通过 Sprite 变换独立控制。
+     * @param width 输出宽度，单位为像素，取 1–8192 的整数。
+     * @param height 输出高度，单位为像素，取 1–8192 的整数。
+     * @returns 请求是否被接受。尺寸无效、忙碌、尚未启动完成或不支持时返回 false。通过 viewportSize 判断完成，异步错误通过 lastError 报告。
+     */
     resizeViewport(width: number, height: number): boolean;
+    /**
+     * 转发指针按键事件，节点的触摸和鼠标事件也会自动转发。
+     * @param x 输出像素的横坐标，原点在左上角，尚未应用 Sprite 变换。
+     * @param y 输出像素的纵坐标，原点在左上角，尚未应用 Sprite 变换。
+     * @param button Godot 按键编号：1 左键，2 右键，3 中键。
+     * @param pressed true 表示按下，false 表示释放；每次按下应配对释放。
+     */
     sendPointer(x: number, y: number, button: number, pressed: boolean): void;
+    /** 转发指针移动事件，坐标为输出像素，原点在左上角，尚未应用 Sprite 变换。 */
     sendPointerMove(x: number, y: number): void;
+    /** 转发具名按键，例如 "Space"。每次按下（true）应配对释放（false）。 */
     sendKey(name: string, pressed: boolean): void;
+    /** 转发已提交的 UTF-8 文本。 */
     sendText(text: string): void;
 }
 export namespace GodotNode { export type Type = GodotNode; }
 interface GodotNodeClass {
-    /** Empty when the GPU/backend supports GodotNode. Does not check the runtime library. */
+    /** GPU／后端支持时返回空字符串，否则返回原因。应在渲染器初始化后调用，不会验证运行库。 */
     getUnsupportedReason(this: void): string;
-    /** 需要匹配的原生运行库。默认使用主场景、640×360 分辨率和三个缓冲。 */
+    /**
+     * 创建 GodotNode，Dora 运行包须包含匹配的 Godot 运行库。
+     * @param projectPath 包含 project.godot 的项目目录或导出的 .pck 文件，通过 Dora Content 解析。
+     * @param sceneFile 场景路径，例如 "res://main.tscn"；省略或为空时使用项目主场景。
+     * @param width 输出宽度，单位为像素，取 1–8192 的整数，默认 640。
+     * @param height 输出高度，单位为像素，取 1–8192 的整数，默认 360。
+     * @param buffers 输出纹理缓冲数量，取 2–4 的整数，默认 3。
+     * @returns 异步启动的节点，即时验证失败时返回 undefined。通过 running 和 lastError 判断启动结果。切换项目前须等待旧节点的 unloadAsync 回调报告成功。
+     */
     (this: void, projectPath: string, sceneFile?: string, width?: number, height?: number, buffers?: number): GodotNode | undefined;
 }
 const godotNodeClass: GodotNodeClass;

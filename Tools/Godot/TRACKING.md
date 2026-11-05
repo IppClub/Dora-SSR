@@ -95,7 +95,7 @@
 
 ## 待完成
 
-- [ ] **DEFAULT-CI-02｜默认组件构建余项**：`f56c81581`的macOS、Linux、Docs、UI、入口检查与iOS两套Release构建已通过，Linux Embree基线及iOS活动SDK选择修复得到CI确认。Studio已补contracts与教程生成依赖，移走生成文档后的本地入口通过，完整修复后CI待确认；Windows、Android、Web及其余配置仍待最新CI，不推定通过。组件失败日志与平台日志留存已补齐。后续推送仅等待最新commit，取消旧commit未结束任务。证据`build/godot-ci-fix-v2/`、`build/godot-ci-fix-v3/`。
+- [ ] **DEFAULT-CI-02｜默认组件构建余项**：Linux Embree基线与iOS活动SDK修复已有CI通过证据；`a765d7265`的Linux、Docs、UI、入口检查已通过。Studio已补contracts、教程生成依赖和正式构建的xmake工具环境继承，本地完整生产构建通过；新提交的完整CI仍待确认，Windows、Android、Web等不推定通过。失败日志已留存，推送后取消旧commit未结束任务，仅跟踪最新commit。证据`build/godot-ci-fix-v2/`至`build/godot-ci-fix-v4/`。
 
 - [ ] **RELEASE-DELIVERY-01｜候选CI与最终包对应**：上一轮1.9.4候选`2bdad734a`及实际测试`aec520851`已确认，两架构普通AppImage均未含LibGodot。Linux原有job已正式成功（2026-11-04 16:18:41 UTC）；macOS等runner容量缺口保留。本轮1.10.0默认组件产物另行核对，后续核对匹配的宿主/运行库清单/架构/后端/许可和产物摘要，仅补完整Release单项切换，不复跑既有矩阵，不把本地QA签名作为正式发布。见 [交付缺口](RELEASE_1_0.md#最终交付仍缺少的证据)。
 

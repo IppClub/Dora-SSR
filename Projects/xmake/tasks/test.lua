@@ -58,7 +58,7 @@ for _, name in ipairs({"dora-test", "dora-test-deps"}) do
                     "--builddir=" .. path.join(directory, "build"), "--dora_web_outdir=" .. path.join(directory, "artifacts"),
                     "--dora_web_engine=n", "--dora_web_link_player=n", "--dora_web_love_probe=n"},
                     {curdir = root, envs = test_envs})
-                os.execv(os.programfile(), table.join({"lua", "Projects/xmake/testing/studio.lua", node.program}, args),
+                os.execv(os.programfile(), table.join({"lua", "Projects/xmake/tools/studio.lua", node.program}, args),
                     {curdir = root, envs = test_envs})
                 return
             end
