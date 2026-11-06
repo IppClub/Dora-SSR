@@ -24,6 +24,7 @@
 - [ ] **UPGRADE-47-ANDROID**：源清单/EGL/JNI 已对齐；Java/AAR 4.7.2、SDK36 / Build Tools36.1 / NDK29、Gradle8.11.1 / AGP8.6.1 及默认 CI 已同步，源码 Java/AAR、Maven 校验/转换、宿主 Java 适配层实际编译、关键 native 编译与宿主 Release 任务图通过；移除旧 R8 覆盖，使用 AGP 自带兼容版本。完整 native/APK 与真实项目切换待验；既有 SwiftShader 缓存限制不自动关闭。
 - [ ] **UPGRADE-47-WEB**：WASM 源清单/链接来源身份已对齐，Web 桥接/OS 关键编译与代码生成检查通过；保留可选 Godot 导出。完整链接和浏览器动态回归仍待 CI/设备验证。
 - [ ] **UPGRADE-47-IOS**：device/simulator 清单与 metal-cpp 已对齐，移除失效的旧 .mm 预检条件，framework/ABI 版本改为 4.7.2 并拒绝旧源码 archive；device/simulator 关键 Metal 编译和 SDK 选择/错误拒绝通过。完整 archive/framework 及 Apple4 正向/模拟器拒绝仍待验。
+- [x] **UPGRADE-47-IOS-INCLUDES**：最新 CI 的 device/simulator Debug 均复现 metal-cpp `std::size_t` 模块可见性错误；iOS 两份清单补齐与 macOS 一致的 `<cstddef>` 预导入，未改第三方源码。本机保留失败对照，device/simulator 的 Debug/Release 实际定向编译与 SDK 选择/拒绝回归通过；完整四项 CI 构建仍待本轮确认。证据 `build/godot-ci-closure-20261106/`。
 
 本轮过程与原始证据暂存 `build/godot-4.7-assessment/`、`build/godot-4.7-macos/`、`build/godot-4.7-linux/`、`build/godot-4.7-linux-x64/`；测试维护在 Dora-Example，不重建 history 目录。
 

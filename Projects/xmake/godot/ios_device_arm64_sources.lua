@@ -5109,6 +5109,8 @@ target("godot-drivers")
         source("drivers/metal/rendering_device_driver_metal.cpp"),
         source("drivers/metal/rendering_shader_container_metal.cpp"),
         {cxxflags = {
+            -- Import std::size_t before metal-cpp Foundation templates with Clang modules.
+            flag("-includecstddef"),
             flag("-fexceptions"),
             flag("-std=gnu++20"),
             flag("-fmessage-length=0"),
