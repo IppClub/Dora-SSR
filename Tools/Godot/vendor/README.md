@@ -47,5 +47,9 @@ and added file counts; no upstream file may be omitted. Source/patch correctness
 ABI, actual builds and runtime acceptance remain separate checks.
 
 The zlib suffix `1.3.1.2-audit` is present in the [fixed upstream source](https://raw.githubusercontent.com/godotengine/godot/ed1daf0bf001b61586d9930840f2f1394092c079/thirdparty/zlib/zlib.h).
-It is not an unregistered Dora edit. All current vendored `thirdparty/` source
-has the same canonical content and modes as that fixed Godot tree.
+It is not an unregistered Dora edit. The registered `thirdparty/` delta is limited to
+`metal-cpp/Metal/MTLPrivate.hpp`: simulator builds use its existing dynamic symbol
+lookup for optional Metal constants, because the simulator SDK omits the Metal IO
+and tensor error domains. Device/macOS behavior and licenses remain unchanged.
+All other vendored `thirdparty/` source has the same canonical content and modes
+as the fixed Godot tree.

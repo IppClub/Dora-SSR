@@ -26,6 +26,7 @@
 - [ ] **UPGRADE-47-IOS**：device/simulator 清单与 metal-cpp 已对齐，移除失效的旧 .mm 预检条件，framework/ABI 版本改为 4.7.2 并拒绝旧源码 archive；device/simulator 关键 Metal 编译和 SDK 选择/错误拒绝通过。完整 archive/framework 及 Apple4 正向/模拟器拒绝仍待验。
 - [x] **UPGRADE-47-IOS-INCLUDES**：最新 CI 的 device/simulator Debug 均复现 metal-cpp `std::size_t` 模块可见性错误；iOS 两份清单补齐与 macOS 一致的 `<cstddef>` 预导入，未改第三方源码。本机保留失败对照，device/simulator 的 Debug/Release 实际定向编译与 SDK 选择/拒绝回归通过；完整四项 CI 构建仍待本轮确认。证据 `build/godot-ci-closure-20261106/`。
 - [x] **UPGRADE-47-IOS-METALFX**：本轮模拟器 CI 在 `metal_fx.cpp` 复现调用已被 `IOS_SIMULATOR` 排除的 RenderSceneBuffersRD API；模拟器清单排除此不可用效果，device 继续保留，未修改 Godot 源码。真实编译失败对照、受影响调用方的定向编译及清单/SDK 回归见 `build/godot-ci-closure-20261106/`；完整 CI 仍待新提交确认。
+- [x] **UPGRADE-47-IOS-LINK**：模拟器完整 archive 已编译，链接发现新版 metal-cpp 弱引用两个 SDK 未导出的可选 IO/tensor 常量。仅在 `IOS_SIMULATOR` 使用该头文件原有的动态符号查询分支，device/macOS 不变。原版双符号失败对照、device/simulator Debug/Release 实际编译及 framework 链接四项通过；上游差异登记并完整复核（47 改动/44 新增，仅此一个 thirdparty 文件）。最终宿主 CI 仍待新提交。
 - [x] **UPGRADE-47-TEST-VERSION**：Example 共享库/Android 日志检查读取固定上游版本，iOS 无启动检查覆盖所有 Godot 版本；暖缓存目录来自实际 runtime manifest。拒绝旧版时钟参考，保留 4.6 兼容用例/历史基线。真实 4.7.2 ABI 214 项、版本守卫 22 项、CPU 协议、23 项项目交付及测试包可移植性回归通过；Android controller 仅编译，未扩大设备/GPU 验收。
 - [x] **UPGRADE-47-WEB-VERSION**：修正 Studio 后端仍只接受 4.6 的运行库校验；Web 产物检查与 Studio HTTP 夹具改为读取固定上游版本，保留 ABI/后端/摘要校验。当前后端与 4.7.2 清单的本地失败对照、HTTP 隔离/错误版本/缺失/篡改拒绝及 Web 实际校验块回归通过；最终 Web/Studio CI 产物验证仍待本轮确认。证据同上。
 

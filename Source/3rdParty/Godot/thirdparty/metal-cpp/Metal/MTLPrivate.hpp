@@ -71,7 +71,8 @@ namespace MTL::Private
     }
 } // MTL::Private
 
-#if defined(__MAC_26_0) || defined(__IPHONE_26_0) || defined(__TVOS_26_0)
+// Simulator SDKs omit optional Metal IO/tensor constants. Resolve them at runtime.
+#if (defined(__MAC_26_0) || defined(__IPHONE_26_0) || defined(__TVOS_26_0)) && !defined(IOS_SIMULATOR)
 
 #define _MTL_PRIVATE_DEF_STR(type, symbol)                  \
     _MTL_EXTERN type const MTL##symbol _MTL_PRIVATE_IMPORT; \

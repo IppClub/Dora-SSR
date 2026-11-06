@@ -33,7 +33,7 @@
     "modules/mono/glue/GodotSharp/GodotSharpEditor/GodotSharpEditor.csproj",
     "platform/android/java/gradlew.bat"
   ],
-  "delta_patch_sha256": "afb00323f9dd6f3fe9591cfd5631d1adf6a6fb8667a433fcb701bbe6a6973af3",
+  "delta_patch_sha256": "9571265f719816f40c8aed5790f9591292cb9ebec99a1abb747da0a98f321879",
   "files": [
     {
       "path": "UPSTREAM.json",
@@ -664,6 +664,13 @@
       "mode": "100644",
       "canonical_sha256": "a4aa5a708c0bf4cd036b8c9e0ccb3124f1fa4fae5003638128ccd752ad18149b",
       "upstream_canonical_sha256": "b108f62d9d6113061dd1261e7bef51515fbdba9080b4393245e84cecc67ad7ca"
+    },
+    {
+      "path": "thirdparty/metal-cpp/Metal/MTLPrivate.hpp",
+      "status": "modified",
+      "mode": "100644",
+      "canonical_sha256": "1864cd71d7982df9b53242214a1b7c75d1494e68e82f67aa7c3c194a80c30164",
+      "upstream_canonical_sha256": "351cf6ad5a9effa1bd31e95df03ad373446e3c8b2b8d11582485ae9950bd24df"
     }
   ]
 }
