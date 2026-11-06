@@ -1,17 +1,10 @@
 // Godot 4.7.2's Java AAR includes Kotlin 2.1 metadata. Use a compatible
-// shrinker and Lint for the default production component; explicit Dora-only
-// builds keep AGP's bundled R8.
+// Lint for the default production component. AGP 8.6.1 already bundles a
+// compatible R8; overriding it with the older workaround would downgrade R8.
 // https://developer.android.com/build/kotlin-support
-// https://r8.googlesource.com/r8#replacing-r8-in-android-gradle-plugin
 pluginManagement {
-    buildscript {
-        repositories { google(); mavenCentral() }
-        dependencies {
-            if (settings.providers.gradleProperty('dora.godot').orElse('true').get().toBoolean()) {
-                if (!System.getProperty('android.lint.version')) System.setProperty('android.lint.version', '8.9.3')
-                classpath 'com.android.tools:r8:8.6.17'
-            }
-        }
+    if (settings.providers.gradleProperty('dora.godot').orElse('true').get().toBoolean()) {
+        if (!System.getProperty('android.lint.version')) System.setProperty('android.lint.version', '8.9.3')
     }
 }
 include ':app'
