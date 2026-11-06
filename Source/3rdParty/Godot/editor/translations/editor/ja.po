@@ -92,13 +92,21 @@
 # kakeudon17 <tazayuu17@gmail.com>, 2025.
 # Amir Sabbagh <amir420c@gmail.com>, 2025.
 # Acotto <perc.fg.music@gmail.com>, 2025.
+# Rudeus <95301440+7Luminaries@users.noreply.github.com>, 2026.
+# Eloy Robillard <eloy.robillard@proton.me>, 2026.
+# shortsun <weekenddamehuman@gmail.com>, 2026.
+# "IndigoCarmine (Yuhei Yamada)" <tamanisikaminai@gmail.com>, 2026.
+# Chikashi Suzuki <underground.resources823@gmail.com>, 2026.
+# taisan11 <131413638+taisan11@users.noreply.github.com>, 2026.
+# MedProgAyat <hosseinmehriyari1383@gmail.com>, 2026.
+# マムス <mamusu.silhouette@gmail.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Godot Engine editor interface\n"
 "Report-Msgid-Bugs-To: https://github.com/godotengine/godot\n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2026-01-15 02:11+0000\n"
-"Last-Translator: Myeongjin <aranet100@gmail.com>\n"
+"PO-Revision-Date: 2026-08-03 10:02+0000\n"
+"Last-Translator: マムス <mamusu.silhouette@gmail.com>\n"
 "Language-Team: Japanese <https://hosted.weblate.org/projects/godot-engine/"
 "godot/ja/>\n"
 "Language: ja\n"
@@ -106,19 +114,157 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 5.15.2\n"
+"X-Generator: Weblate 2026.8.dev0\n"
 
 msgid "OK"
 msgstr "OK"
 
+msgid "Failed"
+msgstr "失敗"
+
+msgid "Unavailable"
+msgstr "利用不可"
+
+msgid "Unconfigured"
+msgstr "未設定"
+
+msgid "Unauthorized"
+msgstr "未認証"
+
+msgid "Parameter out of range"
+msgstr "パラメーターが範囲外です"
+
+msgid "Out of memory"
+msgstr "メモリ不足"
+
+msgid "File not found"
+msgstr "ファイルが見つかりません"
+
+msgid "File: Bad drive"
+msgstr "ファイル：ドライブエラー"
+
+msgid "File: Bad path"
+msgstr "ファイル：パスエラー"
+
+msgid "File: Permission denied"
+msgstr "ファイル：アクセス拒否"
+
+msgid "File already in use"
+msgstr "ファイルがすでに使われています"
+
+msgid "Can't open file"
+msgstr "ファイルを開けません"
+
+msgid "Can't write file"
+msgstr "ファイルの書き込みができません"
+
+msgid "Can't read file"
+msgstr "ファイルの読み込みができません"
+
+msgid "File unrecognized"
+msgstr "未認識のファイル"
+
+msgid "File corrupt"
+msgstr "ファイル破損"
+
+msgid "Missing dependencies for file"
+msgstr "ファイルに必要な依存関係がありません"
+
+msgid "End of file"
+msgstr "ファイル終端"
+
+msgid "Can't open"
+msgstr "開けません"
+
+msgid "Can't create"
+msgstr "作成不可"
+
+msgid "Query failed"
+msgstr "クエリは失敗しました"
+
+msgid "Already in use"
+msgstr "すでに使用中です"
+
 msgid "Locked"
 msgstr "ロック済み"
+
+msgid "Timeout"
+msgstr "タイムアウト"
+
+msgid "Can't connect"
+msgstr "接続できません"
+
+msgid "Can't resolve"
+msgstr "解決できません"
+
+msgid "Connection error"
+msgstr "接続エラー"
+
+msgid "Can't acquire resource"
+msgstr "リソースは取得できません"
+
+msgid "Can't fork"
+msgstr "フォークできません"
+
+msgid "Invalid data"
+msgstr "無効なデータ"
+
+msgid "Invalid parameter"
+msgstr "無効な引数"
+
+msgid "Already exists"
+msgstr "すでに存在しています"
+
+msgid "Does not exist"
+msgstr "存在しません"
+
+msgid "Can't read database"
+msgstr "データベースの読み込みができません"
+
+msgid "Can't write database"
+msgstr "データベース書き込み不可"
+
+msgid "Compilation failed"
+msgstr "コンパイルに失敗しました"
+
+msgid "Method not found"
+msgstr "メソッドが見つかりませんでした"
+
+msgid "Link failed"
+msgstr "リンクに失敗しました"
+
+msgid "Script failed"
+msgstr "スクリプトが失敗しました"
+
+msgid "Cyclic link detected"
+msgstr "リンクに循環参照が見つかりました"
+
+msgid "Invalid declaration"
+msgstr "無効な宣言"
+
+msgid "Duplicate symbol"
+msgstr "識別子が重複しています"
+
+msgid "Parse error"
+msgstr "解析エラー"
+
+msgid "Busy"
+msgstr "使用中"
+
+msgid "Skip"
+msgstr "スキップ"
 
 msgid "Help"
 msgstr "ヘルプ"
 
+msgid "Bug"
+msgstr "不具合"
+
 msgid "Printer on fire"
 msgstr "プリンター発火"
+
+msgid "unset"
+msgstr "未設定"
 
 msgid "Physical"
 msgstr "物理"
@@ -306,6 +452,9 @@ msgstr "選択"
 
 msgid "Cancel"
 msgstr "キャンセル"
+
+msgid "Close Dialog"
+msgstr "ダイアログを閉じる"
 
 msgid "Focus Next"
 msgstr "次にフォーカス"
@@ -625,14 +774,17 @@ msgstr "すべてのキーの選択を解除"
 msgid "Add Animation"
 msgstr "アニメーションを追加"
 
+msgid "No available animations"
+msgstr "使用可能なアニメーションはありません"
+
 msgid "Add %s"
 msgstr "%s を追加"
 
 msgid "Load..."
-msgstr "読み込む.."
+msgstr "...を読み込む。"
 
-msgid "Move Node Point"
-msgstr "ノードポイントを移動"
+msgid "Move BlendSpace1D Node Point"
+msgstr "BlendSpace1Dノードポイントを移動"
 
 msgid "Change BlendSpace1D Config"
 msgstr "BlendSpace1D 構成の変更"
@@ -656,8 +808,8 @@ msgstr "アニメーションポイントを追加"
 msgid "Remove BlendSpace1D Point"
 msgstr "BlendSpace1Dのポイントを削除"
 
-msgid "Move BlendSpace1D Node Point"
-msgstr "BlendSpace1Dノードポイントを移動"
+msgid "Change BlendSpace1D Point Name"
+msgstr "BlendSpace1D ポイントの名前を変更"
 
 msgid "Continuous"
 msgstr "継続的"
@@ -667,6 +819,19 @@ msgstr "離散"
 
 msgid "Capture"
 msgstr "キャプチャ"
+
+msgid ""
+"Select and move points.\n"
+"RMB: Create point at position clicked.\n"
+"Shift+LMB+Drag: Set the blending position within the space.\n"
+"Scroll: Increment or decrement index."
+msgstr ""
+"ノードの選択と移動を行います。\n"
+"\n"
+"右クリック: クリックした位置にノードを追加します。\n"
+"\n"
+"Shift+左クリック+ドラッグ：選択したノードと他のノードを接続するか、ノードのな"
+"い領域を選択した場合は新しいノードを作成します。"
 
 msgid "Create points."
 msgstr "点を作成する。"
@@ -680,20 +845,49 @@ msgstr "スナップとグリッドの表示を有効にする。"
 msgid "Grid Step"
 msgstr "グリッドのステップ:"
 
-msgid "Sync:"
-msgstr "同期:"
+msgid "Sync"
+msgstr "同期"
 
-msgid "Blend:"
-msgstr "ブレンド:"
+msgid "None"
+msgstr "None"
 
-msgid "Point"
-msgstr "点"
+msgid "Cyclic Mutable"
+msgstr "循環する変更可能な参照"
 
-msgid "Blend Value"
-msgstr "値のブレンド"
+msgid "Cyclic Length"
+msgstr "循環長"
+
+msgid ""
+"Cycle length in seconds for cyclic sync. All animations are time-scaled to "
+"complete one cycle in this duration."
+msgstr ""
+"循環同期の 1 サイクルの長さを秒単位で設定します。すべてのアニメーションは、こ"
+"の時間内に 1 サイクルを完了するように時間スケールされます。"
+
+msgid "Blend"
+msgstr "ブレンド"
 
 msgid "Open Editor"
 msgstr "エディターで開く"
+
+msgid "Index"
+msgstr "インデックス"
+
+msgid "Blend Point Index"
+msgstr "ブレンドポイントのインデックス"
+
+msgid ""
+"Index of the blend point.\n"
+"Values outside of the valid range will be clamped to the nearest index."
+msgstr ""
+"ブレンドポイントのインデックスです。\n"
+"有効な範囲外の値は、最も近いインデックスに制限されます。"
+
+msgid "Position"
+msgstr "位置"
+
+msgid "Blend Value"
+msgstr "値のブレンド"
 
 msgid "Min"
 msgstr "最小値"
@@ -725,8 +919,8 @@ msgstr "BlendSpace2Dのポイントを削除する"
 msgid "Remove BlendSpace2D Triangle"
 msgstr "BlendSpace2Dの三角形を削除する"
 
-msgid "No triangles exist, so no blending can take place."
-msgstr "三角形が存在しないため、ブレンドできません。"
+msgid "Change BlendSpace2D Point Name"
+msgstr "BlendSpace2Dのポイントの名前を変更"
 
 msgid "Toggle Auto Triangles"
 msgstr "三角形の自動作成をオン / オフ"
@@ -879,9 +1073,6 @@ msgstr "開始マーカー"
 msgid "End Marker"
 msgstr "終了マーカー"
 
-msgid "Library Name:"
-msgstr "ライブラリ名:"
-
 msgid "Animation name can't be empty."
 msgstr "アニメーション名を空にすることはできません。"
 
@@ -1003,9 +1194,6 @@ msgstr "[グローバル]"
 msgid "Rename Animation: %s"
 msgstr "アニメーションの名前を変更: %s"
 
-msgid "Animation Name:"
-msgstr "アニメーション名:"
-
 msgid "No animation resource in clipboard!"
 msgstr "クリップボードにアニメーションのリソースがありません！"
 
@@ -1063,8 +1251,17 @@ msgstr "アニメーションをディスク上のリソースに保存。"
 msgid "Remove animation from Library."
 msgstr "ライブラリからアニメーションを削除。"
 
+msgid "Resource"
+msgstr "リソース"
+
+msgid "Storage"
+msgstr "ストレージ"
+
 msgid "Edit Animation Libraries"
 msgstr "アニメーション ライブラリを編集"
+
+msgid "Library Name:"
+msgstr "ライブラリ名:"
 
 msgid "New Library"
 msgstr "新しいライブラリ"
@@ -1077,12 +1274,6 @@ msgstr "ライブラリをロード"
 
 msgid "Load animation library from disk."
 msgstr "アニメーションライブラリをディスク上のリソースに保存。"
-
-msgid "Resource"
-msgstr "リソース"
-
-msgid "Storage"
-msgstr "ストレージ"
 
 msgid "Error:"
 msgstr "エラー:"
@@ -1222,6 +1413,9 @@ msgstr "ギズモ(3D)を含む"
 msgid "Pin AnimationPlayer"
 msgstr "アニメーションプレーヤーを固定"
 
+msgid "Animation Name:"
+msgstr "アニメーション名:"
+
 msgid "Close"
 msgstr "閉じる"
 
@@ -1243,6 +1437,18 @@ msgstr "ノードを移動"
 msgid "Transition exists!"
 msgstr "トランジションが存在しています！"
 
+msgid "Cannot transition to self!"
+msgstr "自分自身へのトランザクションは不可能！"
+
+msgid "Cannot transition to \"Start\"!"
+msgstr "\"Start\" へのトランザクションは不可能！"
+
+msgid "Cannot transition from \"End\"!"
+msgstr "\"End\" へのトランザクションは不可能！"
+
+msgid "Transition from \"%s\" to \"%s\" already exists!"
+msgstr "\"%s\" から \"%s\" へのトランザクションは既に存在します！"
+
 msgid "Play/Travel to %s"
 msgstr "再生/移動 %s"
 
@@ -1258,17 +1464,11 @@ msgstr "トランジションを追加"
 msgid "Immediate"
 msgstr "即座"
 
-msgid "Sync"
-msgstr "同期"
-
 msgid "At End"
 msgstr "終りに"
 
 msgid "Travel"
 msgstr "トラベル"
-
-msgid "No playback resource set at path: %s."
-msgstr "パス: %s に再生リソースが設定されていません。"
 
 msgid "Node Removed"
 msgstr "ノードが削除されました"
@@ -1299,14 +1499,8 @@ msgstr "ノードを接続。"
 msgid "Remove selected node or transition."
 msgstr "選択したノードまたはトランジションを除去。"
 
-msgid "Transition:"
-msgstr "トランジション:"
-
 msgid "New Transitions Should Auto Advance"
 msgstr "新しいトランジションは自動移行する必要があります"
-
-msgid "Play Mode:"
-msgstr "プレイモード:"
 
 msgid "Animation Change Transition"
 msgstr "アニメーションのトランジションを変更"
@@ -1547,6 +1741,9 @@ msgstr "キーを切り取り"
 msgid "Copy Key(s)"
 msgstr "キーをコピー"
 
+msgid "Send Key(s) to RESET"
+msgstr "キーをRESETに送信"
+
 msgid "Delete Key(s)"
 msgstr "キーを削除"
 
@@ -1606,6 +1803,50 @@ msgstr "プロパティ '%s'"
 msgid "Nearest FPS: %d"
 msgstr "直近FPS: %d"
 
+msgctxt "Transition Type"
+msgid "Linear"
+msgstr "リニア"
+
+msgctxt "Transition Type"
+msgid "Quint"
+msgstr "クイント"
+
+msgctxt "Transition Type"
+msgid "Quart"
+msgstr "クォート"
+
+msgctxt "Transition Type"
+msgid "Quad"
+msgstr "クワッド"
+
+msgctxt "Transition Type"
+msgid "Expo"
+msgstr "エキスポ"
+
+msgctxt "Transition Type"
+msgid "Elastic"
+msgstr "エラスチック"
+
+msgctxt "Transition Type"
+msgid "Cubic"
+msgstr "キュービック"
+
+msgctxt "Transition Type"
+msgid "Circ"
+msgstr "サーキュラー"
+
+msgctxt "Transition Type"
+msgid "Bounce"
+msgstr "バウンス"
+
+msgctxt "Transition Type"
+msgid "Back"
+msgstr "バック"
+
+msgctxt "Transition Type"
+msgid "Spring"
+msgstr "スプリング"
+
 msgid "Change Animation Step"
 msgstr "アニメーションのステップを変更"
 
@@ -1638,6 +1879,9 @@ msgstr "アニメーショントラックはAnimationPlayerノードのみ指定
 msgid "Not possible to add a new track without a root"
 msgstr "ルートなしで新規トラックは追加できません"
 
+msgid "Pick a node to animate:"
+msgstr "アニメーションするノードを選択:"
+
 msgid "Invalid track for Bezier (no suitable sub-properties)"
 msgstr "無効なベジェトラック (適切な副プロパティ無し)"
 
@@ -1664,9 +1908,6 @@ msgstr "オブジェクト内にメソッドが見つかりません:"
 
 msgid "Animation Move Keys"
 msgstr "アニメーション キーの移動"
-
-msgid "Position"
-msgstr "位置"
 
 msgid "Rotation"
 msgstr "回転"
@@ -1884,6 +2125,9 @@ msgstr "次のキーフレームに移動"
 msgid "Go to Previous Keyframe"
 msgstr "前のキーフレームに移動"
 
+msgid "Add tracks to RESET"
+msgstr "RESETにトラックを追加"
+
 msgid "Bake Animation..."
 msgstr "アニメーションをベイク…"
 
@@ -1892,9 +2136,6 @@ msgstr "アニメーションの最適化 (アンドゥなし)…"
 
 msgid "Clean-Up Animation (no undo)..."
 msgstr "アニメーションをクリーンアップ (アンドゥなし)…"
-
-msgid "Pick a node to animate:"
-msgstr "アニメーションするノードを選択:"
 
 msgid "Track Property"
 msgstr "トラックのプロパティ"
@@ -1955,54 +2196,6 @@ msgstr "トランジションとイージングを選択"
 
 msgid "Transition Type:"
 msgstr "トランジションタイプ："
-
-msgctxt "Transition Type"
-msgid "Linear"
-msgstr "リニア"
-
-msgctxt "Transition Type"
-msgid "Sine"
-msgstr "サイン"
-
-msgctxt "Transition Type"
-msgid "Quint"
-msgstr "クイント"
-
-msgctxt "Transition Type"
-msgid "Quart"
-msgstr "クォート"
-
-msgctxt "Transition Type"
-msgid "Quad"
-msgstr "クワッド"
-
-msgctxt "Transition Type"
-msgid "Expo"
-msgstr "エキスポ"
-
-msgctxt "Transition Type"
-msgid "Elastic"
-msgstr "エラスチック"
-
-msgctxt "Transition Type"
-msgid "Cubic"
-msgstr "キュービック"
-
-msgctxt "Transition Type"
-msgid "Circ"
-msgstr "サーキュラー"
-
-msgctxt "Transition Type"
-msgid "Bounce"
-msgstr "バウンス"
-
-msgctxt "Transition Type"
-msgid "Back"
-msgstr "バック"
-
-msgctxt "Transition Type"
-msgid "Spring"
-msgstr "スプリング"
 
 msgid "Ease Type:"
 msgstr "イージングタイプ："
@@ -2115,35 +2308,41 @@ msgstr "アニメーションツリー"
 msgid "Path:"
 msgstr "パス:"
 
-msgid "Open asset details"
-msgstr "アセット詳細を開く"
+msgid "Errors"
+msgstr "エラー"
 
 msgid "Title"
 msgstr "タイトル"
 
-msgid "Category"
-msgstr "カテゴリー"
-
 msgid "Author"
 msgstr "作者"
+
+msgid "Verified Author"
+msgstr "認証済みの作者"
 
 msgid "License"
 msgstr "ライセンス"
 
-msgid "Version:"
-msgstr "バージョン:"
+msgid "No changelog provided for this version."
+msgstr "このバージョンの変更履歴は提供されていません。"
 
-msgid "Contents:"
-msgstr "コンテンツ:"
-
-msgid "View Files"
-msgstr "ファイルを表示"
-
-msgid "Description:"
-msgstr "説明:"
+msgid "Loading..."
+msgstr "読み込み中..."
 
 msgid "Download"
 msgstr "ダウンロード"
+
+msgid "Downloading..."
+msgstr "ダウンロード中..."
+
+msgid "Install..."
+msgstr "インストール..."
+
+msgid "Version:"
+msgstr "バージョン:"
+
+msgid "Description"
+msgstr "説明"
 
 msgid "Connection error, please try again."
 msgstr "接続エラー。再試行してください。"
@@ -2209,14 +2408,8 @@ msgstr "SHA-256 ハッシュチェック失敗"
 msgid "Asset Download Error:"
 msgstr "アセットのダウンロードエラー:"
 
-msgid "Ready to install!"
-msgstr "インストール準備完了！"
-
 msgid "Downloading (%s / %s)..."
 msgstr "ダウンロード中 (%s / %s)..."
-
-msgid "Downloading..."
-msgstr "ダウンロード中..."
 
 msgid "Resolving..."
 msgstr "解決中..."
@@ -2233,44 +2426,11 @@ msgstr "リクエスト発行エラー"
 msgid "Idle"
 msgstr "待機"
 
-msgid "Install..."
-msgstr "インストール..."
-
 msgid "Retry"
 msgstr "再試行"
 
 msgid "Download Error"
 msgstr "ダウンロードエラー"
-
-msgid "Recently Updated"
-msgstr "最新の更新日"
-
-msgid "Least Recently Updated"
-msgstr "最古の更新日"
-
-msgid "Name (A-Z)"
-msgstr "名前 (AからZ)"
-
-msgid "Name (Z-A)"
-msgstr "名前 (ZからA)"
-
-msgid "License (A-Z)"
-msgstr "ライセンス (AからZ)"
-
-msgid "License (Z-A)"
-msgstr "ライセンス (ZからA)"
-
-msgid "Featured"
-msgstr "機能"
-
-msgid "Community"
-msgstr "コミュニティ"
-
-msgid "Testing"
-msgstr "試験的"
-
-msgid "Loading..."
-msgstr "読み込み中..."
 
 msgctxt "Pagination"
 msgid "First"
@@ -2288,41 +2448,17 @@ msgctxt "Pagination"
 msgid "Last"
 msgstr "最後"
 
-msgid ""
-"The Asset Library requires an online connection and involves sending data "
-"over the internet."
-msgstr ""
-"アセットライブラリにはオンライン接続が必要で、インターネット経由でデータを送信"
-"します。"
-
 msgid "Go Online"
 msgstr "オンライン"
 
-msgid "Failed to get repository configuration."
-msgstr "リポジトリ設定の取得に失敗しました。"
+msgid "Template"
+msgstr "テンプレート"
 
 msgid "All"
 msgstr "すべて"
 
-msgid "No results for \"%s\" for support level(s): %s."
-msgstr "\"%s\" の結果はありません。サポートレベル: %s"
-
-msgid ""
-"No results compatible with %s %s for support level(s): %s.\n"
-"Check the enabled support levels using the 'Support' button in the top-right "
-"corner."
-msgstr ""
-"%s %s と互換性のある結果はありません。サポート レベル: %s\n"
-"右上隅の 「サポート」ボタンを使用して、有効なサポート レベルを確認します。"
-
-msgid "Install"
-msgstr "インストール"
-
-msgid "Search Templates, Projects, and Demos"
-msgstr "テンプレート、プロジェクト、デモを検索"
-
-msgid "Search Assets (Excluding Templates, Projects, and Demos)"
-msgstr "アセットを検索 (テンプレート、プロジェクト、デモを除く)"
+msgid "No results for \"%s\"."
+msgstr "\"%s\" の結果はありません。"
 
 msgid "Import..."
 msgstr "インポート..."
@@ -2336,17 +2472,11 @@ msgstr "ソート:"
 msgid "Category:"
 msgstr "カテゴリー:"
 
-msgid "Site:"
-msgstr "サイト:"
-
-msgid "Support"
-msgstr "サポート"
+msgid "Licenses"
+msgstr "ライセンス文書"
 
 msgid "Assets ZIP File"
 msgstr "アセットのzipファイル"
-
-msgid "AssetLib"
-msgstr "アセットライブラリ"
 
 msgid "Error opening asset file for \"%s\" (not in ZIP format)."
 msgstr "\"%s\" のアセットファイルを開けません (ZIP形式ではありません)。"
@@ -2398,12 +2528,6 @@ msgid ""
 "Change the folder where the contents of the asset are going to be installed."
 msgstr "アセットのコンテンツをインストールするフォルダを変更します。"
 
-msgid "Ignore asset root"
-msgstr "アセットルートを無視"
-
-msgid "No files conflict with your project"
-msgstr "プロジェクトと競合するファイルはありません"
-
 msgid "Show contents of the asset and conflicting files."
 msgstr "アセットと競合するファイルの内容を表示します。"
 
@@ -2421,6 +2545,9 @@ msgstr "出力ファイル"
 
 msgid "Configure Asset Before Installing"
 msgstr "インストール前にアセットを設定"
+
+msgid "Install"
+msgstr "インストール"
 
 msgid "Audio Preview Play/Pause"
 msgstr "オーディオプレビューの再生/一時停止"
@@ -2884,9 +3011,6 @@ msgstr "CPU"
 msgid "GPU"
 msgstr "GPU"
 
-msgid "Errors"
-msgstr "エラー"
-
 msgid "Main Thread"
 msgstr "メインスレッド"
 
@@ -3006,6 +3130,12 @@ msgstr "フォーマット"
 
 msgid "Usage"
 msgstr "消費量"
+
+msgid "Show in FileSystem"
+msgstr "ファイルシステム上で表示"
+
+msgid "View Owners..."
+msgstr "オーナーを見る..."
 
 msgid "Misc"
 msgstr "その他"
@@ -3150,12 +3280,6 @@ msgstr ""
 
 msgid "Inherits:"
 msgstr "継承元:"
-
-msgid "Inherited by:"
-msgstr "継承先:"
-
-msgid "Description"
-msgstr "説明"
 
 msgid "There is currently no description for this class."
 msgstr "現在、このクラスの説明はありません。"
@@ -3320,11 +3444,14 @@ msgstr ""
 msgid "Open"
 msgstr "開く"
 
-msgid "Show in FileSystem"
-msgstr "ファイルシステム上で表示"
-
 msgid "Open in File Manager"
 msgstr "ファイルマネージャーで開く"
+
+msgid "This property can only be set in the Inspector."
+msgstr "このプロパティはインスペクターでのみ設定できます。"
+
+msgid "This variable may be changed or removed in future versions."
+msgstr "この変数は将来のバージョンで変更または削除される可能性があります。"
 
 msgid "Class"
 msgstr "クラス"
@@ -3347,9 +3474,6 @@ msgstr "プロパティ"
 msgid "Internal Property"
 msgstr "内部プロパティ"
 
-msgid "This property can only be set in the Inspector."
-msgstr "このプロパティはインスペクターでのみ設定できます。"
-
 msgid "Theme Property"
 msgstr "テーマプロパティ"
 
@@ -3367,9 +3491,6 @@ msgstr "ローカル定数"
 
 msgid "Local Variable"
 msgstr "ローカル変数"
-
-msgid "This variable may be changed or removed in future versions."
-msgstr "この変数は将来のバージョンで変更または削除される可能性があります。"
 
 msgid "Text File"
 msgstr "テキストファイル"
@@ -3511,6 +3632,9 @@ msgstr "このドックを1つ左に移動します。"
 msgid "Close this dock."
 msgstr "このドックを閉じる。"
 
+msgid "This dock can't be closed."
+msgstr "このドックは閉じることが出来ません。"
+
 msgid "Make this dock floating."
 msgstr "このドックをフローティング化します。"
 
@@ -3528,9 +3652,6 @@ msgstr "フローティング化"
 
 msgid "Link to: %s"
 msgstr "リンク先: %s"
-
-msgid "Favorites:"
-msgstr "お気に入り:"
 
 msgid "Favorites"
 msgstr "お気に入り"
@@ -3583,18 +3704,6 @@ msgstr ""
 "このファイル名はドットで始まっているため、エディターによって認識されません。\n"
 "それでも名前を変更したい場合は、オペレーティングシステムのファイルマネージャー"
 "を使用してください。"
-
-msgid ""
-"This file extension is not recognized by the editor.\n"
-"If you want to rename it anyway, use your operating system's file manager.\n"
-"After renaming to an unknown extension, the file won't be shown in the editor "
-"anymore."
-msgstr ""
-"このファイル拡張子はエディターによって認識されません。\n"
-"それでも名前を変更したい場合は、オペレーティングシステムのファイルマネージャー"
-"を使用してください。\n"
-"不明な拡張子へと名前を変更すると、そのファイルはエディターに表示されなくなりま"
-"す。"
 
 msgid "A file or folder with this name already exists."
 msgstr "同名のファイルまたはフォルダーがあります。"
@@ -3669,9 +3778,6 @@ msgstr "実行"
 msgid "Edit Dependencies..."
 msgstr "依存関係の編集..."
 
-msgid "View Owners..."
-msgstr "オーナーを見る..."
-
 msgid "Create New"
 msgstr "新規作成"
 
@@ -3725,9 +3831,6 @@ msgstr "ターミナルで開く"
 
 msgid "Open Folder in Terminal"
 msgstr "フォルダをターミナルで開く"
-
-msgid "Show in File Manager"
-msgstr "ファイルマネージャーで表示"
 
 msgid "New Folder..."
 msgstr "新規フォルダー..."
@@ -3853,6 +3956,9 @@ msgstr "スクリプト作成"
 msgid "Convert"
 msgstr "変換"
 
+msgid "Don't Ask Again"
+msgstr "次回から確認しない"
+
 msgid "Groups"
 msgstr "グループ"
 
@@ -3894,6 +4000,9 @@ msgstr "名前:"
 
 msgid "Global"
 msgstr "グローバル"
+
+msgid "Description:"
+msgstr "説明:"
 
 msgid "Group name is valid."
 msgstr "グループ名は有効です。"
@@ -4004,6 +4113,9 @@ msgid ""
 "object."
 msgstr "次のリソースが複製され、このリソース/オブジェクト内に埋め込まれます。"
 
+msgid "Make Sub-Resources Unique"
+msgstr "サブリソースをユニーク化する"
+
 msgid "Failed to load resource."
 msgstr "リソースの読み込みに失敗しました。"
 
@@ -4033,9 +4145,6 @@ msgstr "プロパティをコピー"
 
 msgid "Paste Properties"
 msgstr "プロパティを貼り付け"
-
-msgid "Make Sub-Resources Unique"
-msgstr "サブリソースをユニーク化する"
 
 msgid "Inspector"
 msgstr "インスペクター"
@@ -4091,9 +4200,6 @@ msgstr "オブジェクトのプロパティを管理。"
 msgid "Information"
 msgstr "情報"
 
-msgid "This cannot be undone. Are you sure?"
-msgstr "これは元に戻せません。本当によろしいですか？"
-
 msgid "No parent to instantiate a child at."
 msgstr "子をインスタンス化する親がありません。"
 
@@ -4127,11 +4233,11 @@ msgstr[0] "AudioStreamPlayerを作成"
 msgid "Replace with Branch Scene"
 msgstr "ブランチ シーンで置き換え"
 
-msgid "Detach Script"
-msgstr "スクリプトをデタッチ"
-
 msgid "This operation can't be done on the tree root."
 msgstr "この処理はツリーのルートでは実行できません。"
+
+msgid "Detach Script"
+msgstr "スクリプトをデタッチ"
 
 msgid "Move Node in Parent"
 msgstr "ノードの順序を変更"
@@ -4338,20 +4444,20 @@ msgstr "<不明>"
 msgid "Sub-Resources"
 msgstr "サブリソース"
 
-msgid "Access as Unique Name"
-msgstr "固有名でアクセス"
-
 msgid "Clear Inheritance"
 msgstr "継承をクリア"
-
-msgid "Open in Editor"
-msgstr "エディターで開く"
 
 msgid "Editable Children"
 msgstr "編集可能な子"
 
 msgid "Load as Placeholder"
 msgstr "プレースホルダーとしてロード"
+
+msgid "Access as Unique Name"
+msgstr "固有名でアクセス"
+
+msgid "Open in Editor"
+msgstr "エディターで開く"
 
 msgid "Auto Expand to Selected"
 msgstr "選択対象へ自動拡張"
@@ -4389,6 +4495,13 @@ msgstr ""
 msgid "Filter by Type"
 msgstr "型で絞り込む"
 
+msgid ""
+"Selects all Nodes of the given type.\n"
+"Inserts \"type:\". You can also use the shorthand \"t:\"."
+msgstr ""
+"特定の型に該当するノードをすべて選択します。\n"
+"\"type:\"を挿入します。\"t:\"で略すこともできす。"
+
 msgid "Filter by Group"
 msgstr "グループで絞り込む"
 
@@ -4418,9 +4531,6 @@ msgstr "%s の <名無し>"
 
 msgid "(used %d times)"
 msgstr "(%d 回利用)"
-
-msgid "None"
-msgstr "None"
 
 msgid "Open Scene Dock"
 msgstr "シーンドックを開く"
@@ -4547,9 +4657,6 @@ msgstr "%s を新規作成"
 msgid "Output"
 msgstr "出力"
 
-msgid "Filter Messages"
-msgstr "メッセージを絞り込む"
-
 msgid "Clear Log"
 msgstr "ログをクリア"
 
@@ -4561,11 +4668,8 @@ msgid ""
 msgstr ""
 "重複したメッセージを1つのログエントリに折りたたみます。発生回数を表示します。"
 
-msgid "Show Search"
-msgstr "検索表示"
-
-msgid "Focus Search/Filter Bar"
-msgstr "フォーカス 検索/フィルターバー"
+msgid "Filter Messages"
+msgstr "メッセージを絞り込む"
 
 msgid "Standard Messages"
 msgstr "標準メッセージ"
@@ -4629,11 +4733,22 @@ msgstr ""
 msgid "Spins when the editor window redraws."
 msgstr "エディター ウィンドウの再描画時にスピンします。"
 
-msgid "Imported resources can't be saved."
-msgstr "インポートされたリソースを保存できません。"
-
-msgid "Error saving resource!"
-msgstr "リソースを保存する際にエラーが発生しました！"
+msgid ""
+"The text-based resource at path \"%s\" is large on disk (%s), likely because "
+"it has embedded binary data.\n"
+"This slows down resource saving and loading.\n"
+"Consider saving its binary subresource(s) to a binary `.res` file or saving "
+"the resource as a binary `.res` file.\n"
+"This warning can be disabled in the Editor Settings (FileSystem > On Save > "
+"Warn on Saving Large Text Resources)."
+msgstr ""
+"パス \"%s\" にあるテキストベースのリソースはディスク上のサイズが大きく（%s）、"
+"バイナリデータが埋め込まれている可能性があります。\n"
+"これにより、リソースの保存と読み込みが遅くなります。\n"
+"バイナリサブリソースをバイナリ `.res` ファイルに保存するか、リソース自体をバイ"
+"ナリ `.res` ファイルとして保存することを検討してください。\n"
+"この警告は、エディタ設定（ファイルシステム > 保存時 > 大きなテキストリソースの"
+"保存時に警告）で無効にできます。"
 
 msgid ""
 "This resource can't be saved because it was imported from another file. Make "
@@ -4709,6 +4824,23 @@ msgid ""
 msgstr ""
 "シーンを保存できませんでした。おそらく依存関係(インスタンスまたは継承)を満たせ"
 "ていません。"
+
+msgid ""
+"The text-based scene at path \"%s\" is large on disk (%s), likely because it "
+"has embedded binary data.\n"
+"This slows down scene saving and loading.\n"
+"Consider saving its binary subresource(s) to a binary `.res` file or saving "
+"the scene as a binary `.scn` file.\n"
+"This warning can be disabled in the Editor Settings (FileSystem > On Save > "
+"Warn on Saving Large Text Resources)."
+msgstr ""
+"パス \"%s\" にあるテキストベースのシーンはディスク上のサイズが大きく（%s）、バ"
+"イナリデータが埋め込まれている可能性があります。\n"
+"これにより、シーンの保存と読み込みが遅くなります。\n"
+"バイナリサブリソースをバイナリ `.res` ファイルに保存するか、シーン自体をバイナ"
+"リ `.scn` ファイルとして保存することを検討してください。\n"
+"この警告は、エディタ設定（ファイルシステム > 保存時 > 大きなテキストリソースの"
+"保存時に警告）で無効にできます。"
 
 msgid "Save scene before running..."
 msgstr "実行前にシーンを保存..."
@@ -4802,13 +4934,6 @@ msgstr[0] "%d 分前"
 msgid "%d hour ago"
 msgid_plural "%d hours ago"
 msgstr[0] "%d 時間前"
-
-msgid ""
-"Scene \"%s\" has unsaved changes.\n"
-"Last saved: %s."
-msgstr ""
-"シーン \"%s\" に未保存の変更があります。\n"
-"最後に保存されたのは %s です。"
 
 msgid "Open Base Scene"
 msgstr "ベースのシーンを開く"
@@ -5090,12 +5215,6 @@ msgstr "レイアウトを保存…"
 msgid "Delete Layout..."
 msgstr "レイアウトを削除…"
 
-msgid "Save Layout"
-msgstr "レイアウトを保存"
-
-msgid "Delete Layout"
-msgstr "レイアウトを削除"
-
 msgid "This scene was never saved."
 msgstr "このシーンは保存されていません。"
 
@@ -5340,6 +5459,9 @@ msgstr "オンラインドキュメント"
 msgid "Forum"
 msgstr "フォーラム"
 
+msgid "Community"
+msgstr "コミュニティ"
+
 msgid "Copy System Info"
 msgstr "システム情報をコピーする"
 
@@ -5363,9 +5485,6 @@ msgstr "スクリプトエディターを開く"
 
 msgid "Open Game View"
 msgstr "ゲームビューを開く"
-
-msgid "Open Asset Library"
-msgstr "アセットライブラリを開く"
 
 msgid "Open the next Editor"
 msgstr "次のエディターを開く"
@@ -5813,94 +5932,20 @@ msgstr "共有オブジェクト \"%s\" をコピーできませんでした。"
 msgid "Plugin \"%s\" is not supported on \"%s\""
 msgstr "プラグイン \"%s\" は \"%s\" ではサポートされていません"
 
-msgid "Open the folder containing these templates."
-msgstr "これらのテンプレートがあるフォルダーを開きます。"
+msgid "Official export templates aren't available for development builds."
+msgstr "公式のエクスポートテンプレートは開発用ビルドの場合は使用できません。"
 
-msgid "Uninstall these templates."
-msgstr "これらのテンプレートをアンインストールします。"
+msgid "Official export templates aren't available for double-precision builds."
+msgstr "公式エクスポートテンプレートは倍精度ビルドでは使用できません。"
 
-msgid "There are no mirrors available."
-msgstr "有効なミラーはありません。"
-
-msgid "Retrieving the mirror list..."
-msgstr "ミラーリストを取得中..."
-
-msgid "Starting the download..."
-msgstr "ダウンロードを開始しています..."
-
-msgid "Error requesting URL:"
-msgstr "URL リクエストのエラー:"
-
-msgid "Connecting to the mirror..."
-msgstr "ミラーに接続中..."
-
-msgid "Can't resolve the requested address."
-msgstr "要求されたアドレスを解決できません。"
-
-msgid "Can't connect to the mirror."
-msgstr "ミラーに接続できません。"
-
-msgid "No response from the mirror."
-msgstr "ミラーから応答がありません。"
-
-msgid "Request ended up in a redirect loop."
-msgstr "リクエストはリダイレクトループのため終了しました。"
-
-msgid "Request failed:"
-msgstr "リクエスト失敗:"
-
-msgid "Download complete; extracting templates..."
-msgstr "ダウンロードが完了しました。テンプレートを展開しています..."
-
-msgid "Cannot remove temporary file:"
-msgstr "一時ファイルを削除できません:"
-
-msgid ""
-"Templates installation failed.\n"
-"The problematic templates archives can be found at '%s'."
-msgstr ""
-"テンプレートのインストールに失敗しました。\n"
-"問題のテンプレートのアーカイブは '%s' にあります。"
+msgid "Template downloading is disabled in offline mode."
+msgstr "オフラインモードでは、テンプレートのダウンロードは無効です。"
 
 msgid "Error getting the list of mirrors."
 msgstr "ミラーリストの取得エラー。"
 
 msgid "Error parsing JSON with the list of mirrors. Please report this issue!"
 msgstr "ミラーリストのJSONの解析に失敗しました。この問題の報告をお願いします！"
-
-msgid "Best available mirror"
-msgstr "利用可能な最良のミラー"
-
-msgid ""
-"No download links found for this version. Direct download is only available "
-"for official releases."
-msgstr ""
-"このバージョンのダウンロードリンクが見つかりません。直接ダウンロードは公式リ"
-"リースのみ可能です。"
-
-msgid "Disconnected"
-msgstr "切断"
-
-msgid "Resolving"
-msgstr "解決中"
-
-msgid "Can't Resolve"
-msgstr "解決できません"
-
-msgid "Can't Connect"
-msgstr "接続できません"
-
-msgid "Connected"
-msgstr "接続"
-
-msgid "Downloading"
-msgstr "ダウンロード中"
-
-msgid "Connection Error"
-msgstr "接続エラー"
-
-msgid "TLS Handshake Error"
-msgstr "TLSハンドシェイクエラー"
 
 msgid "Can't open the export templates file."
 msgstr "エクスポートテンプレート ファイルを開けません。"
@@ -5920,36 +5965,8 @@ msgstr "エクスポート テンプレートの展開中"
 msgid "Importing:"
 msgstr "インポート中:"
 
-msgid "Remove templates for the version '%s'?"
-msgstr "バージョン '%s' のテンプレートを削除しますか？"
-
-msgid "Export templates are missing. Download them or install from a file."
-msgstr ""
-"エクスポート テンプレートが見つかりません。ダウンロードするかファイルからイン"
-"ストールしてください。"
-
-msgid "Export templates are missing. Install them from a file."
-msgstr ""
-"エクスポート テンプレートが見つかりません。ファイルからインストールしてくださ"
-"い。"
-
-msgid "Not available in offline mode"
-msgstr "オフラインモードでは利用不可"
-
-msgid "Template downloading is disabled in offline mode."
-msgstr "オフラインモードでは、テンプレートのダウンロードは無効です。"
-
-msgid "No templates for development builds"
-msgstr "開発用ビルドのテンプレートはありません"
-
-msgid "Official export templates aren't available for development builds."
-msgstr "公式のエクスポートテンプレートは開発用ビルドの場合は使用できません。"
-
-msgid "No templates for double-precision builds"
-msgstr "倍精度ビルド用のテンプレート無し"
-
-msgid "Official export templates aren't available for double-precision builds."
-msgstr "公式エクスポートテンプレートは倍精度ビルドでは使用できません。"
+msgid "Common"
+msgstr "一般"
 
 msgid "Uncompressing Android Build Sources"
 msgstr "Androidビルドソースの解凍"
@@ -5957,83 +5974,20 @@ msgstr "Androidビルドソースの解凍"
 msgid "Export Template Manager"
 msgstr "エクスポートテンプレート マネージャー"
 
-msgid "Current Version:"
-msgstr "現在のバージョン:"
-
-msgid "Export templates are installed and ready to be used."
-msgstr "エクスポート テンプレートはインストールされており、利用できます。"
-
-msgid "Installed Path"
-msgstr "インストールパス"
-
-msgid "Open Folder"
-msgstr "フォルダーを開く"
-
-msgid "Open the folder containing installed templates for the current version."
-msgstr ""
-"現在のバージョンのテンプレートがインストールされたフォルダーを開きます。"
-
-msgid "Uninstall"
-msgstr "アンインストール"
-
-msgid "Uninstall templates for the current version."
-msgstr "現在のバージョンのテンプレートをアンインストールする。"
-
 msgid "Download from:"
 msgstr "ダウンロード元:"
 
 msgid "Mirror"
 msgstr "ミラー"
 
-msgid "Mirror Options"
-msgstr "ミラーオプション"
-
 msgid "Open in Web Browser"
 msgstr "Webブラウザで開く"
-
-msgid "Copy Mirror URL"
-msgstr "ミラーのURLをコピー"
-
-msgid "Download and Install"
-msgstr "ダウンロードしてインストール"
-
-msgid ""
-"Download and install templates for the current version from the best possible "
-"mirror."
-msgstr ""
-"現在のバージョンのテンプレートを最適なミラーからダウンロードしてインストールし"
-"ます。"
-
-msgid "Install from File"
-msgstr "ファイルからインストール"
-
-msgid "Install templates from a local file."
-msgstr "ローカルファイルからテンプレートをインストールする。"
-
-msgid "Online mode is needed to download the templates."
-msgstr "テンプレートをダウンロードするにはオンラインモードが必要です。"
-
-msgid "Cancel the download of the templates."
-msgstr "テンプレートのダウンロードをキャンセルする。"
-
-msgid "Other Installed Versions:"
-msgstr "他のインストールされたバージョン:"
-
-msgid "Uninstall Template"
-msgstr "テンプレートをアンインストール"
 
 msgid "Select Template File"
 msgstr "テンプレートファイルを選択"
 
 msgid "Godot Export Templates"
 msgstr "Godot エクスポート テンプレート"
-
-msgid ""
-"The templates will continue to download.\n"
-"You may experience a short editor freeze when they finish."
-msgstr ""
-"テンプレートのダウンロードは継続されます。\n"
-"完了時に、短い間エディターがフリーズする可能性があります。"
 
 msgid ""
 "No \"%s\" library found for GDExtension: \"%s\". Possible feature flags for "
@@ -6053,6 +6007,12 @@ msgstr ""
 
 msgid "Show Project Setting"
 msgstr "プロジェクト設定を表示"
+
+msgid "Invalid Encryption Key (must be 64 hexadecimal characters long)"
+msgstr "無効な暗号化キー (16進数で64文字である必要があります)"
+
+msgid "Export templates for this platform are missing:"
+msgstr "このプラットフォームに対するエクスポート テンプレートが見つかりません:"
 
 msgid "Runnable"
 msgstr "実行可能"
@@ -6165,22 +6125,14 @@ msgstr "保持"
 msgid "Include Filters"
 msgstr "フィルターを含める"
 
-msgid ""
-"Filters to export non-resource files/folders\n"
-"(comma-separated, e.g: *.json, *.txt, docs/*)"
-msgstr ""
-"リソース以外のファイル/フォルダーをエクスポートするためのフィルター\n"
-"(コンマ区切り、 例: *.json, *.txt, docs/*)"
-
 msgid "Exclude Filters"
 msgstr "フィルターを除外"
 
-msgid ""
-"Filters to exclude files/folders from project\n"
-"(comma-separated, e.g: *.json, *.txt, docs/*)"
-msgstr ""
-"プロジェクトからファイル/フォルダーを除外するフィルター\n"
-"(コンマ区切り、 例: *.json, *.txt, docs/*)"
+msgid "Delta Encoding Compression Level"
+msgstr "デルタ圧縮度"
+
+msgid "Delta Encoding Minimum Size Reduction"
+msgstr "差分符号化におけるサイズ削減量の最小値"
 
 msgid "Base Packs:"
 msgstr "ベースパック:"
@@ -6226,9 +6178,6 @@ msgstr ""
 msgid "Encryption Key (256-bits as hexadecimal):"
 msgstr "暗号化キー (16 進数で 256 ビット):"
 
-msgid "Invalid Encryption Key (must be 64 hexadecimal characters long)"
-msgstr "無効な暗号化キー (16進数で64文字である必要があります)"
-
 msgid "Initialization vector seed"
 msgstr "初期化ベクトルのシード値"
 
@@ -6253,6 +6202,13 @@ msgstr "バイナリトークン(高速な読み込み)"
 
 msgid "Compressed binary tokens (smaller files)"
 msgstr "圧縮されたバイナリトークン (より小さなファイル)"
+
+msgid ""
+"No presets found.\n"
+"Create one so that its parameters can be edited here."
+msgstr ""
+"プリセットが見つかりませんでした。\n"
+"プリセットの引数がここで編集可能になるには新しいプリセットを作成してください。"
 
 msgid "Export PCK/ZIP..."
 msgstr "PCK/Zipのエクスポート..."
@@ -6287,9 +6243,6 @@ msgstr "すべてエクスポート..."
 msgid "ZIP File"
 msgstr "ZIPファイル"
 
-msgid "Export templates for this platform are missing:"
-msgstr "このプラットフォームに対するエクスポート テンプレートが見つかりません:"
-
 msgid "Project Export"
 msgstr "プロジェクトのエクスポート"
 
@@ -6301,9 +6254,6 @@ msgstr "シェーダーをベイク中"
 
 msgid "Dependencies For:"
 msgstr "次の依存関係:"
-
-msgid "Dependencies"
-msgstr "依存関係"
 
 msgid "Dependencies:"
 msgstr "依存関係:"
@@ -6350,8 +6300,8 @@ msgstr "除去不可:"
 msgid "Files to be deleted:"
 msgstr "削除されるファイル:"
 
-msgid "Dependencies of files to be deleted:"
-msgstr "削除されるファイルの依存関係:"
+msgid "Referenced by %s"
+msgstr "%s に参照されています"
 
 msgid "Fix Dependencies"
 msgstr "依存関係の修復"
@@ -6513,9 +6463,6 @@ msgstr "\"%s\" の型を変更する"
 msgid "Change"
 msgstr "変更"
 
-msgid "No results for \"%s\"."
-msgstr "\"%s\" の結果はありません。"
-
 msgid "Script path: %s"
 msgstr "スクリプトパス: %s"
 
@@ -6524,6 +6471,9 @@ msgstr "このスクリプトはエディターで実行されます。"
 
 msgid "The selected class can't be instantiated."
 msgstr "選択したクラスをインスタンス化することはできません。"
+
+msgid "Favorites:"
+msgstr "お気に入り:"
 
 msgid "Recent:"
 msgstr "最近:"
@@ -6636,6 +6586,9 @@ msgstr "Godot エンジンに貢献した人々"
 msgid "Double-click to open in browser."
 msgstr "ダブルクリックでブラウザを開く。"
 
+msgid "No distractions for this, close that game first."
+msgstr "気を散らさないために、まずはこのゲームを閉じましょう。"
+
 msgid "Thanks from the Godot community!"
 msgstr "Godot コミュニティより感謝を！"
 
@@ -6665,14 +6618,11 @@ msgstr "すべてのコンポーネント"
 msgid "Components"
 msgstr "コンポーネント"
 
-msgid "Licenses"
-msgstr "ライセンス文書"
+msgid "Expand Bottom Panel"
+msgstr "下パネルを展開"
 
 msgid "Pin Bottom Panel Switching"
 msgstr "下パネルのピン留めを切り替え"
-
-msgid "Expand Bottom Panel"
-msgstr "下パネルを展開"
 
 msgid "Move/Duplicate: %s"
 msgstr "移動/複製: %s"
@@ -7434,17 +7384,11 @@ msgstr ""
 "パスと UID の表示を切り替えます。\n"
 "UID はこのプロパティの実際の値です。"
 
-msgid "Renaming layer %d:"
-msgstr "レイヤー %d をリネーム:"
+msgid "Layer %d"
+msgstr "レイヤー %d"
 
 msgid "Bit %d, value %d"
 msgstr "ビット %d, 値 %d"
-
-msgid "Rename layer"
-msgstr "レイヤー名を変更"
-
-msgid "Layer %d"
-msgstr "レイヤー %d"
 
 msgid "No Named Layers"
 msgstr "無名レイヤー"
@@ -7457,6 +7401,10 @@ msgstr "レイヤー"
 
 msgid "<empty>"
 msgstr "<空>"
+
+msgctxt "Ease Type"
+msgid "Zero"
+msgstr "ゼロ"
 
 msgid "Temporary Euler may be changed implicitly!"
 msgstr "一時的なオイラーは暗黙的に変更される可能性があります!"
@@ -7578,6 +7526,23 @@ msgstr "翻訳を追加"
 msgid "Lock/Unlock Component Ratio"
 msgstr "ロック/アンロック構成比"
 
+msgid "This %s is external to scene."
+msgstr "この %s はシーンの外部に存在します。"
+
+msgid ""
+"The %s cannot be edited in the inspector and can't be made unique directly."
+msgstr ""
+"%s はインスペクターで編集不可であり、直にユニーク化することができません。"
+
+msgid "Left-click to make it unique."
+msgstr "左クリックでユニーク化。"
+
+msgid "It is possible to make its subresources unique."
+msgstr "サブリソースのユニーク化は可能です。"
+
+msgid "In order to duplicate it, make its parent Resource unique."
+msgstr "複製するには親リソースをユニーク化してください。"
+
 msgid ""
 "The selected resource (%s) does not match any type expected for this property "
 "(%s)."
@@ -7593,8 +7558,21 @@ msgstr "クイックメニューを開いて許可されたリソースファイ
 msgid "Inspect"
 msgstr "検査"
 
+msgid ""
+"Hold %s while drag-and-dropping from the FileSystem dock or another resource "
+"picker to automatically make a dropped resource unique."
+msgstr ""
+"%s を押しながらファイルシステムドックや他のリソースピッカーからドラッグ＆ド"
+"ロップすると、ドロップしたリソースが自動的にユニークになります。"
+
 msgid "Make Unique (Recursive)"
 msgstr "ユニーク化 (再帰的)"
+
+msgid "In order to duplicate recursively, make its parent Resource unique."
+msgstr "再帰的に複製するには親リソースをユニーク化してください。"
+
+msgid "Subresources have already been made unique."
+msgstr "サブリソースはユニーク化済みです。"
 
 msgid "Paste as Unique"
 msgstr "ユニーク化して貼り付け"
@@ -7665,6 +7643,10 @@ msgstr "Virtualメソッドを選択"
 msgid "Select Method"
 msgstr "メソッドの選択"
 
+msgid "The assigned tool button callback can't be used with multiple nodes."
+msgstr ""
+"割り当てられたツールボタンのコールバックは、複数のノードでは使用できません。"
+
 msgid ""
 "Name: %s\n"
 "Path: %s\n"
@@ -7712,6 +7694,14 @@ msgstr "サブフォルダーは、すでに存在するものにはできませ
 msgid "Script extension must match chosen language extension (.%s)."
 msgstr ""
 "スクリプトの拡張子は、選択した言語の拡張子 (.%s) と一致させる必要があります。"
+
+msgid ""
+"Consider enabling GDScript warnings for this plugin by adding an entry for it "
+"to the project setting Debug > GDScript > Warnings > Directory Rules."
+msgstr ""
+"プロジェクト設定（デバッグ > GDScript > 警告 > ディレクトリのルール）にエント"
+"リを追加して、このプラグインに対する GDScript の警告を有効にすることを検討して"
+"ください。"
 
 msgid "Edit a Plugin"
 msgstr "プラグインの編集"
@@ -8028,6 +8018,9 @@ msgstr "プロジェクトパス"
 msgid "This project was last edited in a different Godot version: "
 msgstr "このプロジェクトはGodotの別バージョンで最終変更されました: "
 
+msgid "Unknown version"
+msgstr "不明なバージョン"
+
 msgid "This project uses features unsupported by the current build:"
 msgstr ""
 "このプロジェクトは現在のGodotビルドでサポートされていない機能を使用しています:"
@@ -8044,8 +8037,8 @@ msgstr "ファイルマネージャーで開く"
 msgid "Last edited timestamp"
 msgstr "最終更新日時"
 
-msgid "Unknown version"
-msgstr "不明なバージョン"
+msgid "Missing Date"
+msgstr "日付がありません"
 
 msgid "Scanning"
 msgstr "スキャン中"
@@ -8065,27 +8058,12 @@ msgstr "タグの管理"
 msgid "New Window"
 msgstr "新規ウィンドウ"
 
-msgid "Missing Date"
-msgstr "日付がありません"
-
 msgctxt "Application"
 msgid "Project Manager"
 msgstr "プロジェクトマネージャー"
 
 msgid "You don't have any projects yet."
 msgstr "プロジェクトがまだ存在しません 。"
-
-msgid ""
-"Get started by creating a new one,\n"
-"importing one that exists, or by downloading a project template from the "
-"Asset Library!"
-msgstr ""
-"まずは新規作成から始めましょう。\n"
-"もしくは既存のプロジェクトをインポートするか、アセットライブラリからプロジェク"
-"トテンプレートをダウンロードしましょう！"
-
-msgid "Go Online and Open Asset Library"
-msgstr "オンラインのアセットライブラリを開く"
 
 msgid "Are you sure to run %d projects at once?"
 msgstr "%d個のプロジェクトを同時に実行してもよろしいですか？"
@@ -8378,13 +8356,6 @@ msgstr "最終更新"
 msgid "Tags"
 msgstr "タグ"
 
-msgid ""
-"Note: The Asset Library requires an online connection and involves sending "
-"data over the internet."
-msgstr ""
-"注釈: アセットライブラリにはオンライン接続が必要で、インターネット経由でデータ"
-"を送受信する必要があります。"
-
 msgid "Edit Project"
 msgstr "プロジェクトを編集"
 
@@ -8400,15 +8371,8 @@ msgstr "プロジェクトを除去"
 msgid "Remove Missing"
 msgstr "存在しないものを除去"
 
-msgid "Asset Library"
-msgstr "アセットライブラリ"
-
-msgid ""
-"Asset Library not available (due to using Web editor, or because SSL support "
-"disabled)."
-msgstr ""
-"アセットライブラリは使用できません（Webエディターを使用しているか、SSLサポート"
-"が無効になっているため）。"
+msgid "Donate"
+msgstr "寄付"
 
 msgid "Select a Folder to Scan"
 msgstr "スキャンするフォルダーを選択"
@@ -8477,6 +8441,9 @@ msgstr "タグが表示されるときは自動的に大文字になります。
 
 msgid "New Tag Name"
 msgstr "新しいタグ名"
+
+msgid "example_tag (will display as Example Tag)"
+msgstr "example_tag (Example Tagと表示されます)"
 
 msgid "Create Tag"
 msgstr "タグを作成"
@@ -8682,12 +8649,6 @@ msgstr ""
 "プロジェクトは安定したFPSで実行され、ビジュアルとオーディオ出力は動画ファイル"
 "に記録されます。"
 
-msgid "No Remote Deploy export presets configured."
-msgstr "リモートデプロイのエクスポートプリセットが設定されていません。"
-
-msgid "Remote Deploy"
-msgstr "リモートデプロイ"
-
 msgid ""
 "No runnable export preset found for this platform.\n"
 "Please add a runnable preset in the Export menu or define an existing preset "
@@ -8718,6 +8679,9 @@ msgstr "リストの3番目のデバイスにデプロイ"
 
 msgid "Deploy to Fourth Device in List"
 msgstr "リストの4番目のデバイスにデプロイ"
+
+msgid "Remote Deploy"
+msgstr "リモートデプロイ"
 
 msgid "Project Run"
 msgstr "プロジェクトの実行"
@@ -8788,6 +8752,16 @@ msgstr "ゲームオーディオをミュートします。"
 msgid "Suspend"
 msgstr "中断"
 
+msgid ""
+"Force pause at SceneTree level. Stops all processing, but you can still "
+"interact with the project."
+msgstr ""
+"SceneTreeレベルで強制ポーズします。すべての処理は停止しますが、プロジェクトへ"
+"のインタラクトは可能です。"
+
+msgid "Speed State"
+msgstr "速度状態"
+
 msgid "Input"
 msgstr "入力"
 
@@ -8828,14 +8802,14 @@ msgstr "ゲーム内で操作"
 msgid "Manipulate From Editors"
 msgstr "エディターから操作"
 
-msgid "Embedding Options"
-msgstr "埋め込みオプション"
-
 msgid "Embed Game on Next Play"
 msgstr "次の実行時にゲームを埋め込む"
 
 msgid "Make Game Workspace Floating on Next Play"
 msgstr "次の実行時にゲームのワークスペースをフローティング化する"
+
+msgid "Embedded Window Sizing"
+msgstr "埋め込みウィンドウのサイズ調整"
 
 msgid ""
 "Embedded game size is based on project settings.\n"
@@ -8848,6 +8822,9 @@ msgstr ""
 
 msgid "Keep the aspect ratio of the embedded game."
 msgstr "ゲームの埋め込みのアスペクト比を維持します。"
+
+msgid "Stretch to Fit"
+msgstr "フィットするように引き伸ばす"
 
 msgid "Embedded game size stretches to fit the Game Workspace."
 msgstr ""
@@ -8983,6 +8960,22 @@ msgstr "生成中..."
 
 msgid "Loading emission mask requires ParticleProcessMaterial."
 msgstr "放出マスクの読み込みには ParticleProcessMaterial が必要です。"
+
+msgid "Failed to convert mask texture to RGBA8."
+msgstr "マスクテクスチャをRGBA8に変換できませんでした。"
+
+msgid "Mask texture has an invalid size."
+msgstr "マスクテクスチャの大きさは無効です。"
+
+msgid "Failed to convert direction texture to RGBA8."
+msgstr "マスクテクスチャをRGBA8に変換できませんでした。"
+
+msgid ""
+"Direction texture has an invalid size. It must have the same size as the mask "
+"texture."
+msgstr ""
+"方向テクスチャのサイズが無効です。マスクテクスチャと同じサイズでなければなりま"
+"せん。"
 
 msgid "GPUParticles2D"
 msgstr "GPUParticles2D"
@@ -9224,6 +9217,9 @@ msgstr "グリッドのステップ Y:"
 msgid "Sync Bones to Polygon"
 msgstr "ボーンをポリゴンに同期させる"
 
+msgid "Advanced Settings"
+msgstr "高度な設定"
+
 msgid "This skeleton has no bones, create some children Bone2D nodes."
 msgstr "このskeletonにはボーンがありません。子Bone2Dノードを追加してください。"
 
@@ -9447,6 +9443,9 @@ msgstr "タイルプロパティをペイント"
 msgid "Painting:"
 msgstr "ペイント設定:"
 
+msgid "Polygon %d"
+msgstr "ポリゴン %d"
+
 msgid "No terrains"
 msgstr "地形なし"
 
@@ -9468,6 +9467,9 @@ msgstr "長方形を描画:"
 msgid "Can't rotate patterns when using non-square tile grid."
 msgstr ""
 "正方形以外のタイルグリッドを使用している場合、パターンを回転できません。"
+
+msgid "Shift: Draw line."
+msgstr "Shift: 線を描画。"
 
 msgid "No Texture Atlas Source (ID: %d)"
 msgstr "テクスチャ アトラス ソースなし (ID: %d)"
@@ -9517,9 +9519,6 @@ msgstr "タイルを貼り付け"
 
 msgid "Selection Tool"
 msgstr "選択ツール"
-
-msgid "Shift: Draw line."
-msgstr "Shift: 線を描画。"
 
 msgid "Paint Tool"
 msgstr "ペイントツール"
@@ -9864,9 +9863,6 @@ msgstr "タイルを除去"
 msgid "Move a tile"
 msgstr "タイルを移動"
 
-msgid "Select tiles"
-msgstr "タイルを選択"
-
 msgid "Resize a tile"
 msgstr "タイルのサイズ変更"
 
@@ -10055,6 +10051,13 @@ msgstr ""
 "「ランダムタイルを配置」 で塗りつぶしたときに、このタイルが出現する相対確率を"
 "表す。"
 
+msgid ""
+"The current atlas source has tiles outside the texture.\n"
+"You can clear it using \"%s\" option in the 3 dots menu."
+msgstr ""
+"現在のアトラスソースには、テクスチャの外部にタイルがあります。\n"
+"3ドットメニュー内の\"%s\"オプションを使用することでそれらを消去できます。"
+
 msgid "Setup"
 msgstr "セットアップ"
 
@@ -10086,13 +10089,6 @@ msgstr "不透明なテクスチャ領域にタイルを作成"
 
 msgid "Remove Tiles in Fully Transparent Texture Regions"
 msgstr "完全に透明なテクスチャ領域のタイルを削除"
-
-msgid ""
-"The current atlas source has tiles outside the texture.\n"
-"You can clear it using \"%s\" option in the 3 dots menu."
-msgstr ""
-"現在のアトラスソースには、テクスチャの外部にタイルがあります。\n"
-"3ドットメニュー内の\"%s\"オプションを使用することでそれらを消去できます。"
 
 msgid "Create an Alternative Tile"
 msgstr "代替タイルを作成"
@@ -10219,6 +10215,13 @@ msgstr "消去ツール"
 
 msgid "Picker Tool"
 msgstr "ピッカーツール"
+
+msgid ""
+"Source ID: %d\n"
+"Texture path: %s"
+msgstr ""
+"ソースID：%d\n"
+"テクスチャのパス：%s"
 
 msgid "Bone Picker:"
 msgstr "ボーンピッカー:"
@@ -10449,6 +10452,12 @@ msgstr "簡略化された凸型シェイプを作成する"
 msgid "Multiple Convex"
 msgstr "複数の凸型シェイプを作成する"
 
+msgid "Capsule"
+msgstr "カプセル"
+
+msgid "Cylinder"
+msgstr "円柱"
+
 msgid "Sphere"
 msgstr "球体"
 
@@ -10599,14 +10608,45 @@ msgstr ""
 "これは単一の凸型コリジョンシェイプと似ていますが、精度を犠牲により単純なジオメ"
 "トリになることがあります。"
 
+msgid ""
+"Creates a box, capsule, cylinder, or sphere primitive collision shape if the "
+"mesh is a primitive.\n"
+"The mesh must use the built-in BoxMesh, CapsuleMesh, CylinderMesh, or "
+"SphereMesh primitive.\n"
+"This is faster than the convex collision shape option for collision detection."
+msgstr ""
+"基本meshである場合、箱、カプセル、円柱または球体の基本衝突シェイプを生成しま"
+"す。\n"
+"meshは組み込みのBoxMesh、CapsuleMesh、CylinderMeshまたはSphereMeshを使う必要が"
+"あります。\n"
+"この衝突検出方法は凸形状の衝突シェイプよりも速いです。"
+
+msgid "Alignment Axis"
+msgstr "アライメント軸"
+
+msgid "Longest Axis"
+msgstr "最長軸"
+
+msgid "Create the shape along the longest axis of the mesh's AABB."
+msgstr "メッシュのAABBの最長軸に沿って形状を作成します。"
+
 msgid "X-Axis"
 msgstr "X軸"
+
+msgid "Create the shape along the local X-Axis."
+msgstr "ローカルX軸に沿って図形を作成します。"
 
 msgid "Y-Axis"
 msgstr "Y軸"
 
+msgid "Create the shape along the local Y-Axis."
+msgstr "ローカルY軸に沿って図形を作成します。"
+
 msgid "Z-Axis"
 msgstr "Z軸"
+
+msgid "Create the shape along the local Z-Axis."
+msgstr "ローカルZ軸に沿って図形を作成します。"
 
 msgid "UV Channel Debug"
 msgstr "UVチャンネル デバッグ"
@@ -10635,9 +10675,6 @@ msgstr ""
 "\n"
 "メッシュがこれらの条件を満たさない場合は経路検索は機能しません。"
 
-msgid "Remove item %d?"
-msgstr "アイテム %d を取り除きますか？"
-
 msgid ""
 "Update from existing scene?:\n"
 "%s"
@@ -10648,12 +10685,6 @@ msgstr ""
 msgid "MeshLibrary"
 msgstr "メッシュライブラリ"
 
-msgid "Add Item"
-msgstr "アイテムを追加"
-
-msgid "Remove Selected Item"
-msgstr "選択したアイテムを取り除く"
-
 msgid "Import from Scene (Ignore Transforms)"
 msgstr "シーンからインポート (トランスフォームを無視)"
 
@@ -10662,6 +10693,9 @@ msgstr "シーンからインポート (トランスフォームを適用)"
 
 msgid "Update from Scene"
 msgstr "シーンからアップデート"
+
+msgid "Filter Meshes"
+msgstr "メッシュを絞り込む"
 
 msgid "Apply without Transforms"
 msgstr "トランスフォーム以外を適用"
@@ -10741,51 +10775,6 @@ msgstr "名無しのギズモ"
 msgid "Transform Aborted."
 msgstr "トランスフォームは中止されました。"
 
-msgid "Orthogonal"
-msgstr "平行投影"
-
-msgid "Perspective"
-msgstr "透視投影"
-
-msgid "Top Orthogonal"
-msgstr "上面 平行投影"
-
-msgid "Top Perspective"
-msgstr "上面 透視投影"
-
-msgid "Bottom Orthogonal"
-msgstr "下面 平行投影"
-
-msgid "Bottom Perspective"
-msgstr "下面 透視投影"
-
-msgid "Left Orthogonal"
-msgstr "左側面 平行投影"
-
-msgid "Left Perspective"
-msgstr "左側面 透視投影"
-
-msgid "Right Orthogonal"
-msgstr "右側面 平行投影"
-
-msgid "Right Perspective"
-msgstr "右側面 透視投影"
-
-msgid "Front Orthogonal"
-msgstr "正面 平行投影"
-
-msgid "Front Perspective"
-msgstr "正面 透視投影"
-
-msgid "Rear Orthogonal"
-msgstr "後面 平行投影"
-
-msgid "Rear Perspective"
-msgstr "後面 透視投影"
-
-msgid "[auto]"
-msgstr "[自動]"
-
 msgid "Grouped"
 msgstr "グループ化済み"
 
@@ -10807,13 +10796,8 @@ msgstr "キーは無効化されています(キーは挿入されていませ�
 msgid "Animation Key Inserted."
 msgstr "アニメーションキーが挿入されました。"
 
-msgid ""
-"Drag and drop to override the material of any geometry node.\n"
-"Hold %s when dropping to override a specific surface."
-msgstr ""
-"ドラッグ＆ドロップで任意のジオメトリノードのマテリアルをオーバーライドできま"
-"す。\n"
-"%sを押しながらドロップすると、特定のサーフェスをオーバーライドできます。"
+msgid "Rotating %s degrees."
+msgstr "%s 度回転。"
 
 msgid "Draw Calls: %d"
 msgstr "ドローコール数: %d"
@@ -10826,12 +10810,6 @@ msgstr "GPU 時間: %s ms"
 
 msgid "FPS: %d"
 msgstr "FPS: %d"
-
-msgid "Translating:"
-msgstr "位置の変更:"
-
-msgid "Instantiating:"
-msgstr "インスタンス化:"
 
 msgid "Top View."
 msgstr "上面図。"
@@ -10866,23 +10844,14 @@ msgstr "マテリアル オーバーライドの設定"
 msgid "Error instantiating scene from %s."
 msgstr "%sからシーンのインスタンス化の処理中にエラーが発生しました。"
 
-msgid "Can't instantiate: %s."
-msgstr "インスタンス化できません: %s。"
-
-msgid "Circular dependency found at %s"
-msgstr "依存関係の循環が %s で見つかりました"
+msgid "Circular dependency found at %s."
+msgstr "循環依存関係が %s で見つかりました。"
 
 msgid "Rotate"
 msgstr "回転"
 
 msgid "Translate"
 msgstr "移動"
-
-msgid "Scaling:"
-msgstr "スケール:"
-
-msgid "Rotating %s degrees."
-msgstr "%s 度回転。"
 
 msgid "Translating %s."
 msgstr "%s 移動。"
@@ -10893,8 +10862,56 @@ msgstr "%f 度回転。"
 msgid "Scaling %s."
 msgstr "%s スケール。"
 
+msgid "Viewport Orbit Modifier 1"
+msgstr "ビューポート 回転の修飾キー1"
+
+msgid "Viewport Orbit Modifier 2"
+msgstr "ビューポート 回転の修飾キー2"
+
+msgid "Viewport Pan Modifier 1"
+msgstr "ビューポート パンの修飾キー1"
+
+msgid "Viewport Pan Modifier 2"
+msgstr "ビューポート パンの修飾キー2"
+
+msgid "Viewport Zoom Modifier 1"
+msgstr "ビューポート ズームの修飾キー1"
+
+msgid "Viewport Zoom Modifier 2"
+msgstr "ビューポート ズームの修飾キー2"
+
+msgid "Freelook Left"
+msgstr "フリールック左"
+
+msgid "Freelook Right"
+msgstr "フリールック右"
+
+msgid "Freelook Forward"
+msgstr "フリールック前進"
+
+msgid "Freelook Backwards"
+msgstr "フリールック後進"
+
+msgid "Freelook Up"
+msgstr "フリールック上"
+
+msgid "Freelook Down"
+msgstr "フリールック下"
+
+msgid "Freelook Speed Modifier"
+msgstr "フリールックの速度調整"
+
+msgid "Freelook Slow Modifier"
+msgstr "フリールックの減速調整"
+
 msgid "View"
 msgstr "ビュー"
+
+msgid "Perspective"
+msgstr "透視投影"
+
+msgid "Orthogonal"
+msgstr "平行投影"
 
 msgid "Auto Orthogonal Enabled"
 msgstr "自動平行投影を有効化"
@@ -11131,48 +11148,6 @@ msgstr "ドップラー効果を有効化"
 msgid "Cinematic Preview"
 msgstr "シネマティックプレビュー"
 
-msgid "Viewport Orbit Modifier 1"
-msgstr "ビューポート 回転の修飾キー1"
-
-msgid "Viewport Orbit Modifier 2"
-msgstr "ビューポート 回転の修飾キー2"
-
-msgid "Viewport Pan Modifier 1"
-msgstr "ビューポート パンの修飾キー1"
-
-msgid "Viewport Pan Modifier 2"
-msgstr "ビューポート パンの修飾キー2"
-
-msgid "Viewport Zoom Modifier 1"
-msgstr "ビューポート ズームの修飾キー1"
-
-msgid "Viewport Zoom Modifier 2"
-msgstr "ビューポート ズームの修飾キー2"
-
-msgid "Freelook Left"
-msgstr "フリールック左"
-
-msgid "Freelook Right"
-msgstr "フリールック右"
-
-msgid "Freelook Forward"
-msgstr "フリールック前進"
-
-msgid "Freelook Backwards"
-msgstr "フリールック後進"
-
-msgid "Freelook Up"
-msgstr "フリールック上"
-
-msgid "Freelook Down"
-msgstr "フリールック下"
-
-msgid "Freelook Speed Modifier"
-msgstr "フリールックの速度調整"
-
-msgid "Freelook Slow Modifier"
-msgstr "フリールックの減速調整"
-
 msgid "Lock Transformation to X axis"
 msgstr "変換を X 軸にロック"
 
@@ -11211,9 +11186,6 @@ msgstr "カメラのプレビューを切り替え"
 
 msgid "View Rotation Locked"
 msgstr "ビューの回転を固定中"
-
-msgid "Overriding material..."
-msgstr "マテリアルをオーバーライドしています..."
 
 msgid "XForm Dialog"
 msgstr "XFormダイアログ"
@@ -11260,8 +11232,8 @@ msgstr ""
 "Alt+右クリック: クリックした位置のすべてのノードを一覧で表示。ロックされたもの"
 "も含む。"
 
-msgid "(Available in all modes.)"
-msgstr "(すべてのモードで利用可能)"
+msgid "LMB+Drag: Measure the distance between two points in 3D space."
+msgstr "LMB＋ドラッグ：3D空間の2点間の距離を測定します。"
 
 msgid ""
 "Scene contains\n"
@@ -11366,9 +11338,6 @@ msgstr ""
 
 msgid "Ungroup"
 msgstr "グループ解除"
-
-msgid "LMB+Drag: Measure the distance between two points in 3D space."
-msgstr "LMB＋ドラッグ：3D空間の2点間の距離を測定します。"
 
 msgid "Ruler Mode"
 msgstr "定規モード"
@@ -11977,9 +11946,6 @@ msgstr "水平ガイドを削除"
 msgid "Create Horizontal and Vertical Guides"
 msgstr "水平垂直ガイドを作成"
 
-msgid "Add Node Here..."
-msgstr "ここにノードを追加..."
-
 msgid "Instantiate Scene Here..."
 msgstr "ここにシーンをインスタンス化..."
 
@@ -12031,6 +11997,9 @@ msgstr "移動:"
 msgid "Rotating:"
 msgstr "回転:"
 
+msgid "Scaling:"
+msgstr "スケール:"
+
 msgid "Alt+Drag: Move selected node."
 msgstr "Alt+ドラッグ: 選択したノードを移動します。"
 
@@ -12039,6 +12008,9 @@ msgstr "V: 選択したノードのピボット位置を設定します。"
 
 msgid "RMB: Add node at position clicked."
 msgstr "右クリック: クリックした位置にノードを追加。"
+
+msgid "Shift: Scale proportionally."
+msgstr "Shift: 比率を保って拡大縮小。"
 
 msgid "Click to change object's pivot."
 msgstr "クリックしてオブジェクトの回転ピボットを変更します。"
@@ -12052,6 +12024,12 @@ msgid ""
 msgstr ""
 "Shiftキーを押しながらこのボタンをクリックすると、選択したノードの中心に一時ピ"
 "ボットが配置されます。"
+
+msgid ""
+"You can also use Pan View shortcut (Space by default) to pan in any mode."
+msgstr ""
+"パン・ビューのショートカット (デフォルトではスペース) を使用して、どのモードで"
+"もパンすることができます。"
 
 msgid "Paste Pose"
 msgstr "ポーズを貼り付け"
@@ -12092,29 +12070,14 @@ msgstr "800%にズーム"
 msgid "Zoom to 1600%"
 msgstr "1600%にズーム"
 
-msgid "Shift: Scale proportionally."
-msgstr "Shift: 比率を保って拡大縮小。"
-
 msgid "Change Pivot"
 msgstr "ピボットを変更"
 
 msgid "Pan Mode"
 msgstr "パンモード"
 
-msgid ""
-"You can also use Pan View shortcut (Space by default) to pan in any mode."
-msgstr ""
-"パン・ビューのショートカット (デフォルトではスペース) を使用して、どのモードで"
-"もパンすることができます。"
-
-msgid "Toggle smart snapping."
-msgstr "スマートスナップをオン / オフ。"
-
 msgid "Use Smart Snap"
 msgstr "スマートスナップを使用"
-
-msgid "Toggle grid snapping."
-msgstr "グリッド スナッピングをオン / オフ。"
 
 msgid "Use Grid Snap"
 msgstr "グリッドスナップを使用"
@@ -12260,38 +12223,11 @@ msgstr "%s を追加中..."
 msgid "Can't instantiate multiple nodes without root."
 msgstr "ルートの存在しない状態で、複数ノードをインスタンス化できません。"
 
-msgid "Circular dependency found at %s."
-msgstr "循環依存関係が %s で見つかりました。"
-
-msgid "Can't instantiate: %s"
-msgstr "インスタンス化できません: %s"
-
 msgid "Creating inherited scene from: %s"
 msgstr "継承されたシーンを作成中: %s"
 
 msgid "Instantiating: "
 msgstr "インスタンス化 "
-
-msgid "Adding %s and %s..."
-msgstr "%s と %s を追加中..."
-
-msgid ""
-"Drag and drop to add as sibling of selected node (except when root is "
-"selected)."
-msgstr ""
-"ドラッグアンドドロップで選択したノードの兄弟として追加します (ルートが選択され"
-"ている場合を除く)。"
-
-msgid "Hold Shift when dropping to add as child of selected node."
-msgstr ""
-"Shiftキーを押しながらドロップすると、選択したノードの子として追加されます。"
-
-msgid "Hold Alt when dropping to add as child of root node."
-msgstr "Altキーを押しながらドロップすると、ルートノードの子として追加されます。"
-
-msgid "Hold Alt + Shift when dropping to add as different node type."
-msgstr ""
-"別のノード タイプとして追加するには、Alt+Shiftキーを押しながらドロップします。"
 
 msgid ""
 "All selected CanvasItems are either invisible or locked in some way and can't "
@@ -13610,9 +13546,6 @@ msgstr "ノードの設定に関する警告！"
 msgid "Revoke"
 msgstr "取り消す"
 
-msgid "Don't Ask Again"
-msgstr "次回から確認しない"
-
 msgid ""
 "This dialog can also be enabled/disabled in the Editor Settings: Docks > "
 "Scene Tree > Ask Before Revoking Unique Name."
@@ -13857,6 +13790,9 @@ msgstr "領域を編集"
 msgid "Write your logic in the _run() method."
 msgstr "ロジックを _run() メソッドに記述する。"
 
+msgid "Replace in Files"
+msgstr "複数ファイル内で置換"
+
 msgid "Find in Files"
 msgstr "複数ファイル内を検索"
 
@@ -13896,12 +13832,6 @@ msgstr "検索..."
 msgid "Replace..."
 msgstr "置換..."
 
-msgid "Replace in Files"
-msgstr "複数ファイル内で置換"
-
-msgid "Replace all (no undo)"
-msgstr "すべて置換（アンドゥ不可）"
-
 msgid "Searching..."
 msgstr "検索中..."
 
@@ -13916,6 +13846,12 @@ msgstr "%d 件の一致が見つかりました (%d 個のファイル内)"
 
 msgid "%d matches in %d files"
 msgstr "%d 件の一致が見つかりました (%d 個のファイル内)"
+
+msgid "Keep these results and show subsequent results in a new window"
+msgstr "これらの結果を保持し、以降の結果は新しいウィンドウで表示します"
+
+msgid "Replace all (no undo)"
+msgstr "すべて置換（アンドゥ不可）"
 
 msgid "Toggle Search Results Bottom Panel"
 msgstr "検索結果の下部パネルの切り替え"
@@ -14030,9 +13966,6 @@ msgstr "親を選択"
 msgid "Use Template"
 msgstr "テンプレートを使用"
 
-msgid "Template"
-msgstr "テンプレート"
-
 msgid "Built-in Script:"
 msgstr "組み込みスクリプト:"
 
@@ -14041,6 +13974,27 @@ msgstr "ファイルを選択"
 
 msgid "Attach Node Script"
 msgstr "ノードにスクリプトをアタッチする"
+
+msgid "Line"
+msgstr "ライン"
+
+msgid "Folding"
+msgstr "折りたたみ"
+
+msgid "Convert Case"
+msgstr "大文字と小文字を変換"
+
+msgid "Syntax Highlighter"
+msgstr "シンタックスハイライト"
+
+msgid "Go To"
+msgstr "参照"
+
+msgid "Bookmarks"
+msgstr "ブックマーク"
+
+msgid "Emoji & Symbols"
+msgstr "絵文字・記号"
 
 msgid "(truncated)"
 msgstr "(省略されました)"
@@ -14162,12 +14116,6 @@ msgstr "すべて保存"
 msgid "Soft Reload Tool Script"
 msgstr "ツールスクリプトをソフトリロード"
 
-msgid "Copy Script Path"
-msgstr "スクリプトのパスをコピー"
-
-msgid "Copy Script UID"
-msgstr "スクリプトのUIDをコピー"
-
 msgid "History Previous"
 msgstr "前の履歴"
 
@@ -14228,21 +14176,6 @@ msgstr "小文字"
 msgid "Capitalize"
 msgstr "単語の先頭文字を大文字に"
 
-msgid "Standard"
-msgstr "標準"
-
-msgid "Plain Text"
-msgstr "プレーンテキスト"
-
-msgid "JSON"
-msgstr "JSON"
-
-msgid "Markdown"
-msgstr "Markdown"
-
-msgid "ConfigFile"
-msgstr "Configファイル"
-
 msgid "Script"
 msgstr "スクリプト"
 
@@ -14288,32 +14221,8 @@ msgstr ""
 "スクリプト '%s' はNodeを継承していないため、ノードをドロップすることができませ"
 "ん。"
 
-msgid "Emoji & Symbols"
-msgstr "絵文字・記号"
-
 msgid "Pick Color"
 msgstr "色を取得"
-
-msgid "Go to Function"
-msgstr "関数に移動"
-
-msgid "Line"
-msgstr "ライン"
-
-msgid "Folding"
-msgstr "折りたたみ"
-
-msgid "Convert Case"
-msgstr "大文字と小文字を変換"
-
-msgid "Syntax Highlighter"
-msgstr "シンタックスハイライト"
-
-msgid "Bookmarks"
-msgstr "ブックマーク"
-
-msgid "Go To"
-msgstr "参照"
 
 msgid "Delete Line"
 msgstr "行を削除"
@@ -14398,6 +14307,24 @@ msgstr "次のブレークポイントに移動"
 
 msgid "Go to Previous Breakpoint"
 msgstr "前のブレークポイントに移動"
+
+msgid "Go to Function"
+msgstr "関数に移動"
+
+msgid "Standard"
+msgstr "標準"
+
+msgid "Plain Text"
+msgstr "プレーンテキスト"
+
+msgid "JSON"
+msgstr "JSON"
+
+msgid "Markdown"
+msgstr "Markdown"
+
+msgid "ConfigFile"
+msgstr "Configファイル"
 
 msgid ""
 "Invalid action name. It cannot be empty nor contain '/', ':', '=', '\\' or "
@@ -14499,18 +14426,6 @@ msgstr "%s は無効なパスです。リソースパス (res://) に存在し�
 msgid "Add Autoload"
 msgstr "自動読み込みを追加"
 
-msgid "Autoload Path"
-msgstr "パスを自動読み込み"
-
-msgid "Set path or press \"Add\" to create a script."
-msgstr "パスを設定するか、「追加」 を押してスクリプトを作成します。"
-
-msgid "Select Autoload Path"
-msgstr "自動読み込みパスを選択"
-
-msgid "Node Name:"
-msgstr "ノード名:"
-
 msgid "Autoloads"
 msgstr "自動読み込み"
 
@@ -14592,32 +14507,11 @@ msgstr "SILグラファイトフォント"
 msgid "Multi-channel Signed Distance Field Font Rendering"
 msgstr "マルチチャンネル符号付き距離フィールドフォント描画"
 
-msgid "3D Nodes as well as RenderingServer access to 3D features."
-msgstr "3Dノードおよび3D機能へのRenderingServerのアクセス。"
-
-msgid "Navigation Server and capabilities for 2D."
-msgstr "2D ナビゲーションサーバーと機能。"
-
-msgid "Navigation Server and capabilities for 3D."
-msgstr "3D のナビゲーションサーバーと機能です。"
-
 msgid "XR (AR and VR)."
 msgstr "XR (AR と VR)."
 
 msgid "OpenXR standard implementation (requires XR to be enabled)."
 msgstr "OpenXR標準実装（XRが有効であることが必要）。"
-
-msgid "Wayland display (Linux only)."
-msgstr "Waylandディスプレイ（Linuxのみ）。"
-
-msgid "X11 display (Linux only)."
-msgstr "X11ディスプレイ（Linuxのみ）。"
-
-msgid ""
-"RenderingDevice based rendering (if disabled, the OpenGL backend is required)."
-msgstr ""
-"RenderingDeviceベースのレンダリング（無効の場合、OpenGLバックエンドが必要で"
-"す）。"
 
 msgid "Forward+ renderer for advanced 3D graphics."
 msgstr "高度な3Dグラフィックス用のForward+レンダラー。"
@@ -14635,14 +14529,8 @@ msgid "OpenGL backend (if disabled, the RenderingDevice backend is required)."
 msgstr ""
 "OpenGL バックエンド(無効の場合は RenderingDevice のバックエンドが必要です)。"
 
-msgid "Physics Server and capabilities for 2D."
-msgstr "2D 物理サーバーと機能。"
-
 msgid "Godot Physics backend (2D)."
 msgstr "Godot物理バックエンド(2D)。"
-
-msgid "Physics Server and capabilities for 3D."
-msgstr "3D 物理サーバーと機能。"
 
 msgid "Godot Physics backend (3D)."
 msgstr "Godot物理バックエンド(3D)。"
@@ -14681,14 +14569,6 @@ msgid ""
 "only)."
 msgstr ""
 "SIL Graphiteスマートフォントテクノロジー対応（Advanced Text Serverのみ対応）"
-
-msgid ""
-"Multi-channel signed distance field font rendering support using msdfgen "
-"library (pre-rendered MSDF fonts can be used even if this option disabled)."
-msgstr ""
-"msdfgenライブラリを用いたマルチチャンネル符号付き距離フィールドフォントのレン"
-"ダリングに対応（このオプションを無効にしても、レンダリング済みのMSDFフォントは"
-"使用可能です）"
 
 msgid "General Features:"
 msgstr "主要機能:"
@@ -14815,9 +14695,6 @@ msgstr "3Dシーンの表示と編集ができます。"
 msgid "Allows to edit scripts using the integrated script editor."
 msgstr "内臓のスクリプトエディターを使用してスクリプトを編集できます。"
 
-msgid "Provides built-in access to the Asset Library."
-msgstr "アセットライブラリへの組み込みのアクセス機能を提供します。"
-
 msgid "Allows editing the node hierarchy in the Scene dock."
 msgstr "シーンドックのノード階層を編集できます。"
 
@@ -14928,14 +14805,20 @@ msgstr "エディター機能のプロファイルの管理"
 msgid "New layout name"
 msgstr "新しいレイアウト名"
 
+msgid "Save Layout"
+msgstr "レイアウトを保存"
+
+msgid "Delete Layout"
+msgstr "レイアウトを削除"
+
+msgid "Focus Search/Filter Bar"
+msgstr "フォーカス 検索/フィルターバー"
+
 msgid "Edit Built-in Action: %s"
 msgstr "組み込みアクションの編集: %s"
 
 msgid "Edit Shortcut: %s"
 msgstr "ショートカットを編集: %s"
-
-msgid "Common"
-msgstr "一般"
 
 msgid "Event %d"
 msgstr "イベント %d"
@@ -14948,9 +14831,6 @@ msgstr "一般"
 
 msgid "Filter Settings"
 msgstr "設定のフィルター"
-
-msgid "Advanced Settings"
-msgstr "高度な設定"
 
 msgid "The editor must be restarted for changes to take effect."
 msgstr "変更を有効にするには、エディターを再起動する必要があります。"
@@ -15046,10 +14926,13 @@ msgid "Listening for Input. Hold %s to release focus."
 msgstr "入力を待っています。フォーカスを解除するには %s を長押ししてください。"
 
 msgid "Listening for Input"
-msgstr "入力を待機しています..."
+msgstr "入力を待機しています"
 
 msgid "Filter by Event"
 msgstr "イベントでフィルタ"
+
+msgid "Reload"
+msgstr "再読み込み"
 
 msgid "No Event Configured"
 msgstr "イベント未設定"
@@ -15111,9 +14994,6 @@ msgstr "物理キーコード (US QWERTYキーボード上の位置)"
 
 msgid "Key Label (Unicode, Case-Insensitive)"
 msgstr "キーラベル (Unicode、大文字と小文字を区別しない)"
-
-msgid "Physical location"
-msgstr "物理位置"
 
 msgid "Alt or Option key"
 msgstr "Alt または Optionキー"
@@ -15301,11 +15181,1300 @@ msgstr ""
 "このシェーダーはディスク上で修正されています。\n"
 "どうしますか？"
 
-msgid "Reload"
-msgstr "再読み込み"
-
 msgid "Resave"
 msgstr "再保存"
+
+msgctxt "Locale"
+msgid "Script:"
+msgstr "文字:"
+
+msgctxt "Locale"
+msgid "Script"
+msgstr "文字"
+
+msgid "Changed Locale Language Filter"
+msgstr "ロケール言語フィルターを変更"
+
+msgid "Changed Locale Script Filter"
+msgstr "ロケールスクリプトフィルタを変更"
+
+msgid "Changed Locale Country Filter"
+msgstr "ロケール国フィルターを変更"
+
+msgid "Changed Locale Filter Mode"
+msgstr "ロケールフィルターモードを変更"
+
+msgid "[Default]"
+msgstr "[デフォルト]"
+
+msgid "Select a Locale"
+msgstr "ロケールを選択"
+
+msgid "Locale Filter"
+msgstr "ロケールフィルター"
+
+msgid "Show All Locales"
+msgstr "すべてのロケールを表示"
+
+msgid "Show Selected Locales Only"
+msgstr "選択した言語のみ表示"
+
+msgid "Country:"
+msgstr "国:"
+
+msgid "Country"
+msgstr "国"
+
+msgid "Variant"
+msgstr "バリアント"
+
+msgid "Previewing: %s"
+msgstr "プレビュー: %s"
+
+msgid "Disable Translation Preview"
+msgstr "翻訳のプレビューを無効にする"
+
+msgid "Previewing translation. Click to disable."
+msgstr "翻訳をプレビュー中。クリックすると無効になります。"
+
+msgid "Add %d Translation"
+msgid_plural "Add %d Translations"
+msgstr[0] "%d個の翻訳を追加"
+
+msgid "Translation Resource Remap: Add %d Path"
+msgid_plural "Translation Resource Remap: Add %d Paths"
+msgstr[0] "翻訳リソースの再マップ: %d個のパスを追加"
+
+msgid "Translation Resource Remap: Add %d Remap"
+msgid_plural "Translation Resource Remap: Add %d Remaps"
+msgstr[0] "翻訳リソースの再マップ: %d個の再マップを追加"
+
+msgid "Change Resource Remap Language"
+msgstr "リソースの再マップ言語を変更"
+
+msgid "Remove Resource Remap"
+msgstr "リソースの再マップを削除"
+
+msgid "Remove Resource Remap Option"
+msgstr "リソース再マップオプションを削除"
+
+msgid "Removed"
+msgstr "削除済み"
+
+msgid "%s cannot be found."
+msgstr "%s が見つかりません。"
+
+msgid "Translations"
+msgstr "翻訳"
+
+msgid "Translations:"
+msgstr "翻訳:"
+
+msgid "Remaps"
+msgstr "再マップ"
+
+msgid "Resources:"
+msgstr "リソース:"
+
+msgid "Remaps by Locale:"
+msgstr "ロケールに従い再マップ:"
+
+msgid "Files with translation strings:"
+msgstr "翻訳文字列を含むファイル:"
+
+msgid "Add strings from built-in components such as certain Control nodes."
+msgstr "特定のControlノードなどの組み込みコンポーネントから文字列を追加する。"
+
+msgid ""
+"No VCS plugins are available in the project. Install a VCS plugin to use VCS "
+"integration features."
+msgstr ""
+"プロジェクトに利用可能な VCS プラグインはありません。VCS 統合機能を使用するに"
+"は、VCS プラグインをインストールしてください。"
+
+msgid ""
+"Remote settings are empty. VCS features that use the network may not work."
+msgstr ""
+"リモート設定が空です。このネットワークを使用するVCSの機能は動作しないかもしれ"
+"ません。"
+
+msgid "Commit"
+msgstr "コミット"
+
+msgid "Open in editor"
+msgstr "エディターで開く"
+
+msgid "Discard changes"
+msgstr "変更を破棄"
+
+msgid "Staged Changes"
+msgstr "ステージ済の変更"
+
+msgid "Unstaged Changes"
+msgstr "未ステージの変更"
+
+msgid "Commit:"
+msgstr "コミット:"
+
+msgid "Date:"
+msgstr "日付:"
+
+msgid "Subtitle:"
+msgstr "サブタイトル:"
+
+msgid "File:"
+msgstr "ファイル:"
+
+msgid "Commit Changes"
+msgstr "変更をコミットする"
+
+msgid "Do you want to remove the %s branch?"
+msgstr "%s ブランチを削除しますか?"
+
+msgid "Do you want to remove the %s remote?"
+msgstr "リモート %s を削除しますか？"
+
+msgid "Create Version Control Metadata"
+msgstr "バージョン管理用メタデータの作成"
+
+msgid "Create VCS metadata files for:"
+msgstr "VCSメタデータ ファイルを作成:"
+
+msgid "Existing VCS metadata files will be overwritten."
+msgstr "既存の VCS メタデータ ファイルは上書きされます。"
+
+msgid "Local Settings"
+msgstr "ローカル設定"
+
+msgid "Apply"
+msgstr "適用"
+
+msgid "VCS Provider"
+msgstr "VCS プロバイダー"
+
+msgid "Connect to VCS"
+msgstr "VCS に接続する"
+
+msgid "Remote Login"
+msgstr "リモートログイン"
+
+msgid "Username"
+msgstr "ユーザー名"
+
+msgid "Password"
+msgstr "パスワード"
+
+msgid "SSH Public Key Path"
+msgstr "SSH 公開鍵パス"
+
+msgid "Select SSH public key path"
+msgstr "SSH 公開鍵パスを選択してください"
+
+msgid "SSH Private Key Path"
+msgstr "SSH 秘密鍵パス"
+
+msgid "Select SSH private key path"
+msgstr "SSH 秘密鍵パスを選択してください"
+
+msgid "SSH Passphrase"
+msgstr "SSH パスフレーズ"
+
+msgid "Detect new changes"
+msgstr "新しい変更点を検出"
+
+msgid "Discard all changes"
+msgstr "すべての変更を破棄"
+
+msgid "This operation is IRREVERSIBLE. Your changes will be deleted FOREVER."
+msgstr "この操作は元に戻せません。あなたの変更は永久に削除されます。"
+
+msgid "Permanentally delete my changes"
+msgstr "変更を完全に削除する"
+
+msgid "Stage all changes"
+msgstr "変更をステージに上げる"
+
+msgid "Unstage all changes"
+msgstr "すべての変更をステージから下げる"
+
+msgid "Commit Message"
+msgstr "コミットメッセージ"
+
+msgid "Commit List"
+msgstr "コミットリスト"
+
+msgid "Commit list size"
+msgstr "コミットリストサイズ"
+
+msgid "Branches"
+msgstr "ブランチ"
+
+msgid "Create New Branch"
+msgstr "新規ブランチを作成"
+
+msgid "Remove Branch"
+msgstr "ブランチを削除"
+
+msgid "Branch Name"
+msgstr "ブランチ名"
+
+msgid "Remotes"
+msgstr "リモート"
+
+msgid "Create New Remote"
+msgstr "新規リモートを作成"
+
+msgid "Remove Remote"
+msgstr "リモートを削除"
+
+msgid "Remote Name"
+msgstr "リモート名"
+
+msgid "Remote URL"
+msgstr "リモート URL"
+
+msgid "Fetch"
+msgstr "フェッチ"
+
+msgid "Pull"
+msgstr "プル"
+
+msgid "Push"
+msgstr "プッシュ"
+
+msgid "Extra options"
+msgstr "追加オプション"
+
+msgid "Force Push"
+msgstr "強制プッシュ"
+
+msgid "Modified"
+msgstr "変更済み"
+
+msgid "Renamed"
+msgstr "名前変更済み"
+
+msgid "Deleted"
+msgstr "削除済み"
+
+msgid "Typechange"
+msgstr "タイプ変更"
+
+msgid "Unmerged"
+msgstr "未マージ"
+
+msgid "View file diffs before committing them to the latest version"
+msgstr "最新のバージョンにコミットする前にファイルの差分を見る"
+
+msgid "View:"
+msgstr "ビュー:"
+
+msgid "Split"
+msgstr "分割"
+
+msgid "Unified"
+msgstr "統合済み"
+
+msgid ""
+"The CSGShape3D has an empty shape.\n"
+"CSGShape3D empty shapes typically occur because the mesh is not manifold.\n"
+"A manifold mesh forms a solid object without gaps, holes, or loose edges.\n"
+"Each edge must be a member of exactly two faces."
+msgstr ""
+"CSGShape3D の形状が空です。\n"
+"CSGShape3D の形状が空になる現象は、通常、メッシュがマニホールドではないために"
+"発生します。\n"
+"マニホールドなメッシュは、隙間や穴、独立したエッジのないソリッドオブジェクトを"
+"形成します。\n"
+"各エッジは厳密に2つの面に属している必要があります。"
+
+msgid "CSG operation returned an empty array."
+msgstr "CSG演算は空の配列を返しました。"
+
+msgid ""
+"Can not add a baked mesh as sibling for the scene root.\n"
+"Move the CSG root node below a parent node."
+msgstr ""
+"ベイクされたメッシュをシーンルートの兄弟として追加できません。\n"
+"CSGルートノードを親ノードの下に移動してください。"
+
+msgid "CSG operation returned an empty mesh."
+msgstr "CSG演算は空のメッシュを返しました。"
+
+msgid "Create baked CSGShape3D Mesh Instance"
+msgstr "ベイク済み CSGShape3D メッシュインスタンスを作成"
+
+msgid ""
+"Can not add a baked collision shape as sibling for the scene root.\n"
+"Move the CSG root node below a parent node."
+msgstr ""
+"ベイクされたコリジョンシェイプをシーンルートの兄弟ノードとして追加することはで"
+"きません。\n"
+"CSGルートノードを親ノードの下に移動してください。"
+
+msgid "CSG operation returned an empty shape."
+msgstr "CSG演算は空の形状を返しました。"
+
+msgid "Create baked CSGShape3D Collision Shape"
+msgstr "ベイク済みCSGShape3Dコリジョンシェイプを作成"
+
+msgid "CSG"
+msgstr "CSG"
+
+msgid "Bake Mesh Instance"
+msgstr "メッシュインスタンスをベイク"
+
+msgid "Bake Collision Shape"
+msgstr "コリジョンシェイプをベイク"
+
+msgid "Change CSG Box Size"
+msgstr "CSGボックスサイズを変更"
+
+msgid "Change CSG Cylinder Radius"
+msgstr "CSGシリンダーの半径を変更"
+
+msgid "Change CSG Cylinder Height"
+msgstr "CSGシリンダーの高さを変更"
+
+msgid "Change Torus Inner Radius"
+msgstr "トーラスの内半径を変更"
+
+msgid "Change Torus Outer Radius"
+msgstr "トーラスの外半径を変更"
+
+msgid "Invalid type argument to convert(), use TYPE_* constants."
+msgstr "Convert() の型引数が無効です。TYPE_* 定数を使用してください。"
+
+msgid "Expected an integer between 0 and 2^32 - 1."
+msgstr "0から2^32−1 の範囲の整数が必要です。"
+
+msgid "Expected a string of length 1 (a character)."
+msgstr "1文字の文字列が必要です。"
+
+msgid "Range too big."
+msgstr "範囲が大きすぎます。"
+
+msgid "Cannot resize array."
+msgstr "配列のサイズを変更できません。"
+
+msgid "Step argument is zero!"
+msgstr "ステップ引数がゼロです！"
+
+msgid "Not a script with an instance."
+msgstr "インスタンスのスクリプトではありません。"
+
+msgid "Not based on a script."
+msgstr "スクリプトがベースになっていません。"
+
+msgid "Not based on a resource file."
+msgstr "リソースファイルがベースになっていません。"
+
+msgid "Invalid instance dictionary format (missing @path)."
+msgstr "無効なインスタンス辞書形式です (@path がありません)。"
+
+msgid "Invalid instance dictionary format (can't load script at @path)."
+msgstr "無効なインスタンス辞書形式です (@path のスクリプトをロードできません)。"
+
+msgid "Invalid instance dictionary format (invalid script at @path)."
+msgstr "無効なインスタンス辞書形式です (@path が無効なスクリプトです)。"
+
+msgid "Invalid instance dictionary (invalid subclasses)."
+msgstr "無効なインスタンス辞書です (無効なサブクラスです)。"
+
+msgid "Cannot instantiate GDScript class."
+msgstr "GDScriptクラスをインスタンス化できません。"
+
+msgid "Value of type '%s' can't provide a length."
+msgstr "型 '%s' の値には長さが指定できません。"
+
+msgid ""
+"Invalid type argument for is_instance_of(), use TYPE_* constants for built-in "
+"types."
+msgstr ""
+"is_instance_of() の型引数が無効です。組み込み型には TYPE_* 定数を使用してくだ"
+"さい。"
+
+msgid "Type argument is a previously freed instance."
+msgstr "型引数は以前に解放されたインスタンスです。"
+
+msgid ""
+"Invalid type argument for is_instance_of(), should be a TYPE_* constant, a "
+"class or a script."
+msgstr ""
+"is_instance_of() の型引数が無効です。TYPE_* 定数、クラス、またはスクリプトであ"
+"る必要があります。"
+
+msgid "Value argument is a previously freed instance."
+msgstr "値の引数は以前に解放されたインスタンスです。"
+
+msgid "Export Scene to glTF 2.0 File"
+msgstr "シーンをglTF 2.0ファイルにエクスポートする"
+
+msgid "glTF 2.0 Scene..."
+msgstr "glTF 2.0 シーン..."
+
+msgid "Path does not point to a valid executable."
+msgstr "パスが有効な実行ファイルを指していません。"
+
+msgid "Couldn't run Blender executable."
+msgstr "Blenderの実行ファイルを実行できませんでした。"
+
+msgid "Unexpected --version output from Blender executable at: %s."
+msgstr "Blender実行ファイルからの予期しない --version 出力: %s。"
+
+msgid "Couldn't extract version information from Blender executable at: %s."
+msgstr "Blenderの実行ファイルからバージョン情報を抽出できませんでした: %s。"
+
+msgid ""
+"Found Blender version %d.x, which is too old for this importer (3.0+ is "
+"required)."
+msgstr ""
+"Blender バージョン %d.x が見つかりましたが、このインポーターには古すぎます"
+"（3.0 以上が必要です）。"
+
+msgid "Path to Blender executable is valid (Autodetected)."
+msgstr "Blenderの実行ファイルパスは有効です(自動検出)。"
+
+msgid "Path to Blender executable is valid."
+msgstr "Blenderの実行ファイルパスは有効です。"
+
+msgid "Configure Blender Importer"
+msgstr "Blenderインポーターを設定"
+
+msgid ""
+"Blender 3.0+ is required to import '.blend' files.\n"
+"Please provide a valid path to a Blender executable."
+msgstr ""
+"「.blend」ファイルをインポートするには、Blender 3.0以上のバージョンが必要で"
+"す。\n"
+"有効なBlender実行ファイルパスを提供してください。"
+
+msgid ""
+"On macOS, this should be the `Contents/MacOS/blender` file within the Blender "
+"`.app` folder."
+msgstr "macOSでは、`Blender.app`内の`Contents/MacOS/blender`にあります。"
+
+msgid "Disable '.blend' Import"
+msgstr "'.blend'インポートを無効にする"
+
+msgid ""
+"Disables Blender '.blend' files import for this project. Can be re-enabled in "
+"Project Settings."
+msgstr ""
+"このプロジェクトでBlender '.blend' ファイルのインポートを無効にします。プロ"
+"ジェクト設定で再度有効にできます。"
+
+msgid "Disabling '.blend' file import requires restarting the editor."
+msgstr ""
+"'.blend' ファイルのインポートを無効にするには、エディターを再起動する必要があ"
+"ります。"
+
+msgid "GridMap Delete Selection"
+msgstr "GridMap 選択範囲を削除"
+
+msgid "GridMap Fill Selection"
+msgstr "GridMap 選択範囲を埋める"
+
+msgid "GridMap Paste Selection"
+msgstr "GridMap 選択範囲を貼り付け"
+
+msgid "GridMap Paint"
+msgstr "GridMap ペイント"
+
+msgid "GridMap Selection"
+msgstr "GridMap の選択"
+
+msgid ""
+"Change Grid Floor:\n"
+"Previous Plane (%s)\n"
+"Next Plane (%s)"
+msgstr ""
+"グリッドフロアを変更:\n"
+"前の平面(%s)\n"
+"次の平面(%s)"
+
+msgid "GridMap"
+msgstr "グリッドマップ"
+
+msgid "Previous Floor"
+msgstr "前の床面"
+
+msgid "Next Floor"
+msgstr "次の床面"
+
+msgid "Edit X Axis"
+msgstr "X軸を編集"
+
+msgid "Edit Y Axis"
+msgstr "Y軸を編集"
+
+msgid "Edit Z Axis"
+msgstr "Z軸を編集"
+
+msgid "Keep Selection"
+msgstr "選択範囲を保持"
+
+msgid "Clear Rotation"
+msgstr "回転をクリア"
+
+msgid "GridMap Settings"
+msgstr "グリッドマップの設定"
+
+msgid "Pick Distance:"
+msgstr "選択距離:"
+
+msgid "Selection"
+msgstr "選択範囲"
+
+msgid "Cursor Rotate X"
+msgstr "X軸でカーソルを回転"
+
+msgid "Cursor Rotate Y"
+msgstr "Y軸でカーソルを回転"
+
+msgid "Cursor Rotate Z"
+msgstr "Z軸でカーソルを回転"
+
+msgid "Change Grid Floor:"
+msgstr "グリッドフロアを変更:"
+
+msgid "View as Thumbnails"
+msgstr "サムネイルとして表示"
+
+msgid "View as List"
+msgstr "リストとして表示"
+
+msgid "Give a MeshLibrary resource to this GridMap to use its meshes."
+msgstr ""
+"メッシュを使うにはメッシュライブラリリソースをこのグリッドマップに設定してくだ"
+"さい。"
+
+msgid "All Clips"
+msgstr "すべてのクリップ"
+
+msgid "Add Clip"
+msgstr "クリップを追加"
+
+msgid "Add Stream"
+msgstr "ストリームを追加"
+
+msgid "Disabled"
+msgstr "無効"
+
+msgid "Fade-In"
+msgstr "フェードイン"
+
+msgid "Fade-Out"
+msgstr "フェードアウト"
+
+msgid "Cross-Fade"
+msgstr "クロスフェード"
+
+msgid "Automatic"
+msgstr "自動設定"
+
+msgid "Edit Transitions"
+msgstr "トランジションの編集"
+
+msgid "No transition available."
+msgstr "有効なトランジションはありません。"
+
+msgid "Next Beat"
+msgstr "次の拍"
+
+msgid "Next Bar"
+msgstr "次の小節"
+
+msgid "Clip End"
+msgstr "クリップ終了"
+
+msgctxt "Transition Time Position"
+msgid "Same"
+msgstr "同時"
+
+msgctxt "Transition Time Position"
+msgid "Start"
+msgstr "開始"
+
+msgctxt "Transition Time Position"
+msgid "Prev"
+msgstr "前"
+
+msgid "From / To"
+msgstr "遷移元 / 遷移先"
+
+msgid "Any Clip"
+msgstr "任意のクリップ"
+
+msgid "AudioStreamInteractive Transition Editor"
+msgstr "AudioStreamInteractive トランジションエディタ"
+
+msgid "Use Transition:"
+msgstr "トランジション:"
+
+msgid "Transition From:"
+msgstr "遷移元:"
+
+msgid "Transition To:"
+msgstr "遷移先:"
+
+msgid "Same Position"
+msgstr "同じ位置"
+
+msgid "Clip Start"
+msgstr "クリップ開始"
+
+msgid "Prev Position"
+msgstr "前の位置"
+
+msgid "Fade Mode:"
+msgstr "フェードモード:"
+
+msgid "Fade Beats:"
+msgstr "フェード拍数:"
+
+msgid "Filler Clip:"
+msgstr "補間クリップ:"
+
+msgid "Hold Previous:"
+msgstr "前を保持:"
+
+msgid "Determining optimal atlas size"
+msgstr "最適アトラスサイズの決定"
+
+msgid "Blitting albedo and emission"
+msgstr "ブリッティングアルベドと発光"
+
+msgid "Plotting mesh into acceleration structure %d/%d"
+msgstr "メッシュをAcceleration Structure %d/%d にプロットする"
+
+msgid "Optimizing acceleration structure"
+msgstr "Acceleration Structureを最適化する"
+
+msgid "Denoising %d%%"
+msgstr "ノイズ除去中 %d%%"
+
+msgid "Begin Bake"
+msgstr "ベイク開始"
+
+msgid "Preparing shaders"
+msgstr "シェーダーを準備中"
+
+msgid "Un-occluding geometry"
+msgstr "非包括ジオメトリ"
+
+msgid "Plot direct lighting"
+msgstr "ダイレクトライティングをプロットする"
+
+msgid "Plot direct lighting %d%%"
+msgstr "ダイレクトライティングをプロットする %d%%"
+
+msgid "Integrate indirect lighting"
+msgstr "間接ライティングを統合する"
+
+msgid "Integrate indirect lighting %d%%"
+msgstr "間接照明を統合します %d%%"
+
+msgid "Baking light probes"
+msgstr "ライトプローブをベイク"
+
+msgid "Integrating light probes %d%%"
+msgstr "ライトマップの生成 %d%%"
+
+msgid "Denoising"
+msgstr "ノイズ除去"
+
+msgid "Retrieving textures"
+msgstr "テクスチャの取得"
+
+msgid "Class name can't be a reserved keyword"
+msgstr "クラス名を予約キーワードにすることはできません"
+
+msgid "Class name must be a valid identifier"
+msgstr "クラス名は有効な識別子である必要があります"
+
+msgid "Not enough bytes for decoding bytes, or invalid format."
+msgstr "デコードするにはバイトが足りないか、または無効な形式です。"
+
+msgid ""
+"Unable to load .NET runtime, no compatible version was found.\n"
+"Attempting to create/edit a project will lead to a crash.\n"
+"\n"
+"Please install the .NET SDK 8.0 or later from https://get.dot.net and restart "
+"Godot."
+msgstr ""
+".NETランタイムの読み込みに失敗しました。互換性のあるバージョンが見つかりませ"
+"ん。\n"
+"プロジェクトの作成・編集を行うとクラッシュする可能性があります。\n"
+"\n"
+".NET SDK 8.0またはそれ以降のバージョンを https://get.dot.net よりインストール"
+"し、Godotを再起動してください。"
+
+msgid "Failed to load .NET runtime"
+msgstr ".NETランタイムの読み込みに失敗しました"
+
+msgid ""
+"Unable to find the .NET assemblies directory.\n"
+"Make sure the '%s' directory exists and contains the .NET assemblies."
+msgstr ""
+".NETアセンブリディレクトリが見つかりません。\n"
+"ディレクトリ '%s' が存在していることと、そこに.NETアセンブリが含まれていること"
+"を確認してください。"
+
+msgid ".NET assemblies not found"
+msgstr ".NET アセンブリが見つかりません"
+
+msgid ""
+"Unable to load .NET runtime, specifically hostfxr.\n"
+"Attempting to create/edit a project will lead to a crash.\n"
+"\n"
+"Please install the .NET SDK 8.0 or later from https://get.dot.net and restart "
+"Godot."
+msgstr ""
+".NETランタイム（hostfxr）の読み込みに失敗しました。\n"
+"プロジェクトの作成・編集を行うとクラッシュする可能性があります。\n"
+"\n"
+"https://dotnet.microsoft.com/ja-jp/download から .NET SDK 8.0 以上をインストー"
+"ルし、Godot を再起動してください。"
+
+msgctxt "Network"
+msgid "Down"
+msgstr "下り"
+
+msgctxt "Network"
+msgid "Up"
+msgstr "上り"
+
+msgid "%d (%s)"
+msgstr "%d (%s)"
+
+msgid "%s/s"
+msgstr "%s/s"
+
+msgid "Incoming Bandwidth"
+msgstr "受信帯域幅"
+
+msgid "Outgoing Bandwidth"
+msgstr "送信帯域幅"
+
+msgid "Node"
+msgstr "ノード"
+
+msgid "Incoming RPC"
+msgstr "RPC受信"
+
+msgid "Outgoing RPC"
+msgstr "RPC送信"
+
+msgid "Synchronizer"
+msgstr "シンクロナイザ"
+
+msgid "Config"
+msgstr "構成"
+
+msgid "Count"
+msgstr "カウント"
+
+msgid "Select a replicator node in order to pick a property to add to it."
+msgstr ""
+"レプリケーターノードに追加するプロパティを選択するために、レプリケーターノード"
+"を選択します。"
+
+msgid "Not possible to add a new property to synchronize without a root."
+msgstr "ルートなしで同期する新しいプロパティを追加することはできません。"
+
+msgid "Property is already being synchronized."
+msgstr "プロパティはすでに同期されています。"
+
+msgid "Add property to synchronizer"
+msgstr "シンクロナイザにプロパティを追加"
+
+msgid "Replication"
+msgstr "レプリケーション"
+
+msgid "Pick a node to synchronize:"
+msgstr "同期化するノードを選択:"
+
+msgid "Add property to sync..."
+msgstr "同期プロパティを追加..."
+
+msgid "Add from path"
+msgstr "パスから追加"
+
+msgid "Pin replication editor"
+msgstr "レプリケーションのエディタを固定"
+
+msgid "Spawn"
+msgstr "生成"
+
+msgid "Replicate"
+msgstr "複製"
+
+msgid ""
+"Add properties using the options above, or\n"
+"drag them from the inspector and drop them here."
+msgstr ""
+"上記オプションを使用してプロパティを追加するか、\n"
+"インスペクタからここにドラッグ&ドロップしてください。"
+
+msgctxt "Replication Mode"
+msgid "Never"
+msgstr "Never (複製しない)"
+
+msgctxt "Replication Mode"
+msgid "Always"
+msgstr "Always (常に複製)"
+
+msgctxt "Replication Mode"
+msgid "On Change"
+msgstr "On Change (変更時に複製)"
+
+msgid "Please select a MultiplayerSynchronizer first."
+msgstr "はじめにMultiplayerSynchronizerを選択してください。"
+
+msgid "The MultiplayerSynchronizer needs a root path."
+msgstr "MultiplayerSynchronizerはルートパスが必要です。"
+
+msgid "Property/path must not be empty."
+msgstr "プロパティ/パスを空にすることはできません。"
+
+msgid "Invalid property path: '%s'"
+msgstr "無効なプロパティパス: \"%s\""
+
+msgid "Set spawn property"
+msgstr "生成プロパティの設定"
+
+msgid "Set sync property"
+msgstr "同期プロパティの設定"
+
+msgid ""
+"Each MultiplayerSynchronizer can have no more than 64 watched properties."
+msgstr ""
+"各MultiplayerSynchronizerは64個より多いウォッチされたプロパティを持つことがで"
+"きません。"
+
+msgid "Delete Property?"
+msgstr "プロパティを削除しますか？"
+
+msgid "Remove Property"
+msgstr "プロパティの削除"
+
+msgid "Property of this type not supported."
+msgstr "この型のプロパティはサポートされません。"
+
+msgid ""
+"A valid NodePath must be set in the \"Spawn Path\" property in order for "
+"MultiplayerSpawner to be able to spawn Nodes."
+msgstr ""
+"MultiplayerSpawnerがノードを生成するには、\"Spawn Path\"プロパティに有効な"
+"NodePathを設定する必要があります。"
+
+msgid ""
+"A valid NodePath must be set in the \"Root Path\" property in order for "
+"MultiplayerSynchronizer to be able to synchronize properties."
+msgstr ""
+"MultiplayerSynchronizerがプロパティを同期するためには、\"Root Path\"プロパティ"
+"に有効なNodePathが設定されている必要があります。"
+
+msgid "Set start_position"
+msgstr "start_positionを設定"
+
+msgid "Set end_position"
+msgstr "end_positionを設定"
+
+msgid "Create Navigation Polygon"
+msgstr "ナビゲーションポリゴンを生成"
+
+msgid "Bake NavigationPolygon"
+msgstr "NavigationPolygon をベイク"
+
+msgid ""
+"Bakes the NavigationPolygon by first parsing the scene for source geometry "
+"and then creating the navigation polygon vertices and polygons."
+msgstr ""
+"最初にシーンを解析してソースジオメトリを取得し、次にナビゲーションポリゴンの頂"
+"点とポリゴンを作成することでNavigationPolygonをベイクします。"
+
+msgid "Clear NavigationPolygon"
+msgstr "NavigationPolygon をクリア"
+
+msgid "Clears the internal NavigationPolygon outlines, vertices and polygons."
+msgstr "内部のNavigationPolygonのアウトライン、頂点、ポリゴンをクリアします。"
+
+msgid ""
+"A NavigationPolygon resource must be set or created for this node to work."
+msgstr ""
+"このノードが動作するためには、NavigationPolygonリソースが設定または作成されて"
+"いる必要があります。"
+
+msgid "Start Position"
+msgstr "開始位置"
+
+msgid "End Position"
+msgstr "終了位置"
+
+msgid "Change Start Position"
+msgstr "開始位置を変更"
+
+msgid "Change End Position"
+msgstr "終了位置を変更"
+
+msgid "Set Obstacle Vertices"
+msgstr "障害物の頂点を設定"
+
+msgid "Edit Obstacle (Flip Winding)"
+msgstr "障害物の編集 (ワインディングを反転)"
+
+msgid "Add Vertex"
+msgstr "頂点を追加"
+
+msgid "Edit Vertex"
+msgstr "頂点を編集"
+
+msgid "Delete Vertex"
+msgstr "頂点を削除"
+
+msgid "Clear Vertices"
+msgstr "頂点をクリア"
+
+msgid "Edit Obstacle (Add Vertex)"
+msgstr "障害物の編集 (頂点を追加)"
+
+msgid "Edit Obstacle (Move Vertex)"
+msgstr "障害物の編集 (頂点を移動)"
+
+msgid "Flip"
+msgstr "反転"
+
+msgid "A NavigationMesh resource must be set or created for this node to work."
+msgstr ""
+"このノードを動かすために NavigationMesh リソースを設定または作成する必要があり"
+"ます。"
+
+msgid ""
+"Cannot generate navigation mesh because it does not belong to the edited "
+"scene. Make it unique first."
+msgstr ""
+"それは編集したシーンに属していないため、ナビゲーション・メッシュを生成できませ"
+"ん。まずユニーク化してください。"
+
+msgid ""
+"Cannot generate navigation mesh because it belongs to a resource which was "
+"imported."
+msgstr ""
+"インポートされたリソースに属しているため、ナビゲーションメッシュを作成できませ"
+"ん。"
+
+msgid ""
+"Cannot generate navigation mesh because the resource was imported from "
+"another type."
+msgstr ""
+"リソースが別の型からインポートされたため、ナビゲーションメッシュを作成できませ"
+"ん。"
+
+msgid "Bake"
+msgstr "ベイク"
+
+msgid "Bake NavigationMesh"
+msgstr "NavigationMesh をベイク"
+
+msgid ""
+"Bakes the NavigationMesh by first parsing the scene for source geometry and "
+"then creating the navigation mesh vertices and polygons."
+msgstr ""
+"最初にシーンを解析してソースジオメトリを取得し、次にナビゲーションメッシュの頂"
+"点とポリゴンを作成することでNavigationMeshをベイクします。"
+
+msgid "Clear NavigationMesh"
+msgstr "NavigationMesh を消去"
+
+msgid "Clears the internal NavigationMesh vertices and polygons."
+msgstr "内部のNavigationMeshの頂点とポリゴンを消去します。"
+
+msgid "Toggles whether the noise preview is computed in 3D space."
+msgstr "ノイズプレビューを3D空間で計算するかどうかを切り替えます。"
+
+msgid "Delta"
+msgstr "デルタ"
+
+msgid "Combine Diff"
+msgstr "差分を結合"
+
+msgid "Snapshot A"
+msgstr "スナップショット A"
+
+msgid "Snapshot B"
+msgstr "スナップショット B"
+
+msgid "Outbound References"
+msgstr "外部への参照"
+
+msgid "Other object referencing this object"
+msgstr "このオブジェクトを参照している他のオブジェクト"
+
+msgid "Property of other object referencing this object"
+msgstr "このオブジェクトを参照している他のオブジェクトのプロパティ"
+
+msgid "Property of this object referencing other object"
+msgstr "他のオブジェクトを参照しているこのオブジェクトのプロパティ"
+
+msgid "Other object being referenced"
+msgstr "参照されている他のオブジェクト"
+
+msgid "Native Refs"
+msgstr "ネイティブ参照"
+
+msgid "ObjectDB Refs"
+msgstr "ObjectDB 参照"
+
+msgid "ObjectDB Cycles"
+msgstr "ObjectDB サイクル"
+
+msgid "References not owned by the ObjectDB"
+msgstr "ObjectDB に所有されていない参照"
+
+msgid "References owned by the ObjectDB"
+msgstr "ObjectDB に所有されている参照"
+
+msgid "ObjectDB References + Native References"
+msgstr "ObjectDB 参照 + ネイティブ参照"
+
+msgid "Cycles detected in the ObjectDB"
+msgstr "ObjectDB 内で循環参照が検出されました"
+
+msgid "[center]ObjectDB References[center]"
+msgstr "[center]ObjectDB 参照[center]"
+
+msgid ""
+"Was the same reference returned by multiple getters on the source object?"
+msgstr "ソースオブジェクトの複数のゲッターから、同じ参照が返されましたか？"
+
+msgid "Summary"
+msgstr "概要"
+
+msgid "ObjectDB Snapshot Summary"
+msgstr "ObjectDB スナップショット概要"
+
+msgid "Press 'Take ObjectDB Snapshot' to snapshot the ObjectDB."
+msgstr ""
+"「ObjectDB スナップショットを取得」を押して、ObjectDB のスナップショットを取得"
+"してください。"
+
+msgid ""
+"Memory in Godot is either owned natively by the engine or owned by the "
+"ObjectDB."
+msgstr ""
+"Godot のメモリは、エンジンによってネイティブに所有されるか、ObjectDB によって"
+"所有されるかのいずれかです。"
+
+msgid "ObjectDB Snapshots capture only memory owned by the ObjectDB."
+msgstr ""
+"ObjectDB スナップショットは、ObjectDB に所有されているメモリのみをキャプチャし"
+"ます。"
+
+msgid ""
+"Multiple root nodes [i](possible call to 'remove_child' without 'queue_free')"
+"[/i]"
+msgstr ""
+"複数のルートノード [i]('queue_free' を呼ばずに 'remove_child' を呼び出した可能"
+"性があります)[/i]"
+
+msgid ""
+"RefCounted objects only referenced in cycles [i](cycles often indicate a "
+"memory leaks)[/i]"
+msgstr ""
+"循環参照によってのみ参照されている RefCounted オブジェクト [i](循環参照は多く"
+"の場合、メモリリークを示します)[/i]"
+
+msgid ""
+"Scripted objects not referenced by any other objects [i](unreferenced objects "
+"may indicate a memory leak)[/i]"
+msgstr ""
+"他のどのオブジェクトからも参照されていないスクリプト化されたオブジェクト [i]"
+"(参照されていないオブジェクトはメモリリークを示している可能性があります)[/i]"
+
+msgid "Receiving Snapshot (0/%s MiB)"
+msgstr "スナップショットを受信中 (0/%s MiB)"
+
+msgid "Receiving Snapshot (%s/%s MiB)"
+msgstr "スナップショットを受信中 (%s/%s MiB)"
+
+msgid "Visualizing Snapshot"
+msgstr "スナップショットを可視化中"
+
+msgid "Take ObjectDB Snapshot"
+msgstr "ObjectDB スナップショットを取得"
+
+msgid "Diff Against:"
+msgstr "比較対象:"
+
+msgid "Rename Action"
+msgstr "アクション名を変更"
+
+msgid "Rename Actions Localized name"
+msgstr "ローカライズされたアクション名を変更"
+
+msgid "Change Action Type"
+msgstr "アクションの型を変更"
+
+msgid ""
+"Internal name of the action. Some XR runtimes don't allow spaces or special "
+"characters."
+msgstr ""
+"アクションの内部名。一部の XR ランタイムではスペースや特殊文字を使用できませ"
+"ん。"
+
+msgid "Human-readable name of the action. This can be displayed to end users."
+msgstr "アクションの人間が読める名前。エンドユーザーに表示することができます。"
+
+msgid "Remove action"
+msgstr "アクションを除去"
+
+msgid "Add action set"
+msgstr "アクションセットの追加"
+
+msgid "Remove action set"
+msgstr "アクションセットを除去"
+
+msgid "Add interaction profile"
+msgstr "インタラクションプロファイルを追加"
+
+msgid "Error loading %s: %s."
+msgstr "%s のロード中にエラーが発生しました: %s 。"
+
+msgid "Error saving file %s: %s"
+msgstr "ファイル %s の保存エラー: %s"
+
+msgid "OpenXR Action map:"
+msgstr "OpenXRアクションマップ:"
+
+msgid "Remove interaction profile"
+msgstr "インタラクションプロファイルを削除"
+
+msgid "OpenXR Action Map"
+msgstr "OpenXRアクションマップ"
+
+msgid "Add Action Set"
+msgstr "アクションセットの追加"
+
+msgid "Add an action set."
+msgstr "アクションセットを追加します。"
+
+msgid "Add profile"
+msgstr "プロファイルの追加"
+
+msgid "Add an interaction profile."
+msgstr "インタラクションプロファイルを追加します。"
+
+msgid "Save this OpenXR action map."
+msgstr "このOpenXRアクションマップを保存します。"
+
+msgid "Reset to default OpenXR action map."
+msgstr "デフォルトのOpenXRアクションマップにリセットします。"
+
+msgid "Action Sets"
+msgstr "アクションセット"
+
+msgid "Rename Action Set"
+msgstr "アクションセットの名前を変更"
+
+msgid "Rename Action Sets Localized name"
+msgstr "ローカライズされたアクションセット名を変更"
+
+msgid "Change Action Sets priority"
+msgstr "アクションセットの優先度を変更"
+
+msgid "Add action"
+msgstr "アクションを追加"
+
+msgid "Delete action"
+msgstr "アクションを削除"
+
+msgid ""
+"Human-readable name of the action set. This can be displayed to end users."
+msgstr ""
+"アクションセットの人間が読める名前。エンドユーザーに表示することができます。"
+
+msgid ""
+"Priority of the action set. If multiple action sets bind to the same input, "
+"the action set with the highest priority will be updated."
+msgstr ""
+"アクションセットの優先度。複数のアクションセットが同じ入力にバインドされている"
+"場合、最も優先度が高いアクションセットが更新されます。"
+
+msgid "Add action."
+msgstr "アクションを追加します。"
+
+msgid "Remove action set."
+msgstr "アクションセットを除去します。"
+
+msgid "Note: modifiers will only be applied if supported on the host system."
+msgstr "注: 修飾子は、ホストシステムでサポートしている場合にのみ適用されます。"
+
+msgid "Binding modifiers for:"
+msgstr "バインディングの修飾子:"
+
+msgid "Remove action from interaction profile"
+msgstr "インタラクションプロファイルからアクションを削除"
+
+msgid "Edit binding modifiers"
+msgstr "装飾キーの割り当てを編集"
+
+msgid "Note: This interaction profile requires extension %s support."
+msgstr ""
+"注: このインタラクションプロファイルには、拡張機能 %s のサポートが必要です。"
+
+msgid "Add binding"
+msgstr "バインドを追加"
+
+msgid "Remove binding"
+msgstr "バインドを削除"
+
+msgid "Note: This binding path requires extension %s support."
+msgstr "注: このバインディングパスには、拡張機能 %s のサポートが必要です。"
+
+msgid "Boolean"
+msgstr "Boolean"
+
+msgid "Float"
+msgstr "Float"
+
+msgid "Vector2"
+msgstr "Vector2"
+
+msgid "Pose"
+msgstr "ポーズ"
+
+msgid "Haptic"
+msgstr "触覚"
+
+msgid "Unknown"
+msgstr "不明"
+
+msgid "Select an action"
+msgstr "アクションを選択"
+
+msgid "Select an interaction profile"
+msgstr "インタラクションプロファイルを選択"
+
+msgid "All interaction profiles have been added to the action map."
+msgstr ""
+"すべてのインタラクションプロファイルがアクションマップに追加されました。"
+
+msgid "Choose an XR runtime."
+msgstr "XRランタイムを選択します。"
+
+msgid ""
+"OpenXR composition layers must have orthonormalized transforms (ie. no scale "
+"or shearing)."
+msgstr ""
+"OpenXR composition layer は、正規直交変換でなければなりません(つまり scale や "
+"shearing は不可です)。"
+
+msgid ""
+"Hole punching won't work as expected unless the sort order is less than zero."
+msgstr ""
+"ホールパンチングは sort order が0より小さくなければ期待通りに動作しません。"
 
 msgid "E constant (2.718282). Represents the base of the natural logarithm."
 msgstr "ネイピア数(2.718282)。自然対数のベースを表します。"
@@ -15340,26 +16509,17 @@ msgstr "入力を追加"
 msgid "Add Output"
 msgstr "出力を追加"
 
-msgid "Float"
-msgstr "Float"
-
 msgid "Int"
 msgstr "Int"
 
 msgid "UInt"
 msgstr "UInt"
 
-msgid "Vector2"
-msgstr "Vector2"
-
 msgid "Vector3"
 msgstr "Vector3"
 
 msgid "Vector4"
 msgstr "Vector4"
-
-msgid "Boolean"
-msgstr "Boolean"
 
 msgid "Sampler"
 msgstr "\\ Sampler"
@@ -15601,6 +16761,13 @@ msgstr "マテリアルのパラメーターをコピーする"
 
 msgid "Paste Parameters To Material"
 msgstr "マテリアルにパラメーターを貼り付け"
+
+msgid ""
+"Only supported in the Forward+ and Mobile rendering methods, not "
+"Compatibility."
+msgstr ""
+"Forward+ およびモバイルレンダリングメソッドでのみサポートされており、互換性で"
+"はサポートされていません。"
 
 msgid "Create Shader Node"
 msgstr "シェーダーノードの作成"
@@ -16547,1135 +17714,98 @@ msgstr "ビジュアルプロパティを編集: %s"
 msgid "Visual Shader Mode Changed"
 msgstr "ビジュアルシェーダーモードが変更されました"
 
-msgctxt "Locale"
-msgid "Script:"
-msgstr "文字:"
-
-msgctxt "Locale"
-msgid "Script"
-msgstr "文字"
-
-msgid "Changed Locale Language Filter"
-msgstr "ロケール言語フィルターを変更"
-
-msgid "Changed Locale Script Filter"
-msgstr "ロケールスクリプトフィルタを変更"
-
-msgid "Changed Locale Country Filter"
-msgstr "ロケール国フィルターを変更"
-
-msgid "Changed Locale Filter Mode"
-msgstr "ロケールフィルターモードを変更"
-
-msgid "[Default]"
-msgstr "[デフォルト]"
-
-msgid "Select a Locale"
-msgstr "ロケールを選択"
-
-msgid "Locale Filter"
-msgstr "ロケールフィルター"
-
-msgid "Show All Locales"
-msgstr "すべてのロケールを表示"
-
-msgid "Show Selected Locales Only"
-msgstr "選択した言語のみ表示"
-
-msgid "Country:"
-msgstr "国:"
-
-msgid "Country"
-msgstr "国"
-
-msgid "Variant"
-msgstr "バリアント"
-
-msgid "Previewing: %s"
-msgstr "プレビュー: %s"
-
-msgid "Disable Translation Preview"
-msgstr "翻訳のプレビューを無効にする"
-
-msgid "Previewing translation. Click to disable."
-msgstr "翻訳をプレビュー中。クリックすると無効になります。"
-
-msgid "Add %d Translation"
-msgid_plural "Add %d Translations"
-msgstr[0] "%d個の翻訳を追加"
-
-msgid "Translation Resource Remap: Add %d Path"
-msgid_plural "Translation Resource Remap: Add %d Paths"
-msgstr[0] "翻訳リソースの再マップ: %d個のパスを追加"
-
-msgid "Translation Resource Remap: Add %d Remap"
-msgid_plural "Translation Resource Remap: Add %d Remaps"
-msgstr[0] "翻訳リソースの再マップ: %d個の再マップを追加"
-
-msgid "Change Resource Remap Language"
-msgstr "リソースの再マップ言語を変更"
-
-msgid "Remove Resource Remap"
-msgstr "リソースの再マップを削除"
-
-msgid "Remove Resource Remap Option"
-msgstr "リソース再マップオプションを削除"
-
-msgid "Removed"
-msgstr "削除済み"
-
-msgid "%s cannot be found."
-msgstr "%s が見つかりません。"
-
-msgid "Translations"
-msgstr "翻訳"
-
-msgid "Translations:"
-msgstr "翻訳:"
-
-msgid "Remaps"
-msgstr "再マップ"
-
-msgid "Resources:"
-msgstr "リソース:"
-
-msgid "Remaps by Locale:"
-msgstr "ロケールに従い再マップ:"
-
-msgid "Files with translation strings:"
-msgstr "翻訳文字列を含むファイル:"
-
-msgid "Add strings from built-in components such as certain Control nodes."
-msgstr "特定のControlノードなどの組み込みコンポーネントから文字列を追加する。"
+msgid ""
+"Cannot convert VisualShader to GDShader because VisualShader has embedded "
+"subresources."
+msgstr ""
+"VisualShader に埋め込まれたサブリソースがあるため、VisualShader を GDShader に"
+"変換できません。"
 
 msgid ""
-"No VCS plugins are available in the project. Install a VCS plugin to use VCS "
-"integration features."
+"Visual Shader conversion cannot convert external dependencies. Resource "
+"references from Nodes will have to be rebound as ShaderParameters on a "
+"Material."
 msgstr ""
-"プロジェクトに利用可能な VCS プラグインはありません。VCS 統合機能を使用するに"
-"は、VCS プラグインをインストールしてください。"
+"VisualShader の変換では、外部依存関係を変換できません。ノードからのリソース参"
+"照は、マテリアルの ShaderParameter として再割り当てする必要があります。"
 
 msgid ""
-"Remote settings are empty. VCS features that use the network may not work."
+"Shader keywords cannot be used as parameter names.\n"
+"Choose another name."
 msgstr ""
-"リモート設定が空です。このネットワークを使用するVCSの機能は動作しないかもしれ"
-"ません。"
+"シェーダーのキーワードはパラメーターの名前として使用できません。\n"
+"別の名前を選んでください。"
 
-msgid "Commit"
-msgstr "コミット"
-
-msgid "Open in editor"
-msgstr "エディターで開く"
-
-msgid "Discard changes"
-msgstr "変更を破棄"
-
-msgid "Staged Changes"
-msgstr "ステージ済の変更"
-
-msgid "Unstaged Changes"
-msgstr "未ステージの変更"
-
-msgid "Commit:"
-msgstr "コミット:"
-
-msgid "Date:"
-msgstr "日付:"
-
-msgid "Subtitle:"
-msgstr "サブタイトル:"
-
-msgid "File:"
-msgstr "ファイル:"
-
-msgid "Do you want to remove the %s branch?"
-msgstr "%s ブランチを削除しますか?"
-
-msgid "Do you want to remove the %s remote?"
-msgstr "リモート %s を削除しますか？"
-
-msgid "Toggle Version Control Bottom Panel"
-msgstr "バージョン管理の下部パネルの切り替え"
-
-msgid "Create Version Control Metadata"
-msgstr "バージョン管理用メタデータの作成"
-
-msgid "Create VCS metadata files for:"
-msgstr "VCSメタデータ ファイルを作成:"
-
-msgid "Existing VCS metadata files will be overwritten."
-msgstr "既存の VCS メタデータ ファイルは上書きされます。"
-
-msgid "Local Settings"
-msgstr "ローカル設定"
-
-msgid "Apply"
-msgstr "適用"
-
-msgid "VCS Provider"
-msgstr "VCS プロバイダー"
-
-msgid "Connect to VCS"
-msgstr "VCS に接続する"
-
-msgid "Remote Login"
-msgstr "リモートログイン"
-
-msgid "Username"
-msgstr "ユーザー名"
-
-msgid "Password"
-msgstr "パスワード"
-
-msgid "SSH Public Key Path"
-msgstr "SSH 公開鍵パス"
-
-msgid "Select SSH public key path"
-msgstr "SSH 公開鍵パスを選択してください"
-
-msgid "SSH Private Key Path"
-msgstr "SSH 秘密鍵パス"
-
-msgid "Select SSH private key path"
-msgstr "SSH 秘密鍵パスを選択してください"
-
-msgid "SSH Passphrase"
-msgstr "SSH パスフレーズ"
-
-msgid "Detect new changes"
-msgstr "新しい変更点を検出"
-
-msgid "Discard all changes"
-msgstr "すべての変更を破棄"
-
-msgid "This operation is IRREVERSIBLE. Your changes will be deleted FOREVER."
-msgstr "この操作は元に戻せません。あなたの変更は永久に削除されます。"
-
-msgid "Permanentally delete my changes"
-msgstr "変更を完全に削除する"
-
-msgid "Stage all changes"
-msgstr "変更をステージに上げる"
-
-msgid "Unstage all changes"
-msgstr "すべての変更をステージから下げる"
-
-msgid "Commit Message"
-msgstr "コミットメッセージ"
-
-msgid "Commit Changes"
-msgstr "変更をコミットする"
-
-msgid "Commit List"
-msgstr "コミットリスト"
-
-msgid "Commit list size"
-msgstr "コミットリストサイズ"
-
-msgid "Branches"
-msgstr "ブランチ"
-
-msgid "Create New Branch"
-msgstr "新規ブランチを作成"
-
-msgid "Remove Branch"
-msgstr "ブランチを削除"
-
-msgid "Branch Name"
-msgstr "ブランチ名"
-
-msgid "Remotes"
-msgstr "リモート"
-
-msgid "Create New Remote"
-msgstr "新規リモートを作成"
-
-msgid "Remove Remote"
-msgstr "リモートを削除"
-
-msgid "Remote Name"
-msgstr "リモート名"
-
-msgid "Remote URL"
-msgstr "リモート URL"
-
-msgid "Fetch"
-msgstr "フェッチ"
-
-msgid "Pull"
-msgstr "プル"
-
-msgid "Push"
-msgstr "プッシュ"
-
-msgid "Extra options"
-msgstr "追加オプション"
-
-msgid "Force Push"
-msgstr "強制プッシュ"
-
-msgid "Modified"
-msgstr "変更済み"
-
-msgid "Renamed"
-msgstr "名前変更済み"
-
-msgid "Deleted"
-msgstr "削除済み"
-
-msgid "Typechange"
-msgstr "タイプ変更"
-
-msgid "Unmerged"
-msgstr "未マージ"
-
-msgid "View file diffs before committing them to the latest version"
-msgstr "最新のバージョンにコミットする前にファイルの差分を見る"
-
-msgid "View:"
-msgstr "ビュー:"
-
-msgid "Split"
-msgstr "分割"
-
-msgid "Unified"
-msgstr "統合済み"
-
-msgid "CSG operation returned an empty array."
-msgstr "CSG演算は空の配列を返しました。"
-
-msgid "CSG operation returned an empty mesh."
-msgstr "CSG演算は空のメッシュを返しました。"
-
-msgid "Create baked CSGShape3D Mesh Instance"
-msgstr "ベイク済み CSGShape3D メッシュインスタンスを作成"
+msgid "This parameter type does not support the '%s' qualifier."
+msgstr "このパラメータータイプは '%s' 修飾子をサポートしていません。"
 
 msgid ""
-"Can not add a baked collision shape as sibling for the scene root.\n"
-"Move the CSG root node below a parent node."
+"Global parameter '%s' does not exist.\n"
+"Create it in the Project Settings."
 msgstr ""
-"ベイクされたコリジョンシェイプをシーンルートの兄弟ノードとして追加することはで"
-"きません。\n"
-"CSGルートノードを親ノードの下に移動してください。"
-
-msgid "CSG operation returned an empty shape."
-msgstr "CSG演算は空の形状を返しました。"
-
-msgid "Create baked CSGShape3D Collision Shape"
-msgstr "ベイク済みCSGShape3Dコリジョンシェイプを作成"
-
-msgid "CSG"
-msgstr "CSG"
-
-msgid "Bake Mesh Instance"
-msgstr "メッシュインスタンスをベイク"
-
-msgid "Bake Collision Shape"
-msgstr "コリジョンシェイプをベイク"
-
-msgid "Change CSG Box Size"
-msgstr "CSGボックスサイズを変更"
-
-msgid "Change CSG Cylinder Radius"
-msgstr "CSGシリンダーの半径を変更"
-
-msgid "Change CSG Cylinder Height"
-msgstr "CSGシリンダーの高さを変更"
-
-msgid "Change Torus Inner Radius"
-msgstr "トーラスの内半径を変更"
-
-msgid "Change Torus Outer Radius"
-msgstr "トーラスの外半径を変更"
-
-msgid "Invalid type argument to convert(), use TYPE_* constants."
-msgstr "Convert() の型引数が無効です。TYPE_* 定数を使用してください。"
-
-msgid "Expected an integer between 0 and 2^32 - 1."
-msgstr "0から2^32−1 の範囲の整数が必要です。"
-
-msgid "Expected a string of length 1 (a character)."
-msgstr "1文字の文字列が必要です。"
-
-msgid "Range too big."
-msgstr "範囲が大きすぎます。"
-
-msgid "Cannot resize array."
-msgstr "配列のサイズを変更できません。"
-
-msgid "Step argument is zero!"
-msgstr "ステップ引数がゼロです！"
-
-msgid "Not a script with an instance."
-msgstr "インスタンスのスクリプトではありません。"
-
-msgid "Not based on a script."
-msgstr "スクリプトがベースになっていません。"
-
-msgid "Not based on a resource file."
-msgstr "リソースファイルがベースになっていません。"
-
-msgid "Invalid instance dictionary format (missing @path)."
-msgstr "無効なインスタンス辞書形式です (@path がありません)。"
-
-msgid "Invalid instance dictionary format (can't load script at @path)."
-msgstr "無効なインスタンス辞書形式です (@path のスクリプトをロードできません)。"
-
-msgid "Invalid instance dictionary format (invalid script at @path)."
-msgstr "無効なインスタンス辞書形式です (@path が無効なスクリプトです)。"
-
-msgid "Invalid instance dictionary (invalid subclasses)."
-msgstr "無効なインスタンス辞書です (無効なサブクラスです)。"
-
-msgid "Cannot instantiate GDScript class."
-msgstr "GDScriptクラスをインスタンス化できません。"
-
-msgid "Value of type '%s' can't provide a length."
-msgstr "型 '%s' の値には長さが指定できません。"
+"グローバル パラメーター '%s' は存在しません。\n"
+"プロジェクト設定で作成してください。"
 
 msgid ""
-"Invalid type argument for is_instance_of(), use TYPE_* constants for built-in "
-"types."
+"Global parameter '%s' has an incompatible type for this kind of node.\n"
+"Change it in the Project Settings."
 msgstr ""
-"is_instance_of() の型引数が無効です。組み込み型には TYPE_* 定数を使用してくだ"
-"さい。"
-
-msgid "Type argument is a previously freed instance."
-msgstr "型引数は以前に解放されたインスタンスです。"
+"グローバル パラメーター '%s' には、この種類のノードと互換性のないタイプがあり"
+"ます。\n"
+"プロジェクト設定で変更してください。"
 
 msgid ""
-"Invalid type argument for is_instance_of(), should be a TYPE_* constant, a "
-"class or a script."
+"The sampler port is connected but not used. Consider changing the source to "
+"'SamplerPort'."
 msgstr ""
-"is_instance_of() の型引数が無効です。TYPE_* 定数、クラス、またはスクリプトであ"
-"る必要があります。"
+"サンプラーポートは接続されていますが、使用されていません。ソースを "
+"'SamplerPort'に変更することを検討してください。"
 
-msgid "Value argument is a previously freed instance."
-msgstr "値の引数は以前に解放されたインスタンスです。"
+msgid "Invalid source for preview."
+msgstr "プレビューのソースが無効です。"
 
-msgid "Export Scene to glTF 2.0 File"
-msgstr "シーンをglTF 2.0ファイルにエクスポートする"
+msgid "Invalid source for shader."
+msgstr "無効なシェーダーのソースです。"
 
-msgid "glTF 2.0 Scene..."
-msgstr "glTF 2.0 シーン..."
-
-msgid "Path does not point to a valid executable."
-msgstr "パスが有効な実行ファイルを指していません。"
-
-msgid "Couldn't run Blender executable."
-msgstr "Blenderの実行ファイルを実行できませんでした。"
-
-msgid "Unexpected --version output from Blender executable at: %s."
-msgstr "Blender実行ファイルからの予期しない --version 出力: %s。"
-
-msgid "Couldn't extract version information from Blender executable at: %s."
-msgstr "Blenderの実行ファイルからバージョン情報を抽出できませんでした: %s。"
+msgid "Invalid operator for that type."
+msgstr "その型には無効な演算子です。"
 
 msgid ""
-"Found Blender version %d.x, which is too old for this importer (3.0+ is "
-"required)."
+"`%s` precision mode is not available for `gl_compatibility` profile.\n"
+"Reverted to `None` precision."
 msgstr ""
-"Blender バージョン %d.x が見つかりましたが、このインポーターには古すぎます"
-"（3.0 以上が必要です）。"
+"`%s` 精度モードは `gl_compatibility` プロファイルでは使用できません。\n"
+"「None」に戻しました。"
 
-msgid "Path to Blender executable is valid (Autodetected)."
-msgstr "Blenderの実行ファイルパスは有効です(自動検出)。"
+msgid "'%s' type is incompatible with '%s' source."
+msgstr "'%s' タイプは '%s' ソースと互換性がありません。"
 
-msgid "Path to Blender executable is valid."
-msgstr "Blenderの実行ファイルパスは有効です。"
+msgid "'%s' default color is incompatible with '%s' source."
+msgstr "'%s'のデフォルト色は'%s'ソースと互換性がありません。"
 
-msgid "Configure Blender Importer"
-msgstr "Blenderインポーターを設定"
+msgid "Default Color"
+msgstr "デフォルトの色"
 
-msgid ""
-"Blender 3.0+ is required to import '.blend' files.\n"
-"Please provide a valid path to a Blender executable."
-msgstr ""
-"「.blend」ファイルをインポートするには、Blender 3.0以上のバージョンが必要で"
-"す。\n"
-"有効なBlender実行ファイルパスを提供してください。"
+msgid "Repeat"
+msgstr "繰り返し"
 
-msgid ""
-"On macOS, this should be the `Contents/MacOS/blender` file within the Blender "
-"`.app` folder."
-msgstr "macOSでは、`Blender.app`内の`Contents/MacOS/blender`にあります。"
+msgid "Invalid comparison function for that type."
+msgstr "そのタイプの比較関数は無効です。"
 
-msgid "Disable '.blend' Import"
-msgstr "'.blend'インポートを無効にする"
+msgid "2D Mode"
+msgstr "2Dモード"
 
-msgid ""
-"Disables Blender '.blend' files import for this project. Can be re-enabled in "
-"Project Settings."
-msgstr ""
-"このプロジェクトでBlender '.blend' ファイルのインポートを無効にします。プロ"
-"ジェクト設定で再度有効にできます。"
+msgid "Use All Surfaces"
+msgstr "すべてのサーフェスを使用する"
 
-msgid "Disabling '.blend' file import requires restarting the editor."
-msgstr ""
-"'.blend' ファイルのインポートを無効にするには、エディターを再起動する必要があ"
-"ります。"
-
-msgid "GridMap Delete Selection"
-msgstr "GridMap 選択範囲を削除"
-
-msgid "GridMap Fill Selection"
-msgstr "GridMap 選択範囲を埋める"
-
-msgid "GridMap Paste Selection"
-msgstr "GridMap 選択範囲を貼り付け"
-
-msgid "GridMap Paint"
-msgstr "GridMap ペイント"
-
-msgid "GridMap Selection"
-msgstr "GridMap の選択"
-
-msgid "Previous Floor"
-msgstr "前の床面"
-
-msgid "Next Floor"
-msgstr "次の床面"
-
-msgid "Edit X Axis"
-msgstr "X軸を編集"
-
-msgid "Edit Y Axis"
-msgstr "Y軸を編集"
-
-msgid "Edit Z Axis"
-msgstr "Z軸を編集"
-
-msgid "Keep Selection"
-msgstr "選択範囲を保持"
-
-msgid "Clear Rotation"
-msgstr "回転をクリア"
-
-msgid "GridMap Settings"
-msgstr "グリッドマップの設定"
-
-msgid "Pick Distance:"
-msgstr "選択距離:"
-
-msgid "Selection"
-msgstr "選択範囲"
-
-msgid "Cursor Rotate X"
-msgstr "X軸でカーソルを回転"
-
-msgid "Cursor Rotate Y"
-msgstr "Y軸でカーソルを回転"
-
-msgid "Cursor Rotate Z"
-msgstr "Z軸でカーソルを回転"
-
-msgid "Change Grid Floor:"
-msgstr "グリッドフロアを変更:"
-
-msgid ""
-"Change Grid Floor:\n"
-"Previous Plane (%s)\n"
-"Next Plane (%s)"
-msgstr ""
-"グリッドフロアを変更:\n"
-"前の平面(%s)\n"
-"次の平面(%s)"
-
-msgid "Filter Meshes"
-msgstr "メッシュを絞り込む"
-
-msgid "View as Thumbnails"
-msgstr "サムネイルとして表示"
-
-msgid "View as List"
-msgstr "リストとして表示"
-
-msgid "Give a MeshLibrary resource to this GridMap to use its meshes."
-msgstr ""
-"メッシュを使うにはメッシュライブラリリソースをこのグリッドマップに設定してくだ"
-"さい。"
-
-msgid "GridMap"
-msgstr "グリッドマップ"
-
-msgid "Toggle GridMap Bottom Panel"
-msgstr "グリッドマップ下パネルの切り替え"
-
-msgid "All Clips"
-msgstr "すべてのクリップ"
-
-msgid "Add Clip"
-msgstr "クリップを追加"
-
-msgid "Add Stream"
-msgstr "ストリームを追加"
-
-msgid "Disabled"
-msgstr "無効"
-
-msgid "Fade-In"
-msgstr "フェードイン"
-
-msgid "Fade-Out"
-msgstr "フェードアウト"
-
-msgid "Cross-Fade"
-msgstr "クロスフェード"
-
-msgid "Automatic"
-msgstr "自動設定"
-
-msgid "Edit Transitions"
-msgstr "トランジションの編集"
-
-msgid "No transition available."
-msgstr "有効なトランジションはありません。"
-
-msgid "Next Beat"
-msgstr "次の拍"
-
-msgid "Next Bar"
-msgstr "次の小節"
-
-msgid "Clip End"
-msgstr "クリップ終了"
-
-msgctxt "Transition Time Position"
-msgid "Same"
-msgstr "同時"
-
-msgctxt "Transition Time Position"
-msgid "Start"
-msgstr "開始"
-
-msgctxt "Transition Time Position"
-msgid "Prev"
-msgstr "前"
-
-msgid "From / To"
-msgstr "遷移元 / 遷移先"
-
-msgid "Any Clip"
-msgstr "任意のクリップ"
-
-msgid "AudioStreamInteractive Transition Editor"
-msgstr "AudioStreamInteractive トランジションエディタ"
-
-msgid "Use Transition:"
-msgstr "トランジション:"
-
-msgid "Transition From:"
-msgstr "遷移元:"
-
-msgid "Transition To:"
-msgstr "遷移先:"
-
-msgid "Same Position"
-msgstr "同じ位置"
-
-msgid "Clip Start"
-msgstr "クリップ開始"
-
-msgid "Prev Position"
-msgstr "前の位置"
-
-msgid "Fade Mode:"
-msgstr "フェードモード:"
-
-msgid "Fade Beats:"
-msgstr "フェード拍数:"
-
-msgid "Filler Clip:"
-msgstr "補間クリップ:"
-
-msgid "Hold Previous:"
-msgstr "前を保持:"
-
-msgid "Determining optimal atlas size"
-msgstr "最適アトラスサイズの決定"
-
-msgid "Blitting albedo and emission"
-msgstr "ブリッティングアルベドと発光"
-
-msgid "Plotting mesh into acceleration structure %d/%d"
-msgstr "メッシュをAcceleration Structure %d/%d にプロットする"
-
-msgid "Optimizing acceleration structure"
-msgstr "Acceleration Structureを最適化する"
-
-msgid "Denoising %d%%"
-msgstr "ノイズ除去中 %d%%"
-
-msgid "Begin Bake"
-msgstr "ベイク開始"
-
-msgid "Preparing shaders"
-msgstr "シェーダーを準備中"
-
-msgid "Un-occluding geometry"
-msgstr "非包括ジオメトリ"
-
-msgid "Plot direct lighting"
-msgstr "ダイレクトライティングをプロットする"
-
-msgid "Plot direct lighting %d%%"
-msgstr "ダイレクトライティングをプロットする %d%%"
-
-msgid "Integrate indirect lighting"
-msgstr "間接ライティングを統合する"
-
-msgid "Integrate indirect lighting %d%%"
-msgstr "間接照明を統合します %d%%"
-
-msgid "Baking light probes"
-msgstr "ライトプローブをベイク"
-
-msgid "Integrating light probes %d%%"
-msgstr "ライトマップの生成 %d%%"
-
-msgid "Denoising"
-msgstr "ノイズ除去"
-
-msgid "Retrieving textures"
-msgstr "テクスチャの取得"
-
-msgid "Class name can't be a reserved keyword"
-msgstr "クラス名を予約キーワードにすることはできません"
-
-msgid "Class name must be a valid identifier"
-msgstr "クラス名は有効な識別子である必要があります"
-
-msgid "Not enough bytes for decoding bytes, or invalid format."
-msgstr "デコードするにはバイトが足りないか、または無効な形式です。"
-
-msgid ""
-"Unable to load .NET runtime, no compatible version was found.\n"
-"Attempting to create/edit a project will lead to a crash.\n"
-"\n"
-"Please install the .NET SDK 8.0 or later from https://get.dot.net and restart "
-"Godot."
-msgstr ""
-".NETランタイムの読み込みに失敗しました。互換性のあるバージョンが見つかりませ"
-"ん。\n"
-"プロジェクトの作成・編集を行うとクラッシュする可能性があります。\n"
-"\n"
-".NET SDK 8.0またはそれ以降のバージョンを https://get.dot.net よりインストール"
-"し、Godotを再起動してください。"
-
-msgid "Failed to load .NET runtime"
-msgstr ".NETランタイムの読み込みに失敗しました"
-
-msgid ""
-"Unable to find the .NET assemblies directory.\n"
-"Make sure the '%s' directory exists and contains the .NET assemblies."
-msgstr ""
-".NETアセンブリディレクトリが見つかりません。\n"
-"ディレクトリ '%s' が存在していることと、そこに.NETアセンブリが含まれていること"
-"を確認してください。"
-
-msgid ".NET assemblies not found"
-msgstr ".NET アセンブリが見つかりません"
-
-msgid ""
-"Unable to load .NET runtime, specifically hostfxr.\n"
-"Attempting to create/edit a project will lead to a crash.\n"
-"\n"
-"Please install the .NET SDK 8.0 or later from https://get.dot.net and restart "
-"Godot."
-msgstr ""
-".NETランタイム（hostfxr）の読み込みに失敗しました。\n"
-"プロジェクトの作成・編集を行うとクラッシュする可能性があります。\n"
-"\n"
-"https://dotnet.microsoft.com/ja-jp/download から .NET SDK 8.0 以上をインストー"
-"ルし、Godot を再起動してください。"
-
-msgctxt "Network"
-msgid "Down"
-msgstr "下り"
-
-msgctxt "Network"
-msgid "Up"
-msgstr "上り"
-
-msgid "%d (%s)"
-msgstr "%d (%s)"
-
-msgid "%s/s"
-msgstr "%s/s"
-
-msgid "Incoming Bandwidth"
-msgstr "受信帯域幅"
-
-msgid "Outgoing Bandwidth"
-msgstr "送信帯域幅"
-
-msgid "Node"
-msgstr "ノード"
-
-msgid "Incoming RPC"
-msgstr "RPC受信"
-
-msgid "Outgoing RPC"
-msgstr "RPC送信"
-
-msgid "Synchronizer"
-msgstr "シンクロナイザ"
-
-msgid "Config"
-msgstr "構成"
-
-msgid "Count"
-msgstr "カウント"
-
-msgid "Replication"
-msgstr "レプリケーション"
-
-msgid "Toggle Replication Bottom Panel"
-msgstr "レプリケーションの下パネルを切り替え"
-
-msgid "Select a replicator node in order to pick a property to add to it."
-msgstr ""
-"レプリケーターノードに追加するプロパティを選択するために、レプリケーターノード"
-"を選択します。"
-
-msgid "Not possible to add a new property to synchronize without a root."
-msgstr "ルートなしで同期する新しいプロパティを追加することはできません。"
-
-msgid "Property is already being synchronized."
-msgstr "プロパティはすでに同期されています。"
-
-msgid "Add property to synchronizer"
-msgstr "シンクロナイザにプロパティを追加"
-
-msgid "Pick a node to synchronize:"
-msgstr "同期化するノードを選択:"
-
-msgid "Add property to sync..."
-msgstr "同期プロパティを追加..."
-
-msgid "Add from path"
-msgstr "パスから追加"
-
-msgid "Pin replication editor"
-msgstr "レプリケーションのエディタを固定"
-
-msgid "Spawn"
-msgstr "生成"
-
-msgid "Replicate"
-msgstr "複製"
-
-msgid ""
-"Add properties using the options above, or\n"
-"drag them from the inspector and drop them here."
-msgstr ""
-"上記オプションを使用してプロパティを追加するか、\n"
-"インスペクタからここにドラッグ&ドロップしてください。"
-
-msgctxt "Replication Mode"
-msgid "Never"
-msgstr "Never (複製しない)"
-
-msgctxt "Replication Mode"
-msgid "Always"
-msgstr "Always (常に複製)"
-
-msgctxt "Replication Mode"
-msgid "On Change"
-msgstr "On Change (変更時に複製)"
-
-msgid "Please select a MultiplayerSynchronizer first."
-msgstr "はじめにMultiplayerSynchronizerを選択してください。"
-
-msgid "The MultiplayerSynchronizer needs a root path."
-msgstr "MultiplayerSynchronizerはルートパスが必要です。"
-
-msgid "Property/path must not be empty."
-msgstr "プロパティ/パスを空にすることはできません。"
-
-msgid "Invalid property path: '%s'"
-msgstr "無効なプロパティパス: \"%s\""
-
-msgid "Set spawn property"
-msgstr "生成プロパティの設定"
-
-msgid "Set sync property"
-msgstr "同期プロパティの設定"
-
-msgid ""
-"Each MultiplayerSynchronizer can have no more than 64 watched properties."
-msgstr ""
-"各MultiplayerSynchronizerは64個より多いウォッチされたプロパティを持つことがで"
-"きません。"
-
-msgid "Delete Property?"
-msgstr "プロパティを削除しますか？"
-
-msgid "Remove Property"
-msgstr "プロパティの削除"
-
-msgid "Property of this type not supported."
-msgstr "この型のプロパティはサポートされません。"
-
-msgid ""
-"A valid NodePath must be set in the \"Spawn Path\" property in order for "
-"MultiplayerSpawner to be able to spawn Nodes."
-msgstr ""
-"MultiplayerSpawnerがノードを生成するには、\"Spawn Path\"プロパティに有効な"
-"NodePathを設定する必要があります。"
-
-msgid ""
-"A valid NodePath must be set in the \"Root Path\" property in order for "
-"MultiplayerSynchronizer to be able to synchronize properties."
-msgstr ""
-"MultiplayerSynchronizerがプロパティを同期するためには、\"Root Path\"プロパティ"
-"に有効なNodePathが設定されている必要があります。"
-
-msgid "Set start_position"
-msgstr "start_positionを設定"
-
-msgid "Set end_position"
-msgstr "end_positionを設定"
-
-msgid "Create Navigation Polygon"
-msgstr "ナビゲーションポリゴンを生成"
-
-msgid "Bake NavigationPolygon"
-msgstr "NavigationPolygon をベイク"
-
-msgid ""
-"Bakes the NavigationPolygon by first parsing the scene for source geometry "
-"and then creating the navigation polygon vertices and polygons."
-msgstr ""
-"最初にシーンを解析してソースジオメトリを取得し、次にナビゲーションポリゴンの頂"
-"点とポリゴンを作成することでNavigationPolygonをベイクします。"
-
-msgid "Clear NavigationPolygon"
-msgstr "NavigationPolygon をクリア"
-
-msgid "Clears the internal NavigationPolygon outlines, vertices and polygons."
-msgstr "内部のNavigationPolygonのアウトライン、頂点、ポリゴンをクリアします。"
-
-msgid ""
-"A NavigationPolygon resource must be set or created for this node to work."
-msgstr ""
-"このノードが動作するためには、NavigationPolygonリソースが設定または作成されて"
-"いる必要があります。"
-
-msgid "Start Position"
-msgstr "開始位置"
-
-msgid "End Position"
-msgstr "終了位置"
-
-msgid "Change Start Position"
-msgstr "開始位置を変更"
-
-msgid "Change End Position"
-msgstr "終了位置を変更"
-
-msgid "Set Obstacle Vertices"
-msgstr "障害物の頂点を設定"
-
-msgid "Add Vertex"
-msgstr "頂点を追加"
-
-msgid "Edit Vertex"
-msgstr "頂点を編集"
-
-msgid "Delete Vertex"
-msgstr "頂点を削除"
-
-msgid "Clear Vertices"
-msgstr "頂点をクリア"
-
-msgid "A NavigationMesh resource must be set or created for this node to work."
-msgstr ""
-"このノードを動かすために NavigationMesh リソースを設定または作成する必要があり"
-"ます。"
-
-msgid ""
-"Cannot generate navigation mesh because it does not belong to the edited "
-"scene. Make it unique first."
-msgstr ""
-"それは編集したシーンに属していないため、ナビゲーション・メッシュを生成できませ"
-"ん。まずユニーク化してください。"
-
-msgid ""
-"Cannot generate navigation mesh because it belongs to a resource which was "
-"imported."
-msgstr ""
-"インポートされたリソースに属しているため、ナビゲーションメッシュを作成できませ"
-"ん。"
-
-msgid ""
-"Cannot generate navigation mesh because the resource was imported from "
-"another type."
-msgstr ""
-"リソースが別の型からインポートされたため、ナビゲーションメッシュを作成できませ"
-"ん。"
-
-msgid "Bake"
-msgstr "ベイク"
-
-msgid "Bake NavigationMesh"
-msgstr "NavigationMesh をベイク"
-
-msgid ""
-"Bakes the NavigationMesh by first parsing the scene for source geometry and "
-"then creating the navigation mesh vertices and polygons."
-msgstr ""
-"最初にシーンを解析してソースジオメトリを取得し、次にナビゲーションメッシュの頂"
-"点とポリゴンを作成することでNavigationMeshをベイクします。"
-
-msgid "Clear NavigationMesh"
-msgstr "NavigationMesh を消去"
-
-msgid "Clears the internal NavigationMesh vertices and polygons."
-msgstr "内部のNavigationMeshの頂点とポリゴンを消去します。"
-
-msgid "Toggles whether the noise preview is computed in 3D space."
-msgstr "ノイズプレビューを3D空間で計算するかどうかを切り替えます。"
-
-msgid "Rename Action"
-msgstr "アクション名を変更"
-
-msgid "Rename Actions Localized name"
-msgstr "ローカライズされたアクション名を変更"
-
-msgid "Change Action Type"
-msgstr "アクションの型を変更"
-
-msgid "Remove action"
-msgstr "アクションを除去"
-
-msgid "Add action set"
-msgstr "アクションセットの追加"
-
-msgid "Remove action set"
-msgstr "アクションセットを除去"
-
-msgid "Add interaction profile"
-msgstr "インタラクションプロファイルを追加"
-
-msgid "Error loading %s: %s."
-msgstr "%s のロード中にエラーが発生しました: %s 。"
-
-msgid "Error saving file %s: %s"
-msgstr "ファイル %s の保存エラー: %s"
-
-msgid "OpenXR Action map:"
-msgstr "OpenXRアクションマップ:"
-
-msgid "Remove interaction profile"
-msgstr "インタラクションプロファイルを削除"
-
-msgid "OpenXR Action Map"
-msgstr "OpenXRアクションマップ"
-
-msgid "Add Action Set"
-msgstr "アクションセットの追加"
-
-msgid "Add an action set."
-msgstr "アクションセットを追加します。"
-
-msgid "Add profile"
-msgstr "プロファイルの追加"
-
-msgid "Add an interaction profile."
-msgstr "インタラクションプロファイルを追加します。"
-
-msgid "Save this OpenXR action map."
-msgstr "このOpenXRアクションマップを保存します。"
-
-msgid "Reset to default OpenXR action map."
-msgstr "デフォルトのOpenXRアクションマップにリセットします。"
-
-msgid "Action Sets"
-msgstr "アクションセット"
-
-msgid "Rename Action Set"
-msgstr "アクションセットの名前を変更"
-
-msgid "Rename Action Sets Localized name"
-msgstr "ローカライズされたアクションセット名を変更"
-
-msgid "Change Action Sets priority"
-msgstr "アクションセットの優先度を変更"
-
-msgid "Add action"
-msgstr "アクションを追加"
-
-msgid "Delete action"
-msgstr "アクションを削除"
-
-msgid "Add action."
-msgstr "アクションを追加します。"
-
-msgid "Remove action set."
-msgstr "アクションセットを除去します。"
-
-msgid "Note: modifiers will only be applied if supported on the host system."
-msgstr "注: 修飾子は、ホストシステムでサポートしている場合にのみ適用されます。"
-
-msgid "Remove action from interaction profile"
-msgstr "インタラクションプロファイルからアクションを削除"
-
-msgid "Edit binding modifiers"
-msgstr "装飾キーの割り当てを編集"
-
-msgid "Note: This interaction profile requires extension %s support."
-msgstr ""
-"注: このインタラクションプロファイルには、拡張機能 %s のサポートが必要です。"
-
-msgid "Add binding"
-msgstr "バインドを追加"
-
-msgid "Remove binding"
-msgstr "バインドを削除"
-
-msgid "Note: This binding path requires extension %s support."
-msgstr "注: このバインディングパスには、拡張機能 %s のサポートが必要です。"
-
-msgid "Pose"
-msgstr "ポーズ"
-
-msgid "Haptic"
-msgstr "触覚"
-
-msgid "Unknown"
-msgstr "不明"
-
-msgid "Select an action"
-msgstr "アクションを選択"
-
-msgid "Select an interaction profile"
-msgstr "インタラクションプロファイルを選択"
-
-msgid "All interaction profiles have been added to the action map."
-msgstr ""
-"すべてのインタラクションプロファイルがアクションマップに追加されました。"
-
-msgid "Choose an XR runtime."
-msgstr "XRランタイムを選択します。"
-
-msgid "OpenXR composition layers must have an XROrigin3D node as their parent."
-msgstr "OpenXR composition layer には、親として XROrigin3D ノードが必要です。"
-
-msgid ""
-"OpenXR composition layers must have orthonormalized transforms (ie. no scale "
-"or shearing)."
-msgstr ""
-"OpenXR composition layer は、正規直交変換でなければなりません(つまり scale や "
-"shearing は不可です)。"
-
-msgid ""
-"Hole punching won't work as expected unless the sort order is less than zero."
-msgstr ""
-"ホールパンチングは sort order が0より小さくなければ期待通りに動作しません。"
+msgid "Surface Index"
+msgstr "サーフェスインデックス"
 
 msgid "Building Android Project (gradle)"
 msgstr "Androidプロジェクトのビルド (gradle)"
+
+msgid "Unable to connect to Gradle Build Environment service"
+msgstr "Gradle ビルド環境サービスに接続できません"
 
 msgid "Package name is missing."
 msgstr "パッケージ名が設定されていません。"
@@ -17697,9 +17827,6 @@ msgstr "パッケージは最低でも一つの '.' で区切る必要があり�
 
 msgid "Error creating keystores directory:"
 msgstr "キーストアのディレクトリ作成エラー:"
-
-msgid "Invalid public key for APK expansion."
-msgstr "APK expansion の公開鍵が無効です。"
 
 msgid "Invalid package name:"
 msgstr "無効なパッケージ名:"
@@ -17743,6 +17870,16 @@ msgid "\"Target SDK\" version must be greater or equal to \"Min SDK\" version."
 msgstr ""
 "「ターゲット SDK」バージョンは「Min SDK」バージョン以上である必要があります。"
 
+msgid "Mirror Android devices"
+msgstr "Android デバイスをミラーリング"
+
+msgid ""
+"If enabled, \"scrcpy\" is used to start the project and automatically stream "
+"device display (or virtual display) content."
+msgstr ""
+"有効にすると、\"scrcpy\" を使用してプロジェクトを開始し、デバイスのディスプレ"
+"イ（または仮想ディスプレイ）のコンテンツを自動的にストリーミングします。"
+
 msgid "Exporting APK..."
 msgstr "APKをエクスポート中..."
 
@@ -17763,6 +17900,14 @@ msgstr "デバイスで実行できませんでした。"
 
 msgid "Error: There was a problem validating the keystore username and password"
 msgstr "エラー: キーストアのユーザー名とパスワードの検証中に問題が発生しました"
+
+msgid ""
+"C# project targets '%s' but the export template only supports '%s'. Consider "
+"using gradle builds instead."
+msgstr ""
+"C# プロジェクトは '%s' をターゲットにしていますが、エクスポートテンプレートは "
+"'%s' のみをサポートしています。代わりに Gradle ビルドの使用を検討してくださ"
+"い。"
 
 msgid "Exporting to Android when using C#/.NET is experimental."
 msgstr "C#/.NET を使用する場合の Android へのエクスポートは実験的です。"
@@ -17899,6 +18044,9 @@ msgstr ""
 msgid "Verifying APK..."
 msgstr "APK を検証中..."
 
+msgid "Unable to verify signed apk."
+msgstr "署名済み apk を検証できません。"
+
 msgid "'apksigner' verification of APK failed."
 msgstr "'apksigner' による APK の検証に失敗しました。"
 
@@ -17907,9 +18055,6 @@ msgstr "Android用にエクスポート"
 
 msgid "Invalid filename! Android App Bundle requires the *.aab extension."
 msgstr "無効なファイル名です！Android App Bundle には拡張子 *.aab が必要です。"
-
-msgid "APK Expansion not compatible with Android App Bundle."
-msgstr "APK Expansion は Android App Bundle とは互換性がありません。"
 
 msgid "Invalid filename! Android APK requires the *.apk extension."
 msgstr "無効なファイル名です！ Android APKには拡張子 *.apk が必要です。"
@@ -17947,9 +18092,6 @@ msgstr "PCK ディレクトリに書き込めませんでした!"
 msgid "Could not export project files to gradle project."
 msgstr ""
 "プロジェクトファイルをgradleプロジェクトにエクスポートできませんでした。"
-
-msgid "Could not write expansion package file!"
-msgstr "拡張パッケージファイルを書き込めませんでした！"
 
 msgid "Building of Android project failed, check output for the error:"
 msgstr ""
@@ -18010,11 +18152,32 @@ msgstr "デバッグスクリプトのエクスポート"
 msgid "Could not open file \"%s\"."
 msgstr "ファイル\"%s\"を開けませんでした。"
 
+msgid ""
+"Mismatching custom export template executable architecture: found \"%s\", "
+"expected \"%s\"."
+msgstr ""
+"カスタムエクスポートテンプレートの実行可能ファイルのアーキテクチャが一致しませ"
+"ん: \"%s\" を検出しましたが、\"%s\" が想定されています。"
+
 msgid "Debug Console Export"
 msgstr "デバッグコンソールのエクスポート"
 
 msgid "Could not create console wrapper."
 msgstr "コンソール ラッパーを作成できませんでした。"
+
+msgid ""
+"Mismatching custom debug export template executable architecture: found "
+"\"%s\", expected \"%s\"."
+msgstr ""
+"カスタムデバッグエクスポートテンプレートの実行可能ファイルのアーキテクチャが一"
+"致しません: \"%s\" を検出しましたが、\"%s\" が想定されています。"
+
+msgid ""
+"Mismatching custom release export template executable architecture: found "
+"\"%s\", expected \"%s\"."
+msgstr ""
+"カスタムリリースエクスポートテンプレートの実行可能ファイルのアーキテクチャが一"
+"致しません: \"%s\" を検出しましたが、\"%s\" が想定されています。"
 
 msgid "Failed to open executable file \"%s\"."
 msgstr "実行ファイル \"%s\" を開くのに失敗しました。"
@@ -18147,6 +18310,12 @@ msgstr ""
 "フォトライブラリへのアクセスが有効になっていますが、Usage Descriptionがありま"
 "せん。"
 
+msgid "Liquid Glass Icons"
+msgstr "リキッドガラスアイコン"
+
+msgid "At least version 26.0 of 'actool' is required (version %f found)."
+msgstr "'actool' のバージョン 26.0 以上が必要です（バージョン %f を検出）。"
+
 msgid "Notarization"
 msgstr "公証"
 
@@ -18181,6 +18350,13 @@ msgstr "Xcode コマンド ライン ツールがインストールされてい�
 
 msgid "Could not start xcrun executable."
 msgstr "xcrun実行ファイルを開始できませんでした。"
+
+msgid ""
+"See instructions on finding your team ID: https://developer.apple.com/help/"
+"glossary/team-id"
+msgstr ""
+"チーム ID の確認方法については、こちらを参照してください: https://"
+"developer.apple.com/help/glossary/team-id"
 
 msgid "Built-in CodeSign failed with error \"%s\"."
 msgstr "組み込みのコード署名がエラー「%s」で失敗しました。"
@@ -18263,6 +18439,14 @@ msgstr ""
 
 msgid "Could not created symlink \"%s\" -> \"%s\"."
 msgstr "\"%s\" から \"%s\" へのソフトリンクを作成することができませんでした。"
+
+msgid ""
+"Unable to set Unix permissions for executable \"%s\". Use \"chmod +x\" to set "
+"it after transferring the exported .app to macOS or Linux."
+msgstr ""
+"実行可能ファイル \"%s\" の Unix パーミッションを設定できません。エクスポートし"
+"た .app を macOS または Linux に転送した後、\"chmod +x\" を使用して設定してく"
+"ださい。"
 
 msgid "Could not open \"%s\"."
 msgstr "「%s」を開けません。"
@@ -18533,6 +18717,20 @@ msgstr ""
 "「Sprite Frames」プロパティに設定する必要があります。"
 
 msgid ""
+"Ancestor \"%s\" clips its children, so this CanvasGroup will not function "
+"properly."
+msgstr ""
+"先祖の \"%s\" が子をクリップしているため、この CanvasGroup は正常に機能しませ"
+"ん。"
+
+msgid ""
+"Ancestor \"%s\" is a CanvasGroup, so this CanvasGroup will not function "
+"properly."
+msgstr ""
+"先祖の \"%s\" が CanvasGroup であるため、この CanvasGroup は正常に機能しませ"
+"ん。"
+
+msgid ""
 "Only one visible CanvasModulate is allowed per canvas.\n"
 "When there are more than one, only one of them will be active. Which one is "
 "undefined."
@@ -18587,6 +18785,23 @@ msgid ""
 "be useful."
 msgstr ""
 "NavigationLink2Dが機能するには、開始位置と終了位置が異なる必要があります。"
+
+msgid "NavigationObstacle2D does not support negative or zero scaling."
+msgstr ""
+"NavigationObstacle2D は、負のスケールまたはゼロのスケールをサポートしていませ"
+"ん。"
+
+msgid ""
+"The agent radius can only be scaled uniformly. The largest value along the "
+"two axes of the global scale will be used to scale the radius. This value may "
+"change in unexpected ways when the node is rotated."
+msgstr ""
+"エージェントの半径は均等にしかスケールできません。半径のスケールには、グローバ"
+"ルスケールの2つの軸のうち最大の値が使用されます。この値は、ノードが回転したと"
+"きに予期しない変化をする可能性があります。"
+
+msgid "Skew has no effect on the agent radius."
+msgstr "スキューはエージェントの半径に影响しません。"
 
 msgid ""
 "A NavigationPolygon resource must be set or created for this node to work. "
@@ -18793,6 +19008,10 @@ msgstr ""
 "なっていないと、意図したとおりに表示されない可能性があります。"
 
 msgid ""
+"Forward axis and primary rotation axis must not be parallel in setting %s."
+msgstr "設定 %s において、前方軸と主回転軸は平行であってはなりません。"
+
+msgid ""
 "External Skeleton3D node not set! Please set a path to an external Skeleton3D "
 "node."
 msgstr ""
@@ -18906,6 +19125,12 @@ msgstr ""
 "GPUParticlesCollisionSDF3D に衝突が発生しないことを意味します。\n"
 "これを解決するには、Bake Mask プロパティで少なくとも1ビットを有効にします。"
 
+msgid ""
+"Detecting settings with no target set! IterateIK3D must have a target to work."
+msgstr ""
+"ターゲットが設定されていない設定を検出しました！IterateIK3D が動作するにはター"
+"ゲットが必要です。"
+
 msgid "A light's scale does not affect the visual size of the light."
 msgstr "ライトのスケールは、ライトの視覚的なサイズには影響しません。"
 
@@ -18941,11 +19166,44 @@ msgid "Generating Probe Acceleration Structures"
 msgstr "プローブAcceleration Structureを作成する"
 
 msgid ""
+"Lightmaps can only be baked from a GPU that supports the RenderingDevice "
+"backends.\n"
+"Your GPU (%s) does not support RenderingDevice, as it does not support "
+"Vulkan, Direct3D 12, or Metal.\n"
+"Lightmap baking will not be available on this device, although rendering "
+"existing baked lightmaps will work."
+msgstr ""
+"ライトマップは、RenderingDevice バックエンドをサポートする GPU でのみベイクで"
+"きます。\n"
+"お使いの GPU (%s) は Vulkan、Direct3D 12、または Metal をサポートしていないた"
+"め、RenderingDevice をサポートしていません。\n"
+"このデバイスではライトマップのベイクは利用できませんが、既存のベイク済みライト"
+"マップのレンダリングは動作します。"
+
+msgid ""
+"The lightmap has no baked shadowmask textures. Please rebake with the "
+"Shadowmask Mode set to anything other than None."
+msgstr ""
+"ライトマップにシャドウマスクテクスチャがベイクされていません。シャドウマスク"
+"モードを「None」以外に設定して再ベイクしてください。"
+
+msgid ""
 "Lightmaps cannot be baked on %s. Rendering existing baked lightmaps will "
 "still work."
 msgstr ""
 "%s ではライトマップをベイクできません。既存のベイク済みライトマップのレンダリ"
 "ングは引き続き機能します。"
+
+msgid ""
+"Lightmaps cannot be baked, as the `lightmapper_rd` module was disabled at "
+"compile-time. Rendering existing baked lightmaps will still work."
+msgstr ""
+"コンパイル時に `lightmapper_rd` モジュールが無効化されていたため、ライトマップ"
+"はベイクできません。既存のベイク済みライトマップのレンダリングは引き続き動作し"
+"ます。"
+
+msgid "Forward axis and primary rotation axis must not be parallel."
+msgstr "前方軸と主回転軸は平行であってはなりません。"
 
 msgid ""
 "The NavigationAgent3D can be used only under a Node3D inheriting parent node."
@@ -18958,9 +19216,24 @@ msgid ""
 msgstr ""
 "NavigationLink3Dが機能するには、開始位置と終了位置が異なる必要があります。"
 
+msgid ""
+"NavigationObstacle3D only takes global rotation around the y-axis into "
+"account. Rotations around the x-axis or z-axis might lead to unexpected "
+"results."
+msgstr ""
+"NavigationObstacle3D は、Y軸周りのグローバル回転のみを考慮します。X軸またはZ軸"
+"周りの回転は、予期しない結果を招く可能性があります。"
+
 msgid "NavigationObstacle3D does not support negative or zero scaling."
 msgstr ""
 "NavigationObstacle3D は負またはゼロのスケーリングをサポートしていません。"
+
+msgid ""
+"The agent radius can only be scaled uniformly. The largest scale value along "
+"the three axes will be used."
+msgstr ""
+"エージェントの半径は均等にしかスケールできません。3つの軸のうち最大のスケール"
+"値が使用されます。"
 
 msgid ""
 "Occlusion culling is disabled in the Project Settings, which means occlusion "
@@ -19198,6 +19471,12 @@ msgstr ""
 "Skeleton3Dノードが設定されていません！SkeletonModifier3D は Skeleton3D の子で"
 "ある必要があります。"
 
+msgid ""
+"Detecting settings with no Path3D set! SplineIK3D must have a Path3D to work."
+msgstr ""
+"Path3D が設定されていない設定を検出しました！SplineIK3D が動作するには Path3D "
+"が必要です。"
+
 msgid "Parent node should be a SpringBoneSimulator3D node."
 msgstr "ノードの親は SpringBoneSimulator3D である必要があります。"
 
@@ -19207,6 +19486,19 @@ msgid ""
 msgstr ""
 "AnimatedSprite3D でフレームを表示するには、SpriteFrames リソースを作成するか、"
 "「Sprite Frames」プロパティに設定する必要があります。"
+
+msgid ""
+"Detecting settings with no target set! TwoBoneIK3D must have a target to work."
+msgstr ""
+"ターゲットが設定されていない設定を検出しました！TwoBoneIK3D が動作するにはター"
+"ゲットが必要です。"
+
+msgid ""
+"Detecting settings with no pole target set! TwoBoneIK3D must have a pole "
+"target to work."
+msgstr ""
+"ポールターゲットが設定されていない設定を検出しました！TwoBoneIK3D が動作するに"
+"はポールターゲットが必要です。"
 
 msgid ""
 "The GeometryInstance3D visibility range's End distance is set to a non-zero "
@@ -19304,6 +19596,13 @@ msgid "XROrigin3D requires an XRCamera3D child node."
 msgstr "XROrigin3D には XRCamera3D 子ノードが必要です。"
 
 msgid ""
+"Changing the scale on the XROrigin3D node is not supported. Change the World "
+"Scale instead."
+msgstr ""
+"XROrigin3D ノードのスケール変更はサポートされていません。代わりに World Scale "
+"を変更してください。"
+
+msgid ""
 "XR shaders are not enabled in project settings. Stereoscopic output is not "
 "supported unless they are enabled. Please enable `xr/shaders/enabled` to use "
 "stereoscopic output."
@@ -19312,20 +19611,53 @@ msgstr ""
 "と立体視出力はサポートされません。立体視出力を使用するには、プロジェクト設定の"
 "XR > シェーダーを有効にしてください。"
 
-msgid "On BlendTree node '%s', animation not found: '%s'"
-msgstr "BlendTreeノード '%s' で、アニメーションが見つかりません: '%s'"
-
-msgid "Animation not found: '%s'"
-msgstr "アニメーションが見つかりません: '%s'"
-
 msgid "Animation Apply Reset"
 msgstr "アニメーション適用リセット"
 
-msgid "Nothing connected to input '%s' of node '%s'."
-msgstr "入力 '%s'(ノード '%s')に接続されているものはありません。"
+msgid "No playback resource set at path: %s."
+msgstr "パス: %s に再生リソースが設定されていません。"
 
 msgid "No root AnimationNode for the graph is set."
 msgstr "グラフのルートAnimationNodeが設定されていません。"
+
+msgid "Top Orthogonal"
+msgstr "上面 平行投影"
+
+msgid "Top Perspective"
+msgstr "上面 透視投影"
+
+msgid "Bottom Orthogonal"
+msgstr "下面 平行投影"
+
+msgid "Bottom Perspective"
+msgstr "下面 透視投影"
+
+msgid "Left Orthogonal"
+msgstr "左側面 平行投影"
+
+msgid "Left Perspective"
+msgstr "左側面 透視投影"
+
+msgid "Right Orthogonal"
+msgstr "右側面 平行投影"
+
+msgid "Right Perspective"
+msgstr "右側面 透視投影"
+
+msgid "Front Orthogonal"
+msgstr "正面 平行投影"
+
+msgid "Front Perspective"
+msgstr "正面 透視投影"
+
+msgid "Rear Orthogonal"
+msgstr "後面 平行投影"
+
+msgid "Rear Perspective"
+msgstr "後面 透視投影"
+
+msgid "[auto]"
+msgstr "[自動]"
 
 msgid ""
 "ButtonGroup is intended to be used only with buttons that have toggle_mode "
@@ -19333,6 +19665,9 @@ msgid ""
 msgstr ""
 "ButtonGroup は、toggle_mode が true に設定されているボタンでのみ使用することを"
 "目的としています。"
+
+msgid "The changes to this palette have not been saved to a file."
+msgstr "このパレットの変更内容はファイルに保存されていません。"
 
 msgid "Load existing color palette."
 msgstr "既存のカラーパレットを読み込みます。"
@@ -19358,12 +19693,25 @@ msgstr ""
 "プは表示されません。これを解決するには、マウスフィルターを「停止」または「パ"
 "ス」に設定します。"
 
-msgid ""
-"Labels with autowrapping enabled must have a custom minimum size configured "
-"to work correctly inside a container."
+msgid "Accessibility Name must not be empty, or contain only spaces."
 msgstr ""
-"コンテナ内で正しく動作させるため、自動ラッピングが有効になっているラベルには、"
-"カスタム最小サイズの設定が必要です。"
+"アクセシビリティ名は、空であるか、またはスペースのみであってはなりません。"
+
+msgid "Accessibility Name must not include Node class name."
+msgstr "アクセシビリティ名にノードのクラス名を含めることはできません。"
+
+msgid "Accessibility Name must not include control character."
+msgstr "アクセシビリティ名に制御文字を含めることはできません。"
+
+msgid "%s grabbed. Select target and use %s to drop, use %s to cancel."
+msgstr ""
+"%s を掴んでいます。ターゲットを選択し、%s でドロップ、%s でキャンセルします。"
+
+msgid "%s can be dropped here. Use %s to drop, use %s to cancel."
+msgstr "%s はここにドロップできます。%s でドロップ、%s でキャンセルします。"
+
+msgid "%s can not be dropped here. Use %s to cancel."
+msgstr "%s はここにドロップできません。%s でキャンセルします。"
 
 msgid ""
 "The current font does not support rendering one or more characters used in "
@@ -19371,6 +19719,23 @@ msgid ""
 msgstr ""
 "現在のフォントは、このラベルのテキストで使用されている1つ以上の文字のレンダリ"
 "ングをサポートしていません。"
+
+msgid ""
+"MSDF font pixel range is too small, some outlines/shadows will not render. "
+"Set MSDF pixel range to be at least %d to render all outlines/shadows."
+msgstr ""
+"MSDFフォントのピクセル範囲が小さすぎるため、一部のアウトラインやシャドウが描画"
+"されません。すべてのアウトラインやシャドウを描画するには、MSDFのピクセル範囲を"
+"少なくとも %d 以上に設定してください。"
+
+msgid ""
+"The current theme style has shadows and/or rounded corners for popups, but "
+"those won't display correctly if \"display/window/per_pixel_transparency/"
+"allowed\" isn't enabled in the Project Settings, nor if it isn't supported."
+msgstr ""
+"現在のテーマスタイルにはポップアップのシャドウや角丸が設定されていますが、プロ"
+"ジェクト設定の「display/window/per_pixel_transparency/allowed」が有効になって"
+"いないか、あるいはサポートされていない場合、これらは正しく表示されません。"
 
 msgid ""
 "ScrollContainer is intended to work with a single child control.\n"
@@ -19397,6 +19762,21 @@ msgid ""
 msgstr ""
 "SubViewportContainer のデフォルトのマウス カーソルの形状は効果がありません。\n"
 "初期値「CURSOR_ARROW」のままにすることを検討してください。"
+
+msgid "Cell %d x %d: either text or alternative text must not be empty."
+msgstr ""
+"セル %d x %d: テキストまたは代替テキストの少なくとも一方は空であってはなりませ"
+"ん。"
+
+msgid "Button %d in %d x %d: alternative text must not be empty."
+msgstr "%d x %d 内のボタン %d: 代替テキストは空であってはなりません。"
+
+msgid ""
+"Ancestor \"%s\" clips its children, so this node will not be able to clip its "
+"children."
+msgstr ""
+"祖先ノード \"%s\" が子ノードをクリップしているため、このノードは自身の子ノード"
+"をクリップすることができません。"
 
 msgid ""
 "Ancestor \"%s\" is a CanvasGroup, so this node will not be able to clip its "
@@ -19490,78 +19870,6 @@ msgstr ""
 "受信ノードの名前が、シーン内に既に存在する %s と競合します (おそらく、よりネス"
 "トされたインスタンスから)。\n"
 "ネストの少ないノードの名前が変更されます。シーンを修正して再保存してください。"
-
-msgid ""
-"Shader keywords cannot be used as parameter names.\n"
-"Choose another name."
-msgstr ""
-"シェーダーのキーワードはパラメーターの名前として使用できません。\n"
-"別の名前を選んでください。"
-
-msgid "This parameter type does not support the '%s' qualifier."
-msgstr "このパラメータータイプは '%s' 修飾子をサポートしていません。"
-
-msgid ""
-"Global parameter '%s' does not exist.\n"
-"Create it in the Project Settings."
-msgstr ""
-"グローバル パラメーター '%s' は存在しません。\n"
-"プロジェクト設定で作成してください。"
-
-msgid ""
-"Global parameter '%s' has an incompatible type for this kind of node.\n"
-"Change it in the Project Settings."
-msgstr ""
-"グローバル パラメーター '%s' には、この種類のノードと互換性のないタイプがあり"
-"ます。\n"
-"プロジェクト設定で変更してください。"
-
-msgid ""
-"The sampler port is connected but not used. Consider changing the source to "
-"'SamplerPort'."
-msgstr ""
-"サンプラーポートは接続されていますが、使用されていません。ソースを "
-"'SamplerPort'に変更することを検討してください。"
-
-msgid "Invalid source for preview."
-msgstr "プレビューのソースが無効です。"
-
-msgid "Invalid source for shader."
-msgstr "無効なシェーダーのソースです。"
-
-msgid "Invalid operator for that type."
-msgstr "その型には無効な演算子です。"
-
-msgid ""
-"`%s` precision mode is not available for `gl_compatibility` profile.\n"
-"Reverted to `None` precision."
-msgstr ""
-"`%s` 精度モードは `gl_compatibility` プロファイルでは使用できません。\n"
-"「None」に戻しました。"
-
-msgid "'%s' type is incompatible with '%s' source."
-msgstr "'%s' タイプは '%s' ソースと互換性がありません。"
-
-msgid "'%s' default color is incompatible with '%s' source."
-msgstr "'%s'のデフォルト色は'%s'ソースと互換性がありません。"
-
-msgid "Default Color"
-msgstr "デフォルトの色"
-
-msgid "Repeat"
-msgstr "繰り返し"
-
-msgid "Invalid comparison function for that type."
-msgstr "そのタイプの比較関数は無効です。"
-
-msgid "2D Mode"
-msgstr "2Dモード"
-
-msgid "Use All Surfaces"
-msgstr "すべてのサーフェスを使用する"
-
-msgid "Surface Index"
-msgstr "サーフェスインデックス"
 
 msgid "Division by zero error."
 msgstr "ゼロによる演算エラー。"

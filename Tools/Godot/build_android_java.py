@@ -23,7 +23,7 @@ def setting(name):
 def version_field(name):
     m=re.search(r'^'+name+r'\s*=\s*(.+)$',version.read_text(),re.M);assert m,name;return m[1].strip('"')
 library_version='.'.join(version_field(n) for n in ('major','minor','patch','status'))
-assert library_version=='4.6.0.stable',library_version
+assert library_version=='4.7.2.stable',library_version
 before=snapshot();project=out/'project';project.mkdir(exist_ok=True)
 for name in ('settings.gradle','build.gradle'):
     shutil.copy2(ROOT/'Projects/xmake/godot/android-java'/name,project/name)
@@ -51,5 +51,5 @@ archive=out/'godot-lib.template_release.aar';shutil.copy2(archives[0],archive)
 with zipfile.ZipFile(archive) as z:
     assert 'classes.jar' in z.namelist() and 'AndroidManifest.xml' in z.namelist()
     assert not any(n.startswith('jni/') for n in z.namelist())
-metadata={'passed':True,'builder':'vendor-gradle','source_version':library_version,'upstream_commit':'89cea143987d564363e15d207438530651d943ac','source_files':before,'vendor_sources_unchanged':True,'source_config_sha256':sha(config),'source_version_sha256':sha(version),'source_aar':str(archive),'source_aar_sha256':sha(archive),'agp':setting('androidGradlePlugin'),'kotlin':setting('kotlinVersion'),'native_entries':0,'scope':'Java/resources built from vendored source only; JNI loading and Android runtime acceptance remain separate'}
+metadata={'passed':True,'builder':'vendor-gradle','source_version':library_version,'upstream_commit':'ed1daf0bf001b61586d9930840f2f1394092c079','source_files':before,'vendor_sources_unchanged':True,'source_config_sha256':sha(config),'source_version_sha256':sha(version),'source_aar':str(archive),'source_aar_sha256':sha(archive),'agp':setting('androidGradlePlugin'),'kotlin':setting('kotlinVersion'),'native_entries':0,'scope':'Java/resources built from vendored source only; JNI loading and Android runtime acceptance remain separate'}
 (out/'manifest.json').write_text(json.dumps(metadata,indent=2)+'\n');print(archive,flush=True)

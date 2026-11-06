@@ -76,6 +76,7 @@ if env["builtin_mbedtls"]:
         "psa_crypto_hash.c",
         "psa_crypto_mac.c",
         "psa_crypto_pake.c",
+        "psa_crypto_random.c",
         "psa_crypto_rsa.c",
         "psa_crypto_se.c",
         "psa_crypto_slot_management.c",
@@ -139,11 +140,7 @@ module_obj = []
 env_mbed_tls.add_source_files(module_obj, "*.cpp")
 
 if env["tests"]:
-    env_mbed_tls.Append(CPPDEFINES=["TESTS_ENABLED"])
     env_mbed_tls.add_source_files(module_obj, "./tests/*.cpp")
-
-    if env["disable_exceptions"]:
-        env_mbed_tls.Append(CPPDEFINES=["DOCTEST_CONFIG_NO_EXCEPTIONS_BUT_WITH_ALL_ASSERTS"])
 
 env.modules_sources += module_obj
 

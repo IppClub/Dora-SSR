@@ -7,8 +7,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 VENDOR_SOURCE = (ROOT / "Source/3rdParty/Godot").resolve()
-UPSTREAM_COMMIT = "89cea143987d564363e15d207438530651d943ac"
-UPSTREAM_ARCHIVE_SHA256 = "b451eaa16d3abe0c7430e9ce1c4e83b146e5670e5b683dd8995c931fc82b57a0"
+UPSTREAM_COMMIT = "ed1daf0bf001b61586d9930840f2f1394092c079"
+UPSTREAM_ARCHIVE_SHA256 = "e954996374cbd1cb5d72e0e3781cc537408e6ce73b010b12c6c2f308a820690a"
 
 BRIDGE_HEADERS = (
     "GodotBridge.h",
@@ -57,7 +57,7 @@ def verify_common(source: Path) -> Path:
         ("drivers/d3d12/rendering_context_driver_d3d12.cpp", "// Dora D3D12 WARP validation adapter"),
         ("servers/rendering/renderer_rd/forward_mobile/render_forward_mobile.cpp", "// Dora ARM64 WARP shadow receiver compatibility"),
         ("scene/resources/particle_process_material.h", "// Dora particle-key semantic hashing"),
-        ("drivers/metal/rendering_device_driver_metal.mm", "// Dora embedded Metal: no asynchronous library compilation past shutdown."),
+        ("drivers/metal/rendering_device_driver_metal.cpp", "// Dora embedded Metal: no asynchronous library compilation past shutdown."),
     ):
         _contains(source, relative, marker)
     return source
@@ -80,7 +80,6 @@ def verify_ios(source: Path) -> None:
     for relative, marker in (
         ("platform/ios/detect.py", '"supported": ["metal", "mono", "library"]'),
         ("drivers/apple_embedded/os_apple_embedded.mm", "Dora GodotInstance has already finalized the loop."),
-        ("drivers/metal/rendering_context_driver_metal.mm", "Dora simulator: timed presentation is unavailable in the SDK."),
         ("servers/rendering/renderer_rd/effects/metal_fx.h", "!defined(IOS_SIMULATOR)"),
     ):
         _contains(source, relative, marker)

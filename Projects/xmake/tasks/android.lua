@@ -4,7 +4,7 @@ task("dora-android-prepare")
         usage = "xmake dora-android-prepare --sdk=ANDROID_SDK",
         description = "Prepare the xmake-managed Wa AAR and Android assets for Gradle",
         options = {{nil, "sdk", "kv", nil, "Android SDK directory"},
-            {nil, "ndk-version", "kv", "28.1.13356709", "NDK version selected by the Gradle host"}}
+            {nil, "ndk-version", "kv", "29.0.14206865", "NDK version selected by the Gradle host"}}
     }
     on_run(function ()
         import("core.base.option")

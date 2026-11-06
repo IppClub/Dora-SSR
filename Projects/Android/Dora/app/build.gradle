@@ -11,7 +11,7 @@ def godotArch = ['arm64-v8a': 'arm64', 'armeabi-v7a': 'arm32', 'x86_64': 'x86_64
 def godotTest = (project.findProperty('dora.godot.test') ?: 'false').toString().toBoolean()
 if (godotTest && !godotEnabled) throw new GradleException('Godot tests require -Pdora.godot=true')
 if (godotTest || project.findProperty('dora.godot.buildDir')) buildDir = rootProject.file(project.findProperty('dora.godot.buildDir') ?: '../../../build/godot-android/gradle-app')
-def godotJava = rootProject.file(project.findProperty('dora.godot.javaAar') ?: '../../../build/godot-android/java/godot-java-4.6.0.stable.aar')
+def godotJava = rootProject.file(project.findProperty('dora.godot.javaAar') ?: '../../../build/godot-android/java/godot-java-4.7.2.stable.aar')
 def godotRuntimeOverride = project.findProperty('dora.godot.runtimePackage')
 def godotRuntimePackages = godotRuntimeOverride ? [rootProject.file(godotRuntimeOverride)] : doraAbis.collect {
     rootProject.file("../../../build/godot-component/android/${godotArch[it]}/release/package")
@@ -91,15 +91,15 @@ if (!xmakeExecutable) {
 if (!xmakeExecutable || !new File(xmakeExecutable.toString()).isFile()) {
 	throw new GradleException('Install xmake or set DORA_XMAKE / -Pdora.xmake to its executable path')
 }
-def doraNdkVersion = godotEnabled ? '28.1.13356709' : '26.1.10909125'
+def doraNdkVersion = godotEnabled ? '29.0.14206865' : '26.1.10909125'
 def prepareXmakeAndroid = tasks.register('prepareXmakeAndroid', Exec) {
 	workingDir rootProject.file('../../..')
 	commandLine xmakeExecutable, 'dora-android-prepare', '-P', rootProject.file('../../..').absolutePath, "--sdk=${android.sdkDirectory}", "--ndk-version=${doraNdkVersion}"
 }
 
 android {
-	compileSdk (godotEnabled ? 35 : 34)
-	buildToolsVersion = '34.0.0'
+	compileSdk (godotEnabled ? 36 : 34)
+	buildToolsVersion = (godotEnabled ? '36.1.0' : '34.0.0')
 	defaultConfig {
 		applicationId (godotTest ? "org.ippclub.dorassr.godotprototype" : "org.ippclub.dorassr")
 		minSdkVersion 28
@@ -206,7 +206,7 @@ if (!waArtifact.isFile()) {
 dependencies {
     if (godotEnabled) {
         implementation files(godotJava).builtBy(prepareProductionGodot)
-        implementation 'org.jetbrains.kotlin:kotlin-stdlib:2.1.20'
+        implementation 'org.jetbrains.kotlin:kotlin-stdlib:2.1.21'
         implementation 'androidx.fragment:fragment:1.8.6'
         implementation 'androidx.documentfile:documentfile:1.1.0'
     }

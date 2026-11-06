@@ -1,17 +1,37 @@
 # Godot vendor / xmake 迁移清单
 
-更新：2026-11-05。执行顺序见 [PLAN.md](PLAN.md)，命令见 [README.md](README.md)。本页只维护已完成项和待办。1.0平台支持矩阵与最终交付缺口见 [RELEASE_1_0.md](RELEASE_1_0.md)。旧 history 目录已按用户整理移除；本次新记录暂存 `build/godot-xmake-only-v1/PROGRESS-DRAFT.md`，不重建历史目录。
+更新：2026-11-06。执行顺序见 [PLAN.md](PLAN.md)，命令见 [README.md](README.md)。本页只维护已完成项和待办。1.0平台支持矩阵与最终交付缺口见 [RELEASE_1_0.md](RELEASE_1_0.md)。旧 history 目录已按用户整理移除；本次新记录暂存 `build/godot-xmake-only-v1/PROGRESS-DRAFT.md`，不重建历史目录。
 
 ## 固定范围
 
-- 完整 vendor Godot 4.6-stable 至 `Source/3rdParty/Godot`，不用 submodule；维护来源、版本、许可证与 Dora 补丁。
+- 完整 vendor Godot 4.7.2-stable 至 `Source/3rdParty/Godot`，不用 submodule；维护来源、版本、许可证与 Dora 补丁。
 - 原生 xmake 管理生成、编译、链接与封包；允许复用上游 Python 生成器，生成物不写回源码。构建入口统一 xmake；保留上游构建文件与历史对照，不保留 SCons 安装/调用/回退。动态验收另行跟踪。
 - Godot C#/Mono 关闭，Dora C# 保留；Dora Apple2 / Godot Apple4；Windows仅发布x64，D3D12默认、OpenGL兼容；D3D12动态验收由用户在其它设备完成并确认通过，不新增 Windows ARM64 目标验收。
 - 浏览器验收在宿主执行；不在虚拟机内增加浏览器测试，不自动扩展额外压力轮次。
 - Godot保持完整独立LibGodot运行时，包含各平台原有第三方实现；Dora与Godot分别构建依赖，不复用第三方二进制或宿主codec函数表。共享库实验与相关待办已撤销，历史完整保留（`history/2026-11-03-library-sharing-removed/README.md`）。
 - 不做进程内 LibGodot 重初始化；按最新决定保留同一 LibGodot，实现项目级卸载与切换，macOS Metal、Linux EGL、Windows x64 WGL、Android EGL和WebGL2默认开放，见 [PROJECT_SWITCH.md](PROJECT_SWITCH.md)。缺少真机时可用 VM/模拟器，明确证据边界。
 
+## 4.7.2 升级（当前工作）
+
+以下验收只针对新版；下方既有完成项属于 4.6 基线，不自动沿用为 4.7.2 通过。
+
+- [x] **UPGRADE-47-SOURCE**：固定 4.7.2-stable（`ed1daf0bf`）归档及 Git 树；13,989 个上游文件、46 个修改与 44 个新增文件登记和零偏移重建通过，第三方源码无本地差异；8 项拒绝/3 项正向审计控制通过。保留完整上游许可证，新增静态 AccessKit SDK 的固定哈希、通知与溯源。
+- [x] **UPGRADE-47-MAC**：macOS arm64 Metal Release 原生 xmake 编译、封包及 214 项 ABI 通过；适配 metal-cpp、生成头/LTC 表、引用计数证书清理、原生无障碍驱动隔离和导入纹理持有引用。146 项生成物增量检查、23 项分发与 20 项封包/SDK检查通过；无新增独立动态库。
+- [x] **UPGRADE-47-REAL**：macOS 26.6.2 / M1 Pro / Metal 验证层，官方 4.7.2 编辑器导入的未修改 Dodge 源码→Squash v4 PCK→Dodge 源码串行通过；同一 LibGodot、3 棵新 SceneTree、2/3/4 缓冲、每次 182 个生产帧及 9 图，公开输入与有效 PCM 通过。GPU 错误/未完成读取/blit/音频欠载均 0，卸载资源 1、节点 0；通过即停止本平台。测试进程已结束，未启动 VM/模拟器；不声明长期压力或其它 macOS/CPU 配置通过。
+- [x] **UPGRADE-47-LINUX**：Linux ARM64 EGL Release 原生 xmake 编译、封包/依赖解析与 228 项 ABI 通过；更新源清单、隔离生成目录、tex_blit 生成头、GLAD GLES 加载配置和离屏无障碍驱动，静态接入固定 AccessKit SDK（无新增动态库）。Ubuntu ARM64 / Mesa virgl（M1 Pro 转译）完成官方 Dodge 源码→Squash v4 PCK→Dodge 源码唯一一组串行验收：同一 LibGodot、3 棵新树、2/3/4 缓冲、155/170/159 生产帧及 9 图，动态像素/公开输入/有效 PCM 通过；GPU 错误/未完成读取/blit/音频欠载均 0，卸载资源 1、节点 0，重复 Dodge 对象数 248 一致。147 项增量生成、21 项封包/SDK、源清单与源码重建核对通过。通过即停止；进程与临时文件已清理，本轮启动的 VM 已正常关闭。证据 `build/godot-4.7-linux/REPORT.md`。
+- [x] **UPGRADE-47-LINUX-X64**：GCC 13.3 交叉 x64 EGL Release 构建、封包/ELF 及 228 项 ABI 通过；复用已登记的 Linux 公共适配，无新增 vendor 补丁。QEMU 8.2.2 / llvmpipe（LLVM20、OpenGL4.5）完成官方 Dodge 源码→Squash v4 PCK→Dodge 源码唯一一组成功验收：同一 LibGodot、3 棵新树、2/3/4 缓冲、165/171/169 共享生产帧及 9 图，动态像素/公开输入/有效 PCM 通过；GPU 错误/未完成读取/blit/音频欠载均 0，卸载资源 1、节点 0，重复 Dodge 对象数 248 一致。隔离依赖缺口和两次超时保留证据；仅延长测试看门狗并补进度日志，300 tick 与原断言不变。通过即停止，进程/binfmt/临时文件已清理，本轮启动的 VM 正常关闭；不声明原生 x64 CPU/物理 GPU 或长期稳定性通过。证据 `build/godot-4.7-linux-x64/REPORT.md`。
+- [ ] **UPGRADE-47-WINDOWS**：源清单及新 SAPI 文件已对齐，WGL/D3D12 桥接和 D3D12 驱动关键编译检查通过；保留原有 AccessKit 关闭配置，不引入新 DLL。完整链接与新版设备运行仍待 CI/用户设备，不沿用 4.6 硬件结果。
+- [ ] **UPGRADE-47-ANDROID**：源清单/EGL/JNI 已对齐；Java/AAR 4.7.2、SDK36 / Build Tools36.1 / NDK29、Gradle8.11.1 / AGP8.6.1 及默认 CI 已同步，源码 Java/AAR、Maven 校验/转换、关键 native 编译与宿主 Release 任务图通过。完整 native/APK 与真实项目切换待验；既有 SwiftShader 缓存限制不自动关闭。
+- [ ] **UPGRADE-47-WEB**：WASM 源清单/链接来源身份已对齐，Web 桥接/OS 关键编译与代码生成检查通过；保留可选 Godot 导出。完整链接和浏览器动态回归仍待 CI/设备验证。
+- [ ] **UPGRADE-47-IOS**：device/simulator 清单与 metal-cpp 已对齐，移除失效的旧 .mm 预检条件，framework/ABI 版本改为 4.7.2 并拒绝旧源码 archive；device/simulator 关键 Metal 编译和 SDK 选择/错误拒绝通过。完整 archive/framework 及 Apple4 正向/模拟器拒绝仍待验。
+
+本轮过程与原始证据暂存 `build/godot-4.7-assessment/`、`build/godot-4.7-macos/`、`build/godot-4.7-linux/`、`build/godot-4.7-linux-x64/`；测试维护在 Dora-Example，不重建 history 目录。
+
 ## 已完成
+
+- [x] **UPGRADE-47-CROSS-REVIEW**：13 份清单补齐搬迁/新增源、Visual Shader 与 WGL 生成目录隔离；18 个 Windows/Android/Web/iOS 关键编译单元、5 种 profile 生成、xmake 图/147 项增量、协议/封包/分发/部署/SDK 入口回归通过。普通组件现复制桌面完整附属文件，保留 AccessKit/NIR 溯源且不重复 JNI 载荷。上述是构建配置和定向编译检查，不替代未完成平台的完整构建/动态验收；过程在 `build/godot-4.7-cross-review/`。
+
+- [x] **RELEASE-1.10.1-01**：正式Release 42053162310、10项公开资产/8组运行时/完整NIR溯源及发布后原生Windows安装验收42074803183全部通过；包含同版后端切换、repair、卸载和数据保留。证据`build/release-v1.10.1-validation/REPORT.md`；未追加GPU或本地VM测试。
 
 - [x] **RELEASE-PACKAGING-02**：桌面封包复制并验证runtime manifest的完整附属文件清单，修复D3D12溯源JSON漏包；Windows ZIP/MSI打包入口拒绝缺失或篡改的附属文件。真实staging函数及缺失/损坏负向回归通过。Android三ABI的C++库差异已由NDK28.1剥离符号逐字节重现，未发现替换依赖。
 - [x] **WEB-EXPORT-OPTIONAL-GODOT-01**：Web导出按源码API/WASM导入或Godot工程、场景、PCK识别依赖；普通项目不下载/封包/启动Godot。HTTP/HTML、注释排除、隔离页面和旧运行时适配回归及本地WebIDE构建通过。
@@ -105,7 +125,6 @@
 
 ## 待完成
 
-- [x] **RELEASE-1.10.1-01**：正式Release 42053162310、10项公开资产/8组运行时/完整NIR溯源及发布后原生Windows安装验收42074803183全部通过；包含同版后端切换、repair、卸载和数据保留。证据`build/release-v1.10.1-validation/REPORT.md`；未追加GPU或本地VM测试。
 
 - [ ] **DEFAULT-CI-02｜默认组件构建余项**：Linux Embree基线与iOS活动SDK修复已有CI通过证据；`a765d7265`的Linux、Docs、UI、入口检查已通过。Studio已补contracts、教程生成依赖和正式构建的xmake工具环境继承，本地完整生产构建通过；新提交的完整CI仍待确认，Windows、Android、Web等不推定通过。失败日志已留存；Windows新工具链的C++静态运行库链接顺序已补正，链接器查询移至on_config并通过实际配置/链接及早期查询负控制；完整Windows新构建仍待CI。推送后取消旧commit未结束任务，仅跟踪最新commit。证据`build/godot-ci-fix-v2/`至`build/godot-ci-fix-v4/`。
 

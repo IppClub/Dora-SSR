@@ -1,15 +1,15 @@
 {
   "schema_version": 1,
   "project": "Godot Engine",
-  "version": "4.6-stable",
+  "version": "4.7.2-stable",
   "upstream_repository": "https://github.com/godotengine/godot",
-  "upstream_ref": "refs/tags/4.6-stable",
-  "upstream_commit": "89cea143987d564363e15d207438530651d943ac",
-  "source_archive": "https://codeload.github.com/godotengine/godot/tar.gz/refs/tags/4.6-stable",
-  "source_archive_sha256": "b451eaa16d3abe0c7430e9ce1c4e83b146e5670e5b683dd8995c931fc82b57a0",
-  "imported_at": "2026-11-02",
-  "upstream_file_count": 13842,
-  "source_state": "unmodified upstream snapshot",
+  "upstream_ref": "refs/tags/4.7.2-stable",
+  "upstream_commit": "ed1daf0bf001b61586d9930840f2f1394092c079",
+  "source_archive": "https://codeload.github.com/godotengine/godot/tar.gz/refs/tags/4.7.2-stable",
+  "source_archive_sha256": "e954996374cbd1cb5d72e0e3781cc537408e6ce73b010b12c6c2f308a820690a",
+  "imported_at": "2026-11-06",
+  "upstream_file_count": 13989,
+  "source_state": "upstream snapshot with registered Dora integration delta",
   "license_files": [
     "LICENSE.txt",
     "COPYRIGHT.txt"

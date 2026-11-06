@@ -1,5 +1,5 @@
 {
-  "upstream_commit": "89cea143987d564363e15d207438530651d943ac",
+  "upstream_commit": "ed1daf0bf001b61586d9930840f2f1394092c079",
   "target": "template_release",
   "arch": "wasm32",
   "threads": true,

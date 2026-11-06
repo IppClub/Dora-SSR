@@ -21,11 +21,11 @@ if a.builder=='vendor':
  assert source_build['passed'] and source_build['vendor_sources_unchanged']
  archive=Path(source_build['source_aar']);expected=source_build['source_aar_sha256']
 else:
- archive=root/'build/godot-android/deps/godot-4.6.0.stable.aar';archive.parent.mkdir(parents=True,exist_ok=True)
- expected='567f1b8da098169cac561e7dcbda38f766697dca687baf542010fe7d5a7f8ef7'
- if not archive.is_file():urllib.request.urlretrieve('https://repo.maven.apache.org/maven2/org/godotengine/godot/4.6.0.stable/godot-4.6.0.stable.aar',archive)
+ archive=root/'build/godot-android/deps/godot-4.7.2.stable.aar';archive.parent.mkdir(parents=True,exist_ok=True)
+ expected='8791eecfe7c96a4de2d188a0bccfe9b83b92589a5a6825847473416a990e8629'
+ if not archive.is_file():urllib.request.urlretrieve('https://repo.maven.apache.org/maven2/org/godotengine/godot/4.7.2.stable/godot-4.7.2.stable.aar',archive)
 assert hashlib.sha256(archive.read_bytes()).hexdigest()==expected
-output=a.output/'godot-java-4.6.0.stable.aar';removed=[]
+output=a.output/'godot-java-4.7.2.stable.aar';removed=[]
 with zipfile.ZipFile(archive) as source,zipfile.ZipFile(output,'w',zipfile.ZIP_DEFLATED) as destination:
  for item in source.infolist():
   if item.filename.startswith('jni/'):removed.append(item.filename);continue
@@ -40,5 +40,5 @@ with zipfile.ZipFile(archive) as source,zipfile.ZipFile(output,'w',zipfile.ZIP_D
    data=ET.tostring(manifest,encoding='utf-8',xml_declaration=True)
   destination.writestr(item,data)
 with zipfile.ZipFile(output) as result:assert not any(name.startswith('jni/') for name in result.namelist())
-(a.output/'manifest.json').write_text(json.dumps({'builder':a.builder,'source_build':source_build,'source_version':'4.6.0.stable','source_sha256':expected,'java_aar_sha256':hashlib.sha256(output.read_bytes()).hexdigest(),'provider_class':'org.ippclub.dorassr.GodotFileProvider','removed_native_entries':removed,'scope':'upstream Java/resources only; native runtime supplied separately by the compiled Dora bridge'},indent=2)+'\n')
+(a.output/'manifest.json').write_text(json.dumps({'builder':a.builder,'source_build':source_build,'source_version':'4.7.2.stable','source_sha256':expected,'java_aar_sha256':hashlib.sha256(output.read_bytes()).hexdigest(),'provider_class':'org.ippclub.dorassr.GodotFileProvider','removed_native_entries':removed,'scope':'upstream Java/resources only; native runtime supplied separately by the compiled Dora bridge'},indent=2)+'\n')
 print(output.resolve())

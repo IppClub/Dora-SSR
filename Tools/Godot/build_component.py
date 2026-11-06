@@ -69,7 +69,13 @@ def stage(package, destination, platform, metadata):
     notices = destination / 'GodotRuntimeNotices'
     notices.mkdir(exist_ok=True)
     changed = copy_file(package / 'manifest.json', notices / 'manifest.json') or changed
-    for name in metadata['licenses']:
+    # Desktop packages may carry required SDK provenance beyond licenses.
+    # Mobile native payloads are staged by their platform packager; do not
+    # duplicate JNI libraries into notice assets.
+    sidecars = (set(metadata['artifacts']) - {metadata['library']}
+                if platform in ('macosx', 'linux', 'windows')
+                else set(metadata['licenses']) | set(metadata.get('dependency_provenance', [])))
+    for name in sorted(sidecars):
         changed = copy_file(package / name, notices / name) or changed
     return changed
 

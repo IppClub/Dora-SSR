@@ -132,13 +132,13 @@ class CryptoMbedTLS : public Crypto {
 private:
 	mbedtls_entropy_context entropy;
 	mbedtls_ctr_drbg_context ctr_drbg;
-	static X509CertificateMbedTLS *default_certs;
+	static Ref<X509CertificateMbedTLS> default_certs;
 
 public:
 	static Crypto *create(bool p_notify_postinitialize = true);
 	static void initialize_crypto();
 	static void finalize_crypto();
-	static X509CertificateMbedTLS *get_default_certificates();
+	static Ref<X509CertificateMbedTLS> get_default_certificates();
 	// Dora: called only after the previous project has released TLS clients.
 	static void reset_embedded_certificates();
 	static void load_default_certificates(const String &p_path);

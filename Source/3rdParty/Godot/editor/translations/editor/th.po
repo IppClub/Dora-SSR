@@ -27,13 +27,16 @@
 # "A Thousand Ships (she/her)" <over999ships@gmail.com>, 2025.
 # RESONA <championkungpvp@gmail.com>, 2025.
 # Wi Chan <mac.wikrom@gmail.com>, 2026.
+# M1ST3RWiCK <suwanruch.s@gmail.com>, 2026.
+# Krissaphon Natpaphatpisit <krissaphonfocus@gmail.com>, 2026.
+# MedProgAyat <hosseinmehriyari1383@gmail.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Godot Engine editor interface\n"
 "Report-Msgid-Bugs-To: https://github.com/godotengine/godot\n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2026-01-15 07:06+0000\n"
-"Last-Translator: Wi Chan <mac.wikrom@gmail.com>\n"
+"PO-Revision-Date: 2026-07-07 03:32+0000\n"
+"Last-Translator: MedProgAyat <hosseinmehriyari1383@gmail.com>\n"
 "Language-Team: Thai <https://hosted.weblate.org/projects/godot-engine/godot/"
 "th/>\n"
 "Language: th\n"
@@ -41,16 +44,157 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 5.15.2\n"
+"X-Generator: Weblate 2026.7.1.dev0\n"
 
 msgid "OK"
 msgstr "ตกลง"
 
+msgid "Failed"
+msgstr "ผิดพลาด"
+
+msgid "Unavailable"
+msgstr "ไม่มีคำอธิบายสำหรับ"
+
+msgid "Unconfigured"
+msgstr "ไม่ได้กำหนดค่า"
+
+msgid "Unauthorized"
+msgstr "ไม่ได้รับอนุญาต"
+
+msgid "Parameter out of range"
+msgstr "พารามิเตอร์อยู่นอกช่วงที่กำหนด"
+
+msgid "Out of memory"
+msgstr "หน่วยความจำไม่เพียงพอ"
+
+msgid "File not found"
+msgstr "ไม่พบไฟล์"
+
+msgid "File: Bad drive"
+msgstr "ไฟล์: ไดรฟ์เสีย"
+
+msgid "File: Bad path"
+msgstr "ไฟล์: เส้นทางไม่ถูกต้อง"
+
+msgid "File: Permission denied"
+msgstr "ไฟล์: การเข้าถึงถูกปฏิเสธ"
+
 msgid "File already in use"
 msgstr "ไฟล์ถูกใช้งานอยู่แล้ว"
 
+msgid "Can't open file"
+msgstr "ไม่สามารถเปิดไฟล์ได้"
+
+msgid "Can't write file"
+msgstr "ไม่สามารถเขียนไฟล์ได้"
+
+msgid "Can't read file"
+msgstr "ไม่สามารถอ่านไฟล์ได้"
+
+msgid "File unrecognized"
+msgstr "ไม่รู้จักไฟล์"
+
+msgid "File corrupt"
+msgstr "ไฟล์เสียหาย"
+
+msgid "Missing dependencies for file"
+msgstr "ไม่พบไฟล์ที่จำเป็นต้องใช้"
+
+msgid "End of file"
+msgstr "สิ้นสุดไฟล์"
+
+msgid "Can't open"
+msgstr "ไม่สามารถเปิดได้"
+
+msgid "Can't create"
+msgstr "ไม่สามารถสร้างได้"
+
+msgid "Query failed"
+msgstr "การสอบถามล้มเหลว"
+
+msgid "Already in use"
+msgstr "ถูกใช้งานอยู่"
+
+msgid "Locked"
+msgstr "ล็อก"
+
+msgid "Timeout"
+msgstr "หมดเวลา"
+
+msgid "Can't connect"
+msgstr "เชื่อมต่อไม่ได้"
+
+msgid "Can't resolve"
+msgstr "ไม่สามารถแก้ไขได้"
+
+msgid "Connection error"
+msgstr "เกิดข้อผิดพลาดในการเชื่อมต่อ"
+
+msgid "Can't acquire resource"
+msgstr "ไม่สามารถรับทรัพยากรได้"
+
+msgid "Can't fork"
+msgstr "ไม่สามารถแยกกระบวนการได้"
+
+msgid "Invalid data"
+msgstr "ข้อมูลไม่ถูกต้อง"
+
+msgid "Invalid parameter"
+msgstr "พารามิเตอร์ไม่ถูกต้อง"
+
+msgid "Already exists"
+msgstr "มีอยู่แล้ว"
+
+msgid "Does not exist"
+msgstr "ไม่พบข้อมูล"
+
+msgid "Can't read database"
+msgstr "ไม่สามารถอ่านฐานข้อมูลได้"
+
+msgid "Can't write database"
+msgstr "ไม่สามารถเขียนฐานข้อมูลได้"
+
+msgid "Compilation failed"
+msgstr "การคอมไพล์ล้มเหลว"
+
+msgid "Method not found"
+msgstr "ไม่พบฟังก์ชันที่เรียกใช้"
+
+msgid "Link failed"
+msgstr "การลิงก์ล้มเหลว"
+
+msgid "Script failed"
+msgstr "สคริปต์ล้มเหลว"
+
+msgid "Cyclic link detected"
+msgstr "เกิดการวนลูปของโครงสร้าง"
+
+msgid "Invalid declaration"
+msgstr "การประกาศค่าที่ไม่ถูกต้อง"
+
+msgid "Duplicate symbol"
+msgstr "ชื่อซ้ำ"
+
+msgid "Parse error"
+msgstr "เขียนผิดไวยากรณ์"
+
+msgid "Busy"
+msgstr "กำลังทำงานอยู่"
+
+msgid "Skip"
+msgstr "ข้าม"
+
 msgid "Help"
 msgstr "ช่วยเหลือ"
+
+msgid "Bug"
+msgstr "ข้อผิดพลาด"
+
+msgid "Printer on fire"
+msgstr "เครื่องพิมพ์กำลังไฟไหม้"
+
+msgid "unset"
+msgstr "ยกเลิกการตั้งค่า"
 
 msgid "Physical"
 msgstr "ทางกายภาพ"
@@ -196,6 +340,9 @@ msgstr "ปุ่มจอยที่ %d"
 msgid "Pressure:"
 msgstr "แรงกด:"
 
+msgid "canceled"
+msgstr "ยกเลิก"
+
 msgid "touched"
 msgstr "สัมผัส"
 
@@ -221,6 +368,12 @@ msgstr "อุปกรณ์นำเข้า MIDI ที่ช่องสั
 msgid "Input Event with Shortcut=%s"
 msgstr "Input Event ด้วยทางลัด=%s"
 
+msgid " or "
+msgstr " หรือ "
+
+msgid "Action has no bound inputs"
+msgstr "แอ็กชันนี้ยังไม่ได้เชื่อมต่อกับปุ่มกดใดๆ"
+
 msgid "Accept"
 msgstr "ยอมรับ"
 
@@ -229,6 +382,9 @@ msgstr "เลือก"
 
 msgid "Cancel"
 msgstr "ยกเลิก"
+
+msgid "Close Dialog"
+msgstr "ปิดบทสนทนา"
 
 msgid "Focus Next"
 msgstr "เลือกโฟกัสที่องค์ประกอบถัดไป"
@@ -268,6 +424,9 @@ msgstr "คัดลอก"
 
 msgid "Paste"
 msgstr "วาง"
+
+msgid "Toggle Tab Focus Mode"
+msgstr "สลับโหมดการโฟกัสด้วยปุ่ม Tab"
 
 msgid "Undo"
 msgstr "ยกเลิกการกระทำ"
@@ -383,6 +542,9 @@ msgstr "ทำซ้ำโหนด"
 msgid "Delete Nodes"
 msgstr "ลบโหนด"
 
+msgid "Follow Output Port Connection"
+msgstr "ตามไปดูการเชื่อมต่อจากพอร์ตส่งออก"
+
 msgid "Go Up One Level"
 msgstr "เลื่อนขึ้นไปหนึ่งระดับ"
 
@@ -400,6 +562,9 @@ msgstr "สลับทิศทางอินพุต"
 
 msgid "Start Unicode Character Input"
 msgstr "เริ่มป้อนตัวอักขระแบบ Unicode"
+
+msgid "Accessibility: Keyboard Drag and Drop"
+msgstr "การเข้าถึง: การลากและวางด้วยคีย์บอร์ด"
 
 msgid "Invalid input %d (not passed) in expression"
 msgstr "อินพุต %d (ไม่ส่งผ่าน) ใน expression ไม่ถูกต้อง"
@@ -515,8 +680,8 @@ msgstr "เพิ่ม %s"
 msgid "Load..."
 msgstr "โหลด..."
 
-msgid "Move Node Point"
-msgstr "สร้างจุดโหนด"
+msgid "Move BlendSpace1D Node Point"
+msgstr "ย้ายจุดโหนด BlendSpace1D"
 
 msgid "Change BlendSpace1D Labels"
 msgstr "เปลี่ยนป้ายกำกับ BlendSpace1D"
@@ -532,9 +697,6 @@ msgstr "เพิ่มจุดแอนิเมชัน"
 
 msgid "Remove BlendSpace1D Point"
 msgstr "ลบจุด BlendSpace1D"
-
-msgid "Move BlendSpace1D Node Point"
-msgstr "ย้ายจุดโหนด BlendSpace1D"
 
 msgid "Continuous"
 msgstr "ต่อเนื่อง"
@@ -554,14 +716,20 @@ msgstr "ลบจุด"
 msgid "Enable snap and show grid."
 msgstr "เปิกการใช้งานการเข้าหาแลแสดงเส้นกริด"
 
-msgid "Blend:"
-msgstr "ผสม:"
+msgid "Sync"
+msgstr "ซิงก์"
 
-msgid "Point"
-msgstr "จุด"
+msgid "None"
+msgstr "ไม่มี"
 
 msgid "Open Editor"
 msgstr "เปิดตัวแก้ไข"
+
+msgid "Min"
+msgstr "ค่าต่ำสุด"
+
+msgid "Max"
+msgstr "ค่าสูงสุด"
 
 msgid "Value"
 msgstr "ค่า"
@@ -584,9 +752,6 @@ msgstr "ลบจุด BlendSpace2D"
 msgid "Remove BlendSpace2D Triangle"
 msgstr "ลบสามเหลี่ยม BlendSpace2D"
 
-msgid "No triangles exist, so no blending can take place."
-msgstr "ไม่มีสามเหลี่ยม จึงไม่สามารถใช้ blending ได้"
-
 msgid "Toggle Auto Triangles"
 msgstr "เปิด/ปิดสามเหลี่ยมอัตโนมัติ"
 
@@ -598,6 +763,18 @@ msgstr "ลบจุดและสามเหลี่ยม"
 
 msgid "Generate blend triangles automatically (instead of manually)"
 msgstr "สร้างสามเหลี่ยม blend อัตโนมัติ (แทนที่การสร้างแบบปกติ)"
+
+msgid "Max Y"
+msgstr "ค่า Y สูงสุด"
+
+msgid "Min Y"
+msgstr "ค่า Y ต่ำสุด"
+
+msgid "Min X"
+msgstr "ค่า X ต่ำสุด"
+
+msgid "Max X"
+msgstr "ค่า X สูงสุด"
 
 msgid "Parameter Changed: %s"
 msgstr "เปลี่ยนพารามิเตอร์: %s"
@@ -664,14 +841,17 @@ msgstr "เพิ่มโหนด..."
 msgid "Enable Filtering"
 msgstr "เปิดการใช้งานตัวกรอง"
 
+msgid "Invert"
+msgstr "กลับด้าน"
+
 msgid "Clear"
 msgstr "เคลียร์"
 
+msgid "Set Custom Timeline from Marker"
+msgstr "กำหนดไทม์ไลน์กำหนดเองจากมาร์กเกอร์"
+
 msgid "Load Animation"
 msgstr "โหลดแอนิเมชัน"
-
-msgid "Animation Name:"
-msgstr "ชื่อแอนิเมชัน:"
 
 msgid "Pasted Animation"
 msgstr "วางแอนิเมชันแล้ว"
@@ -793,6 +973,9 @@ msgstr "รวมสัญลักษณ์ (3D)"
 msgid "Pin AnimationPlayer"
 msgstr "ปักหมุด AnimationPlayer"
 
+msgid "Animation Name:"
+msgstr "ชื่อแอนิเมชัน:"
+
 msgid "Close"
 msgstr "ปิด"
 
@@ -820,9 +1003,6 @@ msgstr "เพิ่มทรานสิชัน"
 msgid "Immediate"
 msgstr "ทันที"
 
-msgid "Sync"
-msgstr "ซิงก์"
-
 msgid "At End"
 msgstr "ในตอนท้าย"
 
@@ -843,12 +1023,6 @@ msgstr "เชื่อมต่อโหนด"
 
 msgid "Remove selected node or transition."
 msgstr "ลบโหนดหรือทรานสิชันที่เลือก"
-
-msgid "Transition:"
-msgstr "การเปลี่ยนผ่าน (ทรานสิชั่น):"
-
-msgid "Play Mode:"
-msgstr "โหมดการเล่น:"
 
 msgid "Animation Change Transition"
 msgstr "เปลี่ยนรูปแบบการเคลื่อนผ่าน (Transition) ของ Animation"
@@ -881,10 +1055,20 @@ msgid ""
 "settings and select the animation.\n"
 "You can then change the loop mode from the inspector menu."
 msgstr ""
-"ไม่สามารถเปลี่ยนโหมดการวนซ้ำ (Loop mode) ของแอนิเมชันที่ถูกอินสแตนซ์มาจากฉากที่นำเข้าได้ "
+"ไม่สามารถเปลี่ยนโหมดการวนซ้ำ (Loop mode) ของแอนิเมชันที่ถูกอินสแตนซ์มาจากฉากที่นำเข้าได้\n"
+"\n"
 "หากต้องการเปลี่ยนโหมดการวนซ้ำของแอนิเมชันนี้ ให้ไปที่การตั้งค่าการนำเข้าขั้นสูง (Advanced "
-"Import Settings) ของฉาก แล้วเลือกแอนิเมชันที่ต้องการ "
+"Import Settings) ของฉาก แล้วเลือกแอนิเมชันที่ต้องการ\n"
 "จากนั้นคุณจะสามารถเปลี่ยนโหมดการวนซ้ำได้จากเมนู Inspector"
+
+msgid ""
+"Can't change loop mode on animation embedded in another scene.\n"
+"\n"
+"You must open this scene and change the animation's loop mode from there."
+msgstr ""
+"ไม่สามารถแก้ไขโหมดวนซ้ำ (Loop) ของ Animation ที่ฝังอยู่อีกฉากหนึ่งได้\n"
+"\n"
+"คุณต้องเปิดซีนนี้ และเปลี่ยนโหมดการวนลูป (Loop Mode) ของแอนิเมชันจากที่นั่น"
 
 msgid "Animation length (frames)"
 msgstr "ความยาว Animation (เฟรม)"
@@ -953,7 +1137,10 @@ msgid "In-Handle:"
 msgstr "In-Handle:"
 
 msgid "Out-Handle:"
-msgstr "Out-Handle:"
+msgstr "ตัวจัดการข้อมูลขาออก:"
+
+msgid "Handle mode: %s"
+msgstr "โหมด Handle: %s"
 
 msgid "Stream:"
 msgstr "การ Stream:"
@@ -1030,8 +1217,23 @@ msgstr "AnimationPlayer ไม่สามารถเล่นอนิเม�
 msgid "property '%s'"
 msgstr "บนคุณสมบัติ '%s'"
 
+msgid "Nearest FPS: %d"
+msgstr "ค่า FPS ที่ใกล้เคียงที่สุด: %d"
+
 msgid "Set the default handle mode of new bezier keys."
 msgstr "กำหนดโหมด Handle เริ่มต้นของคีย์ Bezier ใหม่"
+
+msgctxt "Transition Type"
+msgid "Quart"
+msgstr "Quart (เศษหนึ่งส่วนสี่)"
+
+msgctxt "Transition Type"
+msgid "Bounce"
+msgstr "เด้ง"
+
+msgctxt "Transition Type"
+msgid "Spring"
+msgstr "สปริง"
 
 msgid "Change Animation Step"
 msgstr "แก้ไขช่วงของแอนิเมชัน"
@@ -1210,22 +1412,6 @@ msgstr "อัตราส่วนขนาด:"
 msgid "Select Transition and Easing"
 msgstr "เลือกการเปลี่ยนผ่านและ Easing"
 
-msgctxt "Transition Type"
-msgid "Sine"
-msgstr "Sine (อัตราส่วนของด้านตรงข้ามมุมที่กำหนด)"
-
-msgctxt "Transition Type"
-msgid "Quart"
-msgstr "Quart (เศษหนึ่งส่วนสี่)"
-
-msgctxt "Transition Type"
-msgid "Bounce"
-msgstr "เด้ง"
-
-msgctxt "Transition Type"
-msgid "Spring"
-msgstr "สปริง"
-
 msgid "Select Tracks to Copy"
 msgstr "เลือกแทร็กที่จะคัดลอก"
 
@@ -1247,23 +1433,29 @@ msgstr "เปลี่ยนออฟเซ็ตตอนจบของคล
 msgid "Path:"
 msgstr "ตำแหน่ง:"
 
+msgid "Errors"
+msgstr "ข้อผิดพลาด"
+
 msgid "License"
 msgstr "ลิขสิทธิ์"
+
+msgid "Loading..."
+msgstr "กำลังโหลด..."
+
+msgid "Download"
+msgstr "ดาวน์โหลด"
+
+msgid "Downloading..."
+msgstr "กำลังดาวน์โหลด..."
+
+msgid "Install..."
+msgstr "ติดตั้ง..."
 
 msgid "Version:"
 msgstr "รุ่น:"
 
-msgid "Contents:"
-msgstr "ประกอบด้วย:"
-
-msgid "View Files"
-msgstr "ดูไฟล์"
-
-msgid "Description:"
-msgstr "รายละเอียด:"
-
-msgid "Download"
-msgstr "ดาวน์โหลด"
+msgid "Description"
+msgstr "รายละเอียด"
 
 msgid "Connection error, please try again."
 msgstr "เชื่อมต่อไม่ได้ กรุณาลองใหม่"
@@ -1328,9 +1520,6 @@ msgstr "ดาวน์โหลดทรัพยากรผิดพลาด
 msgid "Downloading (%s / %s)..."
 msgstr "กำลังดาวน์โหลด (%s / %s)..."
 
-msgid "Downloading..."
-msgstr "กำลังดาวน์โหลด..."
-
 msgid "Resolving..."
 msgstr "กำลังแก้ไข..."
 
@@ -1346,47 +1535,17 @@ msgstr "การร้องขอผิดพลาด"
 msgid "Idle"
 msgstr "พร้อมใช้งาน"
 
-msgid "Install..."
-msgstr "ติดตั้ง..."
-
 msgid "Retry"
 msgstr "ลองใหม่"
 
 msgid "Download Error"
 msgstr "ดาวน์โหลดผิดพลาด"
 
-msgid "Recently Updated"
-msgstr "อัพเดทล่าสุด"
-
-msgid "Least Recently Updated"
-msgstr "อัพเดทน้อยสุด"
-
-msgid "Name (A-Z)"
-msgstr "ชื่อ (A-Z)"
-
-msgid "Name (Z-A)"
-msgstr "ชื่อ (Z-A)"
-
-msgid "License (A-Z)"
-msgstr "สัญญาอนุญาต (A-Z)"
-
-msgid "License (Z-A)"
-msgstr "สัญญาอนุญาต (Z-A)"
-
-msgid "Community"
-msgstr "ชุมชน"
-
-msgid "Testing"
-msgstr "กำลังทดสอบ"
-
-msgid "Loading..."
-msgstr "กำลังโหลด..."
-
 msgid "All"
 msgstr "ทั้งหมด"
 
-msgid "Install"
-msgstr "ติดตั้ง"
+msgid "No results for \"%s\"."
+msgstr "ไม่มีผลลัพธ์สำหรับ \"%s\""
 
 msgid "Import..."
 msgstr "นำเข้า..."
@@ -1400,11 +1559,8 @@ msgstr "เรียงตาม:"
 msgid "Category:"
 msgstr "หมวดหมู่:"
 
-msgid "Site:"
-msgstr "ไซต์:"
-
-msgid "Support"
-msgstr "สนับสนุน..."
+msgid "Licenses"
+msgstr "สัญญาอนุญาต"
 
 msgid "Assets ZIP File"
 msgstr "ทรัพยากรไฟล์ ZIP"
@@ -1435,9 +1591,6 @@ msgid ""
 "Change the folder where the contents of the asset are going to be installed."
 msgstr "เปลี่ยนโฟลเดอร์ที่จะติดตั้งเนื้อหาของทรัพย์สิน"
 
-msgid "Ignore asset root"
-msgstr "ไม่สนใจรากสินทรัพย์"
-
 msgid "Show contents of the asset and conflicting files."
 msgstr "แสดงเนื้อหาของทรัพย์สินและไฟล์ที่ขัดแย้ง"
 
@@ -1446,6 +1599,9 @@ msgstr "เนื้อหาของสินทรัพย์:"
 
 msgid "Configure Asset Before Installing"
 msgstr "กำหนดค่าสินทรัพย์ก่อนการติดตั้ง"
+
+msgid "Install"
+msgstr "ติดตั้ง"
 
 msgid "Stop"
 msgstr "หยุด"
@@ -1621,6 +1777,15 @@ msgstr ""
 msgid "Visible Navigation"
 msgstr "แสดงการนำทาง"
 
+msgid ""
+"When this option is enabled, redraw requests of 2D objects will become "
+"visible (as a short flash) in the running project.\n"
+"This is useful to troubleshoot low processor mode."
+msgstr ""
+"เมื่อเปิดใช้งานตัวเลือกนี้ การร้องขอให้วาดวัตถุ 2D ใหม่จะปรากฏให้เห็น (เป็นแสงกะพริบสั้น ๆ) "
+"ในโปรเจกต์ที่กำลังรันอยู่\n"
+"ซึ่งมีประโยชน์ในการวิเคราะห์ปัญหาของโหมดประมวลผลต่ำ (Low Processor Mode)"
+
 msgid "Synchronize Scene Changes"
 msgstr "ซิงค์การเปลี่ยนแปลงฉาก"
 
@@ -1747,9 +1912,6 @@ msgstr "ซีพียู"
 msgid "GPU"
 msgstr "จีพียู"
 
-msgid "Errors"
-msgstr "ข้อผิดพลาด"
-
 msgid "Main Thread"
 msgstr "เธรดหลัก"
 
@@ -1816,6 +1978,12 @@ msgstr "รูปแบบ"
 msgid "Usage"
 msgstr "การใช้"
 
+msgid "Show in FileSystem"
+msgstr "แสดงในรูปแบบไฟล์"
+
+msgid "View Owners..."
+msgstr "ดูเจ้าของ..."
+
 msgid "Misc"
 msgstr "อื่น ๆ"
 
@@ -1861,12 +2029,6 @@ msgstr "คลาส:"
 msgid "Inherits:"
 msgstr "สืบทอด:"
 
-msgid "Inherited by:"
-msgstr "สืบทอดโดย:"
-
-msgid "Description"
-msgstr "รายละเอียด"
-
 msgid "Online Tutorials"
 msgstr "บทสอนออนไลน์"
 
@@ -1908,9 +2070,6 @@ msgstr "ตัวแก้ไข"
 msgid "Open"
 msgstr "เปิด"
 
-msgid "Show in FileSystem"
-msgstr "แสดงในรูปแบบไฟล์"
-
 msgid "Open in File Manager"
 msgstr "เปิดโฟลเดอร์"
 
@@ -1943,6 +2102,9 @@ msgstr "ค้นหา"
 
 msgid "Hide"
 msgstr "ซ่อน"
+
+msgid "No match"
+msgstr "ไม่พบรายการที่ตรงกัน"
 
 msgid "Search Help"
 msgstr "ค้นหาความช่วยเหลือ"
@@ -1989,9 +2151,6 @@ msgstr "%s - Godot Engine"
 msgid "Dock Position"
 msgstr "ตำแหน่งแผง"
 
-msgid "Favorites:"
-msgstr "ที่ชื่นชอบ:"
-
 msgid "Favorites"
 msgstr "ที่ชื่นชอบ"
 
@@ -2029,6 +2188,11 @@ msgstr "อักษรบางตัวใช้ไม่ได้"
 msgid "A file or folder with this name already exists."
 msgstr "มีชื่อกลุ่มนี้อยู่แล้ว"
 
+msgid ""
+"The following files or folders conflict with items in the target location "
+"'%s':"
+msgstr "ไฟล์หรือโฟลเดอร์ต่อไปนี้นั้นขัดแย้งกันกับรายการในตำแหน่งที่เลือกไว้ '%s':"
+
 msgid "Duplicating file:"
 msgstr "ทำซ้ำไฟล์:"
 
@@ -2050,9 +2214,6 @@ msgstr "เริ่ม"
 msgid "Edit Dependencies..."
 msgstr "แก้ไขการอ้างอิง..."
 
-msgid "View Owners..."
-msgstr "ดูเจ้าของ..."
-
 msgid "Add to Favorites"
 msgstr "เพิ่มไปยังที่ชื่นชอบ"
 
@@ -2061,9 +2222,6 @@ msgstr "ลบจากที่่ชื่นชอบ"
 
 msgid "Reimport"
 msgstr "นำเข้าใหม่"
-
-msgid "Show in File Manager"
-msgstr "แสดงในตัวจัดการไฟล์"
 
 msgid "New Folder..."
 msgstr "สร้างโฟลเดอร์..."
@@ -2108,6 +2266,9 @@ msgstr "เปลี่ยนชื่อกลุ่ม"
 msgid "Name:"
 msgstr "ชื่อ:"
 
+msgid "Description:"
+msgstr "รายละเอียด:"
+
 msgid "Rename"
 msgstr "เปลี่ยนชื่อ"
 
@@ -2135,11 +2296,11 @@ msgstr "นำเข้าเป็น:"
 msgid "Preset"
 msgstr "พรีเซ็ต"
 
-msgid "Failed to load resource."
-msgstr "โหลดทรัพยากรไม่ได้"
-
 msgid "Make Sub-Resources Unique"
 msgstr "ไม่ให้ใช้รีซอร์สร่วมกับวัตถุอื่น"
+
+msgid "Failed to load resource."
+msgstr "โหลดทรัพยากรไม่ได้"
 
 msgid "Inspector"
 msgstr "คุณสมบัติ"
@@ -2171,11 +2332,11 @@ msgstr "ผิดพลาดขณะโหลดฉากจาก %s"
 msgid "Replace with Branch Scene"
 msgstr "แทนที่ด้วยฉากย่อย"
 
-msgid "Detach Script"
-msgstr "ค้นพบสคริปต์"
-
 msgid "This operation can't be done on the tree root."
 msgstr "ทำกับโหนดรากไม่ได้"
+
+msgid "Detach Script"
+msgstr "ค้นพบสคริปต์"
 
 msgid "Duplicate Node(s)"
 msgstr "ทำซ้ำโหนด"
@@ -2271,11 +2432,11 @@ msgstr "รีซอร์สย่อย"
 msgid "Clear Inheritance"
 msgstr "ลบการสืบทอด"
 
-msgid "Open in Editor"
-msgstr "เปิดในโปรแกรมแก้ไข"
-
 msgid "Editable Children"
 msgstr "แก้ไขโหนดลูกได้"
+
+msgid "Open in Editor"
+msgstr "เปิดในโปรแกรมแก้ไข"
 
 msgid ""
 "Cannot attach a script: there are no languages registered.\n"
@@ -2287,9 +2448,6 @@ msgstr ""
 
 msgid "Can't paste root node into the same scene."
 msgstr "ไม่สามารถวางโหนดรากในฉากเดียวกัน"
-
-msgid "None"
-msgstr "ไม่มี"
 
 msgid "Move Up"
 msgstr "เลื่อนขึ้น"
@@ -2480,12 +2638,6 @@ msgstr "ฉาก '%s' มีการอ้างอิงสูญหาย:"
 msgid "Clear Recent Scenes"
 msgstr "ล้างรายการฉากล่าสุด"
 
-msgid "Save Layout"
-msgstr "บันทึกเลย์เอาต์"
-
-msgid "Delete Layout"
-msgstr "ลบเลย์เอาต์"
-
 msgid "Save & Close"
 msgstr "บันทึกและปิด"
 
@@ -2612,6 +2764,9 @@ msgstr "ถ่ายภาพหน้าจอ"
 msgid "Toggle Fullscreen"
 msgstr "เปิด/ปิด โหมดเต็มหน้าจอ"
 
+msgid "Community"
+msgstr "ชุมชน"
+
 msgid "Report a Bug"
 msgstr "รายงานบั๊ก"
 
@@ -2620,9 +2775,6 @@ msgstr "ส่งความคิดเห็นเกี่ยวกับค
 
 msgid "Open Script Editor"
 msgstr "เปิดตัวแก้ไขสคริปต์"
-
-msgid "Open Asset Library"
-msgstr "เปิดไลบรารีทรัพยากร"
 
 msgid "Open the next Editor"
 msgstr "เปิดตัวแก้ไขถัดไป"
@@ -2656,6 +2808,9 @@ msgstr "แพคเกจเทมเพลต"
 
 msgid "Export Library"
 msgstr "ส่งออกไลบรารี"
+
+msgid "The following files are newer on disk:"
+msgstr "ไฟล์เหล่านี้มีความใหม่กว่าบนดิสก์:"
 
 msgid "Restart"
 msgstr "เริ่มใหม่"
@@ -2696,26 +2851,11 @@ msgstr "เลือกอุปกรณ์จากรายชื่อ"
 msgid "On 32-bit exports the embedded PCK cannot be bigger than 4 GiB."
 msgstr "การส่งออกแบบ 32 bit PCK แบบฝังตัวไม่สามารถใหญ่ได้เกิน 4 GiB"
 
-msgid "Error requesting URL:"
-msgstr "ผิดพลาดขณะกำลังร้องขอ URL:"
-
-msgid "Cannot remove temporary file:"
-msgstr "ไม่สามารถลบไฟล์ชั่วคราวได้:"
-
-msgid ""
-"Templates installation failed.\n"
-"The problematic templates archives can be found at '%s'."
-msgstr ""
-"การติดตั้งเทมเพลตล้มเหลว\n"
-"ดูไฟล์รายงานปัญหาได้ที่ '%s'"
+msgid "Official export templates aren't available for development builds."
+msgstr "ไม่มีเทมเพลตการส่งออกอย่างเป็นทางการสำหรับรุ่นผู้พัฒนา"
 
 msgid "Error getting the list of mirrors."
 msgstr "ผิดพลาดขณะกำลังรับรายชื่อของ mirrors"
-
-msgid ""
-"No download links found for this version. Direct download is only available "
-"for official releases."
-msgstr "ไม่พบลิงก์ดาวน์โหลดสำหรับรุ่นนี้ มีเฉพาะสำหรับโปรแกรมรุ่นหลัก"
 
 msgid "Extracting Export Templates"
 msgstr "กำลังคลายเทมเพลตส่งออก"
@@ -2723,8 +2863,8 @@ msgstr "กำลังคลายเทมเพลตส่งออก"
 msgid "Importing:"
 msgstr "กำลังนำเข้า:"
 
-msgid "Official export templates aren't available for development builds."
-msgstr "ไม่มีเทมเพลตการส่งออกอย่างเป็นทางการสำหรับรุ่นผู้พัฒนา"
+msgid "Common"
+msgstr "ทั่วไป"
 
 msgid "Uncompressing Android Build Sources"
 msgstr "กำลังคลาย Android Build Sources"
@@ -2732,17 +2872,14 @@ msgstr "กำลังคลาย Android Build Sources"
 msgid "Export Template Manager"
 msgstr "จัดการเทมเพลตส่งออก"
 
-msgid "Current Version:"
-msgstr "รุ่นปัจจุบัน:"
-
-msgid "Uninstall"
-msgstr "ถอนการติดตั้ง"
-
 msgid "Select Template File"
 msgstr "เลือกไฟล์เทมเพลต"
 
 msgid "Godot Export Templates"
 msgstr "เทมเพลตการส่งออก Godot"
+
+msgid "Export templates for this platform are missing:"
+msgstr "ไม่พบเทมเพลตส่งออกสำหรับแพลตฟอร์มนี้:"
 
 msgid "Runnable"
 msgstr "สามารถรันได้"
@@ -2802,20 +2939,6 @@ msgstr "วิธีการส่งออก:"
 msgid "Keep"
 msgstr "เก็บ"
 
-msgid ""
-"Filters to export non-resource files/folders\n"
-"(comma-separated, e.g: *.json, *.txt, docs/*)"
-msgstr ""
-"ตัวกรองไฟล์ที่จะส่งออกเพิ่มเติม\n"
-"(คั่นด้วยจุลภาค ตัวอย่างเช่น: *.json, *.txt, docs/)"
-
-msgid ""
-"Filters to exclude files/folders from project\n"
-"(comma-separated, e.g: *.json, *.txt, docs/*)"
-msgstr ""
-"ตัวกรองไฟล์ที่จะไม่ส่งออก\n"
-"(คั่นด้วยจุลภาค ตัวอย่างเช่น: *.json, *.txt)"
-
 msgid "Features"
 msgstr "ฟีเจอร์"
 
@@ -2831,17 +2954,19 @@ msgstr "ส่งออกทั้งหมด"
 msgid "ZIP File"
 msgstr "ไฟล์ ZIP"
 
-msgid "Export templates for this platform are missing:"
-msgstr "ไม่พบเทมเพลตส่งออกสำหรับแพลตฟอร์มนี้:"
-
 msgid "Manage Export Templates"
 msgstr "จัดการเทมเพลตส่งออก"
 
 msgid "Dependencies For:"
 msgstr "การอ้างอิงของ:"
 
-msgid "Dependencies"
-msgstr "การอ้างอิง"
+msgid ""
+"Scene \"%s\" is currently being edited. Changes will only take effect when "
+"reloaded."
+msgstr "ฉาก '%s' กำลังถูกเปิดแก้ไข การแก้ไขจะไม่ส่งผลจนกว่าจะโหลดใหม่"
+
+msgid "Resource \"%s\" is in use. Changes will only take effect when reloaded."
+msgstr "ทรัพยากร '%s' กำลังถูกใช้งาน การแก้ไขจะไม่ส่งผลจนกว่าจะโหลดใหม่"
 
 msgid "Dependencies:"
 msgstr "การอ้างอิง:"
@@ -2881,6 +3006,9 @@ msgstr "เป็นเจ้าของ"
 
 msgid "Resources Without Explicit Ownership:"
 msgstr "รีซอร์สที่ไม่มีเจ้าของที่ชัดเจน:"
+
+msgid "Scanning file structure..."
+msgstr "กำลังสแกนไฟล์ กรุณารอ..."
 
 msgid "ScanSources"
 msgstr "สแกนต้นฉบับ"
@@ -2935,8 +3063,8 @@ msgstr "เลขบรรทัดและคอลัมน์"
 msgid "Change"
 msgstr "เปลี่ยน"
 
-msgid "No results for \"%s\"."
-msgstr "ไม่มีผลลัพธ์สำหรับ \"%s\""
+msgid "Favorites:"
+msgstr "ที่ชื่นชอบ:"
 
 msgid "Recent:"
 msgstr "ล่าสุด:"
@@ -3011,9 +3139,6 @@ msgstr "ทั้งหมด"
 msgid "Components"
 msgstr "ไลบรารี"
 
-msgid "Licenses"
-msgstr "สัญญาอนุญาต"
-
 msgid "Expand Bottom Panel"
 msgstr "ขยายแผงด้านล่าง"
 
@@ -3025,6 +3150,12 @@ msgstr "ไม่พบทรัพยากรย่อย"
 
 msgid " (recently opened)"
 msgstr " (เปิดเมื่อเร็วๆ นี้)"
+
+msgid "Hold %s to round to integers."
+msgstr "กด %s ค้างเพื่อปัดเศษเป็นจำนวนเต็ม"
+
+msgid "Hold Shift for more precise changes."
+msgstr "กด Shift ค้างเพื่อเพิ่มความแม่นยำของการเปลี่ยนแปลง"
 
 msgid "Remove Item"
 msgstr "ลบไอเทม"
@@ -3267,16 +3398,15 @@ msgstr "หน้าต่างใหม่"
 msgid "You don't have any projects yet."
 msgstr "คุณยังไม่มีโปรเจ็กต์ใดๆ"
 
-msgid ""
-"Get started by creating a new one,\n"
-"importing one that exists, or by downloading a project template from the "
-"Asset Library!"
-msgstr ""
-"เริ่มต้นด้วยการสร้างโปรเจกต์ใหม่,\n"
-"นำเข้าที่มีอยู่แล้ว, หรือดาวน์โหลดเทมเพล็ตโปรเจกต์จาก Asset Library!"
-
 msgid "Are you sure to run %d projects at once?"
 msgstr "ยืนยันการรันโปรเจกต์ %d โปรเจกต์ทีเดียว?"
+
+msgid ""
+"Can't open project at '%s'.\n"
+"Failed to start the editor."
+msgstr ""
+"ไม่สามารถเปิดโปรเจกต์ที่ '%s'\n"
+"ไม่สามารถเริ่มการทำงานของโปรแกรมแก้ไข (Editor) ได้"
 
 msgid ""
 "The selected project \"%s\" does not specify its supported Godot version in "
@@ -3298,6 +3428,40 @@ msgstr ""
 "หากคุณเลือกที่จะเปิดโปรเจกต์นี้ต่อไป มันจะถูกแปลงเป็นไฟล์การแก้ใขฟอร์แมทของเวอร์ชั่นปัจจุบัน\n"
 "\n"
 "คำเตือน: คุณจะไม่สามารถเปิดโปรเจกต์ด้วยเวอร์ชั่นเก่ากว่าเวอร์ชั่นปัจจุบันของโปรแกรมได้อีกต่อไป"
+
+msgid ""
+"The selected project \"%s\" was generated by an older engine version, and "
+"needs to be converted for this version.\n"
+"\n"
+"Project path: %s\n"
+"\n"
+"Do you want to convert it?\n"
+"\n"
+"Warning: You won't be able to open the project with previous versions of the "
+"engine anymore."
+msgstr ""
+"โปรเจกต์ '%s' ที่เลือก ถูกสร้างขึ้นด้วยเอนจินเวอร์ชันที่เก่ากว่า และจำเป็นต้องได้รับการแปลงไฟล์ "
+"(Convert) เพื่อให้ใช้งานกับเวอร์ชันนี้ได้\n"
+"\n"
+"เส้นทางโปรเจกต์: %s\n"
+"\n"
+"คุณจะทำการแปลงหรือไม่?\n"
+"\n"
+"คำเตือน: คุณจะไม่สามารถเปิดโปรเจกต์นี้ในเอนจิ้นเวอร์ชันก่อนหน้าได้อีกต่อไป"
+
+msgid ""
+"Can't open project \"%s\" at the following path:\n"
+"\n"
+"%s\n"
+"\n"
+"The project settings were created by a newer engine version, whose settings "
+"are not compatible with this version."
+msgstr ""
+"ไม่สามารถเปิดโปรเจกต์ '%s' ตามที่อยู่ต่อไปนี้ได้:\n"
+"\n"
+"%s\n"
+"\n"
+"การตั้งค่าโปรเจกต์ถูกสร้างโดยโดยเอนจิ้นรุ่นใหม่กว่า ซึ่งการตั้งค่านี้ไม่สามารถเข้ากันได้กับเอนจิ้นรุ่นนี้"
 
 msgid "Remove %d projects from the list?"
 msgstr "ลบ %d โปรเจกต์จากรายการหรือไม่"
@@ -3329,9 +3493,6 @@ msgstr "แท็ก"
 
 msgid "Remove Missing"
 msgstr "ลบที่หายไป"
-
-msgid "Asset Library"
-msgstr "ไลบรารีทรัพยากร"
 
 msgid "Select a Folder to Scan"
 msgstr "เลือกโฟลเดอร์เพื่อสแกน"
@@ -3638,6 +3799,9 @@ msgstr "เรขาคณิตผิดพลาด ไม่สามาร�
 msgid "Create LightOccluder2D Sibling"
 msgstr "สร้างญาติ LightOccluder2D"
 
+msgid "Sprite2D"
+msgstr "ภาพกราฟิก 2 มิติ(Sprite2D)"
+
 msgid "Simplification:"
 msgstr "การทำให้เข้าใจง่าย:"
 
@@ -3670,6 +3834,9 @@ msgstr "พลิกแนวตั้ง"
 
 msgid "Grid Snap"
 msgstr "สแนปเส้นกริด"
+
+msgid "Polygon %d"
+msgstr "โพลีกอน %d"
 
 msgid "Scattering:"
 msgstr "การกระจาย:"
@@ -3784,6 +3951,42 @@ msgstr ""
 "สร้างขอบเขตการชนแบบหลายเหลี่ยม\n"
 "นี่จะให้ความแม่นยำสูง (แต่ช้า) ในการตรวจสอบการชน"
 
+msgid ""
+"Creates an bounding box collision shape.\n"
+"This will use the mesh's AABB if the shape is not a built-in BoxMesh.\n"
+"This is faster than the convex collision shape option for collision detection."
+msgstr ""
+"สร้างรูปทรงการชนแบบกล่องครอบ (Bounding Box)\n"
+"โดยจะใช้ค่า AABB ของ Mesh หากรูปทรงนั้นไม่ใช่ BoxMesh สำเร็จรูป\n"
+"ซึ่งวิธีนี้จะประมวลผลการชนได้รวดเร็วกว่าการใช้รูปทรงการชนแบบนูน (Convex)"
+
+msgid ""
+"Creates a capsule collision shape.\n"
+"This will use the mesh's AABB if the shape is not a built-in CapsuleMesh.\n"
+"This is faster than the convex collision shape option for collision detection."
+msgstr ""
+"สร้างรูปทรงการชนแบบกล่องครอบ (Bounding Box)\n"
+"โดยจะใช้ค่า AABB ของ Mesh หากรูปทรงนั้นไม่ใช่ BoxMesh สำเร็จรูป\n"
+"ซึ่งวิธีนี้จะประมวลผลการชนได้รวดเร็วกว่าการใช้รูปทรงการชนแบบนูน (Convex)"
+
+msgid ""
+"Creates a cylinder collision shape.\n"
+"This will use the mesh's AABB if the shape is not a built-in CylinderMesh.\n"
+"This is faster than the convex collision shape option for collision detection."
+msgstr ""
+"สร้างรูปทรงการชนแบบกล่องครอบ (Bounding Box)\n"
+"โดยจะใช้ค่า AABB ของ Mesh หากรูปทรงนั้นไม่ใช่ BoxMesh สำเร็จรูป\n"
+"ซึ่งวิธีนี้จะประมวลผลการชนได้รวดเร็วกว่าการใช้รูปทรงการชนแบบนูน (Convex)"
+
+msgid ""
+"Creates a sphere collision shape.\n"
+"This will use the mesh's AABB if the shape is not a built-in SphereMesh.\n"
+"This is faster than the convex collision shape option for collision detection."
+msgstr ""
+"สร้างรูปทรงการชนแบบกล่องครอบ (Bounding Box)\n"
+"โดยจะใช้ค่า AABB ของ Mesh หากรูปทรงนั้นไม่ใช่ BoxMesh สำเร็จรูป\n"
+"ซึ่งวิธีนี้จะประมวลผลการชนได้รวดเร็วกว่าการใช้รูปทรงการชนแบบนูน (Convex)"
+
 msgid "X-Axis"
 msgstr "แกน X"
 
@@ -3796,21 +3999,12 @@ msgstr "แกน Z"
 msgid "UV Channel Debug"
 msgstr "ดีบั๊ก UV"
 
-msgid "Remove item %d?"
-msgstr "ลบไอเทม %d?"
-
 msgid ""
 "Update from existing scene?:\n"
 "%s"
 msgstr ""
 "อัพเดตจากฉากที่มีอยู่หรือไม่\n"
 "%s"
-
-msgid "Add Item"
-msgstr "เพิ่มไอเทม"
-
-msgid "Remove Selected Item"
-msgstr "ลบไอเทมที่เลือก"
 
 msgid "Update from Scene"
 msgstr "อัพเดตจากฉาก"
@@ -3878,12 +4072,6 @@ msgstr "สร้าง"
 msgid "Transform Aborted."
 msgstr "ยกเลิกการเคลื่อนย้าย"
 
-msgid "Orthogonal"
-msgstr "ภาพเชิงขนาน"
-
-msgid "Perspective"
-msgstr "เพอร์สเปกทีฟ"
-
 msgid "X-Axis Transform."
 msgstr "ย้ายตามแกน X"
 
@@ -3902,8 +4090,11 @@ msgstr "ยกเลิกการสร้างคีย์ (ไม่ได�
 msgid "Animation Key Inserted."
 msgstr "แทรกคีย์แอนิเมชัน"
 
-msgid "Translating:"
-msgstr "การเลื่อนตำแหน่ง:"
+msgid "Rotating %s degrees."
+msgstr "หมุน %s องศา"
+
+msgid "Objects: %d"
+msgstr "วัตถุ: %d"
 
 msgid "Top View."
 msgstr "มุมบน"
@@ -3929,14 +4120,38 @@ msgstr "จัดการแปลงให้เข้ากับวิว"
 msgid "Align Rotation with View"
 msgstr "จัดการหมุนให้เข้ากับวิว"
 
-msgid "Scaling:"
-msgstr "ขนาด:"
+msgid "Freelook Left"
+msgstr "มุมมองอิสระ ไปซ้าย"
 
-msgid "Rotating %s degrees."
-msgstr "หมุน %s องศา"
+msgid "Freelook Right"
+msgstr "มุมมองอิสระ ไปขวา"
+
+msgid "Freelook Forward"
+msgstr "มุมมองอิสระ ไปข้างหน้า"
+
+msgid "Freelook Backwards"
+msgstr "มุมมองอิสระ ถอยหลัง"
+
+msgid "Freelook Up"
+msgstr "มุมมองอิสระ ขึ้น"
+
+msgid "Freelook Down"
+msgstr "มุมมองอิสระ ลง"
+
+msgid "Freelook Speed Modifier"
+msgstr "ปรับความเร็วมุมมองอิสระ"
+
+msgid "Freelook Slow Modifier"
+msgstr "ปรับความเร็วมุมมองอิสระ"
 
 msgid "View"
 msgstr "มุมมอง"
+
+msgid "Perspective"
+msgstr "เพอร์สเปกทีฟ"
+
+msgid "Orthogonal"
+msgstr "ภาพเชิงขนาน"
 
 msgid "Auto Orthogonal Enabled"
 msgstr "เปิดใช้งานออโธโกนอลอัตโนมัติ"
@@ -3982,30 +4197,6 @@ msgstr "เปิดการใช้งานดอปเลอร์"
 
 msgid "Cinematic Preview"
 msgstr "ดูตัวอย่างแบบภาพยนตร์"
-
-msgid "Freelook Left"
-msgstr "มุมมองอิสระ ไปซ้าย"
-
-msgid "Freelook Right"
-msgstr "มุมมองอิสระ ไปขวา"
-
-msgid "Freelook Forward"
-msgstr "มุมมองอิสระ ไปข้างหน้า"
-
-msgid "Freelook Backwards"
-msgstr "มุมมองอิสระ ถอยหลัง"
-
-msgid "Freelook Up"
-msgstr "มุมมองอิสระ ขึ้น"
-
-msgid "Freelook Down"
-msgstr "มุมมองอิสระ ลง"
-
-msgid "Freelook Speed Modifier"
-msgstr "ปรับความเร็วมุมมองอิสระ"
-
-msgid "Freelook Slow Modifier"
-msgstr "ปรับความเร็วมุมมองอิสระ"
 
 msgid "View Rotation Locked"
 msgstr "ล็อคการหมุนวิวแล้ว"
@@ -4341,6 +4532,9 @@ msgstr "เลื่อน %d CanvasItem"
 msgid "Move CanvasItem \"%s\" to (%d, %d)"
 msgstr "เลื่อน CanvasItem \"%s\" ไปยัง (%d, %d)"
 
+msgid "Scaling:"
+msgstr "ขนาด:"
+
 msgid "Paste Pose"
 msgstr "วางท่าทาง"
 
@@ -4350,14 +4544,8 @@ msgstr "ล้างเส้นไกด์"
 msgid "Pan Mode"
 msgstr "โหมดมุมมอง"
 
-msgid "Toggle smart snapping."
-msgstr "เปิด/ปิด สแนปอัจฉริยะ"
-
 msgid "Use Smart Snap"
 msgstr "ใช้สแนปอัจฉริยะ"
-
-msgid "Toggle grid snapping."
-msgstr "เปิด/ปิดสแนปเส้นกริด"
 
 msgid "Use Grid Snap"
 msgstr "ใช้สแนปเส้นกริด"
@@ -4464,6 +4652,9 @@ msgstr "ลดความถี่กริดลงครึ่งหนึ่
 
 msgid "Adding %s..."
 msgstr "กำลังเพิ่ม %s..."
+
+msgid "Instantiating: "
+msgstr "การสร้างตัวตนของซีน (Scene) "
 
 msgid "Method in target node must be specified."
 msgstr "ต้องระบุเมธอดในโนดเป้าหมาย"
@@ -4764,6 +4955,9 @@ msgstr ""
 "จำนวนหลักขั้นต่ำสำหรับการนับ\n"
 "ตัวเลขที่ขาดหายไปจะค่าเป็นศูนย์"
 
+msgid "Minimum number of digits for the counter."
+msgstr "จำนวนหลักขั้นต่ำสำหรับการนับ"
+
 msgid "Post-Process"
 msgstr "หลังประมวลผล"
 
@@ -4832,6 +5026,12 @@ msgstr "(เชื่อมต่อจาก)"
 
 msgid "Node configuration warning:"
 msgstr "คำเตือนการตั้งค่าโหนด:"
+
+msgid "Click to show signals dock."
+msgstr "คลิกเพื่อแสดงหน้าต่างสัญญาณ (Signals Dock)"
+
+msgid "Click to show groups dock."
+msgstr "คลิกเพื่อแสดงหน้าต่างกลุ่ม (Groups Dock)"
 
 msgid "Open Script:"
 msgstr "เปิดสคริปต์:"
@@ -5023,6 +5223,24 @@ msgstr "สคริปต์บิวท์อิน:"
 msgid "Attach Node Script"
 msgstr "เชื่อมสคริปต์ให้โหนด"
 
+msgid "Line"
+msgstr "บรรทัด"
+
+msgid "Convert Case"
+msgstr "แปลงตัวพิมพ์ใหญ่-เล็ก"
+
+msgid "Syntax Highlighter"
+msgstr "ไฮไลท์ไวยากรณ์"
+
+msgid "Go To"
+msgstr "ไปยัง"
+
+msgid "Bookmarks"
+msgstr "บุ๊คมาร์ค"
+
+msgid "Current value: "
+msgstr "ค่าปัจจุบัน "
+
 msgid "Can't open '%s'. The file could have been moved or deleted."
 msgstr "ไม่สามารถเปิด '%s' เนื่องจากไฟล์ถูกย้ายหรือถูกลบ"
 
@@ -5070,9 +5288,6 @@ msgstr "เปิด..."
 
 msgid "Save All"
 msgstr "บันทึกทั้งหมด"
-
-msgid "Copy Script Path"
-msgstr "คัดลอกตำแหน่งสคริปต์"
 
 msgid "History Previous"
 msgstr "ประวัติก่อนหน้า"
@@ -5122,9 +5337,6 @@ msgstr "ตัวพิมพ์เล็ก"
 msgid "Capitalize"
 msgstr "อักษรแรกพิมพ์ใหญ่"
 
-msgid "Standard"
-msgstr "มาตรฐาน"
-
 msgid "Connections to method:"
 msgstr "เชื่อมไปยังเมธอด:"
 
@@ -5139,24 +5351,6 @@ msgstr "[ละเว้น]"
 
 msgid "Pick Color"
 msgstr "เลือกสี"
-
-msgid "Go to Function"
-msgstr "ไปยังฟังก์ชัน"
-
-msgid "Line"
-msgstr "บรรทัด"
-
-msgid "Convert Case"
-msgstr "แปลงตัวพิมพ์ใหญ่-เล็ก"
-
-msgid "Syntax Highlighter"
-msgstr "ไฮไลท์ไวยากรณ์"
-
-msgid "Bookmarks"
-msgstr "บุ๊คมาร์ค"
-
-msgid "Go To"
-msgstr "ไปยัง"
 
 msgid "Delete Line"
 msgstr "ลบบรรทัด"
@@ -5227,6 +5421,12 @@ msgstr "ไปเบรกพอยต์ถัดไป"
 msgid "Go to Previous Breakpoint"
 msgstr "ไปเบรกพอยต์ก่อนหน้า"
 
+msgid "Go to Function"
+msgstr "ไปยังฟังก์ชัน"
+
+msgid "Standard"
+msgstr "มาตรฐาน"
+
 msgid ""
 "Invalid action name. It cannot be empty nor contain '/', ':', '=', '\\' or "
 "'\"'"
@@ -5265,7 +5465,7 @@ msgid "Action"
 msgstr "การกระทำ"
 
 msgid "Deadzone"
-msgstr "Deadzone"
+msgstr "ระยะที่เครื่องไม่ตอบสนอง(Deadzone)"
 
 msgid "Must not collide with an existing engine class name."
 msgstr "จะต้องไม่ชนกับชื่อคลาสเครื่องยนต์ที่มีอยู่"
@@ -5300,9 +5500,6 @@ msgstr "%s เป็นเส้นทางที่ไม่ถูกต้อ
 msgid "%s is an invalid path. Not in resource path (res://)."
 msgstr "เส้นทางไฟล์ %s ไม่ถูกต้อง: ไม่มีในเส้นทางไฟล์ (res://)"
 
-msgid "Node Name:"
-msgstr "ชื่อโนด:"
-
 msgid "3D Engine"
 msgstr "เอ็นจิ้น 3D"
 
@@ -5327,9 +5524,6 @@ msgstr "ฟอนต์ SIL Graphite"
 msgid "Multi-channel Signed Distance Field Font Rendering"
 msgstr "การเรนเดอร์ฟอนต์ฟิลด์ระยะห่างที่มีการเซ็นชื่อหลายช่องทาง"
 
-msgid "3D Nodes as well as RenderingServer access to 3D features."
-msgstr "3D Nodes รวมถึงการเข้าถึงฟีเจอร์ 3D ของ RenderingServer"
-
 msgid ""
 "TrueType, OpenType, Type 1, and WOFF1 font format support using FreeType "
 "library (if disabled, WOFF2 support is also disabled)."
@@ -5345,13 +5539,6 @@ msgid ""
 "only)."
 msgstr ""
 "รองรับเทคโนโลยีฟอนต์อัจฉริยะ SIL Graphite (รองรับโดย Advanced Text Server เท่านั้น)"
-
-msgid ""
-"Multi-channel signed distance field font rendering support using msdfgen "
-"library (pre-rendered MSDF fonts can be used even if this option disabled)."
-msgstr ""
-"รองรับการเรนเดอร์ฟอนต์ฟิลด์ระยะห่างที่ลงนามหลายช่องทางโดยใช้ไลบรารี msdfgen "
-"(สามารถใช้ฟอนต์ MSDF ที่เรนเดอร์ไว้ล่วงหน้าได้ แม้ว่าตัวเลือกนี้จะปิดใช้งานอยู่ก็ตาม)"
 
 msgid "Text Rendering and Font Options:"
 msgstr "ตัวเลือกการแสดงผลข้อความและแบบอักษร:"
@@ -5385,9 +5572,6 @@ msgstr "สามารถดู และแก้ไขฉาก 3D ได้"
 
 msgid "Allows to edit scripts using the integrated script editor."
 msgstr "สามารถแก้ไขสคริปต์และใช้เครื่องมือแก้ไขที่ติดมากับเอนจินได้"
-
-msgid "Provides built-in access to the Asset Library."
-msgstr "ให้เครื่องมือ built-in ที่ใช้ดาวน์โหลดจาก Asset Library ได้"
 
 msgid "Allows editing the node hierarchy in the Scene dock."
 msgstr "สามารถแก้ไขผังโครงสร้างโหนดในฉากได้"
@@ -5470,8 +5654,11 @@ msgstr "นำเข้าโปรไฟล์"
 msgid "Manage Editor Feature Profiles"
 msgstr "จัดการรายละเอียดคุณสมบัติตัวแก้ไข"
 
-msgid "Common"
-msgstr "ทั่วไป"
+msgid "Save Layout"
+msgstr "บันทึกเลย์เอาต์"
+
+msgid "Delete Layout"
+msgstr "ลบเลย์เอาต์"
 
 msgid "Editor Settings"
 msgstr "การตั้งค่าตัวแก้ไข"
@@ -5496,6 +5683,9 @@ msgstr "อุปกรณ์ทั้งหมด"
 
 msgid "Device"
 msgstr "อุปกรณ์"
+
+msgid "Reload"
+msgstr "โหลดใหม่"
 
 msgid "Device:"
 msgstr "อุปกรณ์:"
@@ -5539,11 +5729,197 @@ msgstr "หมายเหตุ: ไม่สามารถแก้ไขเ�
 msgid "Shader Editor"
 msgstr "ตัวแก้ไขเชเดอร์"
 
-msgid "Reload"
-msgstr "โหลดใหม่"
-
 msgid "Resave"
 msgstr "บันทึกอีกครั้ง"
+
+msgid "Changed Locale Filter Mode"
+msgstr "แก้ไขโหมดการกรองภูมิภาค"
+
+msgid "Show All Locales"
+msgstr "แสดงทุกภูมิภาค"
+
+msgid "Show Selected Locales Only"
+msgstr "แสดงเฉพาะภภายในเท่านั้น"
+
+msgid "Change Resource Remap Language"
+msgstr "เปลี่ยนภาษาที่ใช้แทนที่ไฟล์"
+
+msgid "Remove Resource Remap"
+msgstr "ลบการแทนที่"
+
+msgid "Remove Resource Remap Option"
+msgstr "ลบการแทนที่"
+
+msgid "Translations"
+msgstr "การแปลง"
+
+msgid "Translations:"
+msgstr "การแปลง:"
+
+msgid "Remaps"
+msgstr "การแทนที่"
+
+msgid "Resources:"
+msgstr "ทรัพยากร:"
+
+msgid "Remaps by Locale:"
+msgstr "แทนที่ตามภูมิภาค:"
+
+msgid "Commit"
+msgstr "Commit"
+
+msgid "Discard changes"
+msgstr "ยกเลิกการแก้ไข"
+
+msgid "File:"
+msgstr "ไฟล์:"
+
+msgid "Commit Changes"
+msgstr "การเปลี่ยนแปลง commit"
+
+msgid "Detect new changes"
+msgstr "พบการแก้ไขใหม่"
+
+msgid "Discard all changes"
+msgstr "ยกเลิกการแก้ไขทั้งหมด"
+
+msgid "Remote Name"
+msgstr "ชื่อรีโมท"
+
+msgid "Remote URL"
+msgstr "URL รีโมท"
+
+msgid "Modified"
+msgstr "แก้ไขแล้ว"
+
+msgid "Renamed"
+msgstr "เปลี่ยนชื่อแล้ว"
+
+msgid "Deleted"
+msgstr "ลบแล้ว"
+
+msgid "Typechange"
+msgstr "เปลี่ยนชนิด"
+
+msgid "Change Torus Inner Radius"
+msgstr "แก้ไขรัศมีภายในของวงแหวน"
+
+msgid "Change Torus Outer Radius"
+msgstr "แก้ไขรัศมีภายนอกของวงแหวน"
+
+msgid "GridMap Delete Selection"
+msgstr "ลบที่เลือกใน GridMap"
+
+msgid "GridMap Fill Selection"
+msgstr "เติมที่เลือกใน GridMap"
+
+msgid "GridMap Paste Selection"
+msgstr "วางที่เลือกใน GridMap"
+
+msgid "GridMap Paint"
+msgstr "วาด GridMap"
+
+msgid "Previous Floor"
+msgstr "ไปชั้นล่าง"
+
+msgid "Next Floor"
+msgstr "ไปชั้นบน"
+
+msgid "Edit X Axis"
+msgstr "แก้ไขแกน X"
+
+msgid "Edit Y Axis"
+msgstr "แก้ไขแกน Y"
+
+msgid "Edit Z Axis"
+msgstr "แก้ไขแกน Z"
+
+msgid "GridMap Settings"
+msgstr "การตั้งค่า GridMap"
+
+msgid "Pick Distance:"
+msgstr "ระยะการเลือก:"
+
+msgid "Cursor Rotate X"
+msgstr "เคอร์เซอร์หมุนตามแกน X"
+
+msgid "Cursor Rotate Y"
+msgstr "เคอร์เซอร์หมุนตามแกน Y"
+
+msgid "Cursor Rotate Z"
+msgstr "เคอร์เซอร์หมุนตามแกน Z"
+
+msgid "Give a MeshLibrary resource to this GridMap to use its meshes."
+msgstr "มอบทรัพยากร MeshLibrary ให้กับ GridMap นี้เพื่อใช้ mesh"
+
+msgid "Begin Bake"
+msgstr "เริ่มต้น Bake"
+
+msgid "Class name can't be a reserved keyword"
+msgstr "ชื่อคลาสไม่สามารถมีคีย์เวิร์ดได้"
+
+msgid "Not enough bytes for decoding bytes, or invalid format."
+msgstr "ไบต์ไม่เพียงพอหรือรูปแบบไม่ถูกต้องสำหรับการถอดรหัสไบต์"
+
+msgid "%s/s"
+msgstr "%s/s"
+
+msgid "Node"
+msgstr "โนด"
+
+msgid "Incoming RPC"
+msgstr "RPC กำลังมา"
+
+msgid "Outgoing RPC"
+msgstr "RPC ขาออก"
+
+msgid "Config"
+msgstr "ตั้งค่า"
+
+msgid "Delete Property?"
+msgstr "ลบคุณสมบัติ?"
+
+msgid "Create Navigation Polygon"
+msgstr "สร้างรูปทรงนำทาง"
+
+msgid "A NavigationMesh resource must be set or created for this node to work."
+msgstr "ต้องมี NavigationMesh เพื่อให้โหนดนี้ทำงานได้"
+
+msgid "Objects"
+msgstr "วัตถุ"
+
+msgid "A Objects"
+msgstr "วัตถุ A"
+
+msgid "B Objects"
+msgstr "วัตถุ B"
+
+msgid "Object's class"
+msgstr "คลาสของวัตถุ"
+
+msgid "Object"
+msgstr "วัตถุ"
+
+msgid "Object's name"
+msgstr "ชื่อวัตถุ"
+
+msgid "Native References: %d"
+msgstr "การอ้างอิงระดับฐานระบบ: %d"
+
+msgid "ObjectDB References: %d"
+msgstr "การอ้างอิงในฐานข้อมูลวัตถุ: %d"
+
+msgid "Total References: %d"
+msgstr "การอ้างอิงทั้งหมด: %d"
+
+msgid "ObjectDB Cycles: %d"
+msgstr "วงจรการอ้างอิงในฐานข้อมูลวัตถุ: %d"
+
+msgid "Total Objects:"
+msgstr "จำนวนวัตถุทั้งหมด:"
+
+msgid "Boolean"
+msgstr "บูลีน"
 
 msgid "E constant (2.718282). Represents the base of the natural logarithm."
 msgstr "ค่าคงที่ E (2.718282) แสดงในรูปลอกาลิทึมฐานธรรมชาติ"
@@ -5574,9 +5950,6 @@ msgstr "เพิ่มอินพุต"
 
 msgid "Add Output"
 msgstr "เพิ่มเอาท์พุต"
-
-msgid "Boolean"
-msgstr "บูลีน"
 
 msgid "Sampler"
 msgstr "ตัวอย่าง"
@@ -6053,164 +6426,22 @@ msgstr ""
 msgid "Visual Shader Mode Changed"
 msgstr "เปลี่ยนโหมดเวอร์ชวลเชดเดอร์แล้ว"
 
-msgid "Changed Locale Filter Mode"
-msgstr "แก้ไขโหมดการกรองภูมิภาค"
+msgid ""
+"The sampler port is connected but not used. Consider changing the source to "
+"'SamplerPort'."
+msgstr "พอร์ตตัวอย่างเชื่อมต่ออยู่แต่ไม่ได้ใช้ ควรที่จะเปลี่ยนเป็น \"SamplerPort\""
 
-msgid "Show All Locales"
-msgstr "แสดงทุกภูมิภาค"
+msgid "Invalid source for preview."
+msgstr "แหล่งที่มาไม่ถูกต้องสำหรับการแสดงตัวอย่าง"
 
-msgid "Show Selected Locales Only"
-msgstr "แสดงเฉพาะภภายในเท่านั้น"
+msgid "Invalid source for shader."
+msgstr "ซอร์สไม่ถูกต้องสำหรับเชดเดอร์"
 
-msgid "Change Resource Remap Language"
-msgstr "เปลี่ยนภาษาที่ใช้แทนที่ไฟล์"
-
-msgid "Remove Resource Remap"
-msgstr "ลบการแทนที่"
-
-msgid "Remove Resource Remap Option"
-msgstr "ลบการแทนที่"
-
-msgid "Translations"
-msgstr "การแปลง"
-
-msgid "Translations:"
-msgstr "การแปลง:"
-
-msgid "Remaps"
-msgstr "การแทนที่"
-
-msgid "Resources:"
-msgstr "ทรัพยากร:"
-
-msgid "Remaps by Locale:"
-msgstr "แทนที่ตามภูมิภาค:"
-
-msgid "Commit"
-msgstr "Commit"
-
-msgid "Discard changes"
-msgstr "ยกเลิกการแก้ไข"
-
-msgid "File:"
-msgstr "ไฟล์:"
-
-msgid "Detect new changes"
-msgstr "พบการแก้ไขใหม่"
-
-msgid "Discard all changes"
-msgstr "ยกเลิกการแก้ไขทั้งหมด"
-
-msgid "Commit Changes"
-msgstr "การเปลี่ยนแปลง commit"
-
-msgid "Remote Name"
-msgstr "ชื่อรีโมท"
-
-msgid "Remote URL"
-msgstr "URL รีโมท"
-
-msgid "Modified"
-msgstr "แก้ไขแล้ว"
-
-msgid "Renamed"
-msgstr "เปลี่ยนชื่อแล้ว"
-
-msgid "Deleted"
-msgstr "ลบแล้ว"
-
-msgid "Typechange"
-msgstr "เปลี่ยนชนิด"
-
-msgid "Change Torus Inner Radius"
-msgstr "แก้ไขรัศมีภายในของวงแหวน"
-
-msgid "Change Torus Outer Radius"
-msgstr "แก้ไขรัศมีภายนอกของวงแหวน"
-
-msgid "GridMap Delete Selection"
-msgstr "ลบที่เลือกใน GridMap"
-
-msgid "GridMap Fill Selection"
-msgstr "เติมที่เลือกใน GridMap"
-
-msgid "GridMap Paste Selection"
-msgstr "วางที่เลือกใน GridMap"
-
-msgid "GridMap Paint"
-msgstr "วาด GridMap"
-
-msgid "Previous Floor"
-msgstr "ไปชั้นล่าง"
-
-msgid "Next Floor"
-msgstr "ไปชั้นบน"
-
-msgid "Edit X Axis"
-msgstr "แก้ไขแกน X"
-
-msgid "Edit Y Axis"
-msgstr "แก้ไขแกน Y"
-
-msgid "Edit Z Axis"
-msgstr "แก้ไขแกน Z"
-
-msgid "GridMap Settings"
-msgstr "การตั้งค่า GridMap"
-
-msgid "Pick Distance:"
-msgstr "ระยะการเลือก:"
-
-msgid "Cursor Rotate X"
-msgstr "เคอร์เซอร์หมุนตามแกน X"
-
-msgid "Cursor Rotate Y"
-msgstr "เคอร์เซอร์หมุนตามแกน Y"
-
-msgid "Cursor Rotate Z"
-msgstr "เคอร์เซอร์หมุนตามแกน Z"
-
-msgid "Give a MeshLibrary resource to this GridMap to use its meshes."
-msgstr "มอบทรัพยากร MeshLibrary ให้กับ GridMap นี้เพื่อใช้ mesh"
-
-msgid "Begin Bake"
-msgstr "เริ่มต้น Bake"
-
-msgid "Class name can't be a reserved keyword"
-msgstr "ชื่อคลาสไม่สามารถมีคีย์เวิร์ดได้"
-
-msgid "Not enough bytes for decoding bytes, or invalid format."
-msgstr "ไบต์ไม่เพียงพอหรือรูปแบบไม่ถูกต้องสำหรับการถอดรหัสไบต์"
-
-msgid "%s/s"
-msgstr "%s/s"
-
-msgid "Node"
-msgstr "โนด"
-
-msgid "Incoming RPC"
-msgstr "RPC กำลังมา"
-
-msgid "Outgoing RPC"
-msgstr "RPC ขาออก"
-
-msgid "Config"
-msgstr "ตั้งค่า"
-
-msgid "Delete Property?"
-msgstr "ลบคุณสมบัติ?"
-
-msgid "Create Navigation Polygon"
-msgstr "สร้างรูปทรงนำทาง"
-
-msgid "A NavigationMesh resource must be set or created for this node to work."
-msgstr "ต้องมี NavigationMesh เพื่อให้โหนดนี้ทำงานได้"
+msgid "Invalid comparison function for that type."
+msgstr "ฟังก์ชันการเปรียบเทียบไม่ถูกต้องสำหรับประเภทนั้น"
 
 msgid "Building Android Project (gradle)"
 msgstr "กำลังสร้างโปรเจคแอนดรอยด์ (gradle)"
-
-msgid "Invalid public key for APK expansion."
-msgstr "public key ผิดพลาดสำหรับ APK expansion"
 
 msgid "Invalid package name:"
 msgstr "ชื่อแพ็คเกจผิดพลาด:"
@@ -6249,9 +6480,6 @@ msgstr "ไม่พบคำสั่ง apksigner ของ Android SDK build-
 
 msgid "Invalid filename! Android App Bundle requires the *.aab extension."
 msgstr "ชื่อไฟล์ผิดพลาด! แอนดรอยด์แอปบันเดิลจำเป็นต้องมีนามสกุล *.aab"
-
-msgid "APK Expansion not compatible with Android App Bundle."
-msgstr "การขยาย APK เข้ากันไม่ได้กับแอนดรอยด์แอปบันเดิล"
 
 msgid "Invalid filename! Android APK requires the *.apk extension."
 msgstr "ชื่อไฟล์ผิดพลาด! แอนดรอยด์ APK จำเป็นต้องมีนามสกุล *.apk"
@@ -6381,15 +6609,6 @@ msgstr "วางแนว meshes"
 msgid "Finishing Plot"
 msgstr "เสร็จสิ้นการวางแนว"
 
-msgid "On BlendTree node '%s', animation not found: '%s'"
-msgstr "ที่โหนด BlendTree '%s' ไม่พบแอนิเมชัน '%s'"
-
-msgid "Animation not found: '%s'"
-msgstr "ไม่พบแอนิเมชัน: '%s'"
-
-msgid "Nothing connected to input '%s' of node '%s'."
-msgstr "ไม่มีการเชื่อมต่อไปที่อินพุต '%s' ของโหนด '%s'."
-
 msgid "No root AnimationNode for the graph is set."
 msgstr "ไม่มีรากสำหรับ AnimationNode สำหรับกราฟที่่ได้ถูกตั้งไว้"
 
@@ -6418,20 +6637,6 @@ msgid ""
 msgstr ""
 "ScrollContainer ทำงานได้เมื่อมีโหนดลูกเพียงหนึ่งโหนดเท่านั้น\n"
 "ใช้ container เป็นโหนดลูก (VBox,HBox,ฯลฯ) หรือ Control และปรับขนาดเล็กสุดด้วยตนเอง"
-
-msgid ""
-"The sampler port is connected but not used. Consider changing the source to "
-"'SamplerPort'."
-msgstr "พอร์ตตัวอย่างเชื่อมต่ออยู่แต่ไม่ได้ใช้ ควรที่จะเปลี่ยนเป็น \"SamplerPort\""
-
-msgid "Invalid source for preview."
-msgstr "แหล่งที่มาไม่ถูกต้องสำหรับการแสดงตัวอย่าง"
-
-msgid "Invalid source for shader."
-msgstr "ซอร์สไม่ถูกต้องสำหรับเชดเดอร์"
-
-msgid "Invalid comparison function for that type."
-msgstr "ฟังก์ชันการเปรียบเทียบไม่ถูกต้องสำหรับประเภทนั้น"
 
 msgid "Varying may not be assigned in the '%s' function."
 msgstr "การ Varying ไม่สามารถกำหนดใน Function '%s' ได้"
@@ -6719,6 +6924,9 @@ msgstr "โหมด Render ไม่ถูกต้อง: '%s'"
 
 msgid "Invalid argument name."
 msgstr "ชื่อตัวแปรอาร์กูเมนท์ไม่ถูกต้อง"
+
+msgid "Shader include file does not exist:"
+msgstr "ไม่พบไฟล์ Shader ที่ระบุให้นำเข้า:"
 
 msgid "Invalid macro argument list."
 msgstr "รายการอาร์กูเมนท์มาโครไม่ถูกต้อง"

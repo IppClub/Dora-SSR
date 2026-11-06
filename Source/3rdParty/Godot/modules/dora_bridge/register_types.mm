@@ -74,7 +74,7 @@ GDExtensionBool extension_init(GDExtensionInterfaceGetProcAddress, GDExtensionCl
     init->initialize = level; init->deinitialize = level; init->userdata = nullptr;
     return true;
 }
-const char *version() { return "Godot 4.6-stable / Dora bridge ABI 1"; }
+const char *version() { return "Godot 4.7.2-stable / Dora bridge ABI 1"; }
 const char *last_error(void *) { return runtime.error.c_str(); }
 bool valid(void *handle) { return handle == &runtime && runtime.active; }
 #include "runtime_audio.inc"
@@ -82,8 +82,8 @@ void offscreen() {
     auto *rs = RenderingServer::get_singleton();
     RID viewport = runtime.root->get_viewport_rid();
     rs->viewport_set_render_direct_to_screen(viewport, false);
-    rs->viewport_attach_to_screen(viewport, Rect2(), DisplayServer::INVALID_WINDOW_ID);
-    rs->viewport_set_update_mode(viewport, RS::VIEWPORT_UPDATE_ALWAYS);
+    rs->viewport_attach_to_screen(viewport, Rect2(), DisplayServerEnums::INVALID_WINDOW_ID);
+    rs->viewport_set_update_mode(viewport, RSE::VIEWPORT_UPDATE_ALWAYS);
 }
 void detach_target() {
     if (runtime.direct_render_target.is_valid())
@@ -150,13 +150,15 @@ void *open(const DoraGodotConfig *config) {
         char executable[] = "Dora-Godot";
         char *args[] = {executable, (char*)project_argument, (char*)runtime.project.c_str(), (char*)"--display-driver", (char*)"dora-metal",
             (char*)"--rendering-driver", (char*)"metal", (char*)"--rendering-method", (char*)"mobile", (char*)"--audio-driver", (char*)"Dummy",
+            // The offscreen DisplayServer has no native AccessKit window adapter.
+            (char*)"--accessibility-driver", (char*)"dummy",
             (char*)"--disable-render-loop", (char*)"--disable-crash-handler", (char*)"--resolution", (char*)resolution.c_str()};
         runtime.instance = (GodotInstance*)libgodot_create_godot_instance(sizeof(args)/sizeof(args[0]), args, extension_init);
         if (!runtime.instance) { runtime.error = "LibGodot initialization failed"; return nullptr; }
         if (runtime.supports_project_unload) {
             // Renderer/ShaderRD objects survive projects. A relative user://
             // cache would silently change roots after the next settings load.
-            const String cache=OS::get_singleton()->get_cache_path().path_join("Dora/LibGodot-4.6/metal");
+            const String cache=OS::get_singleton()->get_cache_path().path_join("Dora/LibGodot-4.7.2/metal");
             if (DirAccess::make_dir_recursive_absolute(cache)!=OK) {
                 runtime.error="cannot create process-owned Godot shader cache";runtime.terminated=true;return nullptr;
             }

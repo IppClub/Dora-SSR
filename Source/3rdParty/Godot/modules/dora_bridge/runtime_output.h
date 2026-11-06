@@ -33,9 +33,9 @@ public:
             rs->canvas_item_set_parent(item,canvas);rs->viewport_attach_canvas(viewport,canvas);
             rs->viewport_set_disable_3d(viewport,true);
             rs->viewport_set_transparent_background(viewport,true);
-            rs->viewport_set_clear_mode(viewport,RS::VIEWPORT_CLEAR_ALWAYS);
-            rs->viewport_set_update_mode(viewport,RS::VIEWPORT_UPDATE_ALWAYS);
-            rs->canvas_item_set_default_texture_filter(item,RS::CANVAS_ITEM_TEXTURE_FILTER_LINEAR);
+            rs->viewport_set_clear_mode(viewport,RSE::VIEWPORT_CLEAR_ALWAYS);
+            rs->viewport_set_update_mode(viewport,RSE::VIEWPORT_UPDATE_ALWAYS);
+            rs->canvas_item_set_default_texture_filter(item,RSE::CANVAS_ITEM_TEXTURE_FILTER_LINEAR);
         }
         rs->viewport_set_size(viewport,physical.x,physical.y);
         if (!active) { rs->viewport_set_active(viewport,true);active=true; }

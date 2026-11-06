@@ -2,6 +2,7 @@
 #pragma once
 #include "core/config/engine.h"
 #include "core/core_bind.h"
+#include "core/os/os.h"
 #include "core/config/project_settings.h"
 #include "core/extension/godot_instance.h"
 #include "core/extension/gdextension_manager.h"

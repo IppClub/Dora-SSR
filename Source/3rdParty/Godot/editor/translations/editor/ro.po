@@ -36,18 +36,25 @@
 # GREEN MONSTER <racovitavvalentin@gmail.com>, 2025.
 # Alin Gheorghe <yovngra@gmail.com>, 2025.
 # SimonMaracine <simonmaracine@gmail.com>, 2025.
-# "A Thousand Ships (she/her)" <over999ships@gmail.com>, 2025.
+# "A Thousand Ships (she/her)" <over999ships@gmail.com>, 2025, 2026.
 # EnderIce2 <enderice2@protonmail.com>, 2025.
 # Gape Gepeto <gapegepeto@gmail.com>, 2026.
 # Rareș Bozga <darwj10011@gmail.com>, 2026.
 # ADV <alex.devien@gmail.com>, 2026.
+# Mihai Andrei <mihoi25@yahoo.com>, 2026.
+# AlexTECPlayz <alextecplayz@vantainteractive.com>, 2026.
+# benq <madalin.lost@gmail.com>, 2026.
+# robbpaun <robbpaun@gmail.com>, 2026.
+# MedProgAyat <hosseinmehriyari1383@gmail.com>, 2026.
+# Mario <xmariosalman@gmail.com>, 2026.
+# Jonathan Quill <fulea.d.ovidiu@gmail.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Godot Engine editor interface\n"
 "Report-Msgid-Bugs-To: https://github.com/godotengine/godot\n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2026-01-14 05:00+0000\n"
-"Last-Translator: ADV <alex.devien@gmail.com>\n"
+"PO-Revision-Date: 2026-07-22 18:05+0000\n"
+"Last-Translator: Jonathan Quill <fulea.d.ovidiu@gmail.com>\n"
 "Language-Team: Romanian <https://hosted.weblate.org/projects/godot-engine/"
 "godot/ro/>\n"
 "Language: ro\n"
@@ -56,31 +63,154 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=n==1 ? 0 : (n==0 || (n%100 > 0 && n%100 < "
 "20)) ? 1 : 2;\n"
-"X-Generator: Weblate 5.15.2-dev\n"
+"X-Generator: Weblate 2026.8.dev0\n"
 
 msgid "OK"
 msgstr "OK"
 
+msgid "Failed"
+msgstr "A eșuat"
+
+msgid "Unavailable"
+msgstr "Indisponibil"
+
+msgid "Unconfigured"
+msgstr "Neconfigurat"
+
 msgid "Unauthorized"
 msgstr "Neautorizat"
+
+msgid "Parameter out of range"
+msgstr "Parametru în afara intervalului"
 
 msgid "Out of memory"
 msgstr "Memorie epuizată"
 
+msgid "File not found"
+msgstr "Fișier nu a fost găsit"
+
+msgid "File: Bad drive"
+msgstr "Fișier: Disc defect"
+
+msgid "File: Bad path"
+msgstr "Fișier: Cale greșită"
+
 msgid "File: Permission denied"
 msgstr "Acces respins"
+
+msgid "File already in use"
+msgstr "Fișierul este deja in utilizare"
+
+msgid "Can't open file"
+msgstr "Nu s-a putut deschide fișierul"
+
+msgid "Can't write file"
+msgstr "Nu s-a putut scrie fișierul"
+
+msgid "Can't read file"
+msgstr "Nu s-a putut citi fișierul"
+
+msgid "File unrecognized"
+msgstr "Fișier nerecunoscut"
 
 msgid "File corrupt"
 msgstr "Fișier corupt"
 
+msgid "Missing dependencies for file"
+msgstr "Dependențele fișierului lipsesc"
+
+msgid "End of file"
+msgstr "Sfârșitul fișierului"
+
+msgid "Can't open"
+msgstr "Nu s-a putut deschide"
+
+msgid "Can't create"
+msgstr "Nu se poate crea"
+
+msgid "Query failed"
+msgstr "Cerere eșuată"
+
+msgid "Already in use"
+msgstr "Deja folosit"
+
+msgid "Locked"
+msgstr "Blocat"
+
+msgid "Timeout"
+msgstr "Expirat"
+
+msgid "Can't connect"
+msgstr "Nu se poate conecta"
+
+msgid "Can't resolve"
+msgstr "Nu se poate rezolva"
+
+msgid "Connection error"
+msgstr "Eroare de Conexiune"
+
+msgid "Can't acquire resource"
+msgstr "Nu pot lua resursa"
+
+msgid "Can't fork"
+msgstr "Nu se poate face fork"
+
+msgid "Invalid data"
+msgstr "Date nevalide"
+
+msgid "Invalid parameter"
+msgstr "Paremetru nevalid"
+
+msgid "Already exists"
+msgstr "Deja există"
+
+msgid "Does not exist"
+msgstr "Nu există"
+
+msgid "Can't read database"
+msgstr "Nu se poate citii baza de date"
+
 msgid "Can't write database"
 msgstr "Nu se poate scrie în baza de date"
+
+msgid "Compilation failed"
+msgstr "Compilare eșuată"
+
+msgid "Method not found"
+msgstr "Metoda nu a fost găsită"
+
+msgid "Link failed"
+msgstr "Legătura a eșuat"
+
+msgid "Script failed"
+msgstr "Scriptul a eșuat"
 
 msgid "Cyclic link detected"
 msgstr "Legătură ciclică detectată"
 
+msgid "Invalid declaration"
+msgstr "Declarație invalidă"
+
+msgid "Duplicate symbol"
+msgstr "Simbol dublicat"
+
+msgid "Parse error"
+msgstr "Eroare de parsare"
+
+msgid "Busy"
+msgstr "Ocupat"
+
+msgid "Skip"
+msgstr "Sari peste"
+
 msgid "Help"
 msgstr "Ajutor"
+
+msgid "Bug"
+msgstr "Bug"
+
+msgid "Printer on fire"
+msgstr "Printerul a luat foc"
 
 msgid "unset"
 msgstr "Nesetat"
@@ -593,14 +723,17 @@ msgstr "Deselectează toate punctele de control"
 msgid "Add Animation"
 msgstr "Adaugă Animație"
 
+msgid "No available animations"
+msgstr "Nu sunt animații disponibile"
+
 msgid "Add %s"
 msgstr "Adaugă %s"
 
 msgid "Load..."
 msgstr "Încarcă..."
 
-msgid "Move Node Point"
-msgstr "Mută punct nod"
+msgid "Move BlendSpace1D Node Point"
+msgstr "Mută punct nod BlendSpace1D"
 
 msgid "Change BlendSpace1D Config"
 msgstr "Modifică configurație BlendSpace1D"
@@ -625,8 +758,11 @@ msgstr "Adaugă punct animație"
 msgid "Remove BlendSpace1D Point"
 msgstr "Șterge punct BlendSpace1D"
 
-msgid "Move BlendSpace1D Node Point"
-msgstr "Mută punct nod BlendSpace1D"
+msgid "Reorder BlendSpace1D Point Index"
+msgstr "Reordonează Punctul Index BlendSpace1D"
+
+msgid "Change BlendSpace1D Point Name"
+msgstr "Modifică Numele BlendSpace1D"
 
 msgid "Continuous"
 msgstr "Continuu"
@@ -640,11 +776,13 @@ msgstr "Înregistrează"
 msgid ""
 "Select and move points.\n"
 "RMB: Create point at position clicked.\n"
-"Shift+LMB+Drag: Set the blending position within the space."
+"Shift+LMB+Drag: Set the blending position within the space.\n"
+"Scroll: Increment or decrement index."
 msgstr ""
-"Selectează si mută punctele.\n"
-"Clic dreapta: Creează punct la pozitia cursorului.\n"
-"Shift + clic stânga + tragere: Setează poziția interpolării în spațiu."
+"Selectează și mută punctele.\n"
+"Click dreapta: Creează un punct în locul în care ai făcut clic.\n"
+"Shift + click stânga + trage: Stabilește poziția de amestecare în spațiu.\n"
+"Derulare: Incrementează sau decrementează indexul."
 
 msgid "Create points."
 msgstr "Creați puncte."
@@ -661,20 +799,56 @@ msgstr "Afișați și porniți fixarea pe grilă."
 msgid "Grid Step"
 msgstr "Interval Grilă"
 
-msgid "Sync:"
-msgstr "Sincronizare:"
+msgid "Sync"
+msgstr "Sincronizare"
 
-msgid "Blend:"
-msgstr "Interpolare:"
+msgid "None"
+msgstr "Niciunul"
 
-msgid "Point"
-msgstr "Punct"
+msgid "Independent"
+msgstr "Independent"
+
+msgid "Cyclic Mutable"
+msgstr "Ciclu mutabil"
+
+msgid "Cyclic Constant"
+msgstr "Ciclu constant"
+
+msgid "Cyclic Length"
+msgstr "Lungimea ciclului"
+
+msgid ""
+"Cycle length in seconds for cyclic sync. All animations are time-scaled to "
+"complete one cycle in this duration."
+msgstr ""
+"Durata ciclului în secunde pentru sincronizarea ciclică. Toate animațiile "
+"sunt scalate temporal pentru a completa un ciclu în această durată."
+
+msgid "Blend"
+msgstr "Amestec"
+
+msgid "Open Editor"
+msgstr "Deschide editorul"
+
+msgid "Index"
+msgstr "Index"
+
+msgid "Blend Point Index"
+msgstr "Indicele punctului de amestec"
+
+msgid ""
+"Index of the blend point.\n"
+"Values outside of the valid range will be clamped to the nearest index."
+msgstr ""
+"Indexul punctului de blend.\n"
+"Valorile din afara intervalului valid vor fi limitate la cel mai apropiat "
+"index."
+
+msgid "Position"
+msgstr "Poziție"
 
 msgid "Blend Value"
 msgstr "Valoare interpolare"
-
-msgid "Open Editor"
-msgstr "Deschidere Editor"
 
 msgid "Min"
 msgstr "Minim"
@@ -694,6 +868,9 @@ msgstr "Triunghiul deja există."
 msgid "Add Triangle"
 msgstr "Adăugați Triunghi"
 
+msgid "Move BlendSpace2D Node Point"
+msgstr "Mută punctul de nod BlendSpace2D"
+
 msgid "Change BlendSpace2D Config"
 msgstr "Schimbă Configurarea BlendSpace2D"
 
@@ -706,8 +883,11 @@ msgstr "Ștergere punct BlendSpace2D"
 msgid "Remove BlendSpace2D Triangle"
 msgstr "Stergere triunghi BlendSpace2D"
 
-msgid "No triangles exist, so no blending can take place."
-msgstr "Nu există triunghiuri, deci interpolarea nu se poate realiza."
+msgid "Reorder BlendSpace2D Point Index"
+msgstr "Reordonează indexul punctului BlendSpace2D"
+
+msgid "Change BlendSpace2D Point Name"
+msgstr "Redenumire punct BlendSpace2D"
 
 msgid "Toggle Auto Triangles"
 msgstr "Comutați Auto Triunghiuri"
@@ -862,9 +1042,6 @@ msgstr "Marker de început"
 msgid "End Marker"
 msgstr "Marker de sfârșit"
 
-msgid "Library Name:"
-msgstr "Nume bibliotecă:"
-
 msgid "Animation name can't be empty."
 msgstr "Numele animației nu poate să fie gol."
 
@@ -921,8 +1098,82 @@ msgstr "Salvează Bibliotecă"
 msgid "Make Animation Library Unique: %s"
 msgstr "Fă biblioteca de animații unică: %s"
 
-msgid "Animation Name:"
-msgstr "Nume Animație:"
+msgid "Save Animation"
+msgstr "Salvează animația"
+
+msgid "Make Animation Unique: %s"
+msgstr "Fă animația unică: %s"
+
+msgid "Save Animation library to File: %s"
+msgstr "Salvează biblioteca de animații în fișierul: %s"
+
+msgid "Save Animation to File: %s"
+msgstr "Salvează animația în fișierul: %s"
+
+msgid ""
+"The file you selected is an imported scene from a 3D model such as glTF or "
+"FBX.\n"
+"\n"
+"In Godot, 3D models can be imported as either scenes or animation libraries, "
+"which is why they show up here.\n"
+"\n"
+"If you want to use animations from this 3D model, open the Advanced Import "
+"Settings\n"
+"dialog and save the animations using Actions... → Set Animation Save Paths,\n"
+"or import the whole scene as a single AnimationLibrary in the Import dock."
+msgstr ""
+"Fișierul selectat este o scenă importată dintr-un model 3D, cum ar fi glTF "
+"sau FBX.\n"
+"\n"
+"În Godot, modelele 3D pot fi importate fie ca scene, fie ca biblioteci de "
+"animații, motiv pentru care apar aici.\n"
+"\n"
+"Dacă doriți să utilizați animații din acest model 3D, deschideți caseta de "
+"dialog Setări import avansat \n"
+"și salvați animațiile folosind Acțiuni... → Setare cale de salvare animație\n"
+"sau importați întreaga scenă ca o singură Bibliotecă de animații în docul "
+"Import."
+
+msgid ""
+"The file you selected is not a valid AnimationLibrary.\n"
+"\n"
+"If the animations you want are inside of this file, save them to a separate "
+"file first."
+msgstr ""
+"Fișierul selectat nu este o bibliotecă de animații validă.\n"
+"\n"
+"Dacă animațiile dorite se află în acest fișier, salvați-le mai întâi într-un "
+"fișier separat."
+
+msgid "Some of the selected libraries were already added to the mixer."
+msgstr "Unele dintre bibliotecile selectate au fost deja adăugate în mixer."
+
+msgid "Add Animation Libraries"
+msgstr "Adaugă biblioteci de animație"
+
+msgid "Some Animation files were invalid."
+msgstr "Unele fișiere de animație erau nevalide."
+
+msgid "Some of the selected animations were already added to the library."
+msgstr "Unele dintre animațiile selectate au fost deja adăugate în bibliotecă."
+
+msgid "Load Animations into Library"
+msgstr "Încărcă animațiile în bibliotecă"
+
+msgid "Load Animation into Library: %s"
+msgstr "Încarcă animația în bibliotecă: %s"
+
+msgid "Rename Animation Library: %s"
+msgstr "Redenumește biblioteca de animații: %s"
+
+msgid "[Global]"
+msgstr "[Global]"
+
+msgid "Rename Animation: %s"
+msgstr "Redenumește animația: %s"
+
+msgid "No animation resource in clipboard!"
+msgstr "Nicio resursă de animație în clipboard!"
 
 msgid "Pasted Animation"
 msgstr "Animație Lipită"
@@ -933,11 +1184,74 @@ msgstr "Salvați"
 msgid "Save As"
 msgstr "Salvați Ca"
 
+msgid "Make Unique"
+msgstr "Faceți unic"
+
+msgid "Open in Inspector"
+msgstr "Deschide în Inspector"
+
+msgid "Remove Animation Library: %s"
+msgstr "Elimină biblioteca de animații: %s"
+
+msgid "Remove Animation from Library: %s"
+msgstr "Elimină Animația din biblioteă: %s"
+
+msgid "[built-in]"
+msgstr "[încorporat]"
+
+msgid "[foreign]"
+msgstr "[extern]"
+
+msgid "[imported]"
+msgstr "importat"
+
+msgid "Add animation to library."
+msgstr "Adaugă Animația in bibliotecă."
+
+msgid "Load animation from file and add to library."
+msgstr "Încarcă Animația din fișier și adaug-o în bibliotecă."
+
+msgid "Paste animation to library from clipboard."
+msgstr "Lipește animația din clipboard în bibliotecă."
+
+msgid "Save animation library to resource on disk."
+msgstr "Salvează biblioteca de animații ca resursă pe disc."
+
+msgid "Remove animation library."
+msgstr "Elimină Animația din bibliotecă."
+
+msgid "Copy animation to clipboard."
+msgstr "Copiază animația în clipboard."
+
+msgid "Save animation to resource on disk."
+msgstr "Salvează animația ca resursă pe disc."
+
+msgid "Remove animation from Library."
+msgstr "Elimină Animația din bibliotecă."
+
 msgid "Resource"
 msgstr "Resursă"
 
 msgid "Storage"
 msgstr "Stochare"
+
+msgid "Edit Animation Libraries"
+msgstr "Editare biblioteci de animații"
+
+msgid "Library Name:"
+msgstr "Nume bibliotecă:"
+
+msgid "New Library"
+msgstr "Bibliotecă nouă"
+
+msgid "Create new empty animation library."
+msgstr "Creează o nouă bibliotecă de animații goală."
+
+msgid "Load Library"
+msgstr "Încărcă biblioteca"
+
+msgid "Load animation library from disk."
+msgstr "Nicio resursă de animație în clipboard."
 
 msgid "Error:"
 msgstr "Eroare:"
@@ -957,8 +1271,17 @@ msgstr "Redenumește Animația"
 msgid "Change Animation Name:"
 msgstr "Schimbă Numele Animației:"
 
+msgid "Delete Animation '%s'?"
+msgstr "Ștergi Animația '%s'?"
+
 msgid "Remove Animation"
 msgstr "Elimină Animația"
+
+msgid "Invalid animation name!"
+msgstr "Nume animație nevalid!"
+
+msgid "Animation '%s' already exists!"
+msgstr "Animația '%s' există deja!"
 
 msgid "Duplicate Animation"
 msgstr "Duplicare Animație"
@@ -968,6 +1291,12 @@ msgstr "Amestecă Următoarea Schimbare"
 
 msgid "Change Blend Time"
 msgstr "Schimbă Timpul Amestecului"
+
+msgid "[Global] (create)"
+msgstr "[Global] (crează)"
+
+msgid "Pause/Stop Animation"
+msgstr "Pauză/Oprire animație"
 
 msgid "Animation"
 msgstr "Animație"
@@ -980,6 +1309,9 @@ msgstr "Redimensionează rularea animației pentru nod."
 
 msgid "Animation Tools"
 msgstr "Unelte Animație"
+
+msgid "New..."
+msgstr "Nou..."
 
 msgid "Duplicate..."
 msgstr "Duplicați..."
@@ -1032,6 +1364,9 @@ msgstr "Forțează Modulare Albă"
 msgid "Include Gizmos (3D)"
 msgstr "Include Gizmo-uri (3D)"
 
+msgid "Animation Name:"
+msgstr "Nume Animație:"
+
 msgid "Close"
 msgstr "Închide"
 
@@ -1050,17 +1385,46 @@ msgstr "Următorul (Rând Automat):"
 msgid "Transition exists!"
 msgstr "Tranziţia există!"
 
+msgid "Cannot transition to self!"
+msgstr "Nu se poate face tranziția către sine!"
+
+msgid "Cannot transition to \"Start\"!"
+msgstr "Nu se poate trece la „Start”!"
+
+msgid "Cannot transition from \"End\"!"
+msgstr "Nu se poate face tranziția de la „Sfârșit”!"
+
+msgid "Play/Travel to %s"
+msgstr "Joacă/Călătorește la %s"
+
+msgid "Immediate"
+msgstr "Imediat"
+
+msgid "At End"
+msgstr "La sfârșit"
+
+msgid "Travel"
+msgstr "Călătorește"
+
+msgid ""
+"Select and move nodes.\n"
+"RMB: Add node at position clicked.\n"
+"Shift+LMB+Drag: Connects the selected node with another node or creates a new "
+"node if you select an area without nodes."
+msgstr ""
+"Selectați și mutați noduri.\n"
+"RMB: Adăugați un nod în poziția în care s-a făcut clic.\n"
+"Shift+LMB+Trageți: Conectați nodul selectat cu un alt nod sau creează un nod "
+"nou dacă selectați o zonă fără noduri."
+
 msgid "Create new nodes."
 msgstr "Creați noduri noi."
 
 msgid "Connect nodes."
 msgstr "Conectați nodurile."
 
-msgid "Transition:"
-msgstr "Tranziție:"
-
-msgid "Play Mode:"
-msgstr "Mod redare:"
+msgid "New Transitions Should Auto Advance"
+msgstr "Noile tranziții ar trebui să avanseze automat"
 
 msgid "Change Animation Length"
 msgstr "Schimbă Durata Animației"
@@ -1133,6 +1497,11 @@ msgstr "Lungime Animație (în frame-uri)"
 msgid "Animation length (seconds)"
 msgstr "Lungime Animație (în secunde)"
 
+msgid "Filter tracks by entering part of their node name or property."
+msgstr ""
+"Filtrați pistele introducând o parte din numele nodului sau proprietatea "
+"acestora."
+
 msgid "Animation Looping"
 msgstr "Repetă Animația"
 
@@ -1185,6 +1554,10 @@ msgstr "(Invalid, tipul așteptat: %s)"
 msgid "Easing:"
 msgstr "Usurand:"
 
+msgctxt "Bezier Handle Mode"
+msgid "Free"
+msgstr "Liber"
+
 msgid "Stream:"
 msgstr "Curent:"
 
@@ -1214,6 +1587,9 @@ msgstr "Introduceți Cheie..."
 
 msgid "Duplicate Key(s)"
 msgstr "Clonare Chei"
+
+msgid "Send Key(s) to RESET"
+msgstr "Trimiteți cheia (cheile) la RESET"
 
 msgid "Delete Key(s)"
 msgstr "Ștergeți Cheile"
@@ -1255,6 +1631,29 @@ msgstr "AnimationPlayer nu se poate anima singur, doar alți jucători."
 
 msgid "property '%s'"
 msgstr "proprietatea '%s'"
+
+msgid "Set the default handle mode of new bezier keys."
+msgstr "Setează modul implicit de gestionare pentru noile chei Bezier."
+
+msgctxt "Transition Type"
+msgid "Quint"
+msgstr "Al cincilea"
+
+msgctxt "Transition Type"
+msgid "Quart"
+msgstr "Al patrulea"
+
+msgctxt "Transition Type"
+msgid "Quad"
+msgstr "Patrime"
+
+msgctxt "Transition Type"
+msgid "Bounce"
+msgstr "Sari"
+
+msgctxt "Transition Type"
+msgid "Spring"
+msgstr "Arc"
 
 msgid "Change Animation Step"
 msgstr "Schimbă Pasul Animației"
@@ -1299,9 +1698,6 @@ msgstr "Inserați Pistă și Cheie"
 
 msgid "Method not found in object:"
 msgstr "Metoda nu a fost găsită în obiect:"
-
-msgid "Position"
-msgstr "Poziție"
 
 msgid "Rotation"
 msgstr "Rotație"
@@ -1379,6 +1775,9 @@ msgstr "Player flas"
 
 msgid "Toggle between the bezier curve editor and track editor."
 msgstr "Comutați între editorul de curbe Bezier și editorul de urmărire."
+
+msgid "Toggle function names in the track editor."
+msgstr "Comutare nume funcții în editorul de piste."
 
 msgid "Only show tracks from nodes selected in tree."
 msgstr ""
@@ -1492,30 +1891,6 @@ msgstr "Proporție Scalare:"
 msgid "Select Transition and Easing"
 msgstr "Selectați Tranziție și ușurare"
 
-msgctxt "Transition Type"
-msgid "Sine"
-msgstr "sinus"
-
-msgctxt "Transition Type"
-msgid "Quint"
-msgstr "Al cincilea"
-
-msgctxt "Transition Type"
-msgid "Quart"
-msgstr "Al patrulea"
-
-msgctxt "Transition Type"
-msgid "Quad"
-msgstr "Patrime"
-
-msgctxt "Transition Type"
-msgid "Bounce"
-msgstr "Sari"
-
-msgctxt "Transition Type"
-msgid "Spring"
-msgstr "Arc"
-
 msgid "FPS:"
 msgstr "Frame-uri pe secunda:"
 
@@ -1564,23 +1939,29 @@ msgstr "Schimbați decalajul de oprire a clipului audio"
 msgid "Path:"
 msgstr "Cale:"
 
+msgid "Errors"
+msgstr "Erori"
+
 msgid "License"
 msgstr "Licență"
+
+msgid "Loading..."
+msgstr "Încărcare..."
+
+msgid "Download"
+msgstr "Descarcă"
+
+msgid "Downloading..."
+msgstr "Descărcare..."
+
+msgid "Install..."
+msgstr "Instalare..."
 
 msgid "Version:"
 msgstr "Versiune:"
 
-msgid "Contents:"
-msgstr "Conținut:"
-
-msgid "View Files"
-msgstr "Vizualizează Fișierele"
-
-msgid "Description:"
-msgstr "Descriere:"
-
-msgid "Download"
-msgstr "Descarcă"
+msgid "Description"
+msgstr "Descriere"
 
 msgid "Connection error, please try again."
 msgstr "Eroare la conectare, te rog încearcă din nou."
@@ -1630,9 +2011,6 @@ msgstr "Eroare la Descărcarea Asset-ului:"
 msgid "Downloading (%s / %s)..."
 msgstr "Se descarcă (%s / %s)..."
 
-msgid "Downloading..."
-msgstr "Descărcare..."
-
 msgid "Resolving..."
 msgstr "Se Rezolvă..."
 
@@ -1648,26 +2026,11 @@ msgstr "Eroare la solicitare"
 msgid "Idle"
 msgstr "Inactiv"
 
-msgid "Install..."
-msgstr "Instalare..."
-
 msgid "Retry"
 msgstr "Reîncearcă"
 
 msgid "Download Error"
 msgstr "Eroare Descărcare"
-
-msgid "Featured"
-msgstr "Caracteristici prezente"
-
-msgid "Community"
-msgstr "Comunitate"
-
-msgid "Testing"
-msgstr "Se Testează"
-
-msgid "Loading..."
-msgstr "Încărcare..."
 
 msgctxt "Pagination"
 msgid "Last"
@@ -1676,8 +2039,8 @@ msgstr "ultima"
 msgid "All"
 msgstr "Toate"
 
-msgid "Install"
-msgstr "Instalați"
+msgid "No results for \"%s\"."
+msgstr "Niciun rezultat pentru \"%s\"."
 
 msgid "Import..."
 msgstr "Import..."
@@ -1691,11 +2054,8 @@ msgstr "Sorare:"
 msgid "Category:"
 msgstr "Categorie:"
 
-msgid "Site:"
-msgstr "Site:"
-
-msgid "Support"
-msgstr "Suport"
+msgid "Licenses"
+msgstr "Licențe"
 
 msgid "Assets ZIP File"
 msgstr "Fișier ZIP cu Asset-uri"
@@ -1718,6 +2078,9 @@ msgstr "(și %s alte fișiere)"
 
 msgid "Success!"
 msgstr "Succes!"
+
+msgid "Install"
+msgstr "Instalați"
 
 msgid "Audio Preview Play/Pause"
 msgstr "Previzualizare Audio Pornește/Oprește"
@@ -1894,9 +2257,6 @@ msgstr "Timp"
 msgid "Calls"
 msgstr "Apeluri"
 
-msgid "Errors"
-msgstr "Erori"
-
 msgid "Main Thread"
 msgstr "Fir principal"
 
@@ -1909,17 +2269,124 @@ msgstr "Reduceți Toate"
 msgid "Profiler"
 msgstr "Profiler"
 
+msgid "Total:"
+msgstr "Total:"
+
 msgid "Type"
 msgstr "Tip"
 
+msgid "Format"
+msgstr "Format"
+
+msgid "Show in FileSystem"
+msgstr "Afișare în FileSystem"
+
+msgid "View Owners..."
+msgstr "Vizualizează Proprietarii..."
+
+msgid "Misc"
+msgstr "Diverse"
+
+msgid "This method is required to be overridden when extending its base class."
+msgstr ""
+"Această metodă trebuie suprascrisă atunci când se extinde clasa sa de bază."
+
+msgid ""
+"This method has no side effects.\n"
+"It does not modify the object in any way."
+msgstr ""
+"Această metodă nu are efecte secundare.\n"
+"Nu modifică obiectul în niciun fel."
+
+msgid ""
+"This method does not need an instance to be called.\n"
+"It can be called directly using the class name."
+msgstr ""
+"Această metodă nu necesită o instanță pentru a fi apelată.\n"
+"Poate fi apelată direct folosind numele clasei."
+
+msgid "This method must be implemented to complete the abstract class."
+msgstr "Această metodă trebuie implementată pentru a completa clasa abstractă."
+
+msgid "Code snippet copied to clipboard."
+msgstr "Fragmentul de cod a fost copiat în clipboard."
+
+msgid "No return value."
+msgstr "Nu se returnează nicio valoare."
+
+msgid "Deprecated"
+msgstr "învechit"
+
 msgid "Experimental"
 msgstr "Experimental"
+
+msgid "Deprecated:"
+msgstr "Învechit:"
+
+msgid "Experimental:"
+msgstr "Experimental:"
+
+msgid "Constructors"
+msgstr "Constructori"
 
 msgid "Operators"
 msgstr "Operatori"
 
 msgid "Method Descriptions"
-msgstr "Descrierile Metodei"
+msgstr "Descrierea Metodelor"
+
+msgid "Constructor Descriptions"
+msgstr "Descrieri ale constructorilor"
+
+msgid "Operator Descriptions"
+msgstr "Descrierea operatorilor"
+
+msgid "This method may be changed or removed in future versions."
+msgstr ""
+"Această metodă poate fi modificată sau eliminată în versiunile viitoare."
+
+msgid "This constructor may be changed or removed in future versions."
+msgstr ""
+"Este posibil ca acest constructor să fie modificat sau eliminat în versiunile "
+"viitoare."
+
+msgid "This operator may be changed or removed in future versions."
+msgstr ""
+"Este posibil ca acest operator să fie modificat sau eliminat în versiunile "
+"viitoare."
+
+msgid "Error codes returned:"
+msgstr "Coduri de eroare returnate:"
+
+msgid "There is currently no description for this method."
+msgstr "În prezent, nu există nicio descriere pentru această metodă."
+
+msgid "There is currently no description for this constructor."
+msgstr "În prezent, nu există nicio descriere pentru acest constructor."
+
+msgid "There is currently no description for this operator."
+msgstr "În prezent, nu există nicio descriere pentru acest operator."
+
+msgid ""
+"There is currently no description for this method. Please help us by "
+"[color=$color][url=$url]contributing one[/url][/color]!"
+msgstr ""
+"În prezent nu există nicio descriere pentru această metodă. Vă rugăm să ne "
+"ajutați [color=$color][url=$url]contribuind cu una[/url][/color]!"
+
+msgid ""
+"There is currently no description for this constructor. Please help us by "
+"[color=$color][url=$url]contributing one[/url][/color]!"
+msgstr ""
+"În prezent nu există nicio descriere pentru acest constructor. Vă rugăm să ne "
+"ajutați [color=$color][url=$url]contribuind cu una[/url][/color]!"
+
+msgid ""
+"There is currently no description for this operator. Please help us by "
+"[color=$color][url=$url]contributing one[/url][/color]!"
+msgstr ""
+"În prezent nu există nicio descriere pentru acest operator. Vă rugăm să ne "
+"ajutați [color=$color][url=$url]contribuind cu una[/url][/color]!"
 
 msgid "Top"
 msgstr "Sus"
@@ -1927,14 +2394,35 @@ msgstr "Sus"
 msgid "Class:"
 msgstr "Clasă:"
 
+msgid "This class may be changed or removed in future versions."
+msgstr "Această clasă poate fi modificată sau eliminată în versiunile viitoare."
+
 msgid "Inherits:"
 msgstr "Mosteneste:"
 
-msgid "Inherited by:"
+msgid "Inherited By:"
 msgstr "Moştenit de:"
 
-msgid "Description"
-msgstr "Descriere"
+msgid "There is currently no description for this class."
+msgstr "În prezent, nu există nicio descriere pentru această clasă."
+
+msgid ""
+"There is currently no description for this class. Please help us by "
+"[color=$color][url=$url]contributing one[/url][/color]!"
+msgstr ""
+"În prezent nu există nicio descriere pentru această clasă. Vă rugăm să ne "
+"ajutați [color=$color][url=$url]contribuind cu una[/url][/color]!"
+
+msgid "Note:"
+msgstr "Notă:"
+
+msgid ""
+"There are notable differences when using this API with C#. See [url=%s]C# API "
+"differences to GDScript[/url] for more information."
+msgstr ""
+"Există diferențe semnificative atunci când se utilizează acest API cu C#. "
+"Pentru mai multe informații, consultați [url=%s]Diferențele dintre API-ul C# "
+"și GDScript[/url]."
 
 msgid "Online Tutorials"
 msgstr "Tutoriale Online"
@@ -1942,8 +2430,14 @@ msgstr "Tutoriale Online"
 msgid "Properties"
 msgstr "Proprietăți"
 
+msgid "overrides %s:"
+msgstr "suprascrie %s:"
+
 msgid "default:"
 msgstr "implicit:"
+
+msgid "property:"
+msgstr "Proprietate:"
 
 msgid "Theme Properties"
 msgstr "Proprietățile Temei"
@@ -1957,17 +2451,64 @@ msgstr "Constante"
 msgid "Fonts"
 msgstr "Fonturi"
 
+msgid "Font Sizes"
+msgstr "Dimensiunile fonturilor"
+
 msgid "Icons"
 msgstr "Icoană"
 
 msgid "Styles"
 msgstr "Stiluri"
 
+msgid "This theme property may be changed or removed in future versions."
+msgstr ""
+"Această proprietate a temei poate fi modificată sau eliminată în versiunile "
+"viitoare."
+
+msgid "There is currently no description for this theme property."
+msgstr ""
+"În prezent, nu există nicio descriere pentru această proprietate a temei."
+
+msgid ""
+"There is currently no description for this theme property. Please help us by "
+"[color=$color][url=$url]contributing one[/url][/color]!"
+msgstr ""
+"În prezent nu există nicio descriere pentru această proprietate a temei. Vă "
+"rugăm să ne ajutați [color=$color][url=$url]contribuind cu una[/url][/color]!"
+
 msgid "Signals"
 msgstr "Semnale"
 
+msgid "This signal may be changed or removed in future versions."
+msgstr ""
+"Este posibil ca acest semnal să fie modificat sau eliminat în versiunile "
+"viitoare."
+
+msgid "There is currently no description for this signal."
+msgstr "În prezent, nu există nicio descriere pentru acest semnal."
+
+msgid ""
+"There is currently no description for this signal. Please help us by "
+"[color=$color][url=$url]contributing one[/url][/color]!"
+msgstr ""
+"În prezent nu există nicio descriere pentru acest semnal. Vă rugăm să ne "
+"ajutați [color=$color][url=$url]contribuind cu una[/url][/color]!"
+
 msgid "Enumerations"
 msgstr "Enumerări"
+
+msgid "Annotations"
+msgstr "Adnotări"
+
+msgid "There is currently no description for this annotation."
+msgstr "În prezent, nu există nicio descriere pentru această adnotare."
+
+msgid ""
+"There is currently no description for this annotation. Please help us by "
+"[color=$color][url=$url]contributing one[/url][/color]!"
+msgstr ""
+"În prezent nu există nicio descriere pentru această adnotare. Vă rugăm să ne "
+"ajutați [color=$color][url=$url]contribuind cu una[/url][/color]!"
 
 msgid "Property Descriptions"
 msgstr "Descrieri Proprietate"
@@ -1975,34 +2516,83 @@ msgstr "Descrieri Proprietate"
 msgid "(value)"
 msgstr "(valoare)"
 
+msgid "This property may be changed or removed in future versions."
+msgstr ""
+"Această proprietate poate fi modificată sau eliminată în versiunile viitoare."
+
+msgid "There is currently no description for this property."
+msgstr "În prezent, nu există nicio descriere pentru această proprietate."
+
 msgid ""
 "There is currently no description for this property. Please help us by "
 "[color=$color][url=$url]contributing one[/url][/color]!"
 msgstr ""
-"Nu există în prezent nici o descriere pentru această proprietate. Te rog "
-"ajută-ne prin a [color = $color] [url = $url] contribui cu una [/ URL] [/ "
-"color]!"
+"În prezent nu există nicio descriere pentru această proprietate. Vă rugăm să "
+"ne ajutați [color=$color][url=$url]contribuind cu una[/url][/color]!"
+
+msgid ""
+"[b]Note:[/b] The returned array is [i]copied[/i] and any changes to it will "
+"not update the original property value. See [%s] for more details."
+msgstr ""
+"[b]Notă:[/b] Tabloul returnat este [i]copiat[/i], iar orice modificare adusă "
+"acestuia nu va actualiza valoarea proprietății originale. Consultați [%s] "
+"pentru mai multe detalii."
 
 msgid "Editor"
 msgstr "Editor"
 
+msgid "Click to copy."
+msgstr "Faceți clic pentru a copia."
+
+msgid "Click to open in browser."
+msgstr "Faceți clic pentru a deschide în browser."
+
+msgid "Toggle Files Panel"
+msgstr "Afișează/Ascunde panoul Fișiere"
+
+msgid "Scripts"
+msgstr "Scripturi"
+
+msgid "No description available."
+msgstr "Nu există nicio descriere disponibilă."
+
+msgid "This annotation may be changed or removed in future versions."
+msgstr ""
+"Această adnotare poate fi modificată sau eliminată în versiunile viitoare."
+
 msgid "Open"
 msgstr "Deschide"
-
-msgid "Show in FileSystem"
-msgstr "Afișare în FileSystem"
 
 msgid "Open in File Manager"
 msgstr "Deschideți în Administratorul de Fișiere"
 
+msgid "This property can only be set in the Inspector."
+msgstr "Această proprietate poate fi setată doar din Inspector."
+
+msgid "This variable may be changed or removed in future versions."
+msgstr ""
+"Această variabilă poate fi modificată sau eliminată în versiunile viitoare."
+
 msgid "Class"
 msgstr "Clasă"
 
+msgid "Enumeration"
+msgstr "Enumerare"
+
 msgid "Constant"
-msgstr "Permanent"
+msgstr "Constantă"
+
+msgid "Metadata"
+msgstr "Metadate"
+
+msgid "Setting"
+msgstr "Setări"
 
 msgid "Property"
 msgstr "Proprietate"
+
+msgid "Internal Property"
+msgstr "Proprietate internă"
 
 msgid "Theme Property"
 msgstr "Proprietate Temă"
@@ -2013,11 +2603,20 @@ msgstr "Metodă"
 msgid "Signal"
 msgstr "Semnal"
 
+msgid "Text File"
+msgstr "Fisier Text"
+
 msgid "File"
 msgstr "Fișier"
 
 msgid "Path"
 msgstr "Cale"
+
+msgid "Invalid path"
+msgstr "Cale nevalidă"
+
+msgid "This path does not exist."
+msgstr "Această cale nu există."
 
 msgid "Search"
 msgstr "Căutare"
@@ -2079,9 +2678,6 @@ msgstr "Această clasă este marcată ca experimentală."
 msgid "Dock Position"
 msgstr "Poziția Dock-ului"
 
-msgid "Favorites:"
-msgstr "Favorite:"
-
 msgid "Favorites"
 msgstr "Favorite"
 
@@ -2138,9 +2734,6 @@ msgstr "Execută"
 msgid "Edit Dependencies..."
 msgstr "Editează Dependințele..."
 
-msgid "View Owners..."
-msgstr "Vizualizează Proprietarii..."
-
 msgid "Add to Favorites"
 msgstr "Adauga la Favorite"
 
@@ -2149,9 +2742,6 @@ msgstr "Eliminare din Preferințe"
 
 msgid "Reimport"
 msgstr "Reimportă"
-
-msgid "Show in File Manager"
-msgstr "Arătați în Administratorul de Fișiere"
 
 msgid "New Folder..."
 msgstr "Director Nou..."
@@ -2190,6 +2780,9 @@ msgstr "Renumește Grupul"
 msgid "Name:"
 msgstr "Nume:"
 
+msgid "Description:"
+msgstr "Descriere:"
+
 msgid "Rename"
 msgstr "Redenumește"
 
@@ -2217,11 +2810,11 @@ msgstr "Importă Ca:"
 msgid "Preset"
 msgstr "Presetare"
 
-msgid "Failed to load resource."
-msgstr "Încărcarea resursei a eșuat."
-
 msgid "Make Sub-Resources Unique"
 msgstr "Faceți Sub-Resursa Unică"
+
+msgid "Failed to load resource."
+msgstr "Încărcarea resursei a eșuat."
 
 msgid "Inspector"
 msgstr "Inspector"
@@ -2410,12 +3003,6 @@ msgstr "Scena '%s' are dependințe nefuncționale:"
 msgid "Clear Recent Scenes"
 msgstr "Curăță Scenele Recente"
 
-msgid "Save Layout"
-msgstr "Salvează Schema"
-
-msgid "Delete Layout"
-msgstr "Șterge Schema"
-
 msgid "Save & Close"
 msgstr "Salvează și închide"
 
@@ -2536,6 +3123,9 @@ msgstr "Captură de ecran"
 msgid "Toggle Fullscreen"
 msgstr "Comutare ecran complet"
 
+msgid "Community"
+msgstr "Comunitate"
+
 msgid "Report a Bug"
 msgstr "Raportează o Eroare"
 
@@ -2544,9 +3134,6 @@ msgstr "Trimite Feedbackul Docs"
 
 msgid "Open Script Editor"
 msgstr "Deschide Editorul de Scripturi"
-
-msgid "Open Asset Library"
-msgstr "Deschide Librăria de Asseturi"
 
 msgid "Open the next Editor"
 msgstr "Deschide Editorul următor"
@@ -2622,28 +3209,6 @@ msgid "On 32-bit exports the embedded PCK cannot be bigger than 4 GiB."
 msgstr ""
 "La exporturile pe 32 de biți PCK-ul încorporat nu poate fi mai mare de 4 GiB."
 
-msgid "Error requesting URL:"
-msgstr "Eroare la solicitarea URL:"
-
-msgid "Can't connect to the mirror."
-msgstr "Nu se poate conecta la oglindă."
-
-msgid "No response from the mirror."
-msgstr "Niciun răspuns de la oglinda."
-
-msgid "Request failed:"
-msgstr "Cerere Eșuată:"
-
-msgid "Cannot remove temporary file:"
-msgstr "Nu pot sterge fișierul temporar:"
-
-msgid ""
-"No download links found for this version. Direct download is only available "
-"for official releases."
-msgstr ""
-"Niciun link pentru descărcare nu a fost găsit pentru această versiune. "
-"Descărcarea directă este disponibilă numai pentru lansări oficiale."
-
 msgid "Extracting Export Templates"
 msgstr "Se extrag Șabloanele de Export"
 
@@ -2655,12 +3220,6 @@ msgstr "Decomprimare Surse de compilare Android"
 
 msgid "Export Template Manager"
 msgstr "Exportă Managerul de Șabloane"
-
-msgid "Current Version:"
-msgstr "Versiune Curentă:"
-
-msgid "Uninstall"
-msgstr "Dezinstalează"
 
 msgid "Download from:"
 msgstr "Descărcați din:"
@@ -2676,9 +3235,6 @@ msgstr "Administrează Șabloanele de Export"
 
 msgid "Dependencies For:"
 msgstr "Dependențe Pentru:"
-
-msgid "Dependencies"
-msgstr "Dependențe"
 
 msgid "Dependencies:"
 msgstr "Dependințe:"
@@ -2791,8 +3347,8 @@ msgstr "Schimbă Tipul lui \"%s\""
 msgid "Change"
 msgstr "Schimbați"
 
-msgid "No results for \"%s\"."
-msgstr "Niciun rezultat pentru \"%s\"."
+msgid "Favorites:"
+msgstr "Favorite:"
 
 msgid "Recent:"
 msgstr "Recent:"
@@ -2856,9 +3412,6 @@ msgstr "Toate Componentele"
 
 msgid "Components"
 msgstr "Componente"
-
-msgid "Licenses"
-msgstr "Licențe"
 
 msgid "Expand Bottom Panel"
 msgstr "Extinde Panoul De Jos"
@@ -3009,9 +3562,6 @@ msgstr "Eliminați %d proiecte din listă?"
 msgid "Remove this project from the list?"
 msgstr "Eliminați acest proiect din listă?"
 
-msgid "Asset Library"
-msgstr "Librăria de Resurse"
-
 msgid "Error"
 msgstr "Eroare"
 
@@ -3150,6 +3700,9 @@ msgstr "Avansate"
 msgid "Grid Snap"
 msgstr "Snap Grilă"
 
+msgid "Polygon %d"
+msgstr "Poligon %d"
+
 msgid "Physics"
 msgstr "Cadru Fizic"
 
@@ -3228,21 +3781,12 @@ msgstr "Axa-Y"
 msgid "Z-Axis"
 msgstr "Axa-Z"
 
-msgid "Remove item %d?"
-msgstr "Elimini obiectul %d?"
-
 msgid ""
 "Update from existing scene?:\n"
 "%s"
 msgstr ""
 "Actualizează din Scenă existenta?:\n"
 "%s"
-
-msgid "Add Item"
-msgstr "Adaugă Obiect"
-
-msgid "Remove Selected Item"
-msgstr "Elimină Obiectul Selectat"
 
 msgid "Update from Scene"
 msgstr "Actualizează din Scenă"
@@ -3307,11 +3851,14 @@ msgstr "Cantitate:"
 msgid "Populate"
 msgstr "Populare"
 
-msgid "Orthogonal"
-msgstr "Ortogonal"
+msgid "Instantiating: %s"
+msgstr "Instanțiere: %s"
 
 msgid "View"
 msgstr "Perspectivă"
+
+msgid "Orthogonal"
+msgstr "Ortogonal"
 
 msgid "Cancel Transformation"
 msgstr "anulează transformare"
@@ -3332,9 +3879,6 @@ msgid "Alt+RMB: Show list of all nodes at position clicked, including locked."
 msgstr ""
 "Alt+Butonul drept al mausului: Arată o listă a tuturor nodurilor la poziția "
 "clickului, inclusiv cele blocate."
-
-msgid "(Available in all modes.)"
-msgstr "(Disponibile in toate modurile.)"
 
 msgid "Move Mode"
 msgstr "Mod Mutare"
@@ -3492,6 +4036,9 @@ msgstr "V: Setează poziția pivotului nodului selectat."
 msgid "RMB: Add node at position clicked."
 msgstr "Butonul drept al mausuli: Adaugă nod la poziția clickului."
 
+msgid "Shift: Scale proportionally."
+msgstr "Shift: Redimensionare proporțională."
+
 msgid "Paste Pose"
 msgstr "Lipește Postura"
 
@@ -3531,20 +4078,11 @@ msgstr "Magnificare la 800%"
 msgid "Zoom to 1600%"
 msgstr "Magnificare la 1600%"
 
-msgid "Shift: Scale proportionally."
-msgstr "Shift: Redimensionare proporțională."
-
 msgid "Pan Mode"
 msgstr "Mod În Jur"
 
-msgid "Toggle smart snapping."
-msgstr "Comutați fixarea inteligentă."
-
 msgid "Use Smart Snap"
 msgstr "Utilizează Snap Inteligent"
-
-msgid "Toggle grid snapping."
-msgstr "Comutare grilă fixare."
 
 msgid "Use Grid Snap"
 msgstr "Utilizează Snap Grilă"
@@ -3955,6 +4493,9 @@ msgstr "Va crea un nou fișier script."
 msgid "Built-in Script:"
 msgstr "Script încorporat:"
 
+msgid "Line"
+msgstr "Linie"
+
 msgid "Current value: "
 msgstr "Valoare curentă: "
 
@@ -3973,17 +4514,11 @@ msgstr "Deschide..."
 msgid "Script Editor"
 msgstr "Editor de scripturi"
 
-msgid "Standard"
-msgstr "Standard"
-
 msgid ""
 "Missing connected method '%s' for signal '%s' from node '%s' to node '%s'."
 msgstr ""
 "Lipsește metoda conectată '%s' pentru semnalul '%s' de la nodul '%s' la nodul "
 "'%s'."
-
-msgid "Line"
-msgstr "Linie"
 
 msgid "Duplicate Selection"
 msgstr "Duplicați Selecția"
@@ -3993,6 +4528,9 @@ msgstr "Salt la funcție..."
 
 msgid "Go to Line..."
 msgstr "Salt la linie..."
+
+msgid "Standard"
+msgstr "Standard"
 
 msgid ""
 "Invalid action name. It cannot be empty nor contain '/', ':', '=', '\\' or "
@@ -4042,9 +4580,6 @@ msgstr "%s este o cale invalidă. Fișierul nu există."
 
 msgid "%s is an invalid path. Not in resource path (res://)."
 msgstr "%s este o cale invalida. Nu este în calea resurselor (res://)."
-
-msgid "Node Name:"
-msgstr "Nume Nod:"
 
 msgid "Global Variable"
 msgstr "Variabil Global"
@@ -4173,6 +4708,12 @@ msgstr "Încarcă Profil(e)"
 msgid "Manage Editor Feature Profiles"
 msgstr "Administrează Profilele Ferestrei de Editare"
 
+msgid "Save Layout"
+msgstr "Salvează Schema"
+
+msgid "Delete Layout"
+msgstr "Șterge Schema"
+
 msgid "Editor Settings"
 msgstr "Setări ale Editorului"
 
@@ -4188,39 +4729,6 @@ msgstr "Plugin-uri"
 msgid "There are unsaved changes in the following built-in shaders(s):"
 msgstr ""
 "Există modificări care nu au fost salvate în următoarele shadere integrate:"
-
-msgid "Add Input"
-msgstr "Adaugă Intrare(Input)"
-
-msgid "Color function."
-msgstr "Funcția de culoare."
-
-msgid "Grayscale function."
-msgstr "Funcția tonuri de gri."
-
-msgid "Sepia function."
-msgstr "Funcția sepia."
-
-msgid "Difference operator."
-msgstr "Operator de diferență."
-
-msgid "HardLight operator."
-msgstr "Operator HardLight."
-
-msgid "Color constant."
-msgstr "Constantă de culoare."
-
-msgid "Input parameter."
-msgstr "Parametru de intrare."
-
-msgid "Transform function."
-msgstr "Funcție de transformare."
-
-msgid "Transform constant."
-msgstr "Transformare constantă."
-
-msgid "Vector function."
-msgstr "Funcție vectorială."
 
 msgid "Add %d Translation"
 msgid_plural "Add %d Translations"
@@ -4270,6 +4778,46 @@ msgstr ""
 msgid "A Count"
 msgstr "Un Număr"
 
+msgid "Add Input"
+msgstr "Adaugă Intrare(Input)"
+
+msgid "Color function."
+msgstr "Funcția de culoare."
+
+msgid "Grayscale function."
+msgstr "Funcția tonuri de gri."
+
+msgid "Sepia function."
+msgstr "Funcția sepia."
+
+msgid "Difference operator."
+msgstr "Operator de diferență."
+
+msgid "HardLight operator."
+msgstr "Operator HardLight."
+
+msgid "Color constant."
+msgstr "Constantă de culoare."
+
+msgid "Input parameter."
+msgstr "Parametru de intrare."
+
+msgid "Transform function."
+msgstr "Funcție de transformare."
+
+msgid "Transform constant."
+msgstr "Transformare constantă."
+
+msgid "Vector function."
+msgstr "Funcție vectorială."
+
+msgid ""
+"Shader keywords cannot be used as parameter names.\n"
+"Choose another name."
+msgstr ""
+"Cuvintele cheie Shader nu pot fi utilizate ca nume pentru parametrii.\n"
+"Alegeți un alt nume."
+
 msgid "Invalid package name:"
 msgstr "Nume pachet nevalid:"
 
@@ -4296,21 +4844,47 @@ msgstr ""
 "Poziția de pornire NavigationLink2D ar trebui să fie diferită de poziția "
 "finală pentru a fi utilă."
 
-msgid "Nothing connected to input '%s' of node '%s'."
-msgstr "Nimic conectat la intrarea '%s' a nodului '%s'."
+msgid "Expected a '%s'."
+msgstr "Se așteaptă un '%s'."
 
-msgid ""
-"Shader keywords cannot be used as parameter names.\n"
-"Choose another name."
-msgstr ""
-"Cuvintele cheie Shader nu pot fi utilizate ca nume pentru parametrii.\n"
-"Alegeți un alt nume."
+msgid "Expected a '%s' or '%s'."
+msgstr "Se asteaptă un '%s' la '%s'"
+
+msgid "Expected a '%s' after '%s'."
+msgstr "Se asteaptă un '%s' după '%s'."
+
+msgid "Redefinition of '%s'."
+msgstr "Redefinirea lui '%s'."
+
+msgid "Unknown directive."
+msgstr "Directivă necunoscută."
+
+msgid "Invalid macro name."
+msgstr "Nume de macro invalid."
+
+msgid "Macro redefinition."
+msgstr "Redefinirea macro-ului."
+
+msgid "Invalid argument name."
+msgstr "Nume de argument invalid."
+
+msgid "Expected a comma in the macro argument list."
+msgstr "Se aștepta o virgulă în lista de argumente a macro-ului."
+
+msgid "'##' must not appear at beginning of macro expansion."
+msgstr "'##' nu poate apărea la începutul expansiunii macro-ului."
+
+msgid "'##' must not appear at end of macro expansion."
+msgstr "'##' nu poate apărea la sfârșitul expansiunii macro-ului."
+
+msgid "Unmatched '%s' directive."
+msgstr "Directiva „%s” fără pereche."
 
 msgid "Missing condition."
-msgstr "Condiție lipsa."
+msgstr "Condiție lipsă."
 
 msgid "Condition evaluation error."
-msgstr "Eroare de evaluare a condiției."
+msgstr "Eroare la evaluarea condiției."
 
 msgid "Shader include file does not exist:"
 msgstr "Fișierul de tip shader include nu exista:"

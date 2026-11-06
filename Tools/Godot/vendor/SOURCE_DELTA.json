@@ -1,11 +1,11 @@
 {
-  "schema": 1,
-  "upstream_commit": "89cea143987d564363e15d207438530651d943ac",
-  "source_archive_sha256": "b451eaa16d3abe0c7430e9ce1c4e83b146e5670e5b683dd8995c931fc82b57a0",
-  "initial_vendor_commit": "199c2c69c0e707808ad189200922bf71d04057b8",
+  "schema": 2,
+  "upstream_commit": "ed1daf0bf001b61586d9930840f2f1394092c079",
+  "source_archive_sha256": "e954996374cbd1cb5d72e0e3781cc537408e6ce73b010b12c6c2f308a820690a",
+  "attributes_baseline_commit": "199c2c69c0e707808ad189200922bf71d04057b8",
   "policy": "Canonical Git text/EOL content using attributes from the fixed initial import; no other content normalization",
-  "upstream_files": 13842,
-  "registered_current_files": 13886,
+  "upstream_files": 13989,
+  "registered_current_files": 14033,
   "archive_crlf_to_git_lf_files": [
     "misc/msvs/nmake.substitution.props",
     "misc/msvs/props.template",
@@ -33,49 +33,49 @@
     "modules/mono/glue/GodotSharp/GodotSharpEditor/GodotSharpEditor.csproj",
     "platform/android/java/gradlew.bat"
   ],
-  "delta_patch_sha256": "5e7b948a46fe13d8f44fa9dbcb954c40bd18c0b2c2d47ed0d7e46e91155b3412",
+  "delta_patch_sha256": "fb14c1618e162eb13a9f2b2694561945f1d51cf73e4d9f8c4603da8234b090db",
   "files": [
     {
       "path": "UPSTREAM.json",
       "status": "added",
       "mode": "100644",
-      "canonical_sha256": "6686616166e03e19f9615b4ee21f36554c009960bf396820bcae64c929cb1118",
+      "canonical_sha256": "9952c5200bd778633b8090f06a16a6eeee486b4d5b4af2638a1fdd5ba7e660e2",
       "upstream_canonical_sha256": null
     },
     {
       "path": "UPSTREAM.md",
       "status": "added",
       "mode": "100644",
-      "canonical_sha256": "34c4b89e3eba3e3f5953fb3490d981d0cd905aa153ff3e1563c701e1ed94f56d",
+      "canonical_sha256": "17b187727d76f4c2d662a03ae0f499bf5963a97f8ab6a5b10352b407a4fe1ba4",
       "upstream_canonical_sha256": null
     },
     {
       "path": "core/config/project_settings.cpp",
       "status": "modified",
       "mode": "100644",
-      "canonical_sha256": "166aed1a1647e332b6f83a96b939ba386978a6d39c6ae209b412daf0aefcf655",
-      "upstream_canonical_sha256": "03fb8c07370c429586b7573826a2877ef52165cba2ad9cd828baeb23c84e1e48"
+      "canonical_sha256": "ba223e3b8466774a1fe10ffb753a1f9861358656825cf88f41ecd1269895e68f",
+      "upstream_canonical_sha256": "7de9335773ee4498d7559300d06f14717e715909db92b62b52dd44887e19cc94"
     },
     {
       "path": "core/config/project_settings.h",
       "status": "modified",
       "mode": "100644",
-      "canonical_sha256": "315e6e6bb3f4fb27cd537fe4015e6c112ec489e5f00166d87453644262f5ce64",
-      "upstream_canonical_sha256": "0d9fc49e6647854cc7fbc57d59d77c29aa27f9aae94e64f91ecc5f4df18757be"
+      "canonical_sha256": "366de4910a0d2809d1d41f97fbf95406e0d171fb5584e837c57f129a528e6d5c",
+      "upstream_canonical_sha256": "131c0ff54b5c7c5358d137412f1e3d70da90e392d22930c0022b202b00cd92a0"
     },
     {
       "path": "core/extension/godot_instance.cpp",
       "status": "modified",
       "mode": "100644",
-      "canonical_sha256": "ee569626c92c1f8787fd967203f98fc327a3b8295baa367fcd424e549130f16c",
-      "upstream_canonical_sha256": "d45c465f2c9e8e843f7e98b14013f52252862d498ecab841e9aca854b0a3c3ef"
+      "canonical_sha256": "08087086dd13f038f85bbb258bd4aad9c2c36a63ae8002e2a829039efafbf0da",
+      "upstream_canonical_sha256": "a9aa506584e788c88ca66a9de87b2be745ef06185bed9f485a27507f0ff3ad77"
     },
     {
       "path": "core/extension/godot_instance.h",
       "status": "modified",
       "mode": "100644",
-      "canonical_sha256": "a9b1512dad502f65475696a1b67a0ac8bbd35bb65b16319ecb46ece335c01c39",
-      "upstream_canonical_sha256": "28fb6f761a87cf9a0119c797badf94b9e665f098e57d9241ddff1e7730cad000"
+      "canonical_sha256": "0a3947a7b3a84fdb98d1d3d0cceeaba688cb996893cd1d61860c85b43adcd17c",
+      "upstream_canonical_sha256": "89a5cd9e908c65ae420f656ef35e6272585037cb68103a3d81a950a50ae8982c"
     },
     {
       "path": "dora_android.map",
@@ -102,99 +102,85 @@
       "path": "drivers/apple_embedded/os_apple_embedded.mm",
       "status": "modified",
       "mode": "100644",
-      "canonical_sha256": "20a74248941df3e0448f4186e2c373a44a53a20a928c130a54524e735ba08d6f",
-      "upstream_canonical_sha256": "b674be79d7f0496aa3d86500ab06211ef6c7b14d8acde58818f110bf86f704a0"
+      "canonical_sha256": "80a816269b6232e919ec06addfd736654b633262f024c1c556cb1ababc078b3c",
+      "upstream_canonical_sha256": "e89fa0a4f09eea31dddadf7a308e60b1cde4901badecd5a93a533361d1969db8"
     },
     {
       "path": "drivers/d3d12/rendering_context_driver_d3d12.cpp",
       "status": "modified",
       "mode": "100644",
-      "canonical_sha256": "2c06001a2cdb5e1552859e7ccdb91f980c8839361b25a8c158a024976c2ce26a",
-      "upstream_canonical_sha256": "935b1238c178ee150feeac3a4e3c68acb9c032e6c8e1db6b4044f88e2c33f7a8"
+      "canonical_sha256": "8dc5649b15aee377fc278cea98b11a5ab3b3125f183332692595454dce3cf6d5",
+      "upstream_canonical_sha256": "b5ce8d6ac639429e5b49e6ccf5fc870713e5e16b206c5f23840e6dffe95321c4"
     },
     {
       "path": "drivers/gles3/rasterizer_canvas_gles3.cpp",
       "status": "modified",
       "mode": "100644",
-      "canonical_sha256": "925038b049cbc6269afd01ebdec9c8c54bf5e1e8483d933abef567dc0c73a221",
-      "upstream_canonical_sha256": "d3f423687d0013d3a7c7b5dac7ae9b483c38e3a64f82769e7debc024bdbe1747"
+      "canonical_sha256": "fa938d36703b683d4abeefd58fe283ba19119caf3985979c1dac4da03df2ba47",
+      "upstream_canonical_sha256": "9088855c87cfc4ad5d7bf4c019f80f573efa7dd1110556d246c5972001a698a5"
     },
     {
       "path": "drivers/gles3/rasterizer_gles3.cpp",
       "status": "modified",
       "mode": "100644",
-      "canonical_sha256": "9adeb911d213cd53c8d8b7fdc6b68cc29229a53f499b255ccad9a39ca2ffc897",
-      "upstream_canonical_sha256": "6a8b7fdeb20424c5c8c2bcd1843755043bc6b24d6688a8250257f1fbe8630df2"
+      "canonical_sha256": "d3efd61db6ff5443c4f12dc17b0c92b32322371a86f9fee60f6c66e8624ccc00",
+      "upstream_canonical_sha256": "7906073ee78a23816dfa0a0a21ec5879980f10f4eb5119ffa39051aba957311e"
     },
     {
       "path": "drivers/gles3/rasterizer_scene_gles3.cpp",
       "status": "modified",
       "mode": "100644",
-      "canonical_sha256": "d78bfe76ea860506da863b401cd24255565d90dea9b83eabbc02277d86032c69",
-      "upstream_canonical_sha256": "64527e79892a7683775fcfbd0d3527e3e9936467ebe5cd7ef07f295fcc532bb6"
+      "canonical_sha256": "776739ffe09ba556c90bbec987d900ec035954ef0443d6607ab71c6c9a83019c",
+      "upstream_canonical_sha256": "6d0719c9cd2caf685a9825028183bdf058081d7bc92d4b27ed2587f39b081221"
     },
     {
       "path": "drivers/gles3/shader_gles3.cpp",
       "status": "modified",
       "mode": "100644",
-      "canonical_sha256": "a490a8d873b364f26a6ebe006a077952a903c637bcadb786307a18853bbd956e",
-      "upstream_canonical_sha256": "56576cb999475bce5d9ecba811b7dc66c13faca1a71eb23757e0ba8e7166660b"
+      "canonical_sha256": "deff00cfa47946988072d5b4deefd0c880998c8e06434eeb3e9e7a0c71047cf9",
+      "upstream_canonical_sha256": "17c01277dc3468a1d53081f01a6f7665f5d0f82e7882a8198e1f486ee344d5d8"
     },
     {
       "path": "drivers/gles3/shaders/scene.glsl",
       "status": "modified",
       "mode": "100644",
-      "canonical_sha256": "348d0aca2a939a996ad4dbc027d6827158b28e9855fe699a4e58ec9fe2d8895f",
-      "upstream_canonical_sha256": "ea82bdf13c539d1a96ae57e87af5b0be104e94bcb3bcc2929c96d0e8aaf0d313"
+      "canonical_sha256": "8d495861257249a2fc1e4238ce74e8163332e4f41bfa9547b136855c8f462b7f",
+      "upstream_canonical_sha256": "2c77be0c85b7ab1a85ed8009c77cdb6216f1494d43083592213ad68f9e812977"
     },
     {
       "path": "drivers/gles3/storage/texture_storage.cpp",
       "status": "modified",
       "mode": "100644",
-      "canonical_sha256": "438c2039455ee3eb39337b7dcb0d00fe19108c7a218d4c457aa351a500c1eb0a",
-      "upstream_canonical_sha256": "e12bd94de3edc1d19ae5dcf9af3189e3752552627a68a41ea0a2565aac155cfc"
+      "canonical_sha256": "3dad0dad0ccb3f6d80c44c81d13fd7fb4c38fcd48dabe3843bbd156113144612",
+      "upstream_canonical_sha256": "061ffc38fe2a378b61661c90bce54ffe4c5a7724c4c95d3c9acc0b300a67e6ad"
     },
     {
-      "path": "drivers/metal/metal_device_properties.mm",
+      "path": "drivers/metal/rendering_device_driver_metal.cpp",
       "status": "modified",
       "mode": "100644",
-      "canonical_sha256": "05658402521654993064b02503b6b677103ec80615ec457abe6ec936995af676",
-      "upstream_canonical_sha256": "502235e3049a7c049209b23e72e6a421837d60e0f8b5fe820de71414f63568b9"
-    },
-    {
-      "path": "drivers/metal/rendering_context_driver_metal.mm",
-      "status": "modified",
-      "mode": "100644",
-      "canonical_sha256": "0731454b0769821447dd698b57d56eee5148efc1d809c15a56bf5319ceb72745",
-      "upstream_canonical_sha256": "8040f398bf8b181d831b9ce2a040e446bde587c037b34ca33b9cee167e8c3482"
-    },
-    {
-      "path": "drivers/metal/rendering_device_driver_metal.mm",
-      "status": "modified",
-      "mode": "100644",
-      "canonical_sha256": "3081b1bcc8c7b5b48196d7ba0e6af1017e500dab926c2c65ebd858126480354a",
-      "upstream_canonical_sha256": "62a287dd5db0c569727ab4ce55601a9bb8ab1823f4b040bd15f3417656fcf6b0"
+      "canonical_sha256": "269f35f1fbfefb75cd348cfb3c29e7c8b991e4c7faf59fe1bd0b053e3299060a",
+      "upstream_canonical_sha256": "3e1332160b0baacbbcb8499e13441564c71336730441aff9d22a39765c35b393"
     },
     {
       "path": "main/main.cpp",
       "status": "modified",
       "mode": "100644",
-      "canonical_sha256": "3bd7bed603610f196bb7a7f715c4b42c93779b46cfe8c9115a6deaf3097bba3a",
-      "upstream_canonical_sha256": "248f7e34fbe5aa3a65275420264af33cca7d29e0ce353120a90b9aaf23e8927c"
+      "canonical_sha256": "199a4bfe7dfeca68182024c9ba4e0e1e7f6e7cf77b5fd958d5638cd955c43d92",
+      "upstream_canonical_sha256": "1831257f5c8eb0707d278f04b21b1e4b3ba863f8dca5cab36022d4b19e36b8c1"
     },
     {
       "path": "main/main.h",
       "status": "modified",
       "mode": "100644",
-      "canonical_sha256": "17e44b0fc947be3cd824a524484b04ed54d12bc597d7e90ea05e7d28147cafca",
-      "upstream_canonical_sha256": "0dd57a38c46357602ef5a29c18d8c8cbfb6d7051ced67d15c177946a02d75b1b"
+      "canonical_sha256": "659c680a241eac00dd1ac82182fa8456fe75b3385cd78e90bfe3c5407593527a",
+      "upstream_canonical_sha256": "dc0df44827e667681da69b06f32e2dc15206c668ba15a4e9300e297f51bec7c8"
     },
     {
       "path": "modules/camera/camera_android.cpp",
       "status": "modified",
       "mode": "100644",
-      "canonical_sha256": "b160fe3f562574286ef278c38003f86715237caeba099bf71ecab74496d8bed0",
-      "upstream_canonical_sha256": "0779cfd62721b1d338da9ea8ab48083ad7fab4fab1bca29eac15cb16a66e5251"
+      "canonical_sha256": "8d11c973db152de83bba12fc3e2ad0baed1ee4bd9fcff04e9ebe117aa96658e3",
+      "upstream_canonical_sha256": "f40184b07b856fddb5415d12d26cc7c96996c90cceb02858a696b630f18b5f09"
     },
     {
       "path": "modules/dora_bridge/GodotAudioQueue.h",
@@ -312,21 +298,21 @@
       "path": "modules/dora_bridge/display_server_dora_d3d12.h",
       "status": "added",
       "mode": "100644",
-      "canonical_sha256": "cfbbf6d3e4a428faee4a64a5709e92612ee8140e2c0954f729c8235b8f75bfc4",
+      "canonical_sha256": "560a6a2ff08721a785561e915c5e6eed8fa146b8d2d2feee37bcee68db8f768e",
       "upstream_canonical_sha256": null
     },
     {
       "path": "modules/dora_bridge/display_server_dora_metal.h",
       "status": "added",
       "mode": "100644",
-      "canonical_sha256": "d94c8793bfd40feef66e25af856dfe29456c83b192b7e7d66648cfad83788690",
+      "canonical_sha256": "c83f144175672f6da9a5dec0661713aff58b7994d66bc2335172e98496bacd9e",
       "upstream_canonical_sha256": null
     },
     {
       "path": "modules/dora_bridge/gl/display_server_dora_gl.h",
       "status": "added",
       "mode": "100644",
-      "canonical_sha256": "7a1e44f0558fb1f3c36d4b70c3222080ae6f882bb85eef84b5bdc352b7f7cc9a",
+      "canonical_sha256": "d998a7d818ddc3c006f1b1fce323101db9119ebcb180ebdbfd27c615030d1b26",
       "upstream_canonical_sha256": null
     },
     {
@@ -389,21 +375,21 @@
       "path": "modules/dora_bridge/register_types.mm",
       "status": "added",
       "mode": "100644",
-      "canonical_sha256": "5aaaf6423161ea55e26a95ec0f913420b8b0f7b2e3f7b259bf9d823d3e13e76e",
+      "canonical_sha256": "11b12a20570d38b3cee42b1706c50abfa2ad0d3b7c1e1833655b2235723d8f0b",
       "upstream_canonical_sha256": null
     },
     {
       "path": "modules/dora_bridge/register_types_d3d12.cpp",
       "status": "added",
       "mode": "100644",
-      "canonical_sha256": "ba32a9e7a9f53c491995548adc68689f43e93f161f562e3b79ccfb2fc101d40f",
+      "canonical_sha256": "9c3b24f9b4b930e714df12ae8d33ddf0d7e76dadc0700cc7e7f0bdf7f10d4676",
       "upstream_canonical_sha256": null
     },
     {
       "path": "modules/dora_bridge/register_types_gl.cpp",
       "status": "added",
       "mode": "100644",
-      "canonical_sha256": "a1107b3c33d62dd86e1183d779f66cee7030b6bb3f9d21593b719aef0c60229a",
+      "canonical_sha256": "d345de559592d492cd439393b22a245c8b7c1055553fb551b6d674f293fb0b46",
       "upstream_canonical_sha256": null
     },
     {
@@ -431,14 +417,14 @@
       "path": "modules/dora_bridge/runtime_output.h",
       "status": "added",
       "mode": "100644",
-      "canonical_sha256": "64f7d81a5f52076b5f7f05639d69c2c83dd718287fb077dfc549831676eeb53d",
+      "canonical_sha256": "c9318de257a5710083e433ab8a0bc2b6b1ce633ca3e9d5b922c094e11b707dbf",
       "upstream_canonical_sha256": null
     },
     {
       "path": "modules/dora_bridge/runtime_project.h",
       "status": "added",
       "mode": "100644",
-      "canonical_sha256": "9bc69a5093b9dfd64dca3d0c6198d4c792601a2ef6d4c635e3e3806c9bff03f3",
+      "canonical_sha256": "56969ffe575c464789d85da7f110420e1eb3f3b7d7e290144adf8d9c4d1dccec",
       "upstream_canonical_sha256": null
     },
     {
@@ -473,106 +459,106 @@
       "path": "modules/gdscript/gdscript.cpp",
       "status": "modified",
       "mode": "100644",
-      "canonical_sha256": "bf8b746507f6ebad5650115971dcca6c557cac4026d189ba5fad7bb6639ede13",
-      "upstream_canonical_sha256": "50fc24214fef2e3f212b42cbe333f44cd4cb43b6be4f14772a6df9fbfd1e55f3"
+      "canonical_sha256": "a769319a7a6e39db51ba7bc3f19f1b108afff57f923356688ffc056a7cd9759c",
+      "upstream_canonical_sha256": "ca67cbe6715b371c276837948edb317c7f2987d2f43ae68a0fb547f823115d6f"
     },
     {
       "path": "modules/gdscript/gdscript.h",
       "status": "modified",
       "mode": "100644",
-      "canonical_sha256": "88d80b6808c1d16399853f4bc9a56c5478e4822d32787c48565209aed40a03ea",
-      "upstream_canonical_sha256": "c3889be286e9a872462a9d917a179567159899daed28cc8343a397ea24b4bd93"
+      "canonical_sha256": "9d7fa06ad661661d5161d1efe61e9d4c4b466a1eff863c9c5b475b9ff882d63b",
+      "upstream_canonical_sha256": "ed654f6d30f7aa4e26f3b30f5421fb2fbe6254ebfe25c33786133efb0e386afb"
     },
     {
       "path": "modules/gdscript/gdscript_cache.cpp",
       "status": "modified",
       "mode": "100644",
-      "canonical_sha256": "903e3f843078ab31e7b08c9456b2e10b2712b32de5f9be059b629cead10f1223",
-      "upstream_canonical_sha256": "71f5b6215d56a719bda0417692bdba25ef06c34a00d74e5e5c00b682e96177de"
+      "canonical_sha256": "96573663618e0d33ca02827e633e5e5c7bd09a69578b63ed37e3cc0cfdb60b52",
+      "upstream_canonical_sha256": "4f6353441dceb41a31bb7b4ede147dbfaa080e88c5fc85e911cc390cecf8b292"
     },
     {
       "path": "modules/gdscript/gdscript_cache.h",
       "status": "modified",
       "mode": "100644",
-      "canonical_sha256": "2139e8cb44e3d2badf2a49072f98961ec2eb7811e1e3b31fb378f7c6f173ee64",
-      "upstream_canonical_sha256": "9d0439a58a14a051e024304ab497582adbfe56b9b8f1d1a114eea12bb7c70f49"
+      "canonical_sha256": "182bd79f86d47ca95e780d4be2695c9afc00aa9850770a3a797e5c9b3862c913",
+      "upstream_canonical_sha256": "d4b0e2df5fbbdc7860966c5cb573e411a050005b0475426eccc6851fe3d4df32"
     },
     {
       "path": "modules/mbedtls/crypto_mbedtls.cpp",
       "status": "modified",
       "mode": "100644",
-      "canonical_sha256": "0e7e4ac7d131910c6a07be73b60a3735b7729e9fa64299e3cc48e7a0b25cf32b",
-      "upstream_canonical_sha256": "e4d148dbdc3641a185717aa704bba756c0fb0221489a9b5cf7d3b0383cb5cdb1"
+      "canonical_sha256": "fb8ae533efe9f1861c7832347ad10a5035837b0d8977800da71e3954158c99a6",
+      "upstream_canonical_sha256": "d6ba1cef08107ca2f162275eebef078fb7577c758656016e653452da5d237ece"
     },
     {
       "path": "modules/mbedtls/crypto_mbedtls.h",
       "status": "modified",
       "mode": "100644",
-      "canonical_sha256": "e0249f87878313b3d9e7a5710f49c790bd7cb370fef8e3b5da463322322e4f14",
-      "upstream_canonical_sha256": "1e804b43543d3e75669a559b50f21eecab3deda02c5dd57f34e1df2e220f6739"
+      "canonical_sha256": "f7c3d2e6c68bc30ef9ebb49ffa9a7ae2b538b021a2c16bc979fbbf4d40175763",
+      "upstream_canonical_sha256": "1e0ad66b0e6c4390d67c2e83cd6917e3848b1b346207a9870018d53530f1ea37"
     },
     {
       "path": "platform/android/detect.py",
       "status": "modified",
       "mode": "100644",
-      "canonical_sha256": "2c88f62279df9085267f3f624f41399d88664aeba776e3dc8497c26d42255819",
-      "upstream_canonical_sha256": "5411663cd0a45859acf1f49ade73ec8823d9900cbd7acc78cbe3477186671476"
+      "canonical_sha256": "d8ade773156e30f93eff20886c543d2d486892f02ec8a8de967f9e4532f90cbb",
+      "upstream_canonical_sha256": "4f743c8f2376801cba5c447bef5a4ad30920a25cd7199f63fcbd0696783e6b0b"
     },
     {
       "path": "platform/android/java_godot_lib_jni.cpp",
       "status": "modified",
       "mode": "100644",
-      "canonical_sha256": "930f0dbf52b7b93ff9dd381dccd7644090a49163441826019ab914fe405b7445",
-      "upstream_canonical_sha256": "7504fcd06658c55185c38242e693596c6cd773b750853b980f194c58114f4553"
+      "canonical_sha256": "f9940781dfa5c338777e6bf2ac7a38869787943744e6a4371c1bfd5909d9576d",
+      "upstream_canonical_sha256": "ace9423f36253d593a1d135e740406dee661020448694c12b79ba889495ef133"
     },
     {
       "path": "platform/android/os_android.cpp",
       "status": "modified",
       "mode": "100644",
-      "canonical_sha256": "5837f8a932aa835d9d67dea199687f8f36443bcce6161fe7ba7daf28909bdb95",
-      "upstream_canonical_sha256": "8938426526d493d84eee060ecaa7d34843afea6abcc1b8a383c5a1f1e09dbcd2"
+      "canonical_sha256": "f406f727589fdc83fd77a547512017e3ab20084f74fffe1487183a22bc3c9899",
+      "upstream_canonical_sha256": "0ffa68f056c5ec2f91f2a965cbfdc4e876f8628dbdf1125ec63fa86240129b55"
     },
     {
       "path": "platform/ios/detect.py",
       "status": "modified",
       "mode": "100644",
-      "canonical_sha256": "db7eb214575092b2f0893a5d43b70609d3487bd248659f036d96708978bb81ca",
-      "upstream_canonical_sha256": "56d9f5df568f8bd6ff6c587aa27f9b17f2c5c724acc17b4053df57ddfe1f061e"
+      "canonical_sha256": "b5ce4967561bd57bf84792239f8f25aa0094884a6a3cf037984163f9fdb0feb2",
+      "upstream_canonical_sha256": "e7fe9867344d77e92ff4b318fc820ad05c0d5c0799032542cb5c59bfb568e478"
     },
     {
       "path": "platform/linuxbsd/libgodot_linuxbsd.cpp",
       "status": "modified",
       "mode": "100644",
-      "canonical_sha256": "2b9acf01233c9b5c9921f26bc2dc8c13096cde60eb4cb0964e74dbd4acf0f7eb",
-      "upstream_canonical_sha256": "68fb6ac9323df756037eea40c098ccad3216d75238092910ab9905bc72b1460b"
+      "canonical_sha256": "05c2854860d7e5281622e723b2c7fa5b37ad9112c33d7808c06f4a02b5ec59db",
+      "upstream_canonical_sha256": "a518dd327ca0ce446c2ba88c2e134d2d6300b8ef62bd09e5f096533b43d6f606"
     },
     {
       "path": "platform/macos/libgodot_macos.mm",
       "status": "modified",
       "mode": "100644",
-      "canonical_sha256": "608f3069d9da84f8c9bf5c3c6292837497a92b5c2e5ff09e60132139388e0419",
-      "upstream_canonical_sha256": "818e8cb5304e2c79b28a35f01732e36fea991f27ddf3ffc3a85bdea8ca6f9a19"
+      "canonical_sha256": "e819e7d8f5f139a8f29b511d5c593c29ed4f2015bae44745e2c009119fb6b829",
+      "upstream_canonical_sha256": "c88b7977d2fd37d0371f738a895d57aa6901f13950502785093c7631479cc467"
     },
     {
       "path": "platform/web/SCsub",
       "status": "modified",
       "mode": "100644",
       "canonical_sha256": "8911d948c5e33156d9c60f9a0998d5333ec536a6901094a6c3a8858e35e13c41",
-      "upstream_canonical_sha256": "7d1399c00266f1de7aab3bf42648890599a0af7829bde2ccd02decc96934d5f2"
+      "upstream_canonical_sha256": "d8292a8945f941c061f6484ea2bcce783d7838cde8ecad8ff3ca86ff29b36180"
     },
     {
       "path": "platform/web/audio_driver_web.cpp",
       "status": "modified",
       "mode": "100644",
-      "canonical_sha256": "df092b296eaf487a1d942e5706f378b89d37c0839983a11bc92b804ddc49564d",
-      "upstream_canonical_sha256": "e73d98ad82ece2e1bfb6cb6e547f41bddaf075b80e81dc834ec5b8198afed6f7"
+      "canonical_sha256": "e9d8e6a33428e936527224c68c09da4bd71aad15eae3add04109d57c15c2d3b8",
+      "upstream_canonical_sha256": "489d76a21ee39e1b3eed732adfb5aed6b34e12f06a2ce61e41d0ce62e7462536"
     },
     {
       "path": "platform/web/detect.py",
       "status": "modified",
       "mode": "100644",
-      "canonical_sha256": "c98b3d5843588f4cdab41ff7a20d9059fc9ef2c615063cb3e85acd44a683fc28",
-      "upstream_canonical_sha256": "0b6b95527d497470000148feaf9b59e2e9f2fd1ebb622ca013848b495a598371"
+      "canonical_sha256": "699c07ecd4d90bf42c55a708eb1c9c4d1b829340a5eb851392dec81174034fc1",
+      "upstream_canonical_sha256": "9b3ead90fddaab15f2ce647db54421e647553887d023b1842365dbb7863d08e6"
     },
     {
       "path": "platform/web/js/libs/library_godot_os.js",
@@ -585,113 +571,99 @@
       "path": "platform/windows/SCsub",
       "status": "modified",
       "mode": "100644",
-      "canonical_sha256": "c9a02e3a6647fbdd50cba4060b5f5c7700b2f609fb9ea0078f469d931d15cf59",
-      "upstream_canonical_sha256": "d0f569ad7f63330c338ec988c08f103fdc4542df5cf113bf72350a08804af90b"
+      "canonical_sha256": "e816f4fbbc6fc934c23944c5b7d0d21675735d60af2c2f127a93667cfa91cddf",
+      "upstream_canonical_sha256": "c13b8a2e49b880f25ba7e8911c002fccec40686876990202c5fc347d7c116094"
     },
     {
       "path": "platform/windows/libgodot_windows.cpp",
       "status": "modified",
       "mode": "100644",
-      "canonical_sha256": "31af574b0a7faf41c80adb797f40355aefd5846b739a2f247dd984fa5e2d2fd5",
-      "upstream_canonical_sha256": "91cd4bf71d80af2a8f72756757721b531e43084c55c6141545bd731ab19257dd"
+      "canonical_sha256": "61ac53ecfd4a2427d40363e87d0b883c71b857fcbe023469c7956c4113d875f5",
+      "upstream_canonical_sha256": "8ed62d77314a17b10685070817da438495e8a408b2d0e8f2902acf986c39378e"
     },
     {
       "path": "scene/main/window.cpp",
       "status": "modified",
       "mode": "100644",
-      "canonical_sha256": "5f6db2ca29453f9fb511d0d827dd8cae8804949754ef6684c4c1a50b16371f39",
-      "upstream_canonical_sha256": "03b2a0cdfd25533075aa0ed15dcfed27a53e960aab71987c633362b7db7b99ee"
+      "canonical_sha256": "76758d8188f9b856eb55a02a350b6e1d14983d2acc0596b9b5ebb290d4f3a656",
+      "upstream_canonical_sha256": "1e94ba6ccef7fea34b00aab4e40d06730e796471f232d21ced7255d06d45f9fb"
     },
     {
       "path": "scene/resources/particle_process_material.h",
       "status": "modified",
       "mode": "100644",
-      "canonical_sha256": "c7b59d1bee6dc16a89879a68fb0b8333acbc375d9bc46fca3df38339d8651a47",
-      "upstream_canonical_sha256": "54d4bddc1b57edfebfe0f46f4ff6a0997e740c2df3841614fd7eea195cf71cbb"
+      "canonical_sha256": "45376ecf764845e221379f91af17372b5292a7eed713ad3eeb9afe72fdcc77ae",
+      "upstream_canonical_sha256": "89cf6a1fd9da2c4ccb6b0cc7b912c90e05d3ca489ab0aa852b4150c1a9bb56ab"
     },
     {
       "path": "servers/audio/audio_server.cpp",
       "status": "modified",
       "mode": "100644",
-      "canonical_sha256": "b6931bafd94e5c972dc4e1a1228f81b42296c6ce38b70a42770666e86188d5ce",
-      "upstream_canonical_sha256": "d1b2e1c2cc909035f836d7446b07190788e8f41e4a4d59218be50f9a4096fe22"
+      "canonical_sha256": "63aa680603b671b2a4612f5f5fdf53f2b5b7dce8d2e02f4058a89456bd5690e9",
+      "upstream_canonical_sha256": "d7641ef5852aa86f75c4d506759de2838a2c3886c29f7eb25fd9e9310d87c102"
     },
     {
       "path": "servers/audio/audio_server.h",
       "status": "modified",
       "mode": "100644",
-      "canonical_sha256": "80d321dd6e0dbe39ea5df98c886650dd044766bd9df4fed8884d2e517ed041e9",
-      "upstream_canonical_sha256": "7d7f008ca25dcca523534c9f38d151da896bfbcfb3844720d0339510b285bcfc"
-    },
-    {
-      "path": "servers/rendering/renderer_rd/effects/SCsub",
-      "status": "modified",
-      "mode": "100644",
-      "canonical_sha256": "b3d36d69d02f3fa54ffef0a0adde88bf8ff1e0087b4ffa8988d54b4ccc466c60",
-      "upstream_canonical_sha256": "1066fa8f6d2b79c00816f1b7600898d5ed8ad5b7876c1b7e2d2e508403c5194d"
+      "canonical_sha256": "fcb59cec5f010c8ce44d2275085260c0eb17b6369180fe9ce6d130f3b58f70e2",
+      "upstream_canonical_sha256": "fb97202eb2148536c06f193f1ccd838ce121b8cfddbb9f1bcd30e7fdbe74647c"
     },
     {
       "path": "servers/rendering/renderer_rd/effects/metal_fx.h",
       "status": "modified",
       "mode": "100644",
-      "canonical_sha256": "5ef1b804d9811f4a53c82ea1963f35e2dc1cc13d3f5a484eb9927b89fda4d7ca",
-      "upstream_canonical_sha256": "3533991f7eb0dad6ef493124762b87295819d999b3172811db68608668410977"
+      "canonical_sha256": "7c01811e7509bc11cdeb4462d9b5786c9f88acc6b6998cb27856d930e16b3ccd",
+      "upstream_canonical_sha256": "c2161033173ab3220598b11e7874211317c86a155dd8a43f6de586504aae6864"
     },
     {
       "path": "servers/rendering/renderer_rd/forward_mobile/render_forward_mobile.cpp",
       "status": "modified",
       "mode": "100644",
-      "canonical_sha256": "18a0c2c31f9282413d54de875b26046f44d5fa29c64c8bf89385f3ee47835c84",
-      "upstream_canonical_sha256": "4c3d07ef344c0c69f3641b53b26fc7e3be37954ed6376355a5515dfeb781cb75"
-    },
-    {
-      "path": "servers/rendering/renderer_rd/renderer_compositor_rd.cpp",
-      "status": "modified",
-      "mode": "100644",
-      "canonical_sha256": "5416a75a74b15b75da2cbe83dad1cdcd09348a0e61dc0eb73ed8184f54bd71ca",
-      "upstream_canonical_sha256": "cdb79646bc6cecd01a49e928f35fcca35fd7dd97f473d7b8e44f1033258569a0"
+      "canonical_sha256": "ee30bdd9d4530268bd2c0e13e5e92226a9848a9bd378023522c32b3ad6ad50e8",
+      "upstream_canonical_sha256": "f292a5ba336752fecbad8bc404b0f1ad0df3007f9430ce1ea5561e392bcbddec"
     },
     {
       "path": "servers/rendering/renderer_rd/renderer_scene_render_rd.cpp",
       "status": "modified",
       "mode": "100644",
-      "canonical_sha256": "79c4d4b30f4cb0b1d8229763bd50210dd1e812237a90a7b7aa3c9c7cd98b6953",
-      "upstream_canonical_sha256": "96cd12ec5ef8c8d828dc6cdaa9e780e5b03f31f05b1bc07ee329be786fc1eb7a"
+      "canonical_sha256": "ba2069d21f10f91e1e73887a3563517e0e14f622e4e872978e44c94577570ded",
+      "upstream_canonical_sha256": "a39eb541966b8afd8a663390f679fb5ac4aa58ad44a6571b159bc581943bfc7c"
     },
     {
       "path": "servers/rendering/renderer_rd/renderer_scene_render_rd.h",
       "status": "modified",
       "mode": "100644",
-      "canonical_sha256": "a7b052480bad94c192bf6b618c47c59a774c8f8c93cd4a5355efcd8995e6d641",
-      "upstream_canonical_sha256": "01433b34753b44ab281f6ab2587749299d222aee6c82f3241a1a76e5e0d0537e"
+      "canonical_sha256": "8e39a6d74335c4dac600d474ad29b743d0df51b4a2045608a79838065ab320d5",
+      "upstream_canonical_sha256": "574585965892af415d48a03919c0c94d07e0dc167dc41f35e60e638b89800fc4"
     },
     {
       "path": "servers/rendering/renderer_rd/storage_rd/render_scene_buffers_rd.cpp",
       "status": "modified",
       "mode": "100644",
-      "canonical_sha256": "e5711d33c4d252b6ca2fc301447b1e7372de20166eae9878b5da5fb609895823",
-      "upstream_canonical_sha256": "eb90fc876d21321385fc88bf82759f4a263d0408bebd8c21ede0e6478e3a210c"
+      "canonical_sha256": "c3bb0c8a2125c19b46716fd04ddebadfb0700689336490a0d04e55e98b358453",
+      "upstream_canonical_sha256": "4da6cc57743b727b52b0ce6b2c71fbfa0b54fe84d5eb32fde3125d5b5b916966"
     },
     {
       "path": "servers/rendering/renderer_rd/storage_rd/render_scene_buffers_rd.h",
       "status": "modified",
       "mode": "100644",
-      "canonical_sha256": "e5eea74c1ae217bbb9bce16c1e023ba049333bb07cc82b946c75f5a45574c485",
-      "upstream_canonical_sha256": "08235c3ad67b455687f80702e9368192e713001b64d0aaf11514d08056a12de0"
+      "canonical_sha256": "06cc0f7ba0e34888831d8c5a8e340ee38b2d13c461f0c1be22fcf5277d90f0c1",
+      "upstream_canonical_sha256": "083ad4cc95921ab88bb946bb1a6e8005c621c94a486ff1a9757d210e058a063f"
     },
     {
       "path": "servers/rendering/renderer_rd/storage_rd/texture_storage.cpp",
       "status": "modified",
       "mode": "100644",
-      "canonical_sha256": "a9856465d7c5842bb8aad20152af94fa71aad43ea39c2d04cf8497c2094cd349",
-      "upstream_canonical_sha256": "943273a88a486e4e25337c8a19bf23072c945271be929088eafe6f28093159a3"
+      "canonical_sha256": "62f85f2f0e8611484995d9aa28288a410456a862caf476c973313f9649c8bdfe",
+      "upstream_canonical_sha256": "37d32f106cefe17872676d7a35c9ca30e881ad6474f335d7df18e826378a4917"
     },
     {
       "path": "servers/rendering/rendering_server.cpp",
       "status": "modified",
       "mode": "100644",
-      "canonical_sha256": "6b1abb20609fd9a8ebf8911448c3c0235a9126c7b40040e7515833f32e07c748",
-      "upstream_canonical_sha256": "688b9023786e30603c95779e29ab21cedf43c7f5e723573df658cbbcd4bc88d7"
+      "canonical_sha256": "a4aa5a708c0bf4cd036b8c9e0ccb3124f1fa4fae5003638128ccd752ad18149b",
+      "upstream_canonical_sha256": "b108f62d9d6113061dd1261e7bef51515fbdba9080b4393245e84cecc67ad7ca"
     }
   ]
 }

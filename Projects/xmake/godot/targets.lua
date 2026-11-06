@@ -4,8 +4,8 @@ local windows_backend = get_config("dora_godot_windows_backend") or "d3d12"
 local platform_output_root = output_root
 if is_plat("linux") then
     -- Linux is commonly cross-built for both supported architectures from the
-    -- same checkout. Keep generated sources shared, but never allow object or
-    -- library files from one architecture to satisfy the other build.
+    -- same checkout. Isolate generated sources, objects and libraries so one
+    -- architecture cannot replace or satisfy another build's outputs.
     platform_output_root = path.join(output_root, "linux", get_config("arch"))
 elseif is_plat("mingw") then
     platform_output_root = path.join(output_root, "windows", get_config("arch"), windows_backend)
@@ -21,9 +21,9 @@ if debug_runtime then
     platform_output_root = path.join(platform_output_root, "debug")
 end
 local generated_root = path.join(output_root, "generated")
-if debug_runtime or is_plat("android", "wasm", "iphoneos") or (is_plat("mingw") and windows_backend == "d3d12") then
-    -- Android must not replace the macOS Metal profile's generated headers
-    -- when both platforms are built from the same host checkout.
+if debug_runtime or is_plat("linux", "mingw", "android", "wasm", "iphoneos") then
+    -- Platform profiles must not replace the macOS Metal generated headers
+    -- when several targets are built from the same host checkout.
     generated_root = path.join(platform_output_root, "generated")
 end
 DORA_GODOT_GENERATED_ROOT = generated_root
@@ -233,6 +233,13 @@ if is_plat("macosx") and is_arch("arm64") and has_config("dora_godot_runtime") t
     includes(path.join(os.projectdir(), "Projects/xmake/godot/macos_arm64_sources.lua"))
     target("godot-runtime")
         on_config(function (target)
+            import("lib.detect.find_tool")
+            local python = assert(find_tool("python3") or find_tool("python"))
+            local sdk = path.join(os.projectdir(), "build/godot-sdk/accesskit-0.22.3-macos-arm64")
+            os.vrunv(python.program, {"-B", path.join(os.projectdir(), "Tools/Godot/ensure_accesskit_sdk.py"), "--output", sdk})
+            target:add("linkdirs", path.join(sdk, "lib/macos/arm64/static"))
+            target:add("syslinks", "accesskit")
+            target:data_add("linkdepfiles", path.join(sdk, "lib/macos/arm64/static/libaccesskit.a"))
             target:data_add("linkdepfiles", path.join(godot_root, "dora_bridge.exports"))
         end)
         add_frameworks(
@@ -414,6 +421,15 @@ if is_plat("linux") and (is_arch("arm64") or is_arch("x86_64")) and has_config("
         if not debug_runtime then add_shflags("-s", {force = true}) end
         add_syslinks("pthread", "dl", "EGL", "GLESv2")
         on_config(function (target)
+            import("lib.detect.find_tool")
+            local python = assert(find_tool("python3") or find_tool("python"))
+            local sdk = path.join(os.projectdir(), "build/godot-sdk/accesskit-0.22.3-linux")
+            os.vrunv(python.program, {"-B", path.join(os.projectdir(), "Tools/Godot/ensure_accesskit_sdk.py"),
+                "--spec", path.join(os.projectdir(), "Projects/xmake/godot/linux_accesskit_sdk.json"), "--output", sdk})
+            local library = path.join(sdk, "lib/linux", get_config("arch"), "static/libaccesskit.a")
+            target:add("linkdirs", path.directory(library))
+            target:add("syslinks", "accesskit", "m")
+            target:data_add("linkdepfiles", library)
             target:data_add("linkdepfiles", path.join(godot_root, "dora_bridge.map"))
         end)
         add_shflags(

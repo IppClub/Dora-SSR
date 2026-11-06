@@ -74,7 +74,7 @@ GDExtensionBool extension_init(GDExtensionInterfaceGetProcAddress,GDExtensionCla
     init->minimum_initialization_level=GDEXTENSION_INITIALIZATION_CORE;
     init->initialize=level;init->deinitialize=level;init->userdata=nullptr;return true;
 }
-const char *version() { return "Godot 4.6-stable / Dora bridge D3D12 CPU-fence prototype ABI 1"; }
+const char *version() { return "Godot 4.7.2-stable / Dora bridge D3D12 CPU-fence prototype ABI 1"; }
 const char *last_error(void *) { return runtime.error.c_str(); }
 bool valid(void *handle) { return handle==&runtime && runtime.active; }
 #include "runtime_audio.inc"
@@ -109,8 +109,8 @@ void prepare_output() {
     auto *rs=RenderingServer::get_singleton();
     const RID viewport=runtime.root->get_viewport_rid();
     rs->viewport_set_render_direct_to_screen(viewport,false);
-    rs->viewport_attach_to_screen(viewport,Rect2(),DisplayServer::INVALID_WINDOW_ID);
-    rs->viewport_set_update_mode(viewport,RS::VIEWPORT_UPDATE_ALWAYS);
+    rs->viewport_attach_to_screen(viewport,Rect2(),DisplayServerEnums::INVALID_WINDOW_ID);
+    rs->viewport_set_update_mode(viewport,RSE::VIEWPORT_UPDATE_ALWAYS);
     output.prepare(runtime.root);
 }
 bool draw() {

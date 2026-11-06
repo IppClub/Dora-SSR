@@ -1,18 +1,13 @@
 # Godot upstream provenance
 
-This directory is a complete, unmodified source snapshot of Godot 4.6-stable imported for Dora's LibGodot and xmake migration.
+This directory vendors the complete **Godot 4.7.2-stable** source tree plus Dora integration changes registered in `Tools/Godot/vendor/SOURCE_DELTA.json`.
 
-- Project: Godot Engine
-- Upstream repository: <https://github.com/godotengine/godot>
-- Upstream tag: `4.6-stable`
-- Upstream commit: `89cea143987d564363e15d207438530651d943ac`
-- Source archive: <https://codeload.github.com/godotengine/godot/tar.gz/refs/tags/4.6-stable>
-- Source archive SHA-256: `b451eaa16d3abe0c7430e9ce1c4e83b146e5670e5b683dd8995c931fc82b57a0`
-- Import date: 2026-11-02
-- Import file count before adding Dora metadata: 13,842
-- License: MIT; see [`LICENSE.txt`](LICENSE.txt)
-- Bundled third-party notices: [`COPYRIGHT.txt`](COPYRIGHT.txt)
+- Repository: <https://github.com/godotengine/godot>
+- Tag: `4.7.2-stable`
+- Commit: `ed1daf0bf001b61586d9930840f2f1394092c079`
+- Archive: <https://codeload.github.com/godotengine/godot/tar.gz/refs/tags/4.7.2-stable>
+- Archive SHA-256: `e954996374cbd1cb5d72e0e3781cc537408e6ce73b010b12c6c2f308a820690a`
+- Imported: 2026-11-06; upstream files: **13,989**
+- Godot license: [`LICENSE.txt`](LICENSE.txt); third-party notices: [`COPYRIGHT.txt`](COPYRIGHT.txt).
 
-`UPSTREAM.json` is the machine-readable copy of this provenance. The initial vendor commit intentionally contains no Dora source changes. Dora bridge and platform modifications are applied in later commits so that upstream and local changes remain auditable.
-
-Future upstream updates must be imported as isolated commits. Update the tag, commit, archive hash, license inventory and file count here and in `UPSTREAM.json` before merging Dora-specific changes.
+`UPSTREAM.json` pins these inputs. The source auditor compares the archive with the exact upstream Git tree and reconstructs the registered Dora delta with zero fuzz/offset. The original 4.6 import (`199c2c69c0e707808ad189200922bf71d04057b8`) remains the fixed Git EOL-attribute witness; it is not claimed to contain the new 4.7.2 snapshot. Runtime and platform acceptance are tracked separately in `Tools/Godot/TRACKING.md`.

@@ -12,7 +12,7 @@ Godot 完整源码位于 `Source/3rdParty/Godot`，不是 submodule。固定版�
 
 完整来源与当前Dora差异另由 [源码审计工具](https://github.com/IppClub/Dora-Example/blob/master/Test/Godot/audit_vendor_provenance.py) 和 [登记清单](vendor/SOURCE_DELTA.json) 校验；[复查及更新流程](vendor/README.md)说明固定归档/上游Git树/首次导入提交、Git换行政策和零fuzz补丁重建。它是独立维护审计，不给普通构建新增下载或历史依赖。当前50个修改文件、44个新增文件均显式登记；后续源码修改需同步该清单并重验，不能仅靠标记检查。该范围包含登记及未忽略源码，忽略的SCons缓存和构建产物另行处理。
 
-从仓库根目录构建。先准备 xmake 3.x、Python 3.11+ 和平台工具链；Android 另需 SDK/NDK 28.1.13356709，Web 使用 Dora 管理的 Emscripten。不要用 PATH 中另一个 SDK 的版本代替实际编译器证据。
+从仓库根目录构建。先准备 xmake 3.x、Python 3.11+ 和平台工具链；Android 另需 SDK/NDK 29.0.14206865，Web 使用 Dora 管理的 Emscripten。不要用 PATH 中另一个 SDK 的版本代替实际编译器证据。
 
 | 配置 | 当前入口 | 默认构建器与范围 |
 | --- | --- | --- |

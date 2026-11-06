@@ -47,4 +47,4 @@ printf 'Runtime: %s\n' "$LIBRARY"
 
 [[ -n "$LIBRARY" ]] || { echo "Missing $TARGET runtime library" >&2; exit 1; }
 python3 "$ROOT/Tools/Godot/package_runtime.py" --source "$SOURCE" --library "$LIBRARY" \
-    --output "$BUILD/package" --build-target "$TARGET" --architecture "$PACKAGE_ARCH" --graphics-backend egl
+    --output "$BUILD/package" --build-target "$TARGET" --architecture "$PACKAGE_ARCH" --graphics-backend egl --static-accesskit-sdk linux

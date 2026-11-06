@@ -16,9 +16,9 @@ variant='release' if a.target=='template_release' else 'debug'
 result_dir=a.build_dir.resolve() if a.build_dir else (build if a.target=='template_debug' and a.arch=='arm64' else build/variant/a.arch)
 result_dir.mkdir(parents=True,exist_ok=True)
 package=result_dir/'package'
-ndk=a.sdk/'ndk/28.1.13356709';assert (ndk/'source.properties').is_file(),'Install Android NDK28.1.13356709 with the SDK manager first'
+ndk=a.sdk/'ndk/29.0.14206865';assert (ndk/'source.properties').is_file(),'Install Android NDK29.0.14206865 with the SDK manager first'
 assert 1<=a.jobs<=16
-expected='b451eaa16d3abe0c7430e9ce1c4e83b146e5670e5b683dd8995c931fc82b57a0'
+expected='e954996374cbd1cb5d72e0e3781cc537408e6ce73b010b12c6c2f308a820690a'
 source=root/'Source/3rdParty/Godot'
 for script in ('prepare.py','prepare_android.py'):subprocess.run([sys.executable,str(root/'Tools/Godot'/script),str(source)],check=True)
 env=os.environ.copy();env['ANDROID_HOME']=str(a.sdk.resolve())
@@ -63,11 +63,11 @@ from package_manifest import seal
 from verify_package import verify
 package_manifest=package/'manifest.json'
 metadata=json.loads(package_manifest.read_text())
-metadata.update(builder=a.builder,android_abi=abi,minimum_api=28,ndk_revision='28.1.13356709')
+metadata.update(builder=a.builder,android_abi=abi,minimum_api=28,ndk_revision='29.0.14206865')
 for name in ('NOTICE','NOTICE.toolchain'):
     shutil.copy2(ndk/name,package_manifest.parent/('ANDROID-NDK-'+name))
     metadata['licenses'].append('ANDROID-NDK-'+name)
 package_manifest.write_text(json.dumps(seal(package_manifest.parent,metadata),indent=2)+'\n')
 verify(package_manifest.parent)
-record={'passed':True,'scope':'Android standard-module runtime cross-compilation only; no engine boot, Dora node or APK GPU acceptance','builder':a.builder,'source_archive_sha256':expected,'vendor_validation_sha256':hashlib.sha256((root/'Tools/Godot/vendor_source.py').read_bytes()).hexdigest(),'android_abi':abi,'ndk_revision':'28.1.13356709','minimum_api':28,'command':commands[-1],'commands':commands,'runtime_sha256':hashlib.sha256(library.read_bytes()).hexdigest(),'migration_inputs_sha256':inputs,'toolchain':json.loads((result_dir/'toolchain.json').read_text())}
+record={'passed':True,'scope':'Android standard-module runtime cross-compilation only; no engine boot, Dora node or APK GPU acceptance','builder':a.builder,'source_archive_sha256':expected,'vendor_validation_sha256':hashlib.sha256((root/'Tools/Godot/vendor_source.py').read_bytes()).hexdigest(),'android_abi':abi,'ndk_revision':'29.0.14206865','minimum_api':28,'command':commands[-1],'commands':commands,'runtime_sha256':hashlib.sha256(library.read_bytes()).hexdigest(),'migration_inputs_sha256':inputs,'toolchain':json.loads((result_dir/'toolchain.json').read_text())}
 compile_report.write_text(json.dumps(record,indent=2)+'\n');print(json.dumps(record,indent=2))

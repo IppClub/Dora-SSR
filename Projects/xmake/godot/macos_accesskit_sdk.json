@@ -1,0 +1,14 @@
+{
+  "version": "0.22.3",
+  "source_url": "https://github.com/godotengine/godot-accesskit-c-static/releases/download/0.22.3/accesskit-c-0.22.3.zip",
+  "source_archive_sha256": "41b30b1382d03b225b6f7e8721269a32557a68065804f3797bdffc34a3273498",
+  "archive_prefix": "accesskit-c-0.22.3/",
+  "artifacts": {
+    "include/accesskit.h": "c7e0dff6b97ba5793d5a092d6ef817d5a4ec5ffe409345f5927fc0da4b06cf61",
+    "lib/macos/arm64/static/libaccesskit.a": "75bb1a8c82367c4873a026fe56e1f9ee7913b9615daf3ad86fdc8667855a39ed",
+    "LICENSE-MIT": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3",
+    "LICENSE-APACHE": "62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a",
+    "LICENSE.chromium": "845022e0c1db1abb41a6ba4cd3c4b674ec290f3359d9d3c78ae558d4c0ed9308",
+    "AUTHORS": "b7e5fc95eb3b8d2c44f2a56e924c24ffe59f644182592983ecd2826beb530996"
+  }
+}

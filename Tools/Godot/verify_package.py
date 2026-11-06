@@ -9,7 +9,7 @@ def verify(package):
     manifest=json.loads((package/'manifest.json').read_text(encoding='utf-8'))
     if manifest.get('package_format')!='dora-godot-runtime' or manifest.get('package_version')!=1:
         raise ValueError('Unsupported package format; rebuild the package with current tools')
-    if manifest.get('bridge_abi')!=1 or manifest.get('godot_version')!='4.6-stable' or manifest.get('source_archive_sha256')!=SOURCE_SHA256:
+    if manifest.get('bridge_abi')!=1 or manifest.get('godot_version')!='4.7.2-stable' or manifest.get('source_archive_sha256')!=SOURCE_SHA256:
         raise ValueError('Runtime version, bridge ABI or pinned source mismatch')
     architectures=manifest.get('architectures')
     if architectures is not None and (not isinstance(architectures,list) or not architectures
@@ -36,6 +36,24 @@ def verify(package):
     licenses=manifest.get('licenses',[])
     if not licenses or any(name not in artifacts for name in licenses):
         raise ValueError('License inventory missing or incomplete')
+    sdk_profile = manifest.get('static_accesskit_sdk')
+    if sdk_profile not in (None, 'linux'):
+        raise ValueError('Unknown static AccessKit SDK profile')
+    if sdk_profile == 'linux' and (graphics_backend != 'egl' or not str(manifest.get('library', '')).endswith('.so')):
+        raise ValueError('Linux static AccessKit SDK requires an EGL shared runtime')
+    if (graphics_backend == 'metal' and str(manifest.get('library', '')).endswith('.dylib')) or manifest.get('static_accesskit_sdk') == 'linux':
+        notice = 'GODOT-ACCESSKIT-NOTICES.txt'
+        provenance = 'GODOT-ACCESSKIT-PROVENANCE.json'
+        if notice not in licenses or provenance not in artifacts:
+            raise ValueError('Static AccessKit static dependency notices/provenance missing')
+        dependency = json.loads((package / provenance).read_text(encoding='utf-8'))
+        spec_name = 'linux_accesskit_sdk.json' if manifest.get('static_accesskit_sdk') == 'linux' else 'macos_accesskit_sdk.json'
+        spec = json.loads((Path(__file__).resolve().parents[2] / 'Projects/xmake/godot' / spec_name).read_text())
+        if any(dependency.get(key) != value for key, value in spec.items()):
+            raise ValueError('Static AccessKit static dependency provenance mismatch')
+        expected_notice = Path(__file__).parent / 'licenses/accesskit-0.22.3' / notice
+        if artifacts[notice] != digest(expected_notice):
+            raise ValueError('Static AccessKit license text differs from pinned notice')
     if graphics_backend == 'd3d12':
         notice = 'GODOT-NIR-THIRD-PARTY-NOTICES.txt'
         provenance = 'GODOT-NIR-PROVENANCE.json'

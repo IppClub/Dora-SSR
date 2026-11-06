@@ -59,7 +59,7 @@ jobs:
           packages: platform-tools
           log-accepted-android-sdk-licenses: false
       - name: Install Android native toolchain
-        run: sdkmanager --install 'ndk;28.1.13356709' 'cmake;3.22.1' 'platforms;android-35' 'build-tools;34.0.0' 'build-tools;35.0.0'
+        run: sdkmanager --install 'ndk;29.0.14206865' 'cmake;3.22.1' 'platforms;android-36' 'build-tools;34.0.0' 'build-tools;36.1.0'
       - name: Record xmake version
         run: xmake --version
       - name: Build Android

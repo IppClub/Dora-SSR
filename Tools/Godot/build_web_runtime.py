@@ -16,7 +16,7 @@ a=p.parse_args();assert 1<=a.jobs<=16
 a.builder='xmake'
 mode='release' if a.target=='template_release' else 'debug'
 build=(a.build_dir or (root/'build/godot-web' if a.target=='template_debug' else root/'build/godot-web/release')).resolve();build.mkdir(parents=True,exist_ok=True)
-expected='b451eaa16d3abe0c7430e9ce1c4e83b146e5670e5b683dd8995c931fc82b57a0'
+expected='e954996374cbd1cb5d72e0e3781cc537408e6ce73b010b12c6c2f308a820690a'
 source=root/'Source/3rdParty/Godot'
 for script in ('prepare.py','prepare_web.py'):subprocess.run([sys.executable,str(root/'Tools/Godot'/script),str(source)],check=True)
 env=os.environ.copy();env['BINARYEN_CORES']=str(a.jobs)

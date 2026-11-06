@@ -1,5 +1,7 @@
 # GodotNode：共享 GPU 纹理集成
 
+当前升级候选为 Godot **4.7.2-stable**，macOS arm64 Metal、Linux ARM64 EGL Release（virgl）与 x64 EGL Release（QEMU/llvmpipe）最小项目切换验收已通过；新版状态见 [TRACKING.md](TRACKING.md)。下文既有多平台运行记录属于 4.6 基线，不能直接视为 4.7.2 已通过。导入/导出使用匹配的 4.7 编辑器，当前固定 4.7.2。
+
 
 测试、验证与诊断程序已迁至 Dora-Example 的 `Test/Godot`，旧 Metal 原型位于 `Test/LibGodotMetalProbe`。生产构建与包/SDK完整性校验仍由本目录维护。运行本文测试命令前，先从引擎根目录执行 `xmake dora-test-deps --env-file=/path/to/test-env`，或设置 `DORA_TEST_REPO=/absolute/path/to/Dora-Example`；Python/Shell 测试使用 `DORA_ENGINE_ROOT` 指向当前引擎，未设置时从引擎工作目录解析。统一轻量入口为 `xmake dora-test --repo=/path/to/Dora-Example --suite=godot-contract`。
 
@@ -354,7 +356,7 @@ python3 Tools/Godot/build_android_runtime.py --sdk "$ANDROID_HOME" \
   --build-dir build/godot-android-xmake/release-arm64
 ```
 
-该入口要求 xmake 3.x、NDK 28.1.13356709，固定 API 28 和共享 libc++；可用
+该入口要求 xmake 3.x、NDK 29.0.14206865，固定 API 28 和共享 libc++；可用
 `--xmake /absolute/path/to/xmake` 指定工具。对象、库与生成物位于
 `build/godot-xmake/android/arm64-v8a`，不写回 vendor 源码。当前已通过
 原生构建、JNI 导出对照、封包、vendor Java/AAR、普通 Release 模拟器矩阵及未修改官方 Dodge 项目。
@@ -370,8 +372,8 @@ python3 Tools/Godot/prepare_android_aar.py --sdk "$ANDROID_HOME" \
 
 需要 Java 17；可用 `--java-home` 显式选择。独立构建目录保存命令、源码哈希、日志与 AAR 清单；
 输出包移除 JNI 条目并改用 Dora 的 FileProvider。应用通过
-`-Pdora.godot.javaAar=<生成的 godot-java-4.6.0.stable.aar 绝对路径>` 选择此包。
-未覆盖 Java 路径时应用使用 `build/godot-android/java/godot-java-4.6.0.stable.aar`；准备脚本可从 `ANDROID_HOME` 或 `ANDROID_SDK_ROOT` 获取 SDK。`--builder maven` 保留固定哈希的上游 AAR 对照。
+`-Pdora.godot.javaAar=<生成的 godot-java-4.7.2.stable.aar 绝对路径>` 选择此包。
+未覆盖 Java 路径时应用使用 `build/godot-android/java/godot-java-4.7.2.stable.aar`；准备脚本可从 `ANDROID_HOME` 或 `ANDROID_SDK_ROOT` 获取 SDK。`--builder maven` 保留固定哈希的上游 AAR 对照。
 
 包位于 `build/godot-android/release/arm64/package`。Gradle 可通过
 `-Pdora.godot.runtimePackage=<包的绝对路径>` 选择 JNI 运行库，通过
@@ -514,6 +516,8 @@ $DORA_TEST_REPO/Test/Godot/test_linux.sh
 Linux ARM64 已通过完整 GodotNode 720 帧测试及导入资源 PCK 测试。归档报告为 `build/godot-runtime/node-linux-arm64/verification.json` 和 `build/godot-runtime/node-imported-pck-linux-arm64/verification.json`。实际设备为 Mesa virgl (Apple M1 Pro Compat)。当前源码也已交叉构建 x86_64 LibGodot 与 Dora 宿主；在 ARM64 Ubuntu 虚拟机的 Rosetta 转译环境中，ANGLE／SwiftShader 独立消费者通过 360 帧共享 GPU 纹理、动画暂停／恢复及零 GPU 错误验证。完整 Dora 节点路径分别受 Rosetta 对 Mesa LLVM AOT 的限制和 ANGLE 启动期终止阻断，因此仍未验证 Linux x86_64 原生硬件上的完整节点输出。报告为 `build/godot-runtime/linux-x64-rosetta-report.json`；该结果不能替代原生 x86_64 GPU 验收。
 
 完整 Linux 运行时使用原生 Compatibility 渲染器，保留标准 Godot 模块，并导出可选的 GL 同步扩展表。Dora 后端要求 bgfx OpenGL/OpenGLES 和 EGL，Vulkan 尚不支持。GL 上下文销毁前调用 Godot 退出钩子；两个上下文分别保留自己的 framebuffer/VAO 等状态，只共享纹理和 fence。
+
+Linux 构建自动校验并静态链接固定 AccessKit 0.22.3 SDK，配置见 `Projects/xmake/godot/linux_accesskit_sdk.json`；归档和每个输入均有固定 SHA-256，SDK 头必须与 vendor 一致。运行包包含 SDK 许可与 `GODOT-ACCESSKIT-PROVENANCE.json`，不增加独立 AccessKit 动态库。
 
 `build_linux_runtime.sh` 和 macOS 构建脚本会生成带上游 MIT 许可、第三方 notices 与二进制校验清单的 `package/` 目录。清单仅记录开发构建产物，不能替代平台运行验证。
 
@@ -936,8 +940,8 @@ Android 使用上游 Java/JNI 平台服务和源码编译的标准 Godot 运行�
 SDL/EGL、主循环和音频设备。Godot 不创建 Android 渲染视图，双方通过共享 EGL
 纹理与 GPU fence 交接画面。Java 服务在 UI 线程构造，Godot Main 在 Dora 渲染线程运行。
 
-需要 Android SDK 35、Build Tools 34、NDK 28.1.13356709，以及兼容 Gradle 8.2 的 JDK。
-先按桌面构建说明准备 Godot 构建 venv，然后执行：
+需要 Android SDK 36、Build Tools 36.1.0、NDK 29.0.14206865，以及JDK 17（Gradle 8.11.1 / AGP 8.6.1）。
+准备 xmake 3.x 与上述工具链后执行（不需要 SCons/venv）：
 
 ```sh
 python3 Tools/Godot/prepare_android_aar.py

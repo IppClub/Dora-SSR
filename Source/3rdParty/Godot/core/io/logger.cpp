@@ -39,6 +39,8 @@
 
 #include "modules/modules_enabled.gen.h" // For regex.
 
+#include <cstdio>
+
 #ifdef MODULE_REGEX_ENABLED
 #include "modules/regex/regex.h"
 #endif // MODULE_REGEX_ENABLED
@@ -164,6 +166,7 @@ void RotatedFileLogger::rotate_file() {
 	}
 
 	file = FileAccess::open(base_path, FileAccess::WRITE);
+	ERR_FAIL_COND_MSG(file.is_null(), "Failed to open log file for writing: " + base_path);
 	file->detach_from_objectdb(); // Note: This FileAccess instance will exist longer than ObjectDB, therefore can't be registered in ObjectDB.
 }
 

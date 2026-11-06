@@ -108,11 +108,11 @@ GDExtensionBool extension_init(GDExtensionInterfaceGetProcAddress,GDExtensionCla
 }
 const char *version() {
 #ifdef WEB_ENABLED
-    return "Godot 4.6-stable / Dora bridge WebGL2 ABI 1";
+    return "Godot 4.7.2-stable / Dora bridge WebGL2 ABI 1";
 #elif defined(WINDOWS_ENABLED)
-    return "Godot 4.6-stable / Dora bridge WGL ABI 1";
+    return "Godot 4.7.2-stable / Dora bridge WGL ABI 1";
 #else
-    return "Godot 4.6-stable / Dora bridge EGL ABI 1";
+    return "Godot 4.7.2-stable / Dora bridge EGL ABI 1";
 #endif
 }
 const char *last_error(void *) { return runtime.error.empty()?dora_gl_error():runtime.error.c_str(); }
@@ -156,8 +156,8 @@ bool select_direct_target(uint32_t slot) {
 bool draw(int direct_slot=-1) {
     auto *rs=RenderingServer::get_singleton(); RID viewport=runtime.root->get_viewport_rid();
     rs->viewport_set_render_direct_to_screen(viewport,false);
-    rs->viewport_attach_to_screen(viewport,Rect2(),DisplayServer::INVALID_WINDOW_ID);
-    rs->viewport_set_update_mode(viewport,RS::VIEWPORT_UPDATE_ALWAYS);
+    rs->viewport_attach_to_screen(viewport,Rect2(),DisplayServerEnums::INVALID_WINDOW_ID);
+    rs->viewport_set_update_mode(viewport,RSE::VIEWPORT_UPDATE_ALWAYS);
     output.prepare(runtime.root);
     if (direct_slot>=0 && !select_direct_target(uint32_t(direct_slot))) return false;
     rs->draw(false,DoraGodotRenderTiming::consume());
@@ -219,6 +219,7 @@ void *open(const DoraGodotConfig *config) {
         char *args[]={executable,(char*)project_argument,(char*)runtime.project.c_str(),(char*)"--display-driver",(char*)"dora-gl",
             (char*)"--rendering-driver",(char*)(DisplayServerDoraGL::desktop?"opengl3":"opengl3_es"),
             (char*)"--rendering-method",(char*)"gl_compatibility",(char*)"--audio-driver",(char*)"Dummy",
+            (char*)"--accessibility-driver",(char*)"dummy",
             (char*)"--render-thread",(char*)"safe",(char*)"--disable-render-loop",(char*)"--disable-crash-handler",
             (char*)"--resolution",(char*)resolution.c_str()};
         runtime.instance=(GodotInstance*)libgodot_create_godot_instance(sizeof(args)/sizeof(args[0]),args,extension_init);
@@ -226,9 +227,9 @@ void *open(const DoraGodotConfig *config) {
 #ifdef DORA_GODOT_GL_PROJECT_LIFECYCLE
         const String cache=OS::get_singleton()->get_cache_path().path_join(
 #ifdef WINDOWS_ENABLED
-            "Dora/LibGodot-4.6/wgl"
+            "Dora/LibGodot-4.7.2/wgl"
 #else
-            "Dora/LibGodot-4.6/egl"
+            "Dora/LibGodot-4.7.2/egl"
 #endif
         );
         if (DirAccess::make_dir_recursive_absolute(cache)!=OK) {

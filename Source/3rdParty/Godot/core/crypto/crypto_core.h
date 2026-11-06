@@ -30,7 +30,12 @@
 
 #pragma once
 
-#include "core/object/ref_counted.h"
+#include "core/error/error_list.h"
+
+#include <cstddef>
+#include <cstdint>
+
+class String;
 
 class CryptoCore {
 public:
@@ -38,8 +43,6 @@ public:
 	private:
 		void *entropy = nullptr;
 		void *ctx = nullptr;
-
-		static int _entropy_poll(void *p_data, unsigned char *r_buffer, size_t p_len, size_t *r_len);
 
 	public:
 		RandomGenerator();

@@ -1,19 +1,19 @@
 # Godot vendor / xmake 迁移计划
 
-更新：2026-11-04。1.0支持矩阵与最终交付缺口见 [RELEASE_1_0.md](RELEASE_1_0.md)。当前任务勾选以 [TRACKING.md](TRACKING.md) 为准；本页说明迁移顺序和交付门槛，不再追加实验流水。旧 history 目录已按用户整理移除，文中旧路径仅作历史标识；当前证据见对应 `build/` 目录，不恢复历史目录。
+更新：2026-11-06。1.0支持矩阵与最终交付缺口见 [RELEASE_1_0.md](RELEASE_1_0.md)。当前任务勾选以 [TRACKING.md](TRACKING.md) 为准；本页说明迁移顺序和交付门槛，不再追加实验流水。旧 history 目录已按用户整理移除，文中旧路径仅作历史标识；当前证据见对应 `build/` 目录，不恢复历史目录。
 
 ## 目标与约束
 
 将固定版本 Godot 完整 vendor 到 `Source/3rdParty/Godot`，使用原生 xmake 管理源码、平台配置、生成器、编译、链接及封包，保留各自完整运行时及独立依赖。允许复用上游 Python 生成器；不以 xmake 包装 SCons 作为迁移完成。
 
-保持 Godot 4.6-stable 来源、版本、许可证与 Dora 修改可追溯；生成物和对象文件放在独立构建目录，不写入 vendor 源码。受支持配置统一为原生 xmake 唯一构建入口；保留上游构建文件及封存对照，不保留 Dora 的 SCons 安装/调用/回退路径。动态验收缺口独立跟踪。
+保持固定上游版本（当前升级目标 4.7.2-stable）的来源、许可证与 Dora 修改可追溯；生成物和对象文件放在独立构建目录，不写入 vendor 源码。受支持配置统一为原生 xmake 唯一构建入口；保留上游构建文件及封存对照，不保留 Dora 的 SCons 安装/调用/回退路径。动态验收缺口独立跟踪。
 
 产品范围保持：Godot 不含 C#/Mono，Dora 原有 C# 保留；Dora Apple2 / Godot Apple4；Windows 本轮验收 x64 WGL，D3D12 适配保留但按用户决定跳过本轮动态验收；不做进程内 LibGodot 重初始化；按最新决定保留一个进程内LibGodot，实现项目级卸载与切换，macOS Metal、Linux EGL、Windows x64 WGL、Android EGL和WebGL2默认开放，其他平台和兼容性缺口见 [PROJECT_SWITCH.md](PROJECT_SWITCH.md)。
 
 依赖部署固定为完整独立LibGodot：移除第三方库共享开关、宿主提供端、转发层及启动握手，各引擎保留自己的依赖实现。共享实验和撤销任务见归档（`history/2026-11-03-library-sharing-removed/README.md`）。
 
 
-## 阶段安排
+## 既有 4.6 迁移阶段（历史基线）
 
 | 阶段 | 工作与交付 | 当前状态 |
 | --- | --- | --- |
@@ -26,17 +26,18 @@
 | 7. 独立依赖维护 | 保留上游依赖、来源登记与已有许可通知 | 共享综合审计已撤销；NIR-LICENSE-01随D3D12保留后续 |
 | 8. 构建退场与文档 | 按已验收配置移除 SCons 生产路径，完善升级、复现、包布局与维护说明 | DOC-01、CLEANUP-01、XMAKE-ONLY-01 已完成：26项串行构建及10项构建系统回归通过；自有SCons入口/依赖移除，上游文件保留 |
 
-## 剩余工作的最小执行计划
+## 当前升级的最小执行计划
 
-2026-11-05新增范围：Godot随Dora 1.10.0成为默认正式构建组件，覆盖默认打包与Studio的Agent/游戏Player。此轮仅串行验证受影响的构建和资源分发链；GPU功能继续复用既有证据，新产物的跨平台CI对应关系仍单列，不因改默认项重跑全部硬件矩阵。
+2026-11-06：升级至固定 Godot **4.7.2-stable**，以 [TRACKING.md](TRACKING.md) 的 UPGRADE-47 清单为准。后面的 4.6 平台完成记录保留历史含义，不能当作新版的运行证据。
 
-按用户要求采用增量验收，已有通过证据继续有效；不会因接入一个新后端而默认重跑其他平台、全部架构、浏览器或压力矩阵。
+1. 固定官方归档、Git commit、完整许可证和 Dora 补丁差异；继续直接 xmake 构建，不恢复 SCons 依赖。
+2. 先完成 macOS arm64 Metal：更新生成器、源清单和 metal-cpp 桥接，构建并验证新版运行包。
+3. 唯一一组真实项目串行验收：Dodge 源码 → Squash PCK → Dodge 源码；分别使用 2/3/4 缓冲，检查动态画面、输入/PCM、零 blit、GPU 排空、卸载通知和同实例新场景树。失败只修复并复验受影响环节，通过即停止本平台。
+macOS 上述 Release/真实项目最小验收已通过，证据见 `build/godot-4.7-macos/REPORT.md`；本平台不再加跑动态轮次。
+Linux ARM64 EGL Release 同样已完成唯一一组 A→B→A（2/3/4 缓冲、9 图、484 共享生产帧、零 GPU 错误/未完成读取/blit），证据见 `build/godot-4.7-linux/REPORT.md`；Ubuntu ARM64 已关闭，本轮到此停止。后续 x64 EGL Release 交叉构建/封包/228 项 ABI 与相同最小组合也已通过（QEMU/llvmpipe，505 共享生产帧、9 图），见 `build/godot-4.7-linux-x64/REPORT.md`；仅增加慢翻译环境的看门狗，不降低活动 tick/帧数/像素等断言，VM 已关闭。两套 Linux 本轮到此停止，不推进其它平台；原生 x64 CPU/物理 GPU 与长期压力未覆盖。
 
-1. **复用当前候选 CI，结束 Linux 本轮工作**：运行时代码候选固定为 `2bdad734a`，实际解析测试为 `aec520851`，详见 [候选核对](RELEASE_1_0.md#当前候选核对)。Linux ARM64 Debug 的项目切换已经通过；现有 x64 CI 使用 Release 宿主配 Debug LibGodot，只复用宿主、补建一次缺失的 Release 运行库，再执行一次 A→B→A。不重复既有真实项目或完整图形矩阵；未验证的配置保持明确标注，不按已通过处理。
-2. **Windows x64 WGL 已完成本轮最小验收，停止动态测试**：复用先前五次加载、失败恢复/取消/重复卸载通知证据；Parallels 的投影阴影采样适配后，只补原始 B的PCK(3缓冲) → A源码(4) → B的PCK(2)。9图、同实例/新场景树、动态画面/输入/PCM和GPU排空通过，阴影与4×MSAA保留。范围限VM内x64 Debug；物理GPU、Release及长期压力保持未覆盖。证据暂存 `build/godot-wgl-shadow-v1/`，不重跑其他平台或完整矩阵。
-3. **Android EGL 已完成本轮功能验收**：arm64普通Release在API35／SwiftShader中完成一轮成功的五次官方源码/PCK切换、2/3/4缓冲与失败恢复/取消/卸载通知；15图、输入/PCM/GPU排空及重复清理计数通过。首次失败定位到Android APK资源根目录覆盖工程路径，修复后只复验受影响的组合，未重跑旧矩阵。保留既有shader binary回退告警，严格无告警/跨进程暖缓存任务继续单列；不关闭缓存，不将此功能验收写成缓存无告警通过。证据暂存 `build/godot-project-android-v1/`。
-   **WebGL2本轮已完成并停止**：默认Release `dora-preset`，Chrome跑五次源码/PCK切换和边界，Firefox、原生Safari、WebKit各只补A→B→A；42图、公开输入、PCM、GPU排空、副本回收及Chrome卸载后context loss通过。未在VM测浏览器，未加压力矩阵；证据 `build/godot-project-web-v1/`。Android已完成唯一一组冷/暖配对：冷通过、5文件／19条binary；保留相同缓存重启仍因链接告警严格失败，诊断像素与清理通过。按最新决定只接受真正binary恢复，转译层故障保留为模拟器环境限制，不增加源码缓存回退，不在同一已知失败环境反复验收。另修正binary实际长度保存，7项边界和旧代码负向控制通过；证据 `build/godot-android-warm-cache-v1/`。
-4. **受限项保持待办**：iOS Apple4正向运行环境不足时，只复用已有编译/能力拒绝证据，不反复运行已知不能正向渲染的模拟器；D3D12继续按既定决定跳过。长期显存、额外并发压力、更多复杂工程及扩展兼容性保留后续，不自动扩成当前验收门槛，也不标为完成。
+4. macOS 通过后才推进其他平台，逐个平台构建和验收，不并行本地构建，不自动追加设备/浏览器/压力矩阵。iOS 缺少 Apple4 正向设备时明确保留边界。
+5. 更新来源登记、维护文档和新版验收范围；本轮没有创建新 Dora tag 或公开 Release 的步骤。
 
 ## 增量验收与停止条件
 

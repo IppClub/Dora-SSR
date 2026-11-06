@@ -669,6 +669,18 @@ void fill_default_theme(Ref<Theme> &theme, const Ref<Font> &default_font, const 
 	theme->set_color("scroll_hint_vertical_color", "ScrollContainer", Color(0, 0, 0));
 	theme->set_color("scroll_hint_horizontal_color", "ScrollContainer", Color(0, 0, 0));
 
+	// Virtual Joystick
+
+	Ref<StyleBoxFlat> style_joystick = make_flat_stylebox(style_normal_color, 0, 0, 0, 0, 10000, false, 4 * scale);
+	style_joystick->set_corner_detail(24 * scale);
+	Ref<StyleBoxFlat> style_joystick_tip = make_flat_stylebox(style_normal_color, 0, 0, 0, 0, 10000);
+	style_joystick_tip->set_corner_detail(24 * scale);
+
+	theme->set_stylebox("normal_joystick", "VirtualJoystick", style_joystick);
+	theme->set_stylebox("normal_tip", "VirtualJoystick", style_joystick_tip);
+	theme->set_stylebox("pressed_joystick", "VirtualJoystick", style_joystick);
+	theme->set_stylebox("pressed_tip", "VirtualJoystick", style_joystick_tip);
+
 	// Window
 
 	theme->set_stylebox("embedded_border", "Window", sb_expand(make_flat_stylebox(style_popup_color, 10, 28, 10, 8), 8, 32, 8, 6));
@@ -717,6 +729,12 @@ void fill_default_theme(Ref<Theme> &theme, const Ref<Font> &default_font, const 
 
 	theme->set_icon("file_thumbnail", "FileDialog", icons["file_thumbnail"]);
 	theme->set_icon("folder_thumbnail", "FileDialog", icons["folder_thumbnail"]);
+	theme->set_icon("menu_copy_path", "FileDialog", empty_icon);
+	theme->set_icon("menu_delete", "FileDialog", empty_icon);
+	theme->set_icon("menu_new_folder", "FileDialog", empty_icon);
+	theme->set_icon("menu_refresh", "FileDialog", empty_icon);
+	theme->set_icon("menu_show_in_file_manager", "FileDialog", empty_icon);
+	theme->set_icon("menu_open_bundle", "FileDialog", empty_icon);
 	theme->set_color("folder_icon_color", "FileDialog", Color(1, 1, 1));
 	theme->set_color("file_icon_color", "FileDialog", Color(1, 1, 1));
 	theme->set_color("file_disabled_color", "FileDialog", Color(1, 1, 1, 0.25));
@@ -760,6 +778,7 @@ void fill_default_theme(Ref<Theme> &theme, const Ref<Font> &default_font, const 
 	theme->set_icon("radio_unchecked_disabled", "PopupMenu", icons["radio_unchecked_disabled"]);
 	theme->set_icon("submenu", "PopupMenu", icons["popup_menu_arrow_right"]);
 	theme->set_icon("submenu_mirrored", "PopupMenu", icons["popup_menu_arrow_left"]);
+	theme->set_icon("search", "PopupMenu", icons["search"]);
 
 	theme->set_font(SceneStringName(font), "PopupMenu", Ref<Font>());
 	theme->set_font("font_separator", "PopupMenu", Ref<Font>());
@@ -777,6 +796,7 @@ void fill_default_theme(Ref<Theme> &theme, const Ref<Font> &default_font, const 
 	theme->set_constant("indent", "PopupMenu", Math::round(10 * scale));
 	theme->set_constant("h_separation", "PopupMenu", Math::round(4 * scale));
 	theme->set_constant("v_separation", "PopupMenu", Math::round(4 * scale));
+	theme->set_constant("search_bar_separation", "PopupMenu", Math::round(4 * scale));
 	theme->set_constant("outline_size", "PopupMenu", 0);
 	theme->set_constant("separator_outline_size", "PopupMenu", 0);
 	theme->set_constant("item_start_padding", "PopupMenu", Math::round(2 * scale));
@@ -904,6 +924,7 @@ void fill_default_theme(Ref<Theme> &theme, const Ref<Font> &default_font, const 
 	theme->set_color("font_disabled_color", "Tree", control_font_disabled_color);
 	theme->set_color("font_outline_color", "Tree", Color(0, 0, 0));
 	theme->set_color("guide_color", "Tree", Color(0.7, 0.7, 0.7, 0.25));
+	theme->set_color("drop_on_item_color", "Tree", Color(1, 1, 1));
 	theme->set_color("drop_position_color", "Tree", Color(1, 1, 1));
 	theme->set_color("relationship_line_color", "Tree", Color(0.27, 0.27, 0.27));
 	theme->set_color("parent_hl_line_color", "Tree", Color(0.27, 0.27, 0.27));
@@ -1100,6 +1121,7 @@ void fill_default_theme(Ref<Theme> &theme, const Ref<Font> &default_font, const 
 	theme->set_icon("picker_cursor", "ColorPicker", icons["color_picker_cursor"]);
 	theme->set_icon("picker_cursor_bg", "ColorPicker", icons["color_picker_cursor_bg"]);
 	theme->set_icon("color_script", "ColorPicker", icons["script"]);
+	theme->set_icon("color_copy", "ColorPicker", icons["action_copy"]);
 
 	{
 		const int precision = 7;

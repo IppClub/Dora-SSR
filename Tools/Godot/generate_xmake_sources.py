@@ -23,6 +23,14 @@ class Node:
     def __init__(self, value: object):
         self.value = value
 
+    @property
+    def path(self) -> str:
+        return str(self.value)
+
+    @property
+    def name(self) -> str:
+        return Path(str(self.value)).name
+
     def read(self) -> object:
         return self.value
 
@@ -73,6 +81,7 @@ def generate(output: Path, profile: dict[str, object]) -> list[Path]:
     from scene.theme.icons import default_theme_icons_builders
     import gles3_builders
     import glsl_builders
+    from servers.rendering.storage import make_ltc_lut
 
     platform_spec = importlib.util.spec_from_file_location(
         "godot_platform_builders", GODOT / "platform/platform_builders.py"
@@ -88,6 +97,11 @@ def generate(output: Path, profile: dict[str, object]) -> list[Path]:
         outputs.append(target)
         return target
 
+    call(make_ltc_lut.run, out("servers/rendering/storage/ltc_lut.gen.h"), [
+        GODOT / "servers/rendering/storage/make_ltc_lut.py",
+        GODOT / "servers/rendering/storage/ltc/ltc_lut1.dds",
+        GODOT / "servers/rendering/storage/ltc/ltc_lut2.dds",
+    ])
     call(core_builders.disabled_class_builder, out("core/disabled_classes.gen.h"), [Node([])])
     call(core_builders.version_info_builder, out("core/version_generated.gen.h"), [Node(methods.get_version_info(""))])
     call(core_builders.version_hash_builder, out("core/version_hash.gen.cpp"), [Node({"git_hash": "", "git_timestamp": 0})])
@@ -115,8 +129,8 @@ def generate(output: Path, profile: dict[str, object]) -> list[Path]:
             "profiler_track_memory": profile["profiler_track_memory"],
         },
     )
-    call(make_virtuals.run, out("core/object/gdvirtual.gen.inc"), [])
-    call(make_wrappers.run, out("core/extension/ext_wrappers.gen.inc"), [])
+    call(make_virtuals.run, out("core/object/gdvirtual.gen.h"), [])
+    call(make_wrappers.run, out("core/extension/ext_wrappers.gen.h"), [])
     interface = GODOT / "core/extension/gdextension_interface.json"
     call(make_interface_header.run, out("core/extension/gdextension_interface.gen.h"), [interface])
     call(make_interface_dumper.run, out("core/extension/gdextension_interface_dump.gen.h"), [interface])
@@ -154,7 +168,7 @@ def generate(output: Path, profile: dict[str, object]) -> list[Path]:
         for name in (
             "canvas.glsl", "feed.glsl", "scene.glsl", "sky.glsl",
             "canvas_occlusion.glsl", "canvas_sdf.glsl", "particles.glsl",
-            "particles_copy.glsl", "skeleton.glsl",
+            "particles_copy.glsl", "skeleton.glsl", "tex_blit.glsl",
         )
     ]
     gles_sources += [shader for shader in sorted((gles_root / "effects").glob("*.glsl")) if not shader.name.endswith("_inc.glsl")]
@@ -214,6 +228,7 @@ def main() -> None:
             "thirdparty/smaa/AreaTex.png", "thirdparty/smaa/SearchTex.png",
             "main/splash.png", "main/app_icon.png", "core/input/gamecontrollerdb.txt",
             "core/input/godotcontrollerdb.txt", "core/extension/gdextension_interface.json",
+            "servers/rendering/storage/ltc/ltc_lut1.dds", "servers/rendering/storage/ltc/ltc_lut2.dds",
         )
     ]
     fingerprint = digest(inputs, profile)

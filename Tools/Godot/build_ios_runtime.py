@@ -89,7 +89,7 @@ def main():
     r = {'passed': True, 'scope': 'iOS standard-module Metal archive compilation only; no app boot or GPU acceptance',
          'device': a.device, 'architecture': 'arm64', 'sdk': sdk, 'build_target': a.target, 'builder': a.builder,
          'toolchain': toolchain, 'commands': commands, 'command': commands[-1],
-         'source_archive_sha256': 'b451eaa16d3abe0c7430e9ce1c4e83b146e5670e5b683dd8995c931fc82b57a0',
+         'source_archive_sha256': 'e954996374cbd1cb5d72e0e3781cc537408e6ce73b010b12c6c2f308a820690a',
          'archive': str(archive), 'archive_sha256': digest(archive),
          'vendor_validation_sha256': digest(ROOT / 'Tools/Godot/vendor_source.py'),
          'migration_inputs_sha256': inputs}

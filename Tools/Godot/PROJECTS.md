@@ -13,7 +13,7 @@ python3 Tools/Godot/project.py clone https://example.org/game.git --output /path
 
 python3 Tools/Godot/project.py run /path/to/repository \
   --project path/to/game \
-  --godot /path/to/Godot-4.6 \
+  --godot /path/to/Godot-4.7.2 \
   --app /path/to/ordinary/Dora.app \
   --runtime-package /path/to/godot-runtime/package \
   --work-dir /path/to/new-preview
@@ -21,13 +21,13 @@ python3 Tools/Godot/project.py run /path/to/repository \
 
 `run` 的输入也可以直接使用 Git URL 或源码 ZIP。Linux/Windows 用 `--binary /path/to/Dora --asset-source /path/to/Assets` 替代 `--app`。运行库必须匹配宿主平台和图形后端；本轮实际验收为 macOS Metal。
 
-导入使用 Godot **4.6 stable** 编辑器，可通过 `--godot` 或 `DORA_GODOT_EDITOR` 指定。编辑器在独立副本内执行 `--headless --editor --import`，不会由工具改写作者仓库；导入前后核对源文件摘要。工程代码/编辑器插件仍会执行，这个目录隔离不构成代码沙箱。
+导入使用 Godot **4.7 stable**（本轮固定 4.7.2） 编辑器，可通过 `--godot` 或 `DORA_GODOT_EDITOR` 指定。编辑器在独立副本内执行 `--headless --editor --import`，不会由工具改写作者仓库；导入前后核对源文件摘要。工程代码/编辑器插件仍会执行，这个目录隔离不构成代码沙箱。
 
 已有导入缓存也会在独立副本中重新生成，避免携带其他 Godot 版本或平台的旧缓存。仅准备工程、不启动 Dora：
 
 ```sh
 python3 Tools/Godot/project.py prepare /path/to/repository \
-  --godot /path/to/Godot-4.6 --output /path/to/new-prepared
+  --godot /path/to/Godot-4.7.2 --output /path/to/new-prepared
 ```
 
 返回 JSON 中的 `project` 可以直接传给现有 `Dora.GodotNode(project, ...)`。准备目录包含导入日志和来源/编辑器摘要。失败时保留日志，重试使用新输出目录。多工程选择路径在源码 ZIP 解包并去掉单层仓库包装目录后解析。
@@ -38,7 +38,7 @@ PCK 由 Godot 的标准 `--export-pack` 生成，保留导出后的资源、脚�
 
 ```sh
 python3 Tools/Godot/project.py export /path/to/repository \
-  --godot /path/to/Godot-4.6 --id org.example.game --version 1.0.0 \
+  --godot /path/to/Godot-4.7.2 --id org.example.game --version 1.0.0 \
   --platform macOS --work-dir /path/to/new-build --output /path/to/new-game
 
 python3 Tools/Godot/project.py archive /path/to/new-game \
@@ -56,7 +56,7 @@ python3 Tools/Godot/project.py run /path/to/game.dora-game \
 
 包目录包含：
 
-- `game.json`：游戏 ID、名称、版本、目标平台、Godot 4.6/无 Mono 要求、PCK 入口、资源摘要和可用 Git revision。
+- `game.json`：游戏 ID、名称、版本、目标平台、Godot 4.7/无 Mono 要求（加载器保留已有 4.6 数据包声明兼容）、PCK 入口、资源摘要和可用 Git revision。
 - `game.pck`：游戏数据，复用宿主的 LibGodot，不重复分发引擎二进制。
 - `licenses/`：发现的工程/仓库根目录许可证；发布者仍须补齐实际素材和依赖的许可义务。
 
@@ -77,7 +77,7 @@ python3 Tools/Godot/project.py run /path/to/game.dora-game \
 ```sh
 xmake dora-test --repo=/path/to/Dora-Example --suite=godot-projects
 python3 "$DORA_TEST_REPO/Test/Godot/run_project_delivery.py" \
-  --godot /path/to/Godot-4.6 --app /path/to/ordinary/Dora.app \
+  --godot /path/to/Godot-4.7.2 --app /path/to/ordinary/Dora.app \
   --runtime-package /path/to/godot-runtime/package --output /path/to/fresh-results
 ```
 

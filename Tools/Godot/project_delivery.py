@@ -18,7 +18,7 @@ import tempfile
 import zipfile
 
 
-GODOT_VERSION = (4, 6)
+GODOT_VERSION = (4, 7)
 GAME_FORMAT = "dora-godot-game"
 PLATFORMS = {"macOS", "Linux", "Windows Desktop", "Android", "iOS", "Web"}
 SKIP_DIRECTORIES = {".git", ".godot", ".svn", ".hg"}
@@ -177,11 +177,11 @@ def editor_identity(executable: str) -> dict:
     found = shutil.which(executable)
     path = Path(found or executable).resolve()
     if not path.is_file():
-        raise ProjectError("Set --godot or DORA_GODOT_EDITOR to a Godot 4.6 editor executable")
+        raise ProjectError("Set --godot or DORA_GODOT_EDITOR to a Godot 4.7 editor executable")
     result = subprocess.run([str(path), "--version"], capture_output=True, text=True, timeout=30)
     match = re.match(r"^(\d+)\.(\d+)(?:\.\d+)?\.stable(?:\.|$)", result.stdout.strip())
     if result.returncode or not match or tuple(map(int, match.groups())) != GODOT_VERSION:
-        raise ProjectError("The importer must be Godot 4.6 stable; found " + result.stdout.strip())
+        raise ProjectError("The importer must be Godot 4.7 stable; found " + result.stdout.strip())
     return {"path": str(path), "version": result.stdout.strip(), "sha256": digest(path)}
 
 
@@ -220,7 +220,7 @@ def prepare(source: Path, output: Path, editor: str, selection: str | None = Non
 
 
 def inspect_pck(path: Path) -> dict:
-    """Validate standalone, unencrypted v2/v3 indexes from the pinned loader layout."""
+    """Validate standalone, unencrypted v2/v3/v4 indexes from the pinned loader layout."""
     total = path.stat().st_size
     with path.open("rb") as file:
         def read(count):
@@ -235,12 +235,12 @@ def inspect_pck(path: Path) -> dict:
         if read(4) != b"GDPC":
             raise ProjectError("Expected a standalone Godot PCK")
         version, major, minor, patch, flags = [u32() for _ in range(5)]
-        if version not in (2, 3) or major != 4 or (major, minor) > GODOT_VERSION:
+        if version not in (2, 3, 4) or major != 4 or (major, minor) > GODOT_VERSION:
             raise ProjectError("PCK requires an unsupported Godot version")
         if flags & ~2:
             raise ProjectError("Encrypted/sparse/patch PCKs are not supported by this delivery format")
         base = u64()
-        directory = u64() if version == 3 else 96
+        directory = u64() if version >= 3 else 96
         if directory > total - 4 or base > total:
             raise ProjectError("PCK offsets exceed the file")
         file.seek(directory)
@@ -289,7 +289,7 @@ def verify_game(package: Path) -> dict:
     if not isinstance(manifest.get("id"), str) or not re.fullmatch(r"[a-z0-9][a-z0-9._-]{0,127}", manifest["id"]):
         raise ProjectError("Invalid game ID")
     runtime = manifest.get("runtime", {})
-    if runtime != {"godot": "4.6", "mono": False}:
+    if runtime not in ({"godot": "4.6", "mono": False}, {"godot": "4.7", "mono": False}):
         raise ProjectError("Game requires an unsupported runtime")
     if manifest.get("platform") not in PLATFORMS:
         raise ProjectError("Invalid game target platform")
@@ -416,7 +416,7 @@ def export_game(source: Path, output: Path, work: Path, editor: str, game_id: st
                 licenses.append(target.relative_to(package).as_posix())
         manifest = {"format": GAME_FORMAT, "format_version": 1, "id": game_id,
                     "title": receipt["source"]["title"], "version": version,
-                    "runtime": {"godot": "4.6", "mono": False}, "entry": "game.pck",
+                    "runtime": {"godot": "4.7", "mono": False}, "entry": "game.pck",
                     "platform": selected["platform"], "export_preset": selected["name"],
                     "rendering_method": receipt["source"]["rendering_method"],
                     "source": {"git": receipt["source"]["git"],

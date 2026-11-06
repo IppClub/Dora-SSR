@@ -178,7 +178,7 @@ task("doctor")
             if sdk and os.isdir(sdk) then
                 report("OK", "Android SDK", sdk)
                 local godot = config.get("dora_godot_runtime") ~= false
-                for _, component in ipairs({godot and "ndk/28.1.13356709" or "ndk/26.1.10909125", "cmake/3.22.1", godot and "platforms/android-35" or "platforms/android-34", "build-tools/34.0.0"}) do
+                for _, component in ipairs({godot and "ndk/29.0.14206865" or "ndk/26.1.10909125", "cmake/3.22.1", godot and "platforms/android-36" or "platforms/android-34", godot and "build-tools/36.1.0" or "build-tools/34.0.0"}) do
                     local directory = path.join(sdk, component)
                     report(os.isdir(directory) and "OK" or "ERROR", component, directory,
                         not os.isdir(directory) and "Install this component through Android Studio's SDK Manager." or nil)

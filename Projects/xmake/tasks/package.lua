@@ -18,7 +18,7 @@ local function stage_godot_runtime(runtime_dir, asset_root, expected_library, re
     local manifest = json.loadfile(manifest_file)
     ensure(manifest.package_format == "dora-godot-runtime"
         and manifest.package_version == 1 and manifest.bridge_abi == 1
-        and manifest.godot_version == "4.6-stable",
+        and manifest.godot_version == "4.7.2-stable",
         "unsupported Godot runtime package metadata")
     ensure(manifest.library == expected_library,
         "Godot runtime library does not match package platform: " .. tostring(manifest.library))

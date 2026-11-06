@@ -32,13 +32,19 @@
 # a <anhkietcb2008@gmail.com>, 2024.
 # Đức Anh Nguyễn <ducnah2132k9@gmail.com>, 2025.
 # Orus Or <orus3732@gmail.com>, 2025.
+# Nguyen Ngoc Thai <thaidev247@gmail.com>, 2026.
+# Nam Namcuteee <namcuteeenam@gmail.com>, 2026.
+# Khắc Vinh Vũ <vukhacvinh31@gmail.com>, 2026.
+# Lý Hoàng Bách <bachmeme1212@gmail.com>, 2026.
+# Nguyễn Thị Đào <kenhcuatoilaan@gmail.com>, 2026.
+# The Earth <winterwolfvn123@gmail.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Godot Engine properties\n"
 "Report-Msgid-Bugs-To: https://github.com/godotengine/godot\n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2025-11-10 01:56+0000\n"
-"Last-Translator: Orus Or <orus3732@gmail.com>\n"
+"PO-Revision-Date: 2026-07-26 09:02+0000\n"
+"Last-Translator: The Earth <winterwolfvn123@gmail.com>\n"
 "Language-Team: Vietnamese <https://hosted.weblate.org/projects/godot-engine/"
 "godot-properties/vi/>\n"
 "Language: vi\n"
@@ -46,7 +52,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 5.15-dev\n"
+"X-Generator: Weblate 2026.8.dev0\n"
 
 msgid "Application"
 msgstr "Ứng dụng"
@@ -58,7 +64,7 @@ msgid "Name"
 msgstr "Tên"
 
 msgid "Name Localized"
-msgstr "Tên được bản địa hóa"
+msgstr "Tên theo ngôn ngữ hiển thị"
 
 msgid "Description"
 msgstr "Mô tả"
@@ -70,31 +76,34 @@ msgid "Run"
 msgstr "Chạy"
 
 msgid "Main Scene"
-msgstr "Cảnh chính"
+msgstr "Scene chính"
 
 msgid "Disable stdout"
-msgstr "Tắt stdout"
+msgstr "Tắt luồng xuất chuẩn"
 
 msgid "Disable stderr"
-msgstr "Tắt stderr"
+msgstr "Tắt luồng xuất lỗi chuẩn"
 
 msgid "Print Header"
-msgstr "Tiêu đê in"
+msgstr "In tiêu đề console"
 
 msgid "Enable Alt Space Menu"
-msgstr "Bật Menu không gian Alt"
+msgstr "Bật Menu phím Alt Space"
 
 msgid "Use Hidden Project Data Directory"
-msgstr "Dùng thư mục dữ liệu ẩn của dự án"
+msgstr "Dùng thư mục ẩn chứa dữ liệu của dự án"
 
 msgid "Use Custom User Dir"
-msgstr "Sử dụng thư mục người dùng tùy chỉnh"
+msgstr "Dùng thư mục người dùng tùy chỉnh"
 
 msgid "Custom User Dir Name"
 msgstr "Tên thư mục người dùng tùy chỉnh"
 
 msgid "Project Settings Override"
-msgstr "Ghi đè thiết đặt dự án"
+msgstr "Ghi đè cài đặt dự án"
+
+msgid "Disable Project Settings Override"
+msgstr "Vô hiệu Hóa Ghi đè cài đặt Dự án"
 
 msgid "Main Loop Type"
 msgstr "Loại vòng lặp chính"
@@ -112,10 +121,13 @@ msgid "General"
 msgstr "Tổng quan"
 
 msgid "Accessibility Support"
-msgstr "Trình soạn tập lệnh"
+msgstr "Hỗ trợ tiếp cận"
 
 msgid "Updates per Second"
-msgstr "Cập nhật mỗi giây"
+msgstr "Cập nhật mỗi Giây"
+
+msgid "Accessibility Driver"
+msgstr "Driver hỗ trợ tiếp cận"
 
 msgid "Display"
 msgstr "Hiển thị"
@@ -133,16 +145,16 @@ msgid "Viewport Height"
 msgstr "Chiều cao khung nhìn"
 
 msgid "Mode"
-msgstr "Chế đ"
+msgstr "Chế độ"
 
 msgid "Initial Position Type"
-msgstr "Vị trí toàn cục"
+msgstr "Kiểu vị trí ban đầu"
 
 msgid "Initial Position"
-msgstr "Vị trí toàn cục"
+msgstr "Vị trí ban đầu"
 
 msgid "Initial Screen"
-msgstr "Khởi tạo"
+msgstr "Màn hình ban đầu"
 
 msgid "Resizable"
 msgstr "Đổi kích cỡ được"
@@ -177,6 +189,12 @@ msgstr "Ghi đè chiều rộng cửa sổ"
 msgid "Window Height Override"
 msgstr "Ghi đè chiều cao cửa sổ"
 
+msgid "HDR"
+msgstr "HDR"
+
+msgid "Request HDR Output"
+msgstr "Yêu cầu đầu ra HDR"
+
 msgid "Energy Saving"
 msgstr "tiết kiệm năng lượng"
 
@@ -189,11 +207,20 @@ msgstr "Hoạt hình"
 msgid "Warnings"
 msgstr "Cảnh báo"
 
+msgid "Check Invalid Skeleton Modifier Node Paths"
+msgstr "Kiểm tra các đường dẫn Node Skeleton Modifier không hợp lệ"
+
 msgid "Check Invalid Track Paths"
 msgstr "Kiểm tra Đường dẫn theo dõi không hợp lệ"
 
 msgid "Check Angle Interpolation Type Conflicting"
 msgstr "Kiểm tra loại nội suy góc xung đột"
+
+msgid "Compatibility"
+msgstr "Chế độ Tương thích"
+
+msgid "Default Parent Skeleton in Mesh Instance 3D"
+msgstr "Skeleton cha mặc định trong Mesh Instance 3D"
 
 msgid "Audio"
 msgstr "Âm thanh"
@@ -222,6 +249,9 @@ msgstr "iOS"
 msgid "Session Category"
 msgstr "Thể loại phiên"
 
+msgid "Mix with Others"
+msgstr "Trộn với Những Âm thanh Khác"
+
 msgid "Subwindows"
 msgstr "Cửa sổ phụ"
 
@@ -229,19 +259,19 @@ msgid "Embed Subwindows"
 msgstr "Nhúng cửa sổ phụ"
 
 msgid "Frame Pacing"
-msgstr "Tuỳ chọn bổ sung:"
+msgstr "Đồng bộ nhịp độ khung hình"
 
 msgid "Android"
 msgstr "Android"
 
 msgid "Enable Frame Pacing"
-msgstr "Xem Khung hình Liên tiếp"
+msgstr "Bật đồng bộ nhịp độ khung hình"
 
 msgid "Swappy Mode"
-msgstr "Chế độ chọn"
+msgstr "Chế độ Swappy"
 
 msgid "Physics"
-msgstr "Vật lí"
+msgstr "Vật lý"
 
 msgid "2D"
 msgstr "2D"
@@ -256,19 +286,19 @@ msgid "Stretch"
 msgstr "Kéo giãn"
 
 msgid "Aspect"
-msgstr "Tỉ lệ"
+msgstr "Tỷ lệ khung hình"
 
 msgid "Scale"
-msgstr "Tỷ lệ"
+msgstr "Tỷ lệ thu phóng"
 
 msgid "Scale Mode"
-msgstr "Chế độ tỷ lệ"
+msgstr "Chế độ thu phóng"
 
 msgid "Debug"
 msgstr "Gỡ lỗi"
 
 msgid "Settings"
-msgstr "Thiết đặt"
+msgstr "Cài đặt"
 
 msgid "Profiler"
 msgstr "Người lập hồ sơ"
@@ -303,23 +333,59 @@ msgstr "Ựa"
 msgid "Gzip"
 msgstr "Gzip"
 
+msgid "Crash Handler"
+msgstr "Trình Xử lý Sự cố"
+
 msgid "Message"
 msgstr "Thông điệp"
 
 msgid "Rendering"
 msgstr "Kết xuất"
 
+msgid "Occlusion Culling"
+msgstr "Loại bỏ Vật thể bị Che khuất"
+
+msgid "BVH Build Quality"
+msgstr "Chất lượng Xây dựng BVH"
+
+msgid "Jitter Projection"
+msgstr "Phép chiếu Nhiễu loạn"
+
+msgid "Internationalization"
+msgstr "Quốc tế hóa"
+
 msgid "Force Right to Left Layout Direction"
 msgstr "Bắt buộc hướng bố cục từ phải sang trái"
 
+msgid "Root Node Layout Direction"
+msgstr "Hướng Bố trí Root Node"
+
+msgid "Root Node Auto Translate"
+msgstr "Tự động Dịch Root Node"
+
 msgid "GUI"
 msgstr "GUI"
+
+msgid "Timers"
+msgstr "Bộ đếm thời gian"
 
 msgid "Incremental Search Max Interval Msec"
 msgstr "Tìm kiếm gia tăng Tối đa Interval Msec"
 
 msgid "Tooltip Delay (sec)"
 msgstr "Trì hoãn chú giải công cụ (giây)"
+
+msgid "Common"
+msgstr "Chung"
+
+msgid "Drag Threshold"
+msgstr "Ngưỡng Kéo"
+
+msgid "Snap Controls to Pixels"
+msgstr "Khớp các Control vào Pixels"
+
+msgid "Show Focus State on Pointer Event"
+msgstr "Hiện Tiêu điểm khi Tương tác Con trỏ"
 
 msgid "Fonts"
 msgstr "Phông chữ"
@@ -333,17 +399,32 @@ msgstr "Sử dụng Oversampling"
 msgid "Rendering Device"
 msgstr "Thiết bị Kết xuất"
 
+msgid "V-Sync"
+msgstr "V-Sync"
+
+msgid "Frame Queue Size"
+msgstr "Kích thước Hàng đợi Khung hình"
+
 msgid "Block Size (KB)"
 msgstr "Kích cỡ Khối (KB)"
 
 msgid "Max Size (MB)"
 msgstr "Kích cỡ tối đa (MB)"
 
+msgid "Texture Upload Region Size Px"
+msgstr "Kích thước vùng tải lên Texture (px)"
+
+msgid "Texture Download Region Size Px"
+msgstr "Kích thước vùng tải xuống Texture (px)"
+
 msgid "Pipeline Cache"
 msgstr "Bộ đệm đường ống"
 
 msgid "Enable"
 msgstr "Mở"
+
+msgid "Save Chunk Size (MB)"
+msgstr "Kích thước chunk lưu trữ (MB)"
 
 msgid "Vulkan"
 msgstr "Vulkan"
@@ -354,8 +435,23 @@ msgstr "Mô tả tối đa cho mỗi nhóm"
 msgid "D3D12"
 msgstr "D3D12"
 
+msgid "Max Resource Descriptors"
+msgstr "Số lượng bộ mô tả tài nguyên tối đa"
+
+msgid "Max Sampler Descriptors"
+msgstr "Số bộ mô tả Sampler tối đa"
+
+msgid "Agility SDK Version"
+msgstr "Phiên bản Agility SDK"
+
 msgid "Textures"
 msgstr "Hình kết cấu"
+
+msgid "Canvas Textures"
+msgstr "Họa tiết Canvas"
+
+msgid "Default Texture Filter"
+msgstr "bộ lọc họa tiết mặc định"
 
 msgid "Collada"
 msgstr "Collada"
@@ -364,7 +460,7 @@ msgid "Use Ambient"
 msgstr "Sử dụng Ambient"
 
 msgid "Enable Long Press as Right Click"
-msgstr "Bật Dài Nhấn khi Nhấp chuột phải"
+msgstr "Bật nhấn giữ lâu thành chuột phải"
 
 msgid "Enable Pan and Scale Gestures"
 msgstr "Kích hoạt Cử chỉ Xoay và Thu phóng"
@@ -375,8 +471,26 @@ msgstr "Trục cuộn đầu vào quay"
 msgid "Navigation"
 msgstr "Điều hướng"
 
+msgid "World"
+msgstr "Thế giới"
+
+msgid "Map Use Async Iterations"
+msgstr "Sử dụng lặp không đồng bộ của Map"
+
+msgid "Region Use Async Iterations"
+msgstr "Vùng sử dụng các phép lặp không đồng bộ"
+
 msgid "Avoidance Use High Priority Threads"
 msgstr "Tránh sử dụng luồng có mức độ ưu tiên cao"
+
+msgid "Pathfinding"
+msgstr "Tìm đường"
+
+msgid "Max Threads"
+msgstr "Luồng tối đa"
+
+msgid "Baking"
+msgstr "Tính toán sẵn"
 
 msgid "Use Crash Prevention Checks"
 msgstr "Sử dụng Kiểm tra phòng ngừa sự cố"
@@ -384,14 +498,26 @@ msgstr "Sử dụng Kiểm tra phòng ngừa sự cố"
 msgid "Baking Use High Priority Threads"
 msgstr "Baking Sử dụng luồng có mức độ ưu tiên cao"
 
+msgid "NavMesh Edge Merge Errors"
+msgstr "Lỗi hợp nhất cạnh NavMesh"
+
 msgid "Low Processor Usage Mode"
 msgstr "Chế độ tiết kiệm của bộ vi xử lý"
 
+msgid "Delta Smoothing"
+msgstr "Làm Mượt Delta"
+
 msgid "Print Error Messages"
-msgstr "In thông điệp lỗi"
+msgstr "In tin nhắn lỗi"
+
+msgid "Print to stdout"
+msgstr "In ra đầu ra tiêu chuẩn"
 
 msgid "Physics Ticks per Second"
 msgstr "Số tích tắc vật lý mỗi giây"
+
+msgid "Max Physics Steps per Frame"
+msgstr "Số Bước Vật Lý Tối Đa Mỗi Khung Hình"
 
 msgid "Max FPS"
 msgstr "FPS tối đa"
@@ -399,20 +525,59 @@ msgstr "FPS tối đa"
 msgid "Time Scale"
 msgstr "độ giãn nở thời gian"
 
+msgid "Physics Jitter Fix"
+msgstr "Khắc Phục Sự Rung Lắc Vật Lý"
+
 msgid "Emulate Mouse From Touch"
 msgstr "Mô phỏng chuột từ cảm ứng"
 
 msgid "Emulate Touch From Mouse"
 msgstr "Mô phỏng cảm ứng từ chuột"
 
+msgid "Ignore Joypad on Unfocused Application"
+msgstr "Bỏ qua tay cầm khi ứng dụng chạy nền"
+
 msgid "Legacy Just Pressed Behavior"
 msgstr "Hành vi Just Pressed cũ"
+
+msgid "Sensors"
+msgstr "Cảm biến"
+
+msgid "Enable Accelerometer"
+msgstr "Bật cảm biến gia tốc"
+
+msgid "Enable Gravity"
+msgstr "Kích hoạt trọng lực"
+
+msgid "Enable Gyroscope"
+msgstr "Kích hoạt con quay hồi chuyển"
+
+msgid "Enable Magnetometer"
+msgstr "Kích hoạt cảm biến từ trường"
+
+msgid "Joypads"
+msgstr "Tay cầm"
 
 msgid "Device"
 msgstr "Thiết bị"
 
+msgid "Window ID"
+msgstr "ID cửa sổ"
+
 msgid "Command or Control Autoremap"
-msgstr "Lệnh hoặc Kiểm soát Autoremap"
+msgstr "Lệnh hoặc Điều khiển Autoremap"
+
+msgid "Alt Pressed"
+msgstr "Phím Alt Đã Được Ấn"
+
+msgid "Shift Pressed"
+msgstr "Phím Shift Đã Được Ấn"
+
+msgid "Ctrl Pressed"
+msgstr "Phím Ctrl Đã Được Ấn"
+
+msgid "Meta Pressed"
+msgstr "Phím Meta Đã Được Ấn"
 
 msgid "Pressed"
 msgstr "Được ấn"
@@ -420,11 +585,23 @@ msgstr "Được ấn"
 msgid "Keycode"
 msgstr "Mã khóa"
 
+msgid "Physical Keycode"
+msgstr "Mã phím vật lí"
+
+msgid "Key Label"
+msgstr "Nhãn Phím"
+
 msgid "Unicode"
 msgstr "Unicode"
 
+msgid "Location"
+msgstr "Vị Trí"
+
 msgid "Echo"
 msgstr "Tiếng vang"
+
+msgid "Button Mask"
+msgstr "Bộ Lọc Phím"
 
 msgid "Position"
 msgstr "Vị trí"
@@ -434,6 +611,9 @@ msgstr "Vị trí toàn cục"
 
 msgid "Button Index"
 msgstr "Chỉ số của phím"
+
+msgid "Canceled"
+msgstr "Đã Hủy"
 
 msgid "Double Click"
 msgstr "Nháy Đúp"
@@ -450,8 +630,14 @@ msgstr "Đảo ngược bút"
 msgid "Relative"
 msgstr "Tương đối"
 
+msgid "Screen Relative"
+msgstr "Tương đối trên màn hình"
+
 msgid "Velocity"
 msgstr "Vận tốc"
+
+msgid "Screen Velocity"
+msgstr "Vận tốc trên màn hình"
 
 msgid "Axis"
 msgstr "Trục"
@@ -477,11 +663,26 @@ msgstr "Delta"
 msgid "Channel"
 msgstr "Kênh"
 
+msgid "Pitch"
+msgstr "Tỷ lệ"
+
 msgid "Instrument"
 msgstr "Nhạc cụ"
 
+msgid "Controller Number"
+msgstr "Số điều khiển"
+
 msgid "Controller Value"
 msgstr "Giá trị bộ điều khiển"
+
+msgid "Events"
+msgstr "Nội dung"
+
+msgid "Include Navigational"
+msgstr "Bao gồm điều hướng"
+
+msgid "Include Hidden"
+msgstr "Bao gồm ẩn"
 
 msgid "Big Endian"
 msgstr "Big Endian"
@@ -489,8 +690,11 @@ msgstr "Big Endian"
 msgid "Blocking Mode Enabled"
 msgstr "Đã bật chế độ chặn"
 
+msgid "Connection"
+msgstr "Kết Nối"
+
 msgid "Read Chunk Size"
-msgstr "Kích thước đoạn đọc"
+msgstr "Kích thước đọc Chunk"
 
 msgid "Data"
 msgstr "Dữ liệu"
@@ -510,17 +714,38 @@ msgstr "Kích thước tối đa của bộ đệm đầu ra"
 msgid "Resource"
 msgstr "Tài nguyên"
 
+msgid "Local to Scene"
+msgstr "Dùng Riêng Trong Cảnh"
+
 msgid "Path"
 msgstr "Đường dẫn"
 
 msgid "Data Array"
 msgstr "Mảng dữ liệu"
 
+msgid "Max Pending Connections"
+msgstr "Số lượng kết nối tối đa đang chờ xử lý"
+
 msgid "Region"
 msgstr "Khu vực"
 
+msgid "Offset"
+msgstr "Độ dời"
+
 msgid "Cell Size"
 msgstr "Kích thước ô"
+
+msgid "Cell Shape"
+msgstr "Hình dạng ô"
+
+msgid "Jumping Enabled"
+msgstr "Chức năng nhảy đã được kích hoạt"
+
+msgid "Default Compute Heuristic"
+msgstr "Thuật toán tính toán mặc định"
+
+msgid "Default Estimate Heuristic"
+msgstr "Phương pháp ước tính mặc định"
 
 msgid "Seed"
 msgstr "Số nguồn"
@@ -600,9 +825,6 @@ msgstr "Luồng"
 msgid "Easing"
 msgstr "Làm dễ dàng"
 
-msgid "Asset Library"
-msgstr "Thư viện tài nguyên"
-
 msgid "Title"
 msgstr "Đã chọn"
 
@@ -633,8 +855,14 @@ msgstr "Phát hành UUID hồ sơ cung cấp"
 msgid "Delete Old Export Files Unconditionally"
 msgstr "Xóa các tệp xuất cũ vô điều kiện"
 
+msgid "Camera"
+msgstr "Camera"
+
 msgid "Plugins"
 msgstr "Tiện ích"
+
+msgid "Increased Memory Limit"
+msgstr "Tăng giới hạn bộ nhớ"
 
 msgid "Performance Gaming Tier"
 msgstr "Hiệu suất chơi game Cấp độ"
@@ -677,6 +905,9 @@ msgstr "Chỉ đọc"
 
 msgid "Flat"
 msgstr "Tùy chọn"
+
+msgid "Editing Integer"
+msgstr "Chỉnh Sửa Số Nguyên"
 
 msgid "Make Unique"
 msgstr "Duy nhất"
@@ -753,8 +984,17 @@ msgstr "Cỡ trang"
 msgid "Nodes"
 msgstr "Nút"
 
+msgid "Mesh Library"
+msgstr "Thư viện Lưới"
+
+msgid "Use Node Names as Mesh Names"
+msgstr "Sử dụng tên Node làm tên Mesh"
+
 msgid "Import as Skeleton Bones"
 msgstr "Root Scale"
+
+msgid "Use Node Type Suffixes"
+msgstr "Sử Dụng Hậu Tố Theo Loại Node"
 
 msgid "Skins"
 msgstr "Force Disable Compression"
@@ -770,6 +1010,9 @@ msgstr "Disable Embedded Bitmap"
 
 msgid "MSDF Pixel Range"
 msgstr "Trường khoảng cách có dấu đa kênh"
+
+msgid "Modulate Color Glyphs"
+msgstr "Điều chỉnh màu ký tự"
 
 msgid "Hinting"
 msgstr "Buộc tự động gợi ý"
@@ -807,14 +1050,14 @@ msgstr "Giới hạn"
 msgid "Layout"
 msgstr "Bố cục"
 
+msgid "Fix Alpha Border"
+msgstr "Sửa đường viền Alpha"
+
 msgid "Normal Map"
 msgstr "Bản đồ chuẩn"
 
 msgid "Roughness"
 msgstr "Độ nhám"
-
-msgid "Fix Alpha Border"
-msgstr "Sửa đường viền Alpha"
 
 msgid "HDR as sRGB"
 msgstr "HDR dưới dạng sRGB"
@@ -891,8 +1134,20 @@ msgstr "Trình chỉnh sửa"
 msgid "3D Gizmos"
 msgstr "Gizmo 3D"
 
+msgid "Mesh"
+msgstr "Lưới"
+
+msgid "Shapes"
+msgstr "Hình dạng"
+
+msgid "Preview"
+msgstr "Xem thử"
+
 msgid "Interface"
 msgstr "Giao diễn"
+
+msgid "Localization"
+msgstr "Bản địa hoá"
 
 msgid "Editor Language"
 msgstr "Ngôn ngữ trình chỉnh sửa"
@@ -903,11 +1158,20 @@ msgstr "Sử dụng luồng"
 msgid "Localize Settings"
 msgstr "Thiết đặt địa phương hoá"
 
+msgid "Docks"
+msgstr "Các bến đỗ"
+
+msgid "Appearance"
+msgstr "Ngoại hình"
+
 msgid "Display Scale"
 msgstr "Tỉ lệ hiển thị"
 
 msgid "Custom Display Scale"
 msgstr "Tỉ lệ hiển thị tuỳ chỉnh"
+
+msgid "Input"
+msgstr "Đầu vào"
 
 msgid "Use Embedded Menu"
 msgstr "Sử dụng Menu nhúng"
@@ -918,6 +1182,9 @@ msgstr "Phông chữ mã hóa Chữ ghép theo ngữ cảnh"
 msgid "Code Font Custom OpenType Features"
 msgstr "Tính năng OpenType tùy chỉnh của phông chữ mã hóa"
 
+msgid "Font Allow MSDF"
+msgstr "Cho Phép Font MSDF (khuyên Dùng)"
+
 msgid "Main Font"
 msgstr "Phông chính"
 
@@ -926,6 +1193,9 @@ msgstr "Phông chữ chính đậm"
 
 msgid "Code Font"
 msgstr "Phông mã"
+
+msgid "Behavior"
+msgstr "Hành vi"
 
 msgid "Automatically Open Screenshots"
 msgstr "Tự động mở ảnh chụp màn hình"
@@ -939,14 +1209,14 @@ msgstr "Hộp thoại Chấp nhận Hủy Nút OK"
 msgid "Show Internal Errors in Toast Notifications"
 msgstr "Hiển thị Lỗi nội bộ trong Thông báo Toast"
 
+msgid "Import Resources When Unfocused"
+msgstr "Nhập tài nguyên khi không tập trung"
+
 msgid "Update Continuously"
 msgstr "Cập nhật Liên tục"
 
 msgid "Derive Script Globals by Name"
 msgstr "Dẫn xuất toàn cục tập lệnh theo tên"
-
-msgid "Docks"
-msgstr "Các bến đỗ"
 
 msgid "Scene Tree"
 msgstr "Cây chứa cảnh"
@@ -995,6 +1265,9 @@ msgstr "Cỡ viền"
 
 msgid "Additional Spacing"
 msgstr "Khoảng cách bổ sung"
+
+msgid "Use Monospace Font for Editor Symbols"
+msgstr "Dùng Font Monospace cho Kí Hiệu Soạn Thảo"
 
 msgid "Custom Theme"
 msgstr "Chủ đề tuỳ chỉnh"
@@ -1080,9 +1353,6 @@ msgstr "Trình soạn thảo"
 msgid "Highlighting"
 msgstr "Tô sáng"
 
-msgid "Appearance"
-msgstr "Ngoại hình"
-
 msgid "Caret"
 msgstr "Vị trí con trỏ"
 
@@ -1130,9 +1400,6 @@ msgstr "Khoảng trắng"
 
 msgid "Line Spacing"
 msgstr "Khoảng cách dòng"
-
-msgid "Behavior"
-msgstr "Hành vi"
 
 msgid "Move Caret on Right Click"
 msgstr "Di chuyển Dấu nháy khi Nhấp chuột phải"
@@ -1226,9 +1493,6 @@ msgstr "AABB"
 
 msgid "Stream Player 3D"
 msgstr "Stream Player 3D"
-
-msgid "Camera"
-msgstr "Camera"
 
 msgid "Decal"
 msgstr "Hình ảnh dán"
@@ -1383,6 +1647,15 @@ msgstr "Proxy HTTP"
 msgid "Host"
 msgstr "Máy chủ"
 
+msgid "Show Native Symbols in Editor"
+msgstr "Hiển thị ký hiệu gốc trong trình soạn thảo"
+
+msgid "Use Thread"
+msgstr "Sử dụng luồng"
+
+msgid "Poll Limit (µsec)"
+msgstr "Giới hạn thăm dò (µgiây)"
+
 msgid "Debugger"
 msgstr "Trình gỡ lỗi"
 
@@ -1403,9 +1676,6 @@ msgstr "Đường dẫn khoá SSH công khai"
 
 msgid "SSH Private Key Path"
 msgstr "Đường dẫn khoá SSH riêng tư"
-
-msgid "Input"
-msgstr "Đầu vào"
 
 msgid "Buffering"
 msgstr "Đệm"
@@ -1581,9 +1851,6 @@ msgstr "Tính toán đường tiếp tuyến"
 msgid "Collision"
 msgstr "Va chạm"
 
-msgid "Mesh"
-msgstr "Lưới"
-
 msgid "Smooth Faces"
 msgstr "Mặt nhẵn"
 
@@ -1628,15 +1895,6 @@ msgstr "GDScript"
 
 msgid "Max Call Stack"
 msgstr "Ngăn xếp cuộc gọi tối đa"
-
-msgid "Show Native Symbols in Editor"
-msgstr "Hiển thị ký hiệu gốc trong trình soạn thảo"
-
-msgid "Use Thread"
-msgstr "Sử dụng luồng"
-
-msgid "Poll Limit (µsec)"
-msgstr "Giới hạn thăm dò (µgiây)"
 
 msgid "glTF"
 msgstr "glTF"
@@ -1748,9 +2006,6 @@ msgstr "Gói S"
 
 msgid "Wrap T"
 msgstr "Gói T"
-
-msgid "Mesh Library"
-msgstr "Thư viện Lưới"
 
 msgid "Cell"
 msgstr "Ô"
@@ -1884,6 +2139,39 @@ msgstr "URL điều khiển IGD"
 msgid "IGD Our Addr"
 msgstr "Địa chỉ của chúng tôi IGD"
 
+msgid "Output Port for Preview"
+msgstr "Cổng đầu ra để xem trước"
+
+msgid "Flags"
+msgstr "Cờ"
+
+msgid "Expression"
+msgstr "Biểu thức"
+
+msgid "Constant"
+msgstr "Hằng số"
+
+msgid "Source"
+msgstr "Nguồn"
+
+msgid "Cube Map"
+msgstr "Bản đồ khối"
+
+msgid "Operator"
+msgstr "Toán tử"
+
+msgid "Function"
+msgstr "Hàm"
+
+msgid "Hint"
+msgstr "Gợi ý"
+
+msgid "Step"
+msgstr "Bước"
+
+msgid "Condition"
+msgstr "Điều kiện"
+
 msgid "WebRTC"
 msgstr "WebRTC"
 
@@ -1946,9 +2234,6 @@ msgstr "Hiển thị dưới dạng ứng dụng Launcher"
 
 msgid "Allow"
 msgstr "Cho phép"
-
-msgid "Salt"
-msgstr "Salt"
 
 msgid "iOS Deploy"
 msgstr "Triển khai iOS"
@@ -2421,9 +2706,6 @@ msgstr "Fade khoảng cách"
 msgid "Thickness"
 msgstr "Độ dày"
 
-msgid "Flags"
-msgstr "Cờ"
-
 msgid "Billboard"
 msgstr "Biển quảng cáo"
 
@@ -2667,12 +2949,6 @@ msgstr "Đặt lại"
 msgid "Switch"
 msgstr "Chuyển đổi"
 
-msgid "Condition"
-msgstr "Điều kiện"
-
-msgid "Expression"
-msgstr "Biểu thức"
-
 msgid "Current Animation"
 msgstr "Hoạt hình hiện tại"
 
@@ -2714,9 +2990,6 @@ msgstr "Có thể thêm mẫu"
 
 msgid "Constants"
 msgstr "Các hằng số"
-
-msgid "Localization"
-msgstr "Bản địa hoá"
 
 msgid "Localize Numeral System"
 msgstr "Tỷ lệ kéo giãn"
@@ -2825,9 +3098,6 @@ msgstr "ID menu hệ thống"
 
 msgid "Prefer Native Menu"
 msgstr "Ưu tiên Menu gốc"
-
-msgid "Step"
-msgstr "Bước"
 
 msgid "Allow Greater"
 msgstr "Cho phép lớn hơn"
@@ -2951,9 +3221,6 @@ msgstr "Tên nút Bộ phân cách số"
 
 msgid "Node Name Casing"
 msgstr "Tên nút Vỏ"
-
-msgid "Shapes"
-msgstr "Hình dạng"
 
 msgid "Shape Color"
 msgstr "Màu hình dạng"
@@ -3093,9 +3360,6 @@ msgstr "Chiều rộng bản đồ"
 msgid "Item"
 msgstr "Mục"
 
-msgid "Preview"
-msgstr "Xem thử"
-
 msgid "Subdivide Width"
 msgstr "Chiều rộng chia nhỏ"
 
@@ -3185,9 +3449,6 @@ msgstr "Nền"
 
 msgid "Canvas Max Layer"
 msgstr "Lớp Canvas Max"
-
-msgid "Source"
-msgstr "Nguồn"
 
 msgid "Tonemap"
 msgstr "Bản đồ tông màu"
@@ -3297,9 +3558,6 @@ msgstr "ORM"
 msgid "Metallic"
 msgstr "Kim loại"
 
-msgid "Operator"
-msgstr "Toán tử"
-
 msgid "On UV2"
 msgstr "Trên UV2"
 
@@ -3407,21 +3665,6 @@ msgstr "Màu biểu tượng"
 
 msgid "File"
 msgstr "Tệp"
-
-msgid "Output Port for Preview"
-msgstr "Cổng đầu ra để xem trước"
-
-msgid "Constant"
-msgstr "Hằng số"
-
-msgid "Cube Map"
-msgstr "Bản đồ khối"
-
-msgid "Function"
-msgstr "Hàm"
-
-msgid "Hint"
-msgstr "Gợi ý"
 
 msgid "Align to Largest Stylebox"
 msgstr "Căn chỉnh theo hộp kiểu lớn nhất"
@@ -3647,9 +3890,6 @@ msgstr "Msec"
 
 msgid "Room Size"
 msgstr "Kích thước phòng"
-
-msgid "Tap Back Pos"
-msgstr "Tap Back Pos"
 
 msgid "Pan Pullout"
 msgstr "Pan Pullout"

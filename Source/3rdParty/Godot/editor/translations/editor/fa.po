@@ -29,11 +29,11 @@
 # Mitsuha Miamizu <mitsuha.miamizu4444@gmail.com>, 2022.
 # LordProfo <nimaentity30@gmail.com>, 2022.
 # LordProfo (Nima) <nimaentity30@gmail.com>, 2022, 2023.
-# John Smith <pkafsharix@gmail.com>, 2022, 2023, 2024, 2025.
+# John Smith <pkafsharix@gmail.com>, 2022, 2023, 2024, 2025, 2026.
 # Ali Jafari <ali.jafari.sn@gmail.com>, 2022.
 # Ali Almasi <A710almasi@gmail.com>, 2022.
 # 2g.2d.2t <2g.2d.2t@gmail.com>, 2022.
-# "LordProfo (Nima)" <nimaentity30@gmail.com>, 2023, 2024.
+# "LordProfo (Nima)" <nimaentity30@gmail.com>, 2023, 2024, 2026.
 # behrooz bozorg chami <behroozbc@outlook.com>, 2023.
 # mary karaby <karabymary@gmail.com>, 2023.
 # M <bafandehmajid@gmail.com>, 2023.
@@ -61,13 +61,16 @@
 # "Mahdi B. Jahani" <kelbowonl@gmail.com>, 2025.
 # "A Thousand Ships (she/her)" <over999ships@gmail.com>, 2025.
 # Mazdak Parnian <mazdak.parniandg@gmail.com>, 2025.
+# Sajjad Zavar <zavarsajjad98@gmail.com>, 2026.
+# ArmanDarkknight <armanalizadeh234@gmail.com>, 2026.
+# MedProgAyat <hosseinmehriyari1383@gmail.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Godot Engine editor interface\n"
 "Report-Msgid-Bugs-To: https://github.com/godotengine/godot\n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2025-12-10 16:35+0000\n"
-"Last-Translator: John Smith <pkafsharix@gmail.com>\n"
+"PO-Revision-Date: 2026-08-03 10:02+0000\n"
+"Last-Translator: \"LordProfo (Nima)\" <nimaentity30@gmail.com>\n"
 "Language-Team: Persian <https://hosted.weblate.org/projects/godot-engine/"
 "godot/fa/>\n"
 "Language: fa\n"
@@ -75,40 +78,181 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n > 1;\n"
-"X-Generator: Weblate 5.15-dev\n"
+"X-Generator: Weblate 2026.8.dev0\n"
 
 msgid "OK"
 msgstr "باشه"
 
+msgid "Failed"
+msgstr "ناموفق"
+
+msgid "Unavailable"
+msgstr "در دسترس نیست"
+
+msgid "Unconfigured"
+msgstr "پیکربندی‌نشده"
+
+msgid "Unauthorized"
+msgstr "غیرمجاز"
+
+msgid "Parameter out of range"
+msgstr "پارامتر خارج از محدوده"
+
+msgid "Out of memory"
+msgstr "کمبود حافظه"
+
+msgid "File not found"
+msgstr "فایل پیدا نشد"
+
+msgid "File: Bad drive"
+msgstr "فایل: درایو نامعتبر"
+
+msgid "File: Bad path"
+msgstr "فایل: مسیر نامعتبر"
+
+msgid "File: Permission denied"
+msgstr "فایل: دسترسی رد شد"
+
+msgid "File already in use"
+msgstr "فایل در حال استفاده است"
+
+msgid "Can't open file"
+msgstr "نمی‌توان فایل را باز کرد"
+
+msgid "Can't write file"
+msgstr "نمی‌توان در فایل نوشت"
+
+msgid "Can't read file"
+msgstr "نمی‌توان فایل را خواند"
+
+msgid "File unrecognized"
+msgstr "فایل ناشناخته"
+
+msgid "File corrupt"
+msgstr "فایل خراب"
+
+msgid "Missing dependencies for file"
+msgstr "وابستگی‌های موردنیاز برای فایل یافت نشد"
+
+msgid "End of file"
+msgstr "انتهای فایل"
+
+msgid "Can't open"
+msgstr "نمی‌توان باز کرد"
+
+msgid "Can't create"
+msgstr "نمی‌توان ایجاد کرد"
+
+msgid "Query failed"
+msgstr "کوئری ناموفق"
+
+msgid "Already in use"
+msgstr "در حال استفاده است"
+
 msgid "Locked"
-msgstr "قفلیده"
+msgstr "قفل شده"
+
+msgid "Timeout"
+msgstr "مهلت تمام شد"
+
+msgid "Can't connect"
+msgstr "نمی‌توان اتصال برقرار کرد"
+
+msgid "Can't resolve"
+msgstr "نمی‌توان حل کرد"
+
+msgid "Connection error"
+msgstr "خطای اتصال"
+
+msgid "Can't acquire resource"
+msgstr "نمی‌توان منبع را به‌دست آورد"
+
+msgid "Can't fork"
+msgstr "نمی‌توان fork کرد"
+
+msgid "Invalid data"
+msgstr "داده نامعتبر"
+
+msgid "Invalid parameter"
+msgstr "پارامتر نامعتبر"
+
+msgid "Already exists"
+msgstr "از قبل وجود دارد"
+
+msgid "Does not exist"
+msgstr "وجود ندارد"
+
+msgid "Can't read database"
+msgstr "نمی‌توان پایگاه‌داده را خواند"
+
+msgid "Can't write database"
+msgstr "نمی‌توان در پایگاه‌داده نوشت"
+
+msgid "Compilation failed"
+msgstr "کامپایل ناموفق بود"
+
+msgid "Method not found"
+msgstr "متد پیدا نشد"
+
+msgid "Link failed"
+msgstr "لینک ناموفق"
+
+msgid "Script failed"
+msgstr "اجرای اسکریپت ناموفق"
+
+msgid "Cyclic link detected"
+msgstr "پیوند چرخه‌ای شناسایی شد"
+
+msgid "Invalid declaration"
+msgstr "تعریف نامعتبر"
+
+msgid "Duplicate symbol"
+msgstr "نماد تکراری"
+
+msgid "Parse error"
+msgstr "خطای تجزیه"
+
+msgid "Busy"
+msgstr "مشغول"
+
+msgid "Skip"
+msgstr "رد کردن"
 
 msgid "Help"
 msgstr "راهنما"
+
+msgid "Bug"
+msgstr "باگ"
+
+msgid "Printer on fire"
+msgstr "چاپگر آتش گرفته"
+
+msgid "unset"
+msgstr "تنظیم نشده"
 
 msgid "Physical"
 msgstr "فیزیکی"
 
 msgid "Left Mouse Button"
-msgstr "دکمهٔ چپ موس"
+msgstr "دکمه چپ موس"
 
 msgid "Right Mouse Button"
-msgstr "دکمهٔ راست موس"
+msgstr "دکمه راست موس"
 
 msgid "Middle Mouse Button"
-msgstr "دکمهٔ میانی موس"
+msgstr "دکمه وسط موس"
 
 msgid "Mouse Wheel Up"
-msgstr "بالا غلتاندن موس"
+msgstr "چرخ موس به بالا"
 
 msgid "Mouse Wheel Down"
-msgstr "پایین غلتاندن موس"
+msgstr "چرخ موس به پایین"
 
 msgid "Mouse Wheel Left"
-msgstr "چپ غلتاندن موس"
+msgstr "چرخ موس به چپ"
 
 msgid "Mouse Wheel Right"
-msgstr "راست غلتاندن موس"
+msgstr "چرخ موس به راست"
 
 msgid "Mouse Thumb Button 1"
 msgstr "دکمه شست موس ۱"
@@ -120,112 +264,112 @@ msgid "Button"
 msgstr "دکمه"
 
 msgid "Double Click"
-msgstr "جفت کلیک"
+msgstr "دوبار کلیک"
 
 msgid "Mouse motion at position (%s) with velocity (%s)"
-msgstr "جنبش موس در نهشت (%s) با شتاب (%s)"
+msgstr "حرکت موس در موقعیت (%s) با سرعت (%s)"
 
 msgid "Left Stick X-Axis, Joystick 0 X-Axis"
-msgstr "محور X استیک چپ، محور X اهرمک ۰"
+msgstr "محور X استیک چپ، محور X جوی‌استیک ۰"
 
 msgid "Left Stick Y-Axis, Joystick 0 Y-Axis"
-msgstr "محور Y استیک چپ، محور Y اهرمک ۰"
+msgstr "محور Y استیک چپ، محور Y جوی‌استیک ۰"
 
 msgid "Right Stick X-Axis, Joystick 1 X-Axis"
-msgstr "محور X استیک راست، محور X اهرمک ۱"
+msgstr "محور X استیک راست، محور X جوی‌استیک ۱"
 
 msgid "Right Stick Y-Axis, Joystick 1 Y-Axis"
-msgstr "محور Y استیک چپ، محور Y اهرمک ۱"
+msgstr "محور Y استیک راست، محور Y جوی‌استیک ۱"
 
 msgid "Joystick 2 X-Axis, Left Trigger, Sony L2, Xbox LT"
-msgstr "محور X اهرمک ۲، تریگر چپ، L2 سونی، LT اکس‌باکس"
+msgstr "محور X جوی‌استیک ۲، تریگر چپ، سونی L2، ایکس‌باکس LT"
 
 msgid "Joystick 2 Y-Axis, Right Trigger, Sony R2, Xbox RT"
-msgstr "محور Y اهرمک ۲، تریگر چپ، R2 سونی، RT اکس‌باکس"
+msgstr "محور Y جوی‌استیک ۲، تریگر راست، سونی R2، ایکس‌باکس RT"
 
 msgid "Joystick 3 X-Axis"
-msgstr "محور X اهرمک ۳"
+msgstr "محور X جوی‌استیک ۳"
 
 msgid "Joystick 3 Y-Axis"
-msgstr "محور Y اهرمک ۳"
+msgstr "محور X جوی‌استیک ۳"
 
 msgid "Joystick 4 X-Axis"
-msgstr "محور X اهرمک ۴"
+msgstr "محور X جوی‌استیک ۴"
 
 msgid "Joystick 4 Y-Axis"
-msgstr "محور Y اهرمک ۴"
+msgstr "محور Y جوی‌استیک ۴"
 
 msgid "Unknown Joypad Axis"
-msgstr "محور ناشناخته دسته بازی"
+msgstr "محور ناشناختهٔ جوی‌استیک"
 
 msgid "Joypad Motion on Axis %d (%s) with Value %.2f"
-msgstr "جنبش دستهٔ بازی روی محور %d (%s) با ارزش %.2f"
+msgstr "حرکت جوی‌استیک روی محور %d (%s) با مقدار %.2f"
 
 msgid "Bottom Action, Sony Cross, Xbox A, Nintendo B"
-msgstr "کنش پایین، کراس سونی، اکس‌باکس A, نینتندو B"
+msgstr "دکمهٔ پایینی، سونی Cross، ایکس‌باکس A، نینتندو B"
 
 msgid "Right Action, Sony Circle, Xbox B, Nintendo A"
-msgstr "کنش راست، دایره سونی، اکس‌باکس B, نینتندو A"
+msgstr "دکمهٔ راست، سونی Circle، ایکس‌باکس B، نینتندو A"
 
 msgid "Left Action, Sony Square, Xbox X, Nintendo Y"
-msgstr "کنش چپ، مربع سونی، اکس‌باکس X, نینتندو Y"
+msgstr "دکمهٔ چپ، سونی Square، ایکس‌باکس X، نینتندو Y"
 
 msgid "Top Action, Sony Triangle, Xbox Y, Nintendo X"
-msgstr "کنش بالا،مثلث سونی، اکس‌باکس Y، نینتندو X"
+msgstr "دکمهٔ بالا، سونی Triangle، ایکس‌باکس Y، نینتندو X"
 
 msgid "Back, Sony Select, Xbox Back, Nintendo -"
-msgstr "بازگشت، Select سونی، Back اکس‌باکس، - نینتندو"
+msgstr "دکمهٔ Back، سونی Select، ایکس‌باکس Back، نینتندو -"
 
 msgid "Guide, Sony PS, Xbox Home"
-msgstr "راهنما، PS سونی، Home اکس‌باکس"
+msgstr "دکمهٔ Guide، سونی PS، ایکس‌باکس Home"
 
 msgid "Start, Xbox Menu, Nintendo +"
-msgstr "آغاز، گزینگان اکس‌باکس، نینتندو +"
+msgstr "دکمهٔ Start، ایکس‌باکس Menu، نینتندو +"
 
 msgid "Left Stick, Sony L3, Xbox L/LS"
-msgstr "استیک چپ، سونی L3، اکس‌باکس L/LS"
+msgstr "استیک چپ، سونی L3، ایکس‌باکس L/LS"
 
 msgid "Right Stick, Sony R3, Xbox R/RS"
-msgstr "استیک راست، سونی R3، اکس‌باکس R/RS"
+msgstr "استیک راست، سونی R3، ایکس‌باکس R/RS"
 
 msgid "Left Shoulder, Sony L1, Xbox LB"
-msgstr "شانه چپ، سونی L1، اکس‌باکس LB"
+msgstr "شانهٔ چپ، سونی L1، ایکس‌باکس LB"
 
 msgid "Right Shoulder, Sony R1, Xbox RB"
-msgstr "شانه راست، سونی R1، اکس‌باکس RB"
+msgstr "شانهٔ راست، سونی R1، ایکس‌باکس RB"
 
 msgid "D-pad Up"
-msgstr "دی-پد بالا"
+msgstr "جهت‌بالا (D‑pad Up)"
 
 msgid "D-pad Down"
-msgstr "دی-پد پایین"
+msgstr "جهت‌پایین (D‑pad Down)"
 
 msgid "D-pad Left"
-msgstr "دی-پد چپ"
+msgstr "جهت‌چپ (D‑pad Left)"
 
 msgid "D-pad Right"
-msgstr "دی-پد راست"
+msgstr "جهت‌راست (D‑pad Right)"
 
 msgid "Xbox Share, PS5 Microphone, Nintendo Capture"
-msgstr "اکس‌باکس Share, میکروفون پی‌اس۵، نینتندو کپچر"
+msgstr "ایکس‌باکس Share، پلی‌استیشن Microphone، نینتندو Capture"
 
 msgid "Xbox Paddle 1"
-msgstr "اکس‌باکس پدل 1"
+msgstr "پدل ۱ ایکس‌باکس (Xbox Paddle 1)"
 
 msgid "Xbox Paddle 2"
-msgstr "اکس‌باکس پدل 2"
+msgstr "پدل ۲ ایکس‌باکس (Xbox Paddle 2)"
 
 msgid "Xbox Paddle 3"
-msgstr "اکس‌باکس پدل 3"
+msgstr "پدل ۳ ایکس‌باکس (Xbox Paddle 3)"
 
 msgid "Xbox Paddle 4"
-msgstr "اکس‌باکس پدل 4"
+msgstr "پدل ۴ ایکس‌باکس (Xbox Paddle 4)"
 
 msgid "PS4/5 Touchpad"
-msgstr "تاچ‌پدPS4/5"
+msgstr "تاچ‌پد پلی‌استیشن (PS4/PS5 Touchpad)"
 
 msgid "Joypad Button %d"
-msgstr "دکمهٔ %d دستهٔ بازی"
+msgstr "دکمهٔ شمارهٔ %d جوی‌پد"
 
 msgid "Pressure:"
 msgstr "فشار:"
@@ -240,29 +384,29 @@ msgid "released"
 msgstr "منتشر شد"
 
 msgid "Screen %s at (%s) with %s touch points"
-msgstr "نقاط لمس صفحه %s در (%s) با %s"
+msgstr "صفحهٔ %s در مختصات (%s) با %s نقطهٔ لمس"
 
 msgid ""
 "Screen dragged with %s touch points at position (%s) with velocity of (%s)"
-msgstr "صفحه با نقاط لمسی %s در موقعیت (%s) با شتاب (%s) کشیده شد"
+msgstr "صفحه با %s نقطهٔ لمس در موقعیت (%s) کشیده شد و دارای سرعت (%s) بود"
 
 msgid "Magnify Gesture at (%s) with factor %s"
-msgstr "بزرگنمایی ژست در (%s) با فاکتور %s"
+msgstr "ژست بزرگ‌نمایی در مختصات (%s) با ضریب %s"
 
 msgid "Pan Gesture at (%s) with delta (%s)"
-msgstr "ژست قلم در (%s) با دلتای (%s)"
+msgstr "ژست پن در مختصات (%s) با دلتا (%s)"
 
 msgid "MIDI Input on Channel=%s Message=%s"
-msgstr "ورودی MIDI در کانال=%s پیام=%s"
+msgstr "ورودی MIDI در کانال = %s با پیام = %s"
 
 msgid "Input Event with Shortcut=%s"
-msgstr "رویداد درونداد با میانبر=%s"
+msgstr "رویداد ورودی با میان‌بُر = %s"
 
 msgid " or "
 msgstr " یا "
 
 msgid "Action has no bound inputs"
-msgstr "عمل هیچ ورودی محدودی ندارد"
+msgstr "اکشن هیچ ورودیِ متصل‌شده‌ای ندارد"
 
 msgid "Accept"
 msgstr "پذیرش"
@@ -273,11 +417,14 @@ msgstr "انتخاب"
 msgid "Cancel"
 msgstr "لغو"
 
+msgid "Close Dialog"
+msgstr "بستن دیالوگ"
+
 msgid "Focus Next"
-msgstr "تمرکز بعدی"
+msgstr "رفتن به مورد بعدی"
 
 msgid "Focus Prev"
-msgstr "تمرکز قبلی"
+msgstr "رفتن به مورد قبلی"
 
 msgid "Left"
 msgstr "چپ"
@@ -292,28 +439,28 @@ msgid "Down"
 msgstr "پایین"
 
 msgid "Page Up"
-msgstr "Page Up"
+msgstr "صفحه‌بالا (Page Up)"
 
 msgid "Page Down"
-msgstr "Page Down"
+msgstr "صفحه‌پایین (Page Down)"
 
 msgid "Home"
-msgstr "خانه"
+msgstr "خانه (Home)"
 
 msgid "End"
-msgstr "پایان"
+msgstr "پایان (End)"
 
 msgid "Cut"
-msgstr "برش"
+msgstr "بُرش (Cut)"
 
 msgid "Copy"
-msgstr "روگرفت"
+msgstr "کپی (Copy)"
 
 msgid "Paste"
-msgstr "چسباندن"
+msgstr "چسباندن (Paste)"
 
 msgid "Toggle Tab Focus Mode"
-msgstr "روشن/خاموش کردن حالت تمرکز زبانه"
+msgstr "تغییر حالت فوکوس تب"
 
 msgid "Undo"
 msgstr "بازگردانی"
@@ -597,8 +744,8 @@ msgstr "افزودن %s"
 msgid "Load..."
 msgstr "بارگذاری..."
 
-msgid "Move Node Point"
-msgstr "جابه‌جایی نقطهٔ گره"
+msgid "Move BlendSpace1D Node Point"
+msgstr "جابه‌جایی نقطهٔ گرهٔ BlendSpace1D"
 
 msgid "Change BlendSpace1D Config"
 msgstr "دگرش پیکربندی BlendSpace1D"
@@ -621,9 +768,6 @@ msgstr "افزودن نقطه پویانمایی"
 msgid "Remove BlendSpace1D Point"
 msgstr "برچیدن نقطهٔ BlendSpace1D"
 
-msgid "Move BlendSpace1D Node Point"
-msgstr "جابه‌جایی نقطهٔ گرهٔ BlendSpace1D"
-
 msgid "Continuous"
 msgstr "پیوسته"
 
@@ -636,6 +780,9 @@ msgstr "گرفتن"
 msgid "Create points."
 msgstr "ساخت نقاط."
 
+msgid "Set the blending position within the space."
+msgstr "تنظیم موقعیت ترکیب درون فضا."
+
 msgid "Erase points."
 msgstr "حذف نقاط."
 
@@ -645,20 +792,43 @@ msgstr "چفت را بکار اندازید و توری را نمایش دهید
 msgid "Grid Step"
 msgstr "گام توری"
 
-msgid "Sync:"
-msgstr "همگام‌سازی:"
+msgid "Sync"
+msgstr "همگام‌سازی"
 
-msgid "Blend:"
-msgstr "درآمیختن:"
+msgid "None"
+msgstr "هیچکدام"
 
-msgid "Point"
-msgstr "نقطه"
+msgid "Cyclic Mutable"
+msgstr "چرخه ای تغییر‌پذیر"
 
-msgid "Blend Value"
-msgstr "ارزش درآمیزی"
+msgid "Cyclic Length"
+msgstr "طول چرخه ای"
+
+msgid ""
+"Cycle length in seconds for cyclic sync. All animations are time-scaled to "
+"complete one cycle in this duration."
+msgstr ""
+"طول چرخه به ثانیه برای همگام‌سازی چرخه‌ای. همهٔ پویانمایی‌ها به گونه‌ای مقیاس‌زمانی "
+"می‌شوند که یک چرخه را در این مدت کامل کنند."
 
 msgid "Open Editor"
 msgstr "گشودن ویراستار"
+
+msgid "Blend Point Index"
+msgstr "اندیس نقطه درآمیزی"
+
+msgid ""
+"Index of the blend point.\n"
+"Values outside of the valid range will be clamped to the nearest index."
+msgstr ""
+"شاخص نقطهٔ ترکیب.\n"
+"مقادیر خارج از بازهٔ معتبر به نزدیک‌ترین شاخص محدود می‌شوند."
+
+msgid "Position"
+msgstr "موقعیت"
+
+msgid "Blend Value"
+msgstr "ارزش درآمیزی"
 
 msgid "Min"
 msgstr "کمینه"
@@ -667,7 +837,7 @@ msgid "Max"
 msgstr "بیشینه‌"
 
 msgid "Value"
-msgstr "ارزش"
+msgstr "مقدار"
 
 msgid "Open Animation Node"
 msgstr "باز کردن گره پویانمایی"
@@ -689,9 +859,6 @@ msgstr "برچیدن نقطهٔ BlendSpace2D"
 
 msgid "Remove BlendSpace2D Triangle"
 msgstr "برچیدن مثلث BlendSpace2D"
-
-msgid "No triangles exist, so no blending can take place."
-msgstr "هیچ مثلثی وجود ندارد، بنابراین هیچ درآمیزشی نمی‌تواند انجام شود."
 
 msgid "Toggle Auto Triangles"
 msgstr "روشن/خاموش کردن مثلث‌های خودکار"
@@ -844,9 +1011,6 @@ msgstr "نشان‌گذار آغاز"
 msgid "End Marker"
 msgstr "نشان‌گذار پایان"
 
-msgid "Library Name:"
-msgstr "نام کتابخانه:"
-
 msgid "Animation name can't be empty."
 msgstr "نام پویانمایی نمی‌تواند تهی باشد."
 
@@ -967,9 +1131,6 @@ msgstr "[عمومی]"
 msgid "Rename Animation: %s"
 msgstr "دگرش نام پویانمایی: %s"
 
-msgid "Animation Name:"
-msgstr "نام پویانمایی:"
-
 msgid "No animation resource in clipboard!"
 msgstr "بنمایهٔ پویانمایی‌ای درون بریده‌دان نیست!"
 
@@ -1027,8 +1188,17 @@ msgstr "پویانمایی را روی بنمایهٔ درون دیسک ذخیر
 msgid "Remove animation from Library."
 msgstr "برچیدن پویانمایی از کتابخانه."
 
+msgid "Resource"
+msgstr "بنمایه"
+
+msgid "Storage"
+msgstr "انبار"
+
 msgid "Edit Animation Libraries"
 msgstr "ویرایش کتابخانه‌های پویانمایی"
+
+msgid "Library Name:"
+msgstr "نام کتابخانه:"
 
 msgid "New Library"
 msgstr "کتابخانهٔ نو"
@@ -1041,12 +1211,6 @@ msgstr "بارکردن کتابخانه"
 
 msgid "Load animation library from disk."
 msgstr "بارکردن کتابخانهٔ پویانمایی از دیسک."
-
-msgid "Resource"
-msgstr "بنمایه"
-
-msgid "Storage"
-msgstr "انبار"
 
 msgid "Error:"
 msgstr "خطا:"
@@ -1186,6 +1350,9 @@ msgstr "دربرگیری گیزمو‌ها (سه‌بعدی)"
 msgid "Pin AnimationPlayer"
 msgstr "سنجاق کردن AnimationPlayer"
 
+msgid "Animation Name:"
+msgstr "نام پویانمایی:"
+
 msgid "Close"
 msgstr "بستن"
 
@@ -1201,11 +1368,26 @@ msgstr "زمان درآمیزی:"
 msgid "Next (Auto Queue):"
 msgstr "بعدی (صف خودکار):"
 
+msgid "Reconnect Transition"
+msgstr "اتصال دوبارهٔ گذار"
+
 msgid "Move Node"
 msgstr "حرکت دادن گره"
 
 msgid "Transition exists!"
 msgstr "گذار وجود دارد!"
+
+msgid "Cannot transition to self!"
+msgstr "نمی‌توان به خودِ همان حالت گذار کرد!"
+
+msgid "Cannot transition to \"Start\"!"
+msgstr "نمی‌توان به \"Start\" گذار کرد!"
+
+msgid "Cannot transition from \"End\"!"
+msgstr "نمی‌توان از \"End\" گذار کرد!"
+
+msgid "Transition from \"%s\" to \"%s\" already exists!"
+msgstr "گذار از \"%s\" به \"%s\" از قبل وجود دارد!"
 
 msgid "Play/Travel to %s"
 msgstr "پخش/سفر به %s"
@@ -1216,23 +1398,20 @@ msgstr "ویرایش %s"
 msgid "Add Node and Transition"
 msgstr "افزودن گره و گذار"
 
+msgid "Transition already exists!"
+msgstr "گذار وجود دارد!"
+
 msgid "Add Transition"
 msgstr "افزودن گذار"
 
 msgid "Immediate"
 msgstr "فوری"
 
-msgid "Sync"
-msgstr "همگام‌سازی"
-
 msgid "At End"
 msgstr "در پایان"
 
 msgid "Travel"
 msgstr "سفر"
-
-msgid "No playback resource set at path: %s."
-msgstr "هیچ بنمایهٔ بازنواختی در مسیر نشانده نیست: %s."
 
 msgid "Node Removed"
 msgstr "گره برچیده شد"
@@ -1252,7 +1431,7 @@ msgstr ""
 "بی‌گره را برگزینید گره‌ای نو می‌سازد."
 
 msgid "Select and move nodes."
-msgstr "انتخاب و جابجایی گره‌ها"
+msgstr "انتخاب و جابجایی گره‌ها."
 
 msgid "Create new nodes."
 msgstr "ساخت گره‌های جدید."
@@ -1263,14 +1442,8 @@ msgstr "اتصال گره‌ها."
 msgid "Remove selected node or transition."
 msgstr "گرهٔ برگزیده را گذار کن یا برچین."
 
-msgid "Transition:"
-msgstr "گذار:"
-
 msgid "New Transitions Should Auto Advance"
 msgstr "گذارهای نو باید خودکارانه پیش بروند"
-
-msgid "Play Mode:"
-msgstr "حالت پخش:"
 
 msgid "Animation Change Transition"
 msgstr "گذار دگرش پویانمایی"
@@ -1452,6 +1625,9 @@ msgstr "داخل دسته:"
 msgid "Out-Handle:"
 msgstr "بیرون دسته:"
 
+msgid "Handle mode: %s"
+msgstr "حالت دسته: %s"
+
 msgid "Stream:"
 msgstr "استریم:"
 
@@ -1562,6 +1738,50 @@ msgstr "ویژگی '%s'"
 msgid "Nearest FPS: %d"
 msgstr "نزدیکترین فریم‌بر‌ثانیه: %d"
 
+msgctxt "Transition Type"
+msgid "Linear"
+msgstr "خطی"
+
+msgctxt "Transition Type"
+msgid "Quint"
+msgstr "پنج‌گانه"
+
+msgctxt "Transition Type"
+msgid "Quart"
+msgstr "یک‌چهارم"
+
+msgctxt "Transition Type"
+msgid "Quad"
+msgstr "چهار‌گانه"
+
+msgctxt "Transition Type"
+msgid "Expo"
+msgstr "نمایی (Expo)"
+
+msgctxt "Transition Type"
+msgid "Elastic"
+msgstr "کشسان"
+
+msgctxt "Transition Type"
+msgid "Cubic"
+msgstr "مکعبی"
+
+msgctxt "Transition Type"
+msgid "Circ"
+msgstr "دایره‌ای"
+
+msgctxt "Transition Type"
+msgid "Bounce"
+msgstr "واگشتی"
+
+msgctxt "Transition Type"
+msgid "Back"
+msgstr "پشت"
+
+msgctxt "Transition Type"
+msgid "Spring"
+msgstr "فنری"
+
 msgid "Change Animation Step"
 msgstr "دگرش گام پویانمایی"
 
@@ -1596,6 +1816,9 @@ msgstr "نوارهای پویانمایی تنها می‌توانند به گر
 msgid "Not possible to add a new track without a root"
 msgstr "افزودن نوار نو بدون یک ریشه شدنی نیست"
 
+msgid "Pick a node to animate:"
+msgstr "گره‌ای برای پویانماییدن برگزینید:"
+
 msgid "Invalid track for Bezier (no suitable sub-properties)"
 msgstr "نوار نامعتبر برای بزیه ( زیرویژگی‌های نامناسب)"
 
@@ -1622,9 +1845,6 @@ msgstr "تابع در آبجکت یافت نشد:"
 
 msgid "Animation Move Keys"
 msgstr "جابه‌جایی کلیدهای پویانمایی"
-
-msgid "Position"
-msgstr "موقعیت"
 
 msgid "Rotation"
 msgstr "چرخش"
@@ -1768,7 +1988,7 @@ msgid "FPS"
 msgstr "فریم بر ثانیه"
 
 msgid "Snap Mode"
-msgstr "حالت چسبناک:"
+msgstr "حالت چسبیدن"
 
 msgid "Zoom"
 msgstr "بزرگنمایی"
@@ -1848,9 +2068,6 @@ msgstr "بهینه‌سازی پویانمایی (بازگردانی نمیشو�
 msgid "Clean-Up Animation (no undo)..."
 msgstr "پاکسازی پویانمایی (بازگردانی نمیشود)..."
 
-msgid "Pick a node to animate:"
-msgstr "گره‌ای برای پویانماییدن برگزینید:"
-
 msgid "Track Property"
 msgstr "نوار ویژگی"
 
@@ -1910,54 +2127,6 @@ msgstr "گزینش گذار و آسانیدن"
 
 msgid "Transition Type:"
 msgstr "گونهٔ گذار:"
-
-msgctxt "Transition Type"
-msgid "Linear"
-msgstr "خطی"
-
-msgctxt "Transition Type"
-msgid "Sine"
-msgstr "سینوسی"
-
-msgctxt "Transition Type"
-msgid "Quint"
-msgstr "پنج‌گانه"
-
-msgctxt "Transition Type"
-msgid "Quart"
-msgstr "یک‌چهارم"
-
-msgctxt "Transition Type"
-msgid "Quad"
-msgstr "چهار‌گانه"
-
-msgctxt "Transition Type"
-msgid "Expo"
-msgstr "نمایی (Expo)"
-
-msgctxt "Transition Type"
-msgid "Elastic"
-msgstr "کشسان"
-
-msgctxt "Transition Type"
-msgid "Cubic"
-msgstr "مکعبی"
-
-msgctxt "Transition Type"
-msgid "Circ"
-msgstr "دایره‌ای"
-
-msgctxt "Transition Type"
-msgid "Bounce"
-msgstr "واگشتی"
-
-msgctxt "Transition Type"
-msgid "Back"
-msgstr "پشت"
-
-msgctxt "Transition Type"
-msgid "Spring"
-msgstr "فنری"
 
 msgid "Ease Type:"
 msgstr "گونهٔ آسان‌سازی:"
@@ -2061,6 +2230,18 @@ msgstr "دگرش بازه از مبدای آغاز تکه‌نوار شنیدا�
 msgid "Change Audio Track Clip End Offset"
 msgstr "دگرش بازه از مبدای پایان تکه‌نوار شنیداری"
 
+msgid "%s at "
+msgstr "%s در "
+
+msgid "'%s':"
+msgstr "'%s':"
+
+msgid "input %d '%s'."
+msgstr "ورودی%d '%s'."
+
+msgid "Error: "
+msgstr "خطا: "
+
 msgid "Root"
 msgstr "ریشه"
 
@@ -2070,35 +2251,41 @@ msgstr "درخت‌ پویانمایی"
 msgid "Path:"
 msgstr "مسیر:"
 
-msgid "Open asset details"
-msgstr "گشودن جزئیات دارایی"
+msgid "Errors"
+msgstr "خطا‌ها"
 
 msgid "Title"
 msgstr "عنوان"
 
-msgid "Category"
-msgstr "دسته‌بندی"
-
 msgid "Author"
 msgstr "نویسنده"
+
+msgid "Verified Author"
+msgstr "نویسنده تایید شده"
 
 msgid "License"
 msgstr "پروانه"
 
-msgid "Version:"
-msgstr "نسخه:"
+msgid "No changelog provided for this version."
+msgstr "برای این نسخه، گزارش تغییری ارائه نشده است."
 
-msgid "Contents:"
-msgstr "محتواها:"
-
-msgid "View Files"
-msgstr "نمایش پرونده ها"
-
-msgid "Description:"
-msgstr "شرح:"
+msgid "Loading..."
+msgstr "بارگذاری..."
 
 msgid "Download"
 msgstr "بارگیری"
+
+msgid "Downloading..."
+msgstr "در حال بارگیری..."
+
+msgid "Install..."
+msgstr "نصب..."
+
+msgid "Version:"
+msgstr "نسخه:"
+
+msgid "Description"
+msgstr "شرح"
 
 msgid "Connection error, please try again."
 msgstr "خطای اتصال، لطفا دوباره بکوشید."
@@ -2163,14 +2350,8 @@ msgstr "ناکامی در بررسی هَش SHA-256"
 msgid "Asset Download Error:"
 msgstr "خطا در بارگیری دارایی:"
 
-msgid "Ready to install!"
-msgstr "آمادهٔ نصب!"
-
 msgid "Downloading (%s / %s)..."
 msgstr "در حال بارگیری (%s / %s)..."
-
-msgid "Downloading..."
-msgstr "در حال بارگیری..."
 
 msgid "Resolving..."
 msgstr "حل کردن..."
@@ -2187,44 +2368,17 @@ msgstr "خطای درخواست"
 msgid "Idle"
 msgstr "بیکار"
 
-msgid "Install..."
-msgstr "نصب..."
-
 msgid "Retry"
 msgstr "تلاش دوباره"
 
 msgid "Download Error"
 msgstr "خطاهای بارگیری"
 
-msgid "Recently Updated"
-msgstr "اخیراً به‌روزرسانی‌شده"
+msgid "Updated (Oldest First)"
+msgstr "به‌روزرسانی‌شده (قدیمی‌ترین ابتدا)"
 
-msgid "Least Recently Updated"
-msgstr "اخیرترین به‌روزرسانی‌شده"
-
-msgid "Name (A-Z)"
-msgstr "نام (A-Z)"
-
-msgid "Name (Z-A)"
-msgstr "نام (Z-A)"
-
-msgid "License (A-Z)"
-msgstr "پروانه (A-Z)"
-
-msgid "License (Z-A)"
-msgstr "پروانه (Z-A)"
-
-msgid "Featured"
-msgstr "برجسته"
-
-msgid "Community"
-msgstr "انجمن"
-
-msgid "Testing"
-msgstr "در حال آزمایش"
-
-msgid "Loading..."
-msgstr "بارگذاری..."
+msgid "Created (Newest First)"
+msgstr "ساخته شد(اول جدید ترین)"
 
 msgctxt "Pagination"
 msgid "First"
@@ -2242,42 +2396,14 @@ msgctxt "Pagination"
 msgid "Last"
 msgstr "آخرین"
 
-msgid ""
-"The Asset Library requires an online connection and involves sending data "
-"over the internet."
-msgstr ""
-"کتابخانهٔ دارایی نیاز به اتصال آنلاین دارد و وابسته به فرستادن داده با اینترنت "
-"است."
-
 msgid "Go Online"
 msgstr "آنلاین شو"
-
-msgid "Failed to get repository configuration."
-msgstr "ناکامی در دریافت پیکربندی مخزن."
 
 msgid "All"
 msgstr "همه"
 
-msgid "No results for \"%s\" for support level(s): %s."
-msgstr "هیچ نتیجه‌ای برای \"%s\" برای سطح(های) پشتیبانی یافت نشد: %s."
-
-msgid ""
-"No results compatible with %s %s for support level(s): %s.\n"
-"Check the enabled support levels using the 'Support' button in the top-right "
-"corner."
-msgstr ""
-"هیچ نتیجه‌ای سازگار با %s %s برای سطح(های) پشتیبانی: %s یافت نشد.\n"
-"سطوح پشتیبانی فعال را با استفاده از دکمه «پشتیبانی» در گوشه بالا-راست بررسی "
-"کنید."
-
-msgid "Install"
-msgstr "نصب کردن"
-
-msgid "Search Templates, Projects, and Demos"
-msgstr "جستجوی قالب‌ها، پروژه‌ها و دموها"
-
-msgid "Search Assets (Excluding Templates, Projects, and Demos)"
-msgstr "جست‌وجوی دارایی‌ها (به استثنای قالب‌ها، پروژه‌ها و دموها)"
+msgid "No results for \"%s\"."
+msgstr "هیچ نتیجه ای برای \"%s\" وجود ندارد."
 
 msgid "Import..."
 msgstr "درون‌برد..."
@@ -2291,17 +2417,11 @@ msgstr "چینش:"
 msgid "Category:"
 msgstr "دسته‌بندی:"
 
-msgid "Site:"
-msgstr "وبگاه:"
-
-msgid "Support"
-msgstr "پشتیبانی"
+msgid "Licenses"
+msgstr "پروانه‌ها"
 
 msgid "Assets ZIP File"
 msgstr "پروندهٔ ZIP‌ دارایی‌ها"
-
-msgid "AssetLib"
-msgstr "کتابخانهٔ دارایی"
 
 msgid "Error opening asset file for \"%s\" (not in ZIP format)."
 msgstr "خطا در گشودن پروندهٔ دارایی برای «%s» (در چارچوب ZIP نیست)."
@@ -2352,12 +2472,6 @@ msgid ""
 "Change the folder where the contents of the asset are going to be installed."
 msgstr "تغییر پوشه ای که محتوای Asset در آن نصب خواهد شد."
 
-msgid "Ignore asset root"
-msgstr "نادیده گرفتن Root ه Asset"
-
-msgid "No files conflict with your project"
-msgstr "هیچ پرونده‌ای با پروژهٔ شما ناسازگار نیست"
-
 msgid "Show contents of the asset and conflicting files."
 msgstr "نمایش محتواهای دارایی و پرونده‌های ناسازگار."
 
@@ -2375,6 +2489,9 @@ msgstr "پرونده‌های مقصد"
 
 msgid "Configure Asset Before Installing"
 msgstr "تنظیم کردن Asset قبل از نصب کردن"
+
+msgid "Install"
+msgstr "نصب کردن"
 
 msgid "Audio Preview Play/Pause"
 msgstr "پخش/درنگ پیش‌نمایش صوت"
@@ -2647,8 +2764,8 @@ msgid ""
 "When used remotely on a device, this is more efficient when the network "
 "filesystem option is enabled."
 msgstr ""
-"هنگامی که این گزینه فعال باشد، هر اسکریپتی که ذخیره شود، در پروژه در حال اجرا "
-"مجدداً بارگذاری خواهد شد.\n"
+"هنگامی که این گزینه فعال باشد، هر اسکریپتی که ذخیره شود، در پروژهٔ در حال اجرا "
+"دوباره بارگذاری خواهد شد.\n"
 "هنگامی که از راه دور بر روی دستگاه استفاده می‌شود، این روش زمانی که گزینه "
 "سیستم‌فایل شبکه فعال باشد، کارآمدتر است."
 
@@ -2673,6 +2790,9 @@ msgstr "نشاندن %s بر %d شیء"
 
 msgid "Remote %s: %d"
 msgstr "از راه دور %s: %d"
+
+msgid "Remote %s (%s): %d"
+msgstr "از راه دور %s(%s): %d"
 
 msgid "Remote %s (%d Selected)"
 msgstr "از راه دور %s (%d برگزیده)"
@@ -2837,9 +2957,6 @@ msgstr "پردازنده (CPU)"
 msgid "GPU"
 msgstr "واحد پردازش گرافیکی (GPU)"
 
-msgid "Errors"
-msgstr "خطا‌ها"
-
 msgid "Main Thread"
 msgstr "ریسهٔ اصلی"
 
@@ -2959,6 +3076,12 @@ msgstr "چارچوب"
 
 msgid "Usage"
 msgstr "استفاده"
+
+msgid "Show in FileSystem"
+msgstr "نمایش در سامانهٔ پرونده"
+
+msgid "View Owners..."
+msgstr "دیدن مالکان..."
 
 msgid "Misc"
 msgstr "متفرقه"
@@ -3098,12 +3221,6 @@ msgstr "این کلاس شاید در نسخه‌های آینده برچیده 
 
 msgid "Inherits:"
 msgstr "ارث می‌برد از:"
-
-msgid "Inherited by:"
-msgstr "به ارث رسیده به وسیله:"
-
-msgid "Description"
-msgstr "شرح"
 
 msgid "There is currently no description for this class."
 msgstr "هم‌اکنون شرحی برای این کلاس نیست."
@@ -3262,11 +3379,14 @@ msgstr "این پانویس شاید در نسخه‌های آینده برچی�
 msgid "Open"
 msgstr "گشودن"
 
-msgid "Show in FileSystem"
-msgstr "نمایش در سامانهٔ پرونده"
-
 msgid "Open in File Manager"
 msgstr "گشودن در مدیر پرونده"
+
+msgid "This property can only be set in the Inspector."
+msgstr "این ویژگی را تنها در بازرس(inspector) می‌توان نشاند."
+
+msgid "This variable may be changed or removed in future versions."
+msgstr "این متغیر شاید در نسخه‌های آینده برچیده یا دگرگون شود."
 
 msgid "Class"
 msgstr "کلاس"
@@ -3289,9 +3409,6 @@ msgstr "ویژگی"
 msgid "Internal Property"
 msgstr "ویژگی درونی"
 
-msgid "This property can only be set in the Inspector."
-msgstr "این ویژگی را تنها در بازرس(inspector) می‌توان نشاند."
-
 msgid "Theme Property"
 msgstr "ویژگی زمینه"
 
@@ -3309,9 +3426,6 @@ msgstr "ثابت بومی"
 
 msgid "Local Variable"
 msgstr "متغیر بومی"
-
-msgid "This variable may be changed or removed in future versions."
-msgstr "این متغیر شاید در نسخه‌های آینده برچیده یا دگرگون شود."
 
 msgid "Text File"
 msgstr "پروندهٔ نوشتاری"
@@ -3473,9 +3587,6 @@ msgstr "شناور کردن"
 msgid "Link to: %s"
 msgstr "پیوند به: %s"
 
-msgid "Favorites:"
-msgstr "دلخواه‌ها:"
-
 msgid "Favorites"
 msgstr "دلخواه‌ها"
 
@@ -3529,18 +3640,6 @@ msgstr ""
 "با این همه، اگر می‌خواهید آن را بازنامگذارید، مدیر پروندهٔ سامانهٔ عامل خود را "
 "به کار ببرید."
 
-msgid ""
-"This file extension is not recognized by the editor.\n"
-"If you want to rename it anyway, use your operating system's file manager.\n"
-"After renaming to an unknown extension, the file won't be shown in the editor "
-"anymore."
-msgstr ""
-"ویراستار این پسوند پرونده را نمی‌شناسد.\n"
-"با این همه، اگر می‌خواهید آن را بازنامگذارید مدیر پروندهٔ سامانهٔ عامل خود را به "
-"کار بگیرید.\n"
-"پس از بازنامگذاری به پسوندی ناشناخته، پرونده دیگر درون ویراستار نمایش داده "
-"نخواهد شد."
-
 msgid "A file or folder with this name already exists."
 msgstr "یک پوشه یا پرونده هم‌اکنون با این نام وجود دارد."
 
@@ -3590,6 +3689,16 @@ msgstr ""
 msgid "Could not create folder: %s"
 msgstr "ناتوانی در ساخت پوشه: %s"
 
+msgid "Copy %d selected item to \"%s\"?"
+msgid_plural "Copy %d selected items to \"%s\"?"
+msgstr[0] "کپی %d مورد انتخاب شده به \"%s\"؟"
+msgstr[1] "کپی %d تا مورد انتخاب شده به \"%s\"؟"
+
+msgid "Move %d selected item to \"%s\"?"
+msgid_plural "Move %d selected items to \"%s\"?"
+msgstr[0] "جابجایی %d مورد انتخاب شده به \"%s\"؟"
+msgstr[1] "انتخاب %d تا مورد انتخاب شده به \"%s\"؟"
+
 msgid "Open Scene"
 msgstr "بازکردن صحنه"
 
@@ -3610,9 +3719,6 @@ msgstr "اجرا"
 
 msgid "Edit Dependencies..."
 msgstr "ویرایش وابستگی‌ها..."
-
-msgid "View Owners..."
-msgstr "دیدن مالکان..."
 
 msgid "Create New"
 msgstr "ساختن نو"
@@ -3667,9 +3773,6 @@ msgstr "گشودن در پایانه"
 
 msgid "Open Folder in Terminal"
 msgstr "گشودن پوشه در پایانه"
-
-msgid "Show in File Manager"
-msgstr "نمایش در مدیر پرونده"
 
 msgid "New Folder..."
 msgstr "ساختن پوشه..."
@@ -3795,6 +3898,9 @@ msgstr "ساخت اسکریپت"
 msgid "Convert"
 msgstr "تبدیل کردن"
 
+msgid "Don't Ask Again"
+msgstr "دوباره نپرسید"
+
 msgid "Groups"
 msgstr "گروه‌ها"
 
@@ -3836,6 +3942,9 @@ msgstr "نام:"
 
 msgid "Global"
 msgstr "جهانی"
+
+msgid "Description:"
+msgstr "شرح:"
 
 msgid "Group name is valid."
 msgstr "نام گروه معتبر است."
@@ -3946,6 +4055,9 @@ msgid ""
 "object."
 msgstr "بنمایه‌های زیر درون این بنمایه/شیء دوتاسازی و نهادینه خواهند شد."
 
+msgid "Make Sub-Resources Unique"
+msgstr "یکتا کردن زیربنمایه‌ها"
+
 msgid "Failed to load resource."
 msgstr "ناکامی در بارکردن بنمایه."
 
@@ -3975,9 +4087,6 @@ msgstr "کپی ویژگی‌ها"
 
 msgid "Paste Properties"
 msgstr "چسباندن ویژگی‌ها"
-
-msgid "Make Sub-Resources Unique"
-msgstr "یکتا کردن زیربنمایه‌ها"
 
 msgid "Inspector"
 msgstr "بازرس"
@@ -4033,9 +4142,6 @@ msgstr "مدیریت ویژگی‌های شی."
 msgid "Information"
 msgstr "اطلاعات"
 
-msgid "This cannot be undone. Are you sure?"
-msgstr "برگشت‌ناپذیر است. آیا مطمئن‌اید؟"
-
 msgid "No parent to instantiate a child at."
 msgstr "هیچ والدی برای نمونه‌سازی فرزند وجود ندارد."
 
@@ -4071,11 +4177,11 @@ msgstr[1] "ساخت AudioStreamPlayer ها"
 msgid "Replace with Branch Scene"
 msgstr "جایگزینی با صحنهٔ شاخه"
 
-msgid "Detach Script"
-msgstr "جدا کردن اسکریپت"
-
 msgid "This operation can't be done on the tree root."
 msgstr "این عملیات نمی‌تواند روی ریشهٔ درخت بینجامد."
+
+msgid "Detach Script"
+msgstr "جدا کردن اسکریپت"
 
 msgid "Move Node in Parent"
 msgstr "انتقال گره در والد"
@@ -4127,13 +4233,11 @@ msgid ""
 "FileSystem dock context menu\n"
 "or create an inherited scene using Scene > New Inherited Scene... instead."
 msgstr ""
-"نمی‌توان شاخه گره ریشه را به عنوان یک صحنه نمونه‌سازی شده ذخیره کرد.\n"
-"\n"
-"برای ایجاد یک کپی قابل ویرایش از صحنه فعلی، آن را با استفاده از منوی زمینه "
-"داک FileSystem کپی کنید\n"
-"\n"
-"یا به جای آن، یک صحنه ارث‌بری شده با استفاده از Scene > New Inherited Scene... "
-"ایجاد کنید."
+"نمی‌توان شاخهٔ گرهٔ ریشه را به‌عنوان یک صحنهٔ نمونه‌سازیشده ذخیره کرد.\n"
+"برای ایجاد یک نسخهٔ قابل ویرایش از صحنهٔ فعلی، آن را با استفاده از منوی زمینه "
+"پنل FileSystem کپی کنید\n"
+"یا در عوض با استفاده از Scene > New Inherited Scene... یک صحنهٔ ارث‌بری‌شده "
+"بسازید."
 
 msgid ""
 "Can't save the branch of an already instantiated scene.\n"
@@ -4284,20 +4388,20 @@ msgstr "<ناشناخته>"
 msgid "Sub-Resources"
 msgstr "زیربنمایه‌ها"
 
-msgid "Access as Unique Name"
-msgstr "دسترسی به‌عنوان نام یکتا"
-
 msgid "Clear Inheritance"
 msgstr "پاک کردن ارث‌بری"
-
-msgid "Open in Editor"
-msgstr "گشودن در ویراستار"
 
 msgid "Editable Children"
 msgstr "فرزند ويرايش‌پذیر"
 
 msgid "Load as Placeholder"
 msgstr "بارکردن به‌عنوان جانگهدار"
+
+msgid "Access as Unique Name"
+msgstr "دسترسی به‌عنوان نام یکتا"
+
+msgid "Open in Editor"
+msgstr "گشودن در ویراستار"
 
 msgid "Auto Expand to Selected"
 msgstr "گسترش خودکار تا برگزیده‌شده"
@@ -4364,9 +4468,6 @@ msgstr "<بی‌نام> در %s"
 
 msgid "(used %d times)"
 msgstr "(%d بار به کار رفته است)"
-
-msgid "None"
-msgstr "هیچکدام"
 
 msgid "Open Scene Dock"
 msgstr "گشودن لنگرگاه صحنه"
@@ -4492,9 +4593,6 @@ msgstr "ساختن %s جدید"
 msgid "Output"
 msgstr "برونداد"
 
-msgid "Filter Messages"
-msgstr "پالایش پیام‌ها"
-
 msgid "Clear Log"
 msgstr "پاک کردن لاگ"
 
@@ -4505,11 +4603,8 @@ msgid ""
 "Collapse duplicate messages into one log entry. Shows number of occurrences."
 msgstr "پیام‌های تکراری را در یک ورودیِ گزارش ببندید. شمار رخدادها را نشان می‌دهد."
 
-msgid "Show Search"
-msgstr "نمایش جستجو"
-
-msgid "Focus Search/Filter Bar"
-msgstr "تمرکز نوار جستجو/پالایه"
+msgid "Filter Messages"
+msgstr "پالایش پیام‌ها"
 
 msgid "Standard Messages"
 msgstr "پیام‌های استاندارد"
@@ -4573,11 +4668,25 @@ msgstr ""
 msgid "Spins when the editor window redraws."
 msgstr "هنگامی که پنجرهٔ ویراستار دوباره کشیده می‌شود می‌چرخد."
 
-msgid "Imported resources can't be saved."
-msgstr "بنمایه‌های درون‌برد شده نمی‌توانند ذخیره شوند."
+msgid "Error saving resource at path \"%s\": %s."
+msgstr "خطای ذخیره منبع در مسیر\"%s\": '%s'."
 
-msgid "Error saving resource!"
-msgstr "خطا در ذخیره‌سازی بنمایه!"
+msgid ""
+"The text-based resource at path \"%s\" is large on disk (%s), likely because "
+"it has embedded binary data.\n"
+"This slows down resource saving and loading.\n"
+"Consider saving its binary subresource(s) to a binary `.res` file or saving "
+"the resource as a binary `.res` file.\n"
+"This warning can be disabled in the Editor Settings (FileSystem > On Save > "
+"Warn on Saving Large Text Resources)."
+msgstr ""
+"منبع متنی در مسیر \"%s\" حجم زیادی روی دیسک دارد (%s)، احتمالاً به این دلیل که "
+"داده‌های باینری درون‌جاسازی‌شده دارد.\n"
+"این موضوع سرعت ذخیره و بارگذاری منبع را کاهش می‌دهد.\n"
+"در نظر داشته باشید زیرمنبع(های) باینری آن را در یک فایل `.res` باینری ذخیره "
+"کنید یا خود منبع را به‌صورت یک فایل `.res` باینری ذخیره نمایید.\n"
+"این هشدار را می‌توان در تنظیمات ویرایشگر (FileSystem > On Save > Warn on "
+"Saving Large Text Resources) غیرفعال کرد."
 
 msgid ""
 "This resource can't be saved because it was imported from another file. Make "
@@ -4652,6 +4761,23 @@ msgid ""
 msgstr ""
 "ناتوانی در ذخیره‌سازی صحنه. احتمالا وابستگی‌ها (نمونه‌ها یا وراثت‌) نمی‌توانستند "
 "راضی شوند."
+
+msgid ""
+"The text-based scene at path \"%s\" is large on disk (%s), likely because it "
+"has embedded binary data.\n"
+"This slows down scene saving and loading.\n"
+"Consider saving its binary subresource(s) to a binary `.res` file or saving "
+"the scene as a binary `.scn` file.\n"
+"This warning can be disabled in the Editor Settings (FileSystem > On Save > "
+"Warn on Saving Large Text Resources)."
+msgstr ""
+"صحنهٔ متنی در مسیر \"%s\" حجم زیادی روی دیسک دارد (%s)، احتمالاً به این دلیل که "
+"داده‌های باینری اِمبد شده دارد.\n"
+"این موضوع سرعت ذخیره و بارگذاری صحنه را کاهش می‌دهد.\n"
+"در نظر داشته باشید زیرمنبع(های) باینری آن را در یک فایل `.res` باینری ذخیره "
+"کنید یا صحنه را به‌صورت یک فایل `.scn` باینری ذخیره نمایید.\n"
+"این هشدار را می‌توان در تنظیمات ویرایشگر (FileSystem > On Save > Warn on "
+"Saving Large Text Resources) غیرفعال کرد."
 
 msgid "Save scene before running..."
 msgstr "ذخیره صحنه پیش از اجرا..."
@@ -4747,13 +4873,6 @@ msgid "%d hour ago"
 msgid_plural "%d hours ago"
 msgstr[0] "%d ساعت پیش"
 msgstr[1] "%d ساعت پیش‌"
-
-msgid ""
-"Scene \"%s\" has unsaved changes.\n"
-"Last saved: %s."
-msgstr ""
-"صحنهٔ \"%s\" دگرش‌های ذخیره نشده دارد.\n"
-"زمان آخرین ذخیره‌سازی: %s."
 
 msgid "Open Base Scene"
 msgstr "گشودن صحنه پایه"
@@ -5033,11 +5152,8 @@ msgstr "ذخیرهٔ چیدمان..."
 msgid "Delete Layout..."
 msgstr "زدایش چیدمان..."
 
-msgid "Save Layout"
-msgstr "ذخیره چیدمان"
-
-msgid "Delete Layout"
-msgstr "زدایش چیدمان"
+msgid "Default (Overridden)"
+msgstr "پیش فرض (بازنویسی شده)"
 
 msgid "This scene was never saved."
 msgstr "این صحنه هرگز ذخیره نشده بود."
@@ -5083,6 +5199,21 @@ msgstr "بازبارکنش انجامید."
 
 msgid "Save & Restart"
 msgstr "ذخیره و راه‌اندازی مجدد"
+
+msgid ""
+"Changing the renderer requires restarting the editor.\n"
+"\n"
+"Choosing Save & Restart will change the renderer to:\n"
+"- Desktop platforms: %s\n"
+"- Mobile platforms: %s\n"
+"- Web platform: %s"
+msgstr ""
+"تغییر رندرکننده نیازمند بازراه‌اندازی ویرایشگر است.\n"
+"\n"
+"با انتخاب ذخیره و بازراه‌اندازی، رندرکننده به موارد زیر تغییر می‌کند:\n"
+"- پلتفرم‌های دسکتاپ: %s\n"
+"- پلتفرم‌های موبایل: %s\n"
+"- پلتفرم وب: %s"
 
 msgid "Forward+"
 msgstr "فوروارد+"
@@ -5228,6 +5359,9 @@ msgstr "بازبارکنش(reload) صحنهٔ ذخیره شده"
 msgid "Close Scene"
 msgstr "بستن صحنه"
 
+msgid "Close All Scenes"
+msgstr "بستن تمام صحنه‌ها"
+
 msgid "Editor Settings..."
 msgstr "تنظیمات ویراستار…"
 
@@ -5282,6 +5416,9 @@ msgstr "مستندات آنلاین"
 msgid "Forum"
 msgstr "وبگاه گفتگو"
 
+msgid "Community"
+msgstr "انجمن"
+
 msgid "Copy System Info"
 msgstr "روگرفت اطلاعات رایانه"
 
@@ -5305,9 +5442,6 @@ msgstr "گشودن ویراستار اسکریپت"
 
 msgid "Open Game View"
 msgstr "گشودن نمای بازی"
-
-msgid "Open Asset Library"
-msgstr "گشودن کتابخانهٔ دارایی"
 
 msgid "Open the next Editor"
 msgstr "گشودن ویراستار بعدی"
@@ -5743,54 +5877,14 @@ msgstr "ناکامی در روگرفت شیء هم‌رسانی‌شدهٔ «%s�
 msgid "Plugin \"%s\" is not supported on \"%s\""
 msgstr "افزایهٔ \"%s\" روی \"%s\" پشتیبانی‌شده نیست"
 
-msgid "Open the folder containing these templates."
-msgstr "پوشهٔ دارای این قالب‌ها را بگشایید."
+msgid "Official export templates aren't available for development builds."
+msgstr "قالب‌های برون‌برد رسمی برای ساخت‌های توسعه در دسترس نیستند."
 
-msgid "Uninstall these templates."
-msgstr "این قالب‌ها را حذف نصب کنید."
+msgid "Official export templates aren't available for double-precision builds."
+msgstr "قالب‌های برون‌برد رسمی برای ساخت‌های با دقت مضاعف دردسترس نیستند."
 
-msgid "There are no mirrors available."
-msgstr "هیچ آینه‌ای در دسترس نیست."
-
-msgid "Retrieving the mirror list..."
-msgstr "در حال بازیابی فهرست آینه‌ها..."
-
-msgid "Starting the download..."
-msgstr "در حال آغاز کردن بارگیری..."
-
-msgid "Error requesting URL:"
-msgstr "خطا در درخواست URL:"
-
-msgid "Connecting to the mirror..."
-msgstr "در حال اتصال به آینه..."
-
-msgid "Can't resolve the requested address."
-msgstr "نمی توان نشانی درخواستی را حل کرد."
-
-msgid "Can't connect to the mirror."
-msgstr "نمی‌توان به آینه وصل شد."
-
-msgid "No response from the mirror."
-msgstr "هیچ پاسخی از آینه دریافت نشد."
-
-msgid "Request ended up in a redirect loop."
-msgstr "درخواست در یک چرخهٔ تغییر مسیر افتاد."
-
-msgid "Request failed:"
-msgstr "ناکامی در درخواست:"
-
-msgid "Download complete; extracting templates..."
-msgstr "بارگیری انجامید؛ در حال استخراج قالب‌ها..."
-
-msgid "Cannot remove temporary file:"
-msgstr "نمی‌توان پروندهٔ موقت را برچید::"
-
-msgid ""
-"Templates installation failed.\n"
-"The problematic templates archives can be found at '%s'."
-msgstr ""
-"ناکامی در نصب قالب‌ها.\n"
-"بایگانی قالب‌های مشکل‌ساز را می‌توان در '%s' یافت."
+msgid "Template downloading is disabled in offline mode."
+msgstr "بارگیری قالب در حالت آفلاین ازکارافتاده است."
 
 msgid "Error getting the list of mirrors."
 msgstr "خطا در دریافت فهرست آینه‌ها."
@@ -5798,40 +5892,6 @@ msgstr "خطا در دریافت فهرست آینه‌ها."
 msgid "Error parsing JSON with the list of mirrors. Please report this issue!"
 msgstr ""
 "خطا در تجزیهٔ JSON همراه با فهرست آینه‌ها. خواهشمندیم این مشکل را گزارش دهید!"
-
-msgid "Best available mirror"
-msgstr "بهترین آینهٔ در دسترس"
-
-msgid ""
-"No download links found for this version. Direct download is only available "
-"for official releases."
-msgstr ""
-"پیوندی برای بارگیری این نسخه پیدا نشد. بارگیری مستقیم تنها برای رهش‌های رسمی "
-"در دسترس است."
-
-msgid "Disconnected"
-msgstr "قطع‌شده"
-
-msgid "Resolving"
-msgstr "چاره‌گشودن"
-
-msgid "Can't Resolve"
-msgstr "نمی‌توان چاره‌گشود"
-
-msgid "Can't Connect"
-msgstr "نمی‌توان اتصال داد"
-
-msgid "Connected"
-msgstr "مُتَصِل"
-
-msgid "Downloading"
-msgstr "در حال بارگیری"
-
-msgid "Connection Error"
-msgstr "خطای اتصال"
-
-msgid "TLS Handshake Error"
-msgstr "خطا در دست دادن با تی.ال.اس"
 
 msgid "Can't open the export templates file."
 msgstr "نمی‌توان پروندهٔ قالب‌های برون‌برد را گشود."
@@ -5851,34 +5911,11 @@ msgstr "در حال استخراج قالب‌های برون‌برد"
 msgid "Importing:"
 msgstr "در حال درون‌برد:"
 
-msgid "Remove templates for the version '%s'?"
-msgstr "برچیدن قالب‌ها برای نسخهٔ «%s»؟"
+msgid "Common"
+msgstr "معمولی"
 
-msgid "Export templates are missing. Download them or install from a file."
-msgstr ""
-"قالب‌های برون‌برد از جا افتاده‌اند. آنها را بارگیری کنید یا از یک پرونده نصب "
-"کنید."
-
-msgid "Export templates are missing. Install them from a file."
-msgstr "قالب‌های برون‌برد از جا افتاده‌اند. آنها را از یک پرونده نصب کنید."
-
-msgid "Not available in offline mode"
-msgstr "در حالت آفلاین دردسترس نیست"
-
-msgid "Template downloading is disabled in offline mode."
-msgstr "بارگیری قالب در حالت آفلاین ازکارافتاده است."
-
-msgid "No templates for development builds"
-msgstr "هیچ قالبی برای ساخت‌های توسعه نیست"
-
-msgid "Official export templates aren't available for development builds."
-msgstr "قالب‌های برون‌برد رسمی برای ساخت‌های توسعه در دسترس نیستند."
-
-msgid "No templates for double-precision builds"
-msgstr "هیچ قالبی برای ساخت‌های با دقت مضاعف نیست"
-
-msgid "Official export templates aren't available for double-precision builds."
-msgstr "قالب‌های برون‌برد رسمی برای ساخت‌های با دقت مضاعف دردسترس نیستند."
+msgid "Download request failed: %s."
+msgstr "درخواسب بارگیری انجام نشد: %s."
 
 msgid "Uncompressing Android Build Sources"
 msgstr "استخراج منابع ساخت اندروید"
@@ -5886,67 +5923,14 @@ msgstr "استخراج منابع ساخت اندروید"
 msgid "Export Template Manager"
 msgstr "برون‌برد مدیر قالب"
 
-msgid "Current Version:"
-msgstr "نسخه اخیر:"
-
-msgid "Export templates are installed and ready to be used."
-msgstr "قالب‌های برون‌برد نصب‌شده و آمادهٔ به‌کارگیری‌اند."
-
-msgid "Installed Path"
-msgstr "مسیر نصب‌شده"
-
-msgid "Open Folder"
-msgstr "گشودن پوشه"
-
-msgid "Open the folder containing installed templates for the current version."
-msgstr "پوشهٔ دارای قالب‌های نصب‌شده برای نسخهٔ کنونی را بگشایید."
-
-msgid "Uninstall"
-msgstr "حذف نصب"
-
-msgid "Uninstall templates for the current version."
-msgstr "قالب‌های نسخهٔ کنونی را حذف نصب کنید."
-
 msgid "Download from:"
 msgstr "بارگیری از:"
 
 msgid "Mirror"
 msgstr "آینه"
 
-msgid "Mirror Options"
-msgstr "گزینه‌های آینه"
-
 msgid "Open in Web Browser"
 msgstr "گشودن در مرورگر وب"
-
-msgid "Copy Mirror URL"
-msgstr "روگرفت URL آینه"
-
-msgid "Download and Install"
-msgstr "بارگیری و نصب"
-
-msgid ""
-"Download and install templates for the current version from the best possible "
-"mirror."
-msgstr "قالب‌های نسخهٔ کنونی را از بهترین آینهٔ ممکن بارگیری و نصب کنید."
-
-msgid "Install from File"
-msgstr "نصب از پرونده"
-
-msgid "Install templates from a local file."
-msgstr "قالب‌ها را از پرونده‌ای بومی نصب کنید."
-
-msgid "Online mode is needed to download the templates."
-msgstr "برای دانلود نمونه ها نیاز به آنلاین بودن دارید."
-
-msgid "Cancel the download of the templates."
-msgstr "بارگیری قالب‌ها را لغو کن."
-
-msgid "Other Installed Versions:"
-msgstr "دیگر نسخه‌های نصب شده:"
-
-msgid "Uninstall Template"
-msgstr "حذف نصب قالب"
 
 msgid "Select Template File"
 msgstr "گزینش پروندهٔ قالب"
@@ -5954,12 +5938,14 @@ msgstr "گزینش پروندهٔ قالب"
 msgid "Godot Export Templates"
 msgstr "قالب‌های برون‌برد گودوت"
 
-msgid ""
-"The templates will continue to download.\n"
-"You may experience a short editor freeze when they finish."
-msgstr ""
-"قالب‌ها به بارگیری شدن ادامه خواهند داد.\n"
-"شاید پس از پایان یافتن، ویراستار برای مدت کوتاهی هنگ کند."
+msgid "Response code: %d"
+msgstr "کد پاسخ: %d"
+
+msgid "Requested template not found in the archive."
+msgstr "الگوی درخواست شده در بایگانی یافت نشد."
+
+msgid "Could not open file within ZIP archive."
+msgstr "نمی توان فایل درون آرشیو ZIP را باز کرد."
 
 msgid ""
 "No \"%s\" library found for GDExtension: \"%s\". Possible feature flags for "
@@ -5979,6 +5965,12 @@ msgstr ""
 
 msgid "Show Project Setting"
 msgstr "نمایش تنظیمات پروژه"
+
+msgid "Invalid Encryption Key (must be 64 hexadecimal characters long)"
+msgstr "کلید رمزبندی نامعتبر است (باید به بلندی ۶۴ نویسهٔ شانزدهی باشد)"
+
+msgid "Export templates for this platform are missing:"
+msgstr "قالب‌های برون‌برد برای این سکو از جا افتاده است:"
 
 msgid "Runnable"
 msgstr "قابل اجرا"
@@ -6087,22 +6079,8 @@ msgstr "نگهداری"
 msgid "Include Filters"
 msgstr "دربرگیری پالایه‌ها"
 
-msgid ""
-"Filters to export non-resource files/folders\n"
-"(comma-separated, e.g: *.json, *.txt, docs/*)"
-msgstr ""
-"پالایه‌ها برای برون‌برد پرونده‌ها/پوشه‌های نابنمایه\n"
-"(جداشده با کاما، برای نمونه: *.json, *.txt, docs/*)"
-
 msgid "Exclude Filters"
 msgstr "استثنا کردن پالایه‌ها"
-
-msgid ""
-"Filters to exclude files/folders from project\n"
-"(comma-separated, e.g: *.json, *.txt, docs/*)"
-msgstr ""
-"پالایه‌ها برای استثناشده کردن پرونده‌ها/پوشه‌ها از پروژه\n"
-"(جداشده با کاما، برای نمونه: *.json, *.txt, docs/*)"
 
 msgid "Base Packs:"
 msgstr "بسته‌های پایه:"
@@ -6148,9 +6126,6 @@ msgstr ""
 msgid "Encryption Key (256-bits as hexadecimal):"
 msgstr "کلید رمزبندی (۲۵۶ بیت به‌عنوان شانزدهی):"
 
-msgid "Invalid Encryption Key (must be 64 hexadecimal characters long)"
-msgstr "کلید رمزبندی نامعتبر است (باید به بلندی ۶۴ نویسهٔ شانزدهی باشد)"
-
 msgid "Initialization vector seed"
 msgstr "بذر بُردار راه‌اندازی آغازین"
 
@@ -6175,6 +6150,13 @@ msgstr "توکن‌های دودویی (بارگیری تندتر)"
 
 msgid "Compressed binary tokens (smaller files)"
 msgstr "توکن‌های دودویی فشرده (پرونده‌های کوچکتر)"
+
+msgid ""
+"No presets found.\n"
+"Create one so that its parameters can be edited here."
+msgstr ""
+"هیچ پریستی پیدا نشد.\n"
+"یکی بسازید تا بتوان پارامترهایش را اینجا ویرایش کرد."
 
 msgid "Export PCK/ZIP..."
 msgstr "برون‌برد PCK/ZIP..."
@@ -6208,9 +6190,6 @@ msgstr "برون‌برد همه..."
 msgid "ZIP File"
 msgstr "پروندهٔ ZIP"
 
-msgid "Export templates for this platform are missing:"
-msgstr "قالب‌های برون‌برد برای این سکو از جا افتاده است:"
-
 msgid "Project Export"
 msgstr "برون‌برد پروژه"
 
@@ -6220,11 +6199,23 @@ msgstr "مدیریت قالب‌های برون‌برد"
 msgid "Baking shaders"
 msgstr "در حال پخت سایه‌زن‌ها"
 
+msgid "Search Replacement For: %s"
+msgstr "جستجوی جایگزین برای: %s"
+
 msgid "Dependencies For:"
 msgstr "بستگی‌ها برای:"
 
-msgid "Dependencies"
-msgstr "وابستگی‌ها"
+msgid ""
+"Scene \"%s\" is currently being edited. Changes will only take effect when "
+"reloaded."
+msgstr ""
+"صحنهٔ \"%s\" در حال حاضر در حال ویرایش است. تغییرات فقط پس از بارگذاری دوباره "
+"اعمال می‌شوند."
+
+msgid "Resource \"%s\" is in use. Changes will only take effect when reloaded."
+msgstr ""
+"منبع \"%s\" در حال استفاده است. تغییرات فقط پس از بارگذاری دوباره اعمال "
+"می‌شوند."
 
 msgid "Dependencies:"
 msgstr "وابستگی‌ها:"
@@ -6238,11 +6229,17 @@ msgstr "ویراستار وابستگی"
 msgid "Owners of: %s (Total: %d)"
 msgstr "صاحبان: %s (کل: %d)"
 
+msgid "No owners found for: %s"
+msgstr "هیچ مالکی برای %s پیدا نشد"
+
+msgid "Owners List"
+msgstr "فهرست مالکان"
+
 msgid "Localization remap"
-msgstr "بازنهادن بومی‌سازی"
+msgstr "بازنگاشت بومی‌سازی"
 
 msgid "Localization remap for path '%s' and locale '%s'."
-msgstr "بازنهادن بومی‌سازی برای مسیر '%s' و بوم '%s'."
+msgstr "بازنگاشت بومی‌سازی برای مسیر '%s' و بوم '%s'."
 
 msgid ""
 "Remove the selected files from the project? (Cannot be undone.)\n"
@@ -6272,8 +6269,11 @@ msgstr "نمی‌توان برچید:"
 msgid "Files to be deleted:"
 msgstr "پرونده‌ها برای زدوده شدن:"
 
-msgid "Dependencies of files to be deleted:"
-msgstr "وابستگی‌های پرونده‌ها برای زدوده شدن:"
+msgid "Error loading: %s"
+msgstr "خطا در بارگذاری: %s"
+
+msgid "Referenced by %s"
+msgstr "ارجاع‌شده توسط %s"
 
 msgid "Fix Dependencies"
 msgstr "بستگی‌ها را تعمیر کن"
@@ -6336,7 +6336,7 @@ msgid "Updating scripts documentation"
 msgstr "در حال به‌روزرسانی اسکریپت‌های مستندات"
 
 msgid "Updating Scene Groups"
-msgstr "در حال به‌روزرسانی گروه‌های صحنه..."
+msgstr "در حال به‌روزرسانی گروه‌های صحنه"
 
 msgid ""
 "There are multiple importers for different types pointing to file %s, import "
@@ -6367,7 +6367,7 @@ msgid "Copying files..."
 msgstr "در حال روگرفت پرونده‌ها..."
 
 msgid "Remapping dependencies..."
-msgstr "نگاشت مجدد وابستگی‌ها..."
+msgstr "بازنگاشت وابستگی‌ها..."
 
 msgid "Go to Line"
 msgstr "رفتن به خط"
@@ -6434,9 +6434,6 @@ msgstr "تغییر گونهٔ «%s»"
 msgid "Change"
 msgstr "دگرش"
 
-msgid "No results for \"%s\"."
-msgstr "هیچ نتیجه ای برای \"%s\" وجود ندارد."
-
 msgid "Script path: %s"
 msgstr "مسیر اسکریپت: %s"
 
@@ -6445,6 +6442,9 @@ msgstr "اسکریپت درون ویراستار اجرا خواهد شد."
 
 msgid "The selected class can't be instantiated."
 msgstr "کلاس برگزیده نمی‌تواند نمونه‌سازی شود."
+
+msgid "Favorites:"
+msgstr "دلخواه‌ها:"
 
 msgid "Recent:"
 msgstr "اخیر:"
@@ -6586,14 +6586,11 @@ msgstr "همه اجزا"
 msgid "Components"
 msgstr "اجزا"
 
-msgid "Licenses"
-msgstr "پروانه‌ها"
+msgid "Expand Bottom Panel"
+msgstr "گسترش پهنهٔ پایینی"
 
 msgid "Pin Bottom Panel Switching"
 msgstr "سنجاق کردن سودهی پهنهٔ پایینی"
-
-msgid "Expand Bottom Panel"
-msgstr "گسترش پهنهٔ پایینی"
 
 msgid "Move/Duplicate: %s"
 msgstr "جابه‌جایی/دوتاسازی: %s"
@@ -6624,6 +6621,9 @@ msgstr "گزینش بنمایه"
 msgid "Select Scene"
 msgstr "گزینش صحنه"
 
+msgid "Select %s"
+msgstr "انتخاب %s"
+
 msgid "Fuzzy Search"
 msgstr "جستجوی گُنگ"
 
@@ -6650,6 +6650,9 @@ msgstr "نمای توری"
 
 msgid "List view"
 msgstr "نمای فهرست"
+
+msgid "Hold Shift for more precise changes."
+msgstr "برای تغییرات دقیق تر شیفت را نگه دارید."
 
 msgid "No notifications."
 msgstr "بدون اعلان."
@@ -6743,6 +6746,9 @@ msgstr ""
 msgid "Error opening scene"
 msgstr "خطا در گشودن صحنه"
 
+msgid "Advanced Import Settings for %s '%s'"
+msgstr "تنظیمات پیشرفته ایمپورت برای %s '%s'"
+
 msgid "Select folder to extract material resources"
 msgstr "گزینش پوشه برای استخراج بنمایه‌های جنس"
 
@@ -6768,9 +6774,9 @@ msgid ""
 "This material already references an external file, no action will be taken.\n"
 "Disable the external property for it to be extracted again."
 msgstr ""
-"این ماده قبلاً به یک پرونده خارجی ارجاع داده شده است، هیچ اقدامی انجام نخواهد "
+"این ماده از پیش به یک پروندهٔ بیرونی ارجاع داده شده است، هیچ کنشی انجام نخواهد "
 "شد.\n"
-"برای استخراج مجدد، ویژگی خارجی را غیرفعال کنید."
+"برای استخراج دوباره، ویژگی بیرونی را غیرفعال کنید."
 
 msgid "No import ID"
 msgstr "بدون شناسهٔ درون‌برد"
@@ -7246,7 +7252,7 @@ msgid "Remove element %d from property array with prefix %s."
 msgstr "برای برچیدن المان %d از آرایهٔ ویژگی پیشوند %s را به کار بگیرید."
 
 msgid "Move element %d to position %d in property array with prefix %s."
-msgstr "المان %d را در آرایهٔ ویژگی با پیشوند %s به نهشت %d بفرست."
+msgstr "انتقال عنصر %d به موقعیت %d در آرایهٔ ویژگی با پیشوند %s."
 
 msgid "Clear Property Array with Prefix %s"
 msgstr "پاک‌کردن آرایهٔ ویژگی با پیشوند %s"
@@ -7357,17 +7363,11 @@ msgstr ""
 "نمایش بین مسیر و شناسه کاربر (UID) را تغییر می‌دهد. \n"
 "شناسه کاربر (UID) مقدار واقعی این ویژگی است."
 
-msgid "Renaming layer %d:"
-msgstr "نامگذاری دوبارهٔ لایهٔ %d:"
+msgid "Layer %d"
+msgstr "لایهٔ %d"
 
 msgid "Bit %d, value %d"
 msgstr "%d بیت، %d ارزش"
-
-msgid "Rename layer"
-msgstr "بازنامگذاری لایه"
-
-msgid "Layer %d"
-msgstr "لایهٔ %d"
 
 msgid "No Named Layers"
 msgstr "بدون لایه‌های نامگذاشته شده"
@@ -7465,7 +7465,7 @@ msgid "New Value:"
 msgstr "ارزش نو:"
 
 msgid "Reorder"
-msgstr "مرتب سازی مجدد"
+msgstr "بازچینش"
 
 msgid "(Nil) %s"
 msgstr "(هیچ) %s"
@@ -7499,6 +7499,11 @@ msgstr "افزودن ترجمه"
 
 msgid "Lock/Unlock Component Ratio"
 msgstr "قفلیدن/واقفلیدن نسبت مولفه"
+
+msgid "This %s is used in %d place."
+msgid_plural "This %s is used in %d places."
+msgstr[0] "این %s در %d مکان استفاده شده."
+msgstr[1] "این %s در %d تا مکان استفاده شده."
 
 msgid ""
 "The selected resource (%s) does not match any type expected for this property "
@@ -7946,6 +7951,9 @@ msgstr "مسیر پروژه"
 msgid "This project was last edited in a different Godot version: "
 msgstr "این پروژه آخرین بار در نسخهٔ متفاوتی از گودوت ویراسته شده است. "
 
+msgid "Unknown version"
+msgstr "نسخهٔ ناشناخته"
+
 msgid "This project uses features unsupported by the current build:"
 msgstr "این پروژه ویژگی‌هایی را بکارمی‌برد که در ساخت کنونی پشتیبانی نمی‌شود:"
 
@@ -7961,8 +7969,8 @@ msgstr "گشودن در مدیر پرونده"
 msgid "Last edited timestamp"
 msgstr "آخرین برچسب زمانی ویراسته"
 
-msgid "Unknown version"
-msgstr "نسخهٔ ناشناخته"
+msgid "Missing Date"
+msgstr "تاریخ گم شده"
 
 msgid "Scanning"
 msgstr "در حال پویش"
@@ -7982,27 +7990,12 @@ msgstr "مدیریت برچسب‌ها"
 msgid "New Window"
 msgstr "چارچوب جدید"
 
-msgid "Missing Date"
-msgstr "تاریخ گم شده"
-
 msgctxt "Application"
 msgid "Project Manager"
 msgstr "مدیر پروژه"
 
 msgid "You don't have any projects yet."
 msgstr "شما هنوز هیچ پروژه‌ای ندارید."
-
-msgid ""
-"Get started by creating a new one,\n"
-"importing one that exists, or by downloading a project template from the "
-"Asset Library!"
-msgstr ""
-"با ایجاد یک پروژه جدید،\n"
-" وارد کردن پروژه موجود یا دانلود یک الگوی پروژه از کتابخانه دارایی‌ها، شروع "
-"کنید!"
-
-msgid "Go Online and Open Asset Library"
-msgstr "آنلاین شدن و گشودن کتابخانه دارایی"
 
 msgid "Are you sure to run %d projects at once?"
 msgstr "آیا مطمئن هستید که %d پروژه را همزمان اجرا می‌کنید؟"
@@ -8294,13 +8287,6 @@ msgstr "آخرین ویرایش"
 msgid "Tags"
 msgstr "برچسب‌ها"
 
-msgid ""
-"Note: The Asset Library requires an online connection and involves sending "
-"data over the internet."
-msgstr ""
-"بدانید: کتابخانهٔ دارایی نیازمند به اتصال برخط و آنلاین بوده و فرستادن داده از "
-"راه اینترنت را دربرمی‌گیرد."
-
 msgid "Edit Project"
 msgstr "ویرایش پروژه"
 
@@ -8315,16 +8301,6 @@ msgstr "برچیدن پروژه"
 
 msgid "Remove Missing"
 msgstr "برچیدن ازدست‌رفته‌ها"
-
-msgid "Asset Library"
-msgstr "کتابخانهٔ دارایی"
-
-msgid ""
-"Asset Library not available (due to using Web editor, or because SSL support "
-"disabled)."
-msgstr ""
-"کتابخانهٔ دارایی دردسترس نیست (به‌خاطر به‌کارگیری از ویراستار وب یا برای "
-"ازکارافتاده بودن پشتیبانی از اس.اس.ال)."
 
 msgid "Select a Folder to Scan"
 msgstr "گزینش یک پوشه برای پویش"
@@ -8449,9 +8425,9 @@ msgid ""
 "reimporting any scene/resource should not cause unintended changes."
 msgstr ""
 "نسخه‌های مختلف موتور ممکن است تفاوت‌های جزئی در منابع مختلف، مانند فیلدهای "
-"اضافی یا ویژگی‌های حذف شده، داشته باشند. هنگام ارتقاء پروژه به نسخه جدید، چنین "
+"اضافی یا ویژگی‌های حذف‌شده، داشته باشند. هنگام ارتقاء پروژه به نسخهٔ جدید، چنین "
 "تغییراتی می‌تواند باعث ایجاد تفاوت‌هایی در هنگام ذخیره صحنه‌ها یا منابع یا وارد "
-"کردن مجدد شود.\n"
+"کردن دوباره شود.\n"
 "\n"
 "این ابزار تضمین می‌کند که چنین تغییراتی همه به طور همزمان انجام می‌شوند. این "
 "ابزار:\n"
@@ -8459,7 +8435,7 @@ msgstr ""
 "- هر منبع متنی/باینری را بارگیری و دوباره ذخیره می‌کند\n"
 "- هر منبع قابل وارد کردن را دوباره وارد می‌کند\n"
 "\n"
-"ارتقاء کامل زمان قابل توجهی طول می‌کشد، اما پس از آن ذخیره/وارد کردن مجدد هر "
+"ارتقاء کامل زمان قابل توجهی طول می‌کشد، اما پس از آن ذخیره/وارد کردن دوبارهٔ هر "
 "صحنه/منبع نباید باعث تغییرات ناخواسته شود."
 
 msgid "Restart & Upgrade"
@@ -8597,12 +8573,6 @@ msgstr ""
 "پروژه با فریم‌بر‌ثانیه‌ای پایدار اجرا شده و برونداد دیداری و شنیداری در پرونده‌ای "
 "ویدیویی ضبط خواهد شد."
 
-msgid "No Remote Deploy export presets configured."
-msgstr "هیچ پیش‌نشانده‌ای برای برون‌برد به‌کارگیری از راه دور پیکربندی نشده است."
-
-msgid "Remote Deploy"
-msgstr "به‌کارگیری از راه دور"
-
 msgid ""
 "No runnable export preset found for this platform.\n"
 "Please add a runnable preset in the Export menu or define an existing preset "
@@ -8632,6 +8602,9 @@ msgstr "به‌کارگیری در سومین دستگاه درون فهرست"
 
 msgid "Deploy to Fourth Device in List"
 msgstr "به‌کارگیری در چهارمین دستگاه درون فهرست"
+
+msgid "Remote Deploy"
+msgstr "به‌کارگیری از راه دور"
 
 msgid "Project Run"
 msgstr "اجرای پروژه"
@@ -8693,11 +8666,20 @@ msgstr ""
 msgid "Game embedding not available in single window mode."
 msgstr "نهادینه‌سازی بازی در حالت تک‌پنجرگی در دسترس نیست."
 
+msgid "HDR"
+msgstr "اچ‌دی‌آر"
+
 msgid "Unmute game audio."
 msgstr "صدادار کردن صوت بازی."
 
 msgid "Mute game audio."
 msgstr "بی‌صدا کردن صوت بازی."
+
+msgid "Request HDR Output"
+msgstr "درخواست برونداد اچ‌دی‌آر"
+
+msgid "%s+Alt+RMB: Show list of all nodes at position clicked."
+msgstr "%s+Alt+RMB: نمایش فهرست تمام گره‌ها در موقعیت کلیک‌شده."
 
 msgid "Suspend"
 msgstr "تعلیق"
@@ -8744,9 +8726,6 @@ msgstr "دستکاری درون بازی"
 
 msgid "Manipulate From Editors"
 msgstr "دستکاری از ویراستارها"
-
-msgid "Embedding Options"
-msgstr "گزینه‌های نهادینه‌سازی"
 
 msgid "Embed Game on Next Play"
 msgstr "نهادینه‌سازی بازی در اجرای بعدی"
@@ -8952,6 +8931,9 @@ msgstr "گزینش نقطه‌ها"
 msgid "Shift+Drag: Select Control Points"
 msgstr "شیفت+کشاندن: گزینش نقطه‌های کنترل"
 
+msgid "%s+Click: Add Point"
+msgstr "%s+کلیک: افزودن نقطه"
+
 msgid "Left Click: Split Segment (in curve)"
 msgstr "چپ‌کلیک: شکافتن بخش (در کمانه)"
 
@@ -9139,6 +9121,13 @@ msgstr "گام Y توری:"
 msgid "Sync Bones to Polygon"
 msgstr "همگام‌سازی استخوان‌ها به چندضلعی"
 
+msgid ""
+"The selected scene could not be found. It may have been moved or deleted."
+msgstr "صحنهٔ انتخاب‌شده پیدا نشد. ممکن است جابجا یا حذف شده باشد."
+
+msgid "Advanced Settings"
+msgstr "تنظیمات پیشرفته"
+
 msgid "This skeleton has no bones, create some children Bone2D nodes."
 msgstr "این استخوان‌بندی هیچ استخوانی ندارد، چند گرهٔ فرزند Bone2D بسازید."
 
@@ -9152,7 +9141,7 @@ msgid "Skeleton2D"
 msgstr "اسکلت دو بعدی"
 
 msgid "Reset to Rest Pose"
-msgstr "تنظیم مجدد به حالت استراحت"
+msgstr "بازنشانی به حالت استراحت"
 
 msgid "Overwrite Rest Pose"
 msgstr "وضعیت استراحت را بازنویسی کن"
@@ -9210,6 +9199,9 @@ msgstr "ساخت هم‌نیای LightOccluder2D"
 
 msgid "Sprite's region needs to be enabled in the inspector."
 msgstr "منطقه اسپرایت باید در بخش بازرس فعال شود."
+
+msgid "Sprite2D"
+msgstr "شکلک دوبعدی"
 
 msgid "Drag to Resize Region Rect"
 msgstr "برای تغییر اندازه ناحیه، بکشید"
@@ -9321,7 +9313,7 @@ msgid "Advanced"
 msgstr "پیشرفته"
 
 msgid "Reset to default tile shape"
-msgstr "تنظیم مجدد به شکل پیش‌فرض کاشی‌ها"
+msgstr "بازنشانی به شکل کاشی پیشفرض"
 
 msgid "Rotate Right"
 msgstr "چرخش به راست"
@@ -9356,6 +9348,9 @@ msgstr "ویژگی های نقاشی کاشی ها"
 msgid "Painting:"
 msgstr "رنگ‌آمیزی:"
 
+msgid "Polygon %d"
+msgstr "چندضلعی %d"
+
 msgid "No terrains"
 msgstr "بدون زمین‌"
 
@@ -9376,6 +9371,12 @@ msgstr "کشیدن مستطیل:"
 
 msgid "Can't rotate patterns when using non-square tile grid."
 msgstr "نمی‌توان هنگام به‌کارگیری کاشی نامربعی توری الگوها را چرخاند."
+
+msgid "Shift: Draw line."
+msgstr "شیفت: کشیدن خط."
+
+msgid "%s+Shift: Draw rectangle."
+msgstr "%s+شیفت: کشیدن مستطیل."
 
 msgid "No Texture Atlas Source (ID: %d)"
 msgstr "منبع اطلس بافت وجود ندارد (شناسه: %d)"
@@ -9425,9 +9426,6 @@ msgstr "چسباندن کاشی‌ها"
 
 msgid "Selection Tool"
 msgstr "ابزار گزینش"
-
-msgid "Shift: Draw line."
-msgstr "شیفت: کشیدن خط."
 
 msgid "Paint Tool"
 msgstr "ابزار نقاشی"
@@ -9728,9 +9726,6 @@ msgstr "برچیدن کاشی‌ها"
 msgid "Move a tile"
 msgstr "جابه‌جایی یک کاشی"
 
-msgid "Select tiles"
-msgstr "گزینش کاشی‌ها"
-
 msgid "Resize a tile"
 msgstr "دگرش اندازهٔ یک کاشی"
 
@@ -9802,6 +9797,17 @@ msgstr ""
 "مگر اینکه به مشکلات رندر ناشی از فاصله‌بندی بافت برخورد کرده باشید."
 
 msgid ""
+"The position of the tile's top-left corner in the atlas. The position and "
+"size must be within the atlas and can't overlap another tile.\n"
+"Each painted tile has associated atlas coords, so changing this property may "
+"cause your TileMaps to not display properly."
+msgstr ""
+"موقعیت گوشهٔ بالا-چپ کاشی در اطلس. موقعیت و اندازه باید درون اطلس باشند و "
+"نمی‌توانند با کاشی دیگری هم‌پوشانی داشته باشند.\n"
+"هر کاشی نقاشی‌شده دارای مختصات اطلس مرتبط است، بنابراین تغییر این ویژگی ممکن "
+"است باعث شود نقشه‌های کاشی شما به‌درستی نمایش داده نشوند."
+
+msgid ""
 "Number of columns for the animation grid. If number of columns is lower than "
 "number of frames, the animation will automatically adjust row count."
 msgstr ""
@@ -9810,6 +9816,21 @@ msgstr ""
 
 msgid "Animation speed in frames per second."
 msgstr "تندی پویانمایی به فریم‌برثانیه."
+
+msgid ""
+"If [code]true[/code], the tile is rotated 90 degrees [i]counter-clockwise[/i] "
+"and then flipped vertically. In practice, this means that to rotate a tile by "
+"90 degrees clockwise without flipping it, you should enable [b]Flip H[/b] and "
+"[b]Transpose[/b]. To rotate a tile by 180 degrees clockwise, enable [b]Flip "
+"H[/b] and [b]Flip V[/b]. To rotate a tile by 270 degrees clockwise, enable "
+"[b]Flip V[/b] and [b]Transpose[/b]."
+msgstr ""
+"اگر [code]true[/code] باشد، کاشی ۹۰ درجه [i]پادساعتگرد[/i] چرخانده شده و سپس "
+"به‌طور عمودی برعکس می‌شود. در عمل، این بدان معناست که برای چرخاندن یک کاشی ۹۰ "
+"درجه ساعتگرد بدون برعکس کردن آن، باید [b]Flip H[/b] و [b]Transpose[/b] را "
+"فعال کنید. برای چرخاندن یک کاشی ۱۸۰ درجه ساعتگرد، [b]Flip H[/b] و [b]Flip V[/"
+"b] را فعال کنید. برای چرخاندن یک کاشی ۲۷۰ درجه ساعتگرد، [b]Flip V[/b] و "
+"[b]Transpose[/b] را فعال کنید."
 
 msgid ""
 "The origin to use for drawing the tile. This can be used to visually offset "
@@ -9870,6 +9891,13 @@ msgstr ""
 "احتمال نسبی ظاهر شدن این کاشی هنگام نقاشی با گزینه «قرار دادن کاشی تصادفی» "
 "فعال باشد."
 
+msgid ""
+"The current atlas source has tiles outside the texture.\n"
+"You can clear it using \"%s\" option in the 3 dots menu."
+msgstr ""
+"منبع اطلس فعلی کاشی‌هایی خارج از بافت دارد.\n"
+"شما می‌توانید آن را با استفاده از گزینه «%s» در منوی سه نقطه پاک کنید."
+
 msgid "Setup"
 msgstr "آماده‌سازی"
 
@@ -9901,13 +9929,6 @@ msgstr "ایجاد کاشی‌ها در نواحی بافت غیرشفاف"
 
 msgid "Remove Tiles in Fully Transparent Texture Regions"
 msgstr "حذف کاشی‌ها در نواحی بافت کاملاً شفاف"
-
-msgid ""
-"The current atlas source has tiles outside the texture.\n"
-"You can clear it using \"%s\" option in the 3 dots menu."
-msgstr ""
-"منبع اطلس فعلی کاشی‌هایی خارج از بافت دارد.\n"
-"شما می‌توانید آن را با استفاده از گزینه «%s» در منوی سه نقطه پاک کنید."
 
 msgid "Create a Tile"
 msgstr "ساخت یک کاشی"
@@ -10001,6 +10022,9 @@ msgstr "ویژگی‌های مجموعه صحنه‌ها:"
 
 msgid "Tile properties:"
 msgstr "ویژگی‌های کاشی:"
+
+msgid "Source ID: %d"
+msgstr "ID منبع: %d"
 
 msgid "Bone Picker:"
 msgstr "برگزینندهٔ استخوان:"
@@ -10213,6 +10237,9 @@ msgstr "چندین کوژ"
 msgid "Sphere"
 msgstr "کُره"
 
+msgid "Primitive"
+msgstr "ابتدایی"
+
 msgid "Can't create a collision shape as sibling for the scene root."
 msgstr "نمی‌توان شکل برخوردگاهی را به‌عنوان هم‌نیا برای ریشهٔ صحنه ساخت."
 
@@ -10355,6 +10382,31 @@ msgstr ""
 "این مشابه شکل برخورد واحد است، اما در برخی موارد می‌تواند هندسه ساده‌تری ایجاد "
 "کند، به قیمت دقت کمتر."
 
+msgid ""
+"Creates an bounding box collision shape.\n"
+"This will use the mesh's AABB if the shape is not a built-in BoxMesh.\n"
+"This is faster than the convex collision shape option for collision detection."
+msgstr ""
+"یک شکل برخورد جعبه‌ای ایجاد می‌کند.\n"
+"اگر شکل از نوع BoxMesh پیش ساخته نباشد، از AABB مش استفاده می‌کند.\n"
+"این روش برای تشخیص برخورد، از گزینهٔ شکل برخورد محدب سریع‌تر است."
+
+msgid ""
+"Creates a box, capsule, cylinder, or sphere primitive collision shape if the "
+"mesh is a primitive.\n"
+"The mesh must use the built-in BoxMesh, CapsuleMesh, CylinderMesh, or "
+"SphereMesh primitive.\n"
+"This is faster than the convex collision shape option for collision detection."
+msgstr ""
+"در صورتی که مش از نوع اولیه باشد، یک شکل برخورد اولیه به شکل جعبه، کپسول، "
+"استوانه یا کره ایجاد می‌کند.\n"
+"مش باید از نوع اولیهٔ توکار BoxMesh، CapsuleMesh، CylinderMesh یا SphereMesh "
+"استفاده کند.\n"
+"این گزینه برای تشخیص برخورد سریع‌تر از گزینهٔ شکل برخورد محدب است."
+
+msgid "Alignment Axis"
+msgstr "محور هم‌ترازی"
+
 msgid "X-Axis"
 msgstr "محور X"
 
@@ -10390,9 +10442,6 @@ msgstr ""
 "\n"
 "اگر مش این الزامات را برآورده نکند، مسیر‌یابی خراب خواهد شد."
 
-msgid "Remove item %d?"
-msgstr "برچیدن %d مورد؟"
-
 msgid ""
 "Update from existing scene?:\n"
 "%s"
@@ -10403,12 +10452,6 @@ msgstr ""
 msgid "MeshLibrary"
 msgstr "کتابخانهٔ مش"
 
-msgid "Add Item"
-msgstr "افزودن مورد"
-
-msgid "Remove Selected Item"
-msgstr "برچیدن مورد برگزیده"
-
 msgid "Import from Scene (Ignore Transforms)"
 msgstr "درون‌بردن از صحنه (نادیده گرفتن ترادیسی‌ها)"
 
@@ -10417,6 +10460,9 @@ msgstr "درون‌بردن از صحنه (بکاربستن ترادیسی‌ه�
 
 msgid "Update from Scene"
 msgstr "به‌روزرسانی از صحنه"
+
+msgid "Filter Meshes"
+msgstr "پالایش مش‌ها"
 
 msgid "Apply without Transforms"
 msgstr "بکاربستن بدون ترادیسی"
@@ -10493,48 +10539,6 @@ msgstr "گیزموی بی‌نام"
 msgid "Transform Aborted."
 msgstr "ترادیسی نافرجام ماند."
 
-msgid "Orthogonal"
-msgstr "قائم"
-
-msgid "Perspective"
-msgstr "دیدانداز"
-
-msgid "Top Orthogonal"
-msgstr "قائم بالا"
-
-msgid "Top Perspective"
-msgstr "چشم‌انداز از بالا"
-
-msgid "Bottom Orthogonal"
-msgstr "قائم از پایین"
-
-msgid "Bottom Perspective"
-msgstr "چشم‌انداز از پایین"
-
-msgid "Left Orthogonal"
-msgstr "قائم از چپ"
-
-msgid "Left Perspective"
-msgstr "چشم‌انداز از چپ"
-
-msgid "Right Perspective"
-msgstr "چشم‌انداز از راست"
-
-msgid "Front Orthogonal"
-msgstr "قائم جلو"
-
-msgid "Front Perspective"
-msgstr "چشم‌انداز از روبه‌رو"
-
-msgid "Rear Orthogonal"
-msgstr "قائم عقب"
-
-msgid "Rear Perspective"
-msgstr "نمای پشتی پرسپکتیو"
-
-msgid "[auto]"
-msgstr "[خودکار]"
-
 msgid "Grouped"
 msgstr "گروه شده"
 
@@ -10556,12 +10560,26 @@ msgstr "کلیدگذاری غیرفعال است (هیچ کلیدی وارد ن�
 msgid "Animation Key Inserted."
 msgstr "کلید پویانمایی جایگذاری شد."
 
-msgid ""
-"Drag and drop to override the material of any geometry node.\n"
-"Hold %s when dropping to override a specific surface."
-msgstr ""
-"بکشید و رها کنید تا ماده هر گره هندسی را بازنویسی کنید. \n"
-"هنگام رها کردن، %s را نگه دارید تا سطح مشخصی را بازنویسی کنید."
+msgid "Rotating %s degrees."
+msgstr "%s درجه چرخاندن."
+
+msgid "X: %s"
+msgstr "X: %s"
+
+msgid "Y: %s"
+msgstr "Y: %s"
+
+msgid "Z: %s"
+msgstr "Z: %s"
+
+msgid "Size: %s (%.1fMP)"
+msgstr "اندازه: %s (%.1f مگاپیکسل)"
+
+msgid "Objects: %d"
+msgstr "اشیا: %d"
+
+msgid "Primitives: %d"
+msgstr "ابتدائی‌ها: %d"
 
 msgid "Draw Calls: %d"
 msgstr "فراخوانی‌های رسم: %d"
@@ -10575,11 +10593,8 @@ msgstr "زمان کارت گرافیک: %s میلی‌ثانیه"
 msgid "FPS: %d"
 msgstr "فریم‌بر‌ثانیه: %d"
 
-msgid "Translating:"
-msgstr "در حال انتقال:"
-
-msgid "Instantiating:"
-msgstr "نمونه‌ساختن:"
+msgid "Instantiating: %s"
+msgstr "نمونه‌سازی: %s"
 
 msgid "Top View."
 msgstr "نمای بالا."
@@ -10614,23 +10629,19 @@ msgstr "نشاندن بازنویسی جنس"
 msgid "Error instantiating scene from %s."
 msgstr "خطا در نمونه‌سازی صحنه از %s."
 
-msgid "Can't instantiate: %s."
-msgstr "نمی‌توان نمونه‌ساخت: %s."
+msgid "Can't drop the file..."
+msgid_plural "Can't drop the files..."
+msgstr[0] "نمی‌توان فایل را رها کرد..."
+msgstr[1] "نمی‌توان فایل‌ها را رها کرد..."
 
-msgid "Circular dependency found at %s"
-msgstr "وابستگی دایره‌ای در %s پیدا شد"
+msgid "Circular dependency found at %s."
+msgstr "وابستگی دایره‌ای در %s یافت شد."
 
 msgid "Rotate"
 msgstr "چرخش"
 
 msgid "Translate"
 msgstr "انتقال"
-
-msgid "Scaling:"
-msgstr "مقیاس‌دهی:"
-
-msgid "Rotating %s degrees."
-msgstr "%s درجه چرخاندن."
 
 msgid "Translating %s."
 msgstr "در حال ترجمهٔ %s."
@@ -10641,8 +10652,44 @@ msgstr "%f درجه چرخاندن."
 msgid "Scaling %s."
 msgstr "مقیاس‌دهی %s."
 
+msgid "Viewport Pan Modifier 2"
+msgstr "اصلاح‌گر حرکت درگاه دید ۲"
+
+msgid "Viewport Zoom Modifier 1"
+msgstr "اصلاح‌گر بزرگنمایی درگاه دید ۱"
+
+msgid "Viewport Zoom Modifier 2"
+msgstr "اصلاح‌گر بزرگنمایی درگاه دید ۲"
+
+msgid "Freelook Left"
+msgstr "آزادنگری چپ"
+
+msgid "Freelook Right"
+msgstr "آزادنگری راست"
+
+msgid "Freelook Forward"
+msgstr "آزادنگری جلو"
+
+msgid "Freelook Backwards"
+msgstr "آزادنگری به پشت"
+
+msgid "Freelook Up"
+msgstr "آزادنگری بالا"
+
+msgid "Freelook Down"
+msgstr "آزادنگری به پایین"
+
+msgid "Freelook Speed Modifier"
+msgstr "اصلاح‌کنندهٔ تندی آزادنگری"
+
 msgid "View"
 msgstr "دیدن"
+
+msgid "Perspective"
+msgstr "دیدانداز"
+
+msgid "Orthogonal"
+msgstr "قائم"
 
 msgid "Auto Orthogonal Enabled"
 msgstr "قائم خودکار فعال شده است"
@@ -10790,36 +10837,6 @@ msgstr "به‌کاراندازی دوپلر"
 msgid "Cinematic Preview"
 msgstr "پیش‌نمایش سینمایی"
 
-msgid "Viewport Pan Modifier 2"
-msgstr "اصلاح‌گر حرکت درگاه دید ۲"
-
-msgid "Viewport Zoom Modifier 1"
-msgstr "اصلاح‌گر بزرگنمایی درگاه دید ۱"
-
-msgid "Viewport Zoom Modifier 2"
-msgstr "اصلاح‌گر بزرگنمایی درگاه دید ۲"
-
-msgid "Freelook Left"
-msgstr "آزادنگری چپ"
-
-msgid "Freelook Right"
-msgstr "آزادنگری راست"
-
-msgid "Freelook Forward"
-msgstr "آزادنگری جلو"
-
-msgid "Freelook Backwards"
-msgstr "آزادنگری به پشت"
-
-msgid "Freelook Up"
-msgstr "آزادنگری بالا"
-
-msgid "Freelook Down"
-msgstr "آزادنگری به پایین"
-
-msgid "Freelook Speed Modifier"
-msgstr "اصلاح‌کنندهٔ تندی آزادنگری"
-
 msgid "Lock Transformation to X axis"
 msgstr "قفلیدن ترادیسی به محور X"
 
@@ -10852,9 +10869,6 @@ msgstr "تغییر نهشت با به‌کارگیری برخوردگاه‌ها
 
 msgid "Toggle Camera Preview"
 msgstr "روشن/خاموش کردن پیش‌نمایش دوربین"
-
-msgid "Overriding material..."
-msgstr "در حال بازنویسی جنس..."
 
 msgid "Lock Selected"
 msgstr "قفل برگزیده شد"
@@ -10897,8 +10911,8 @@ msgid "Alt+RMB: Show list of all nodes at position clicked, including locked."
 msgstr ""
 "Alt+کلید راست موس: نمایش فهرست همهٔ گره‌ها در نهشت کلیک‌شده، شامل قفلیده‌ها."
 
-msgid "(Available in all modes.)"
-msgstr "(دردسترس در همهٔ حالت‌ها.)"
+msgid "LMB+Drag: Measure the distance between two points in 3D space."
+msgstr "راست‌کلیک+کشاندن: اندازه‌گیری فاصلهٔ میان دو نقطه در فضای سه‌بعدی."
 
 msgid ""
 "Scene contains\n"
@@ -10997,9 +11011,6 @@ msgstr ""
 
 msgid "Ungroup"
 msgstr "گروه‌زدایی"
-
-msgid "LMB+Drag: Measure the distance between two points in 3D space."
-msgstr "راست‌کلیک+کشاندن: اندازه‌گیری فاصلهٔ میان دو نقطه در فضای سه‌بعدی."
 
 msgid "Ruler Mode"
 msgstr "حالت خط‌کش"
@@ -11510,9 +11521,6 @@ msgstr "برچیدن راهنمای افقی"
 msgid "Create Horizontal and Vertical Guides"
 msgstr "ساخت راهنمای عمودی و افقی"
 
-msgid "Add Node Here..."
-msgstr "افزودن گره در اینجا..."
-
 msgid "Instantiate Scene Here..."
 msgstr "نمونه‌سازی صحنه در اینجا..."
 
@@ -11564,11 +11572,17 @@ msgstr "جابه‌جا کردن:"
 msgid "Rotating:"
 msgstr "چرخاندن:"
 
+msgid "Scaling:"
+msgstr "مقیاس‌دهی:"
+
 msgid "Alt+Drag: Move selected node."
 msgstr "Alt+کشیدن: جابه‌جایی گرهٔ برگزیده."
 
 msgid "RMB: Add node at position clicked."
 msgstr "کلید راست موس: افزودن گره به نهشت کلیک‌شده."
+
+msgid "Shift: Scale proportionally."
+msgstr "شیفت: مقیاس‌گذاری تناسب‌وار."
 
 msgid "Click to change object's pivot."
 msgstr "برای دگرگون کردن لولای شیء کلیک کنید."
@@ -11582,6 +11596,12 @@ msgid ""
 msgstr ""
 "برای گذاشتن لولای موقت در مرکز گره‌های برگزیده هنگام نگه داشتن شیفت روی این "
 "دکمه کلیک کنید."
+
+msgid ""
+"You can also use Pan View shortcut (Space by default) to pan in any mode."
+msgstr ""
+"همچنین می‌توانید میانبر نمای سراسرنمایی (پیش‌فرضانه کلید فاصله) را برای "
+"سراسرنمایی در هر حالتی به کار ببرید."
 
 msgid "Paste Pose"
 msgstr "حالت چسباندن"
@@ -11622,26 +11642,11 @@ msgstr "بزرگنمایی به ۸۰۰%"
 msgid "Zoom to 1600%"
 msgstr "بزرگنمایی به ۱۶۰۰%"
 
-msgid "Shift: Scale proportionally."
-msgstr "شیفت: مقیاس‌گذاری تناسب‌وار."
-
 msgid "Pan Mode"
 msgstr "حالت سراسرنمایی"
 
-msgid ""
-"You can also use Pan View shortcut (Space by default) to pan in any mode."
-msgstr ""
-"همچنین می‌توانید میانبر نمای سراسرنمایی (پیش‌فرضانه کلید فاصله) را برای "
-"سراسرنمایی در هر حالتی به کار ببرید."
-
-msgid "Toggle smart snapping."
-msgstr "روشن/خاموش کردن چفت هوشمند."
-
 msgid "Use Smart Snap"
 msgstr "به‌کارگیری چفت هوشمند"
-
-msgid "Toggle grid snapping."
-msgstr "روشن/خاموش کردن چفت توری."
 
 msgid "Use Grid Snap"
 msgstr "به‌کارگیری چفت توری"
@@ -11783,38 +11788,11 @@ msgstr "در حال افزودن %s..."
 msgid "Can't instantiate multiple nodes without root."
 msgstr "نمی‌توان چندین گره را بی‌ریشه نمونه‌سازی کرد."
 
-msgid "Circular dependency found at %s."
-msgstr "وابستگی دایره‌ای در %s یافت شد."
-
-msgid "Can't instantiate: %s"
-msgstr "نمی‌توان نمونه‌ساخت: %s"
-
 msgid "Creating inherited scene from: %s"
 msgstr "در حال ساخت صحنهٔ ارث‌برده از: %s"
 
 msgid "Instantiating: "
 msgstr "نمونه‌سازی: "
-
-msgid "Adding %s and %s..."
-msgstr "در حال افزودن %s و %s..."
-
-msgid ""
-"Drag and drop to add as sibling of selected node (except when root is "
-"selected)."
-msgstr ""
-"برای افزودن به‌عنوان هم‌نیای گرهٔ برگزیده (به‌جز زمانی که ریشه برگزیده باشد) "
-"بکشانید و بیندازید."
-
-msgid "Hold Shift when dropping to add as child of selected node."
-msgstr ""
-"هنگام انداختن شیفت را نگه دارید تا به‌عنوان فرزند گرهٔ برگزیده افزوده شود."
-
-msgid "Hold Alt when dropping to add as child of root node."
-msgstr "هنگام انداختن آلْت را نگه دارید تا به‌عنوان فرزند گرهٔ ریشه افزوده شود."
-
-msgid "Hold Alt + Shift when dropping to add as different node type."
-msgstr ""
-"هنگام انداختن آلْت + شیفت را نگه دارید تا به‌عنوان گونهٔ گرهٔ متفاوتی افزوده شود."
 
 msgid ""
 "All selected CanvasItems are either invisible or locked in some way and can't "
@@ -12752,7 +12730,7 @@ msgid "Invalid file, not a PackedScene resource."
 msgstr "پرونده نامعتبر است، بنمایهٔ صحنهٔ بسته‌بندی شده نیست."
 
 msgid "Reload the scene to reflect its most actual state."
-msgstr "صحنه را بارگذاری مجدد کنید تا جدیدترین وضعیت آن منعطف شود."
+msgstr "صحنه را دوباره بارگذاری کنید تا واقعی‌ترین حالت آن را نشان دهد."
 
 msgid "Preview is not available for this shader mode."
 msgstr "پیش‌نمایش برای این حالت شیدر در دسترس نیست."
@@ -13014,9 +12992,6 @@ msgstr "هشدار پیکر‌بندی گره!"
 msgid "Revoke"
 msgstr "ریواندن (معزول کردن)"
 
-msgid "Don't Ask Again"
-msgstr "دوباره نپرسید"
-
 msgid ""
 "This dialog can also be enabled/disabled in the Editor Settings: Docks > "
 "Scene Tree > Ask Before Revoking Unique Name."
@@ -13219,6 +13194,9 @@ msgstr "ویرایش دامنه"
 msgid "Write your logic in the _run() method."
 msgstr "منطق خود را در روش _run() بنویسید."
 
+msgid "Replace in Files"
+msgstr "جایگزینی در پرونده‌ها"
+
 msgid "Find in Files"
 msgstr "یافتن در پرونده‌ها"
 
@@ -13268,12 +13246,6 @@ msgstr "جستجو..."
 msgid "Replace..."
 msgstr "جایگزین کردن..."
 
-msgid "Replace in Files"
-msgstr "جایگزینی در پرونده‌ها"
-
-msgid "Replace all (no undo)"
-msgstr "جایگزینی همه (بی‌بازگردانی)"
-
 msgid "Searching..."
 msgstr "در حال جستجو..."
 
@@ -13288,6 +13260,9 @@ msgstr "%d نظیر در %d فایل"
 
 msgid "%d matches in %d files"
 msgstr "%d نظیر در %d فایل"
+
+msgid "Replace all (no undo)"
+msgstr "جایگزینی همه (بی‌بازگردانی)"
 
 msgid "Path is empty."
 msgstr "مسیر خالی است."
@@ -13373,6 +13348,27 @@ msgstr "اسکریپت درون‌ساخته:"
 msgid "Attach Node Script"
 msgstr "پیوست کردن اسکریپت گره"
 
+msgid "Line"
+msgstr "خط"
+
+msgid "Folding"
+msgstr "تا کردن"
+
+msgid "Convert Case"
+msgstr "تبدیل مورد"
+
+msgid "Syntax Highlighter"
+msgstr "برجسته‌ساز نحو"
+
+msgid "Go To"
+msgstr "رفتن به"
+
+msgid "Bookmarks"
+msgstr "نشانک‌ها"
+
+msgid "Emoji & Symbols"
+msgstr "ایموجی و نمادها"
+
 msgid "(truncated)"
 msgstr "(بریده‌شده)"
 
@@ -13404,7 +13400,7 @@ msgid "Save File As..."
 msgstr "ذخیره‌سازی پرونده به‌عنوان..."
 
 msgid "Can't obtain the script for reloading."
-msgstr "امکان دریافت اسکریپت برای بارگذاری مجدد وجود ندارد."
+msgstr "امکان دریافت اسکریپت برای بارگذاری دوباره وجود ندارد."
 
 msgid "Cannot run the edited file because it's not a script."
 msgstr "نمی‌توان پروندهٔ ویراسته را اجرا کرد چون اسکریپت نیست."
@@ -13464,13 +13460,7 @@ msgid "Save All"
 msgstr "ذخیره‌سازی همه"
 
 msgid "Soft Reload Tool Script"
-msgstr "بارگذاری مجدد نرم اسکریپت ابزار"
-
-msgid "Copy Script Path"
-msgstr "روگرفت مسیر اسکریپت"
-
-msgid "Copy Script UID"
-msgstr "روگرفت شناسهٔ یکتای اسکریپت"
+msgstr "بارگذاری دوبارهٔ نرم اسکریپت ابزار"
 
 msgid "History Previous"
 msgstr "تاریخچهٔ پیشین"
@@ -13532,18 +13522,6 @@ msgstr "حروف کوچک"
 msgid "Capitalize"
 msgstr "بزرگ کردن حروف"
 
-msgid "Standard"
-msgstr "استاندارد"
-
-msgid "Plain Text"
-msgstr "نوشتار ساده"
-
-msgid "JSON"
-msgstr "جِی‌سان"
-
-msgid "Markdown"
-msgstr "مارک‌داون"
-
 msgid "Script"
 msgstr "اسکریپت"
 
@@ -13569,6 +13547,21 @@ msgstr "%d خط (%s):"
 msgid "Line %d:"
 msgstr "خط %d:"
 
+msgid "Drop file path."
+msgid_plural "Drop file paths."
+msgstr[0] "مسیر انداختن فایل."
+msgstr[1] "مسیرهای انداختن فایل."
+
+msgid "Hold %s+Shift: Add const preload by %s."
+msgid_plural "Hold %s+Shift: Add const preloads by %s."
+msgstr[0] "نگه داشتن %s+Shift: افزودن const preload توسط %s."
+msgstr[1] "نگه داشتن %s+Shift: افزودن const preload ها توسط %s."
+
+msgid "Drop node path."
+msgid_plural "Drop node paths."
+msgstr[0] "رها کردن مسیر گره."
+msgstr[1] "انداختن مسیر های گره."
+
 msgid ""
 "The resource does not have a valid path because it has not been saved.\n"
 "Please save the scene or resource that contains this resource and try again."
@@ -13585,32 +13578,8 @@ msgstr "نمی‌توان بدون یک صحنهٔ گشوده گره‌ها را
 msgid "Can't drop nodes because script '%s' does not inherit Node."
 msgstr "نمی‌توان گره‌ها را رها کرد زیرا اسکریپت «%s» از گره ارث‌بری نمی‌کند."
 
-msgid "Emoji & Symbols"
-msgstr "ایموجی و نمادها"
-
 msgid "Pick Color"
 msgstr "انتخاب رنگ"
-
-msgid "Go to Function"
-msgstr "رفتن به تابع"
-
-msgid "Line"
-msgstr "خط"
-
-msgid "Folding"
-msgstr "تا کردن"
-
-msgid "Convert Case"
-msgstr "تبدیل مورد"
-
-msgid "Syntax Highlighter"
-msgstr "برجسته‌ساز نحو"
-
-msgid "Bookmarks"
-msgstr "نشانک‌ها"
-
-msgid "Go To"
-msgstr "رفتن به"
 
 msgid "Delete Line"
 msgstr "زدایش خط"
@@ -13693,6 +13662,21 @@ msgstr "رفتن به نقطهٔ گسست بعدی"
 msgid "Go to Previous Breakpoint"
 msgstr "رفتن به نقطهٔ گسست پیشین"
 
+msgid "Go to Function"
+msgstr "رفتن به تابع"
+
+msgid "Standard"
+msgstr "استاندارد"
+
+msgid "Plain Text"
+msgstr "نوشتار ساده"
+
+msgid "JSON"
+msgstr "جِی‌سان"
+
+msgid "Markdown"
+msgstr "مارک‌داون"
+
 msgid ""
 "Invalid action name. It cannot be empty nor contain '/', ':', '=', '\\' or "
 "'\"'"
@@ -13704,7 +13688,7 @@ msgid "An action with the name '%s' already exists."
 msgstr "عملیاتی با نام '%s' از قبل وجود دارد."
 
 msgid "Action %s"
-msgstr "کنش ها"
+msgstr "کنش ها%s"
 
 msgid "Cannot Revert - Action is same as initial"
 msgstr "امکان بازگشت وجود ندارد - عمل مانند وضعیت اولیه است"
@@ -13790,18 +13774,6 @@ msgstr "%s مسیری نامعتبر است. در مسیر بنمایه نیست
 msgid "Add Autoload"
 msgstr "افزودن خودبارشده"
 
-msgid "Autoload Path"
-msgstr "مسیر خودبارشده"
-
-msgid "Set path or press \"Add\" to create a script."
-msgstr "مسیری بنشانید یا برای ساختن اسکریپت «افزودن» را بفشارید."
-
-msgid "Select Autoload Path"
-msgstr "گزینش مسیر خودبارشده"
-
-msgid "Node Name:"
-msgstr "نام گره:"
-
 msgid "Autoloads"
 msgstr "خودبارشده‌ها"
 
@@ -13883,32 +13855,11 @@ msgstr "قلم‌های گرافیکی SIL"
 msgid "Multi-channel Signed Distance Field Font Rendering"
 msgstr "نماپردازش قلم میدان بازهٔ نشانگذاری شدهٔ چندکاناله"
 
-msgid "3D Nodes as well as RenderingServer access to 3D features."
-msgstr "دسترسی گره‌های سه‌بعدی و همچنین RenderingServer به ویژگی‌های سه‌بعدی."
-
-msgid "Navigation Server and capabilities for 2D."
-msgstr "کارساز ناوبری و توانایی‌ها برای دوبعدی."
-
-msgid "Navigation Server and capabilities for 3D."
-msgstr "کارساز ناوبری و توانایی‌ها برای سه‌بعدی."
-
 msgid "XR (AR and VR)."
 msgstr "اکس‌آر (ای‌آر و وی‌آر)."
 
 msgid "OpenXR standard implementation (requires XR to be enabled)."
 msgstr "پیاده‌سازی استاندارد اوپن‌ایکس‌آر (به به‌کارافتادگی ایکس.آر نیاز دارد)."
-
-msgid "Wayland display (Linux only)."
-msgstr "نمایشگر وِی‌لند (تنها برای لینوکس)."
-
-msgid "X11 display (Linux only)."
-msgstr "نمایشگر ایکس۱۱ (تنها برای لینوکس)."
-
-msgid ""
-"RenderingDevice based rendering (if disabled, the OpenGL backend is required)."
-msgstr ""
-"نماپردازش بر پایهٔ RenderingDevice است (اگر ازکارافتاده باشد، به بَک‌اِند OpenGL "
-"نیاز است)."
 
 msgid "Forward+ renderer for advanced 3D graphics."
 msgstr "نماپردازندهٔ فوروارد+ برای گرافیک سه‌بعدی پیشرفته."
@@ -13928,14 +13879,8 @@ msgstr "بَک‌اِند متالِ RenderingDevice (تنها برای آرم۶
 msgid "OpenGL backend (if disabled, the RenderingDevice backend is required)."
 msgstr "بَک‌اِند OpenGL (اگر ازکارافتاده باشد، به بَک‌اِند RenderingDevice نیاز است)."
 
-msgid "Physics Server and capabilities for 2D."
-msgstr "کارساز فیزیک و توانایی‌ها برای دوبعدی."
-
 msgid "Godot Physics backend (2D)."
 msgstr "بک‌اند فیزیک گودوت (دوبعدی)."
-
-msgid "Physics Server and capabilities for 3D."
-msgstr "کارساز فیزیک و توانایی‌ها برای سه‌بعدی."
 
 msgid "Godot Physics backend (3D)."
 msgstr "بک‌اند فیزیک گودوت (سه‌بعدی)."
@@ -13973,16 +13918,8 @@ msgid ""
 "SIL Graphite smart font technology support (supported by Advanced Text Server "
 "only)."
 msgstr ""
-"SIL پشتیبانی از فناوری فونت هوشمند گرافیت (پشتیبانی فقط از طریق سرور متن "
-"پیشرفته )"
-
-msgid ""
-"Multi-channel signed distance field font rendering support using msdfgen "
-"library (pre-rendered MSDF fonts can be used even if this option disabled)."
-msgstr ""
-"پشتیبانی از نماپردازش قلم میدان بازهٔ نشانگذاری شدهٔ چندکاناله با به‌کارگیری از "
-"کتابخانهٔ msdfgen (حتا اگر این گزینه ازکارافتاده باشد، قلم‌های MSDF از پیش "
-"نماپرداخته را می‌توان بکار برد)."
+"پشتیبانی از فناوری قلم هوشمند SIL Graphite (فقط توسط Advanced Text Server "
+"پشتیبانی می شود)."
 
 msgid "General Features:"
 msgstr "ویژگی‌های اصلی:"
@@ -14111,9 +14048,6 @@ msgstr "اجازه دیدن و ویرایش صحنه‌های سه‌بعدی ر
 msgid "Allows to edit scripts using the integrated script editor."
 msgstr "اجازهٔ ویرایش اسکریپت‌ها با ویراستار اسکریپت درونی را می‌دهد."
 
-msgid "Provides built-in access to the Asset Library."
-msgstr "دسترسی تعبیه‌ شده به کتابخانه دارایی را فراهم می‌کند."
-
 msgid "Allows editing the node hierarchy in the Scene dock."
 msgstr "اجازهٔ ویرایش سلسله‌مراتب گره‌ در لنگرگاه صحنه را می‌دهد."
 
@@ -14220,6 +14154,15 @@ msgstr "درون‌برد نمایه(ها)"
 msgid "Manage Editor Feature Profiles"
 msgstr "مدیریت ویژگی نمایه‌های ویراستار"
 
+msgid "Save Layout"
+msgstr "ذخیره چیدمان"
+
+msgid "Delete Layout"
+msgstr "زدایش چیدمان"
+
+msgid "Focus Search/Filter Bar"
+msgstr "تمرکز نوار جستجو/پالایه"
+
 msgid "Edit Built-in Action: %s"
 msgstr "ویرایش کنش درون‌ساخته: %s"
 
@@ -14228,9 +14171,6 @@ msgstr "ویرایش میانبر: %s"
 
 msgid "Primary"
 msgstr "اصلی"
-
-msgid "Common"
-msgstr "معمولی"
 
 msgid "Event %d"
 msgstr "رویداد %d"
@@ -14243,9 +14183,6 @@ msgstr "عمومی"
 
 msgid "Filter Settings"
 msgstr "تنظیمات پالایه"
-
-msgid "Advanced Settings"
-msgstr "تنظیمات پیشرفته"
 
 msgid "The editor must be restarted for changes to take effect."
 msgstr "برای اثرگذاری دگرش‌ها ویراستار باید بازراه‌اندازی شود."
@@ -14346,6 +14283,9 @@ msgstr "در انتظار درونداد"
 msgid "Filter by Event"
 msgstr "پالایش بر پایهٔ رویداد"
 
+msgid "Reload"
+msgstr "بارکردن دوباره"
+
 msgid "No Event Configured"
 msgstr "رویدادی پیکربندی نشده"
 
@@ -14392,9 +14332,6 @@ msgstr "کد کلید فیزیکی (نهشت در تخته‌کلید کوئرت
 
 msgid "Key Label (Unicode, Case-Insensitive)"
 msgstr "برچسب کلید (یونی‌کد، بدون حساسیت به حروف بزرگ و کوچک)"
-
-msgid "Physical location"
-msgstr "جایگاه فیزیکی"
 
 msgid "Add Project Setting"
 msgstr "افزودن تنظیمات پروژه"
@@ -14543,11 +14480,760 @@ msgstr ""
 "این سایه‌زن روی دیسک دگرگون شده است.\n"
 "چه کنشی باید انجام گیرد؟"
 
-msgid "Reload"
-msgstr "بارکردن دوباره"
-
 msgid "Resave"
 msgstr "ذخیره دوباره"
+
+msgctxt "Locale"
+msgid "Script:"
+msgstr "دبیره:"
+
+msgctxt "Locale"
+msgid "Script"
+msgstr "دبیره"
+
+msgid "Changed Locale Language Filter"
+msgstr "فیلتر زبان محلی تغییر کرد"
+
+msgid "Changed Locale Script Filter"
+msgstr "پالایهٔ اسکریپت بوم دگرگون شد"
+
+msgid "Changed Locale Country Filter"
+msgstr "پالایهٔ بوم کشور دگرگون شد"
+
+msgid "Changed Locale Filter Mode"
+msgstr "حالت صافی بومی‌سازی تغییر کرد"
+
+msgid "[Default]"
+msgstr "[پیشفرض]"
+
+msgid "Select a Locale"
+msgstr "گزینش یک بوم"
+
+msgid "Locale Filter"
+msgstr "پالایهٔ بوم"
+
+msgid "Show All Locales"
+msgstr "نمایش همهٔ بوم‌ها"
+
+msgid "Show Selected Locales Only"
+msgstr "تنها نمایش بوم‌های برگزیده"
+
+msgid "Country:"
+msgstr "کشور:"
+
+msgid "Country"
+msgstr "کشور"
+
+msgid "Variant"
+msgstr "نوع"
+
+msgid "Previewing: %s"
+msgstr "در حال پیش‌نمایش: %s"
+
+msgid "Disable Translation Preview"
+msgstr "ازکاراندازی پیش‌نمایش ترجمه"
+
+msgid "Previewing translation. Click to disable."
+msgstr "در حال پیش‌نمایش ترجمه. برای ازکاراندازی کلیک کنید."
+
+msgid "Add %d Translation"
+msgid_plural "Add %d Translations"
+msgstr[0] "افزودن %d ترجمه"
+msgstr[1] "افزودن %d ترجمه"
+
+msgid "Translation Resource Remap: Add %d Path"
+msgid_plural "Translation Resource Remap: Add %d Paths"
+msgstr[0] "بازنهادن بنمایهٔ ترجمه: افزودن %d مسیر"
+msgstr[1] "بازنهادن بنمایهٔ ترجمه: افزودن %d مسیر"
+
+msgid "Translation Resource Remap: Add %d Remap"
+msgid_plural "Translation Resource Remap: Add %d Remaps"
+msgstr[0] "بازنهادن بنمایهٔ ترجمه: افزودن %d بازنهانی"
+msgstr[1] "بازنهادن بنمایهٔ ترجمه: افزودن %d بازنهانی"
+
+msgid "Change Resource Remap Language"
+msgstr "زبان بازنهادن بنمایه را دگرگون کنید"
+
+msgid "Remove Resource Remap"
+msgstr "برچیدن بازنهانی بنمایه"
+
+msgid "Remove Resource Remap Option"
+msgstr "برچیدن گزینهٔ بازنهانی بنمایه"
+
+msgid "Add %d file for template generation"
+msgid_plural "Add %d files for template generation"
+msgstr[0] "افزودن %d فایل برای تولید الگو"
+msgstr[1] "افزودن %d عدد فایل برای تولید الگو"
+
+msgid "Removed"
+msgstr "برچیده"
+
+msgid "%s cannot be found."
+msgstr "%s را نمیتوان پیدا کرد."
+
+msgid "Translations"
+msgstr "ترجمه‌ها"
+
+msgid "Translations:"
+msgstr "ترجمه‌ها:"
+
+msgid "Remaps"
+msgstr "بازنهاده‌ها"
+
+msgid "Resources:"
+msgstr "بنمایه‌ها:"
+
+msgid "Remaps by Locale:"
+msgstr "بازنهاده‌ها بر پایهٔ بومی‌سازی:"
+
+msgid "Files with translation strings:"
+msgstr "پرونده‌های دارای رشتهٔ ترجمه:"
+
+msgid "Add strings from built-in components such as certain Control nodes."
+msgstr "رشته‌هایی از مولفه‌های درون‌ساخته‌ای مانند گره‌های کنترل معینی را بیفزایید."
+
+msgid "Open in editor"
+msgstr "گشودن در ویراستار"
+
+msgid "Discard changes"
+msgstr "دور انداختن دگرش‌ها"
+
+msgid "Date:"
+msgstr "تاریخ:"
+
+msgid "Subtitle:"
+msgstr "زیرنویس:"
+
+msgid "File:"
+msgstr "پرونده:"
+
+msgid "Create Version Control Metadata"
+msgstr "ساخت فراداده کنترل نسخه"
+
+msgid "Local Settings"
+msgstr "تنظیمات بومی"
+
+msgid "Apply"
+msgstr "بکاربستن"
+
+msgid "Connect to VCS"
+msgstr "اتصال به VCS"
+
+msgid "Username"
+msgstr "نام کاربری"
+
+msgid "Password"
+msgstr "گذرواژه"
+
+msgid "SSH Public Key Path"
+msgstr "مسیر کلید عمومی اس‌اس‌اچ"
+
+msgid "Select SSH public key path"
+msgstr "انتخاب مسیر کلید عمومی اس‌اس‌اچ"
+
+msgid "SSH Private Key Path"
+msgstr "مسیر کلید خصوصی اس‌اس‌اچ"
+
+msgid "Select SSH private key path"
+msgstr "انتخاب مسیر کلید خصوصی اس‌اس‌اچ"
+
+msgid "SSH Passphrase"
+msgstr "عبارت عبور اس‌اس‌اچ"
+
+msgid "Detect new changes"
+msgstr "شناسایی تغییرات جدید"
+
+msgid "Discard all changes"
+msgstr "دور انداختن همهٔ دگرش‌ها"
+
+msgid "Permanentally delete my changes"
+msgstr "زدایش دگرش‌ها برای همیشه"
+
+msgid "Branches"
+msgstr "شاخه‌ها"
+
+msgid "Create New Branch"
+msgstr "ساخت شاخهٔ نو"
+
+msgid "Remove Branch"
+msgstr "برچیدن شاخه"
+
+msgid "Branch Name"
+msgstr "نام شاخه"
+
+msgid "Remotes"
+msgstr "ریموت‌ها"
+
+msgid "Create New Remote"
+msgstr "ساخت از دور نو"
+
+msgid "Remove Remote"
+msgstr "برچیدنِ از دور"
+
+msgid "Remote Name"
+msgstr "نام ریموت"
+
+msgid "Remote URL"
+msgstr "مسیر ریموت"
+
+msgid "Fetch"
+msgstr "فراخوانی"
+
+msgid "Pull"
+msgstr "Pull"
+
+msgid "Push"
+msgstr "Push"
+
+msgid "Modified"
+msgstr "تغییر کرده"
+
+msgid "Renamed"
+msgstr "بازنامگذاری شد"
+
+msgid "Deleted"
+msgstr "زدوده‌شده"
+
+msgid "Unmerged"
+msgstr "یکی نشده"
+
+msgid "View:"
+msgstr "دیدگاه:"
+
+msgid "Split"
+msgstr "شکافتن"
+
+msgid "Unified"
+msgstr "متحد شده"
+
+msgid ""
+"The CSGShape3D has an empty shape.\n"
+"CSGShape3D empty shapes typically occur because the mesh is not manifold.\n"
+"A manifold mesh forms a solid object without gaps, holes, or loose edges.\n"
+"Each edge must be a member of exactly two faces."
+msgstr ""
+"شیء CSGShape3D دارای شکلی خالی است.\n"
+"شکل‌های خالی در CSGShape3D معمولاً به این دلیل رخ می‌دهند که مش، منیفولد نیست.\n"
+"مش منیفولد، یک شیء توپر بدون شکاف، حفره یا لبه‌های آزاد را تشکیل می‌دهد.\n"
+"هر لبه باید دقیقاً عضو دو وجه باشد."
+
+msgid "Invalid type argument to convert(), use TYPE_* constants."
+msgstr ""
+"آرگومان گونه برای convert() نامعتبر است، ثابت‌های TYPE\\_\\* را به کار بگیرید."
+
+msgid "Not based on a script."
+msgstr "بر اساس یک اسکریپت نیست."
+
+msgid "Not based on a resource file."
+msgstr "بر اساس یک پرونده منبع نیست."
+
+msgid "Value argument is a previously freed instance."
+msgstr "آرگومان مقدار یک نمونه آزاد شده قبلی است."
+
+msgid "Export Scene to glTF 2.0 File"
+msgstr "برون‌برد صحنه به پروندهٔ glTF 2.0"
+
+msgid "glTF 2.0 Scene..."
+msgstr "صحنهٔ glTF 2.0..."
+
+msgid "Path does not point to a valid executable."
+msgstr "مسیر به یک اجراپذیر معتبر اشاره نمی کند."
+
+msgid "Couldn't run Blender executable."
+msgstr "ناتوانی در اجرای پروندهٔ اجراپذیر بلندر."
+
+msgid "Unexpected --version output from Blender executable at: %s."
+msgstr "خروجی غیرمنتظره --version از برنامه اجرایی Blender در: %s."
+
+msgid "Couldn't extract version information from Blender executable at: %s."
+msgstr "ناتوانی در استخراج اطلاعات نسخه از اجراپذیر بلندر در: %s."
+
+msgid ""
+"Found Blender version %d.x, which is too old for this importer (3.0+ is "
+"required)."
+msgstr ""
+"نسخهٔ «%d.x» بلندر یافت شد، که بیش از اندازه برای این درون‌بردگر کهنه است (۳.۰+ "
+"نیاز است)."
+
+msgid "Path to Blender executable is valid (Autodetected)."
+msgstr "مسیر اجراپذیر بلندر معتبر است (شناسایی خودکار)."
+
+msgid "Path to Blender executable is valid."
+msgstr "مسیر اجراپذیر بلندر معتبر است."
+
+msgid "Configure Blender Importer"
+msgstr "پیکربندی درون‌بردگر بلندر"
+
+msgid ""
+"Blender 3.0+ is required to import '.blend' files.\n"
+"Please provide a valid path to a Blender executable."
+msgstr ""
+"برای درون‌برد پرونده‌های '.blend' به بلندر ۳.۰ یا بالاتر نیاز است.\n"
+"لطفا برای پروندهٔ اجراپذیر بلندر مسیری معتبر فراهم کنید."
+
+msgid ""
+"On macOS, this should be the `Contents/MacOS/blender` file within the Blender "
+"`.app` folder."
+msgstr ""
+"در مک‌او‌اس، این باید پرونده `Contents/MacOS/blender` در داخل پوشه `.app` بلندر "
+"باشد."
+
+msgid "Disable '.blend' Import"
+msgstr "ازکاراندازی درون‌برد «.blend»"
+
+msgid "GridMap Selection"
+msgstr "GridMap برگزیده"
+
+msgid "Previous Floor"
+msgstr "زمین پیشین"
+
+msgid "Next Floor"
+msgstr "زمین بعدی"
+
+msgid "Edit X Axis"
+msgstr "ویرایش محور X"
+
+msgid "Edit Y Axis"
+msgstr "ویرایش محور Y"
+
+msgid "Edit Z Axis"
+msgstr "ویراش محور Z"
+
+msgid "GridMap Settings"
+msgstr "تنظیمات GridMap"
+
+msgid "Pick Distance:"
+msgstr "انتخاب فاصله:"
+
+msgid "Cursor Rotate X"
+msgstr "چرخش X نشانگر"
+
+msgid "Cursor Rotate Y"
+msgstr "چرخش Y نشانگر"
+
+msgid "Cursor Rotate Z"
+msgstr "چرخش Z نشانگر"
+
+msgid "View as Thumbnails"
+msgstr "دیدن به‌عنوان ناخن‌شستی"
+
+msgid "View as List"
+msgstr "دیدن به‌عنوان فهرست"
+
+msgid "Disabled"
+msgstr "ازکارانداخته"
+
+msgid "Fade-In"
+msgstr "محو به درون"
+
+msgid "Fade-Out"
+msgstr "محو به بیرون"
+
+msgid "Cross-Fade"
+msgstr "محو متقاطع"
+
+msgid "Automatic"
+msgstr "خودکار"
+
+msgid "Edit Transitions"
+msgstr "ویرایش گذار‌ها"
+
+msgid "No transition available."
+msgstr "گذاری در دسترس نیست."
+
+msgctxt "Transition Time Position"
+msgid "Same"
+msgstr "یکسان"
+
+msgctxt "Transition Time Position"
+msgid "Start"
+msgstr "آغاز"
+
+msgctxt "Transition Time Position"
+msgid "Prev"
+msgstr "پیشین"
+
+msgid "From / To"
+msgstr "از / به"
+
+msgid "Use Transition:"
+msgstr "به‌کارگیری گذار:"
+
+msgid "Transition From:"
+msgstr "گذار از:"
+
+msgid "Transition To:"
+msgstr "گذار به:"
+
+msgid "Fade Mode:"
+msgstr "حالت پریدگی:"
+
+msgid "Fade Beats:"
+msgstr "ضرب‌های پریدگی:"
+
+msgid "Begin Bake"
+msgstr "آغاز پخت"
+
+msgid "Preparing shaders"
+msgstr "آماده‌سازی سایه‌زن‌ها"
+
+msgid "Plot direct lighting %d%%"
+msgstr "رسم نور مستقیم %d%%"
+
+msgid "Integrate indirect lighting %d%%"
+msgstr "یکپارچه‌سازی نور غیرمستقیم %d%%"
+
+msgid "Baking light probes"
+msgstr "در حال پخت کاوَندهای نور"
+
+msgid "Not enough bytes for decoding bytes, or invalid format."
+msgstr "شمار بایت‌ها برای رمزگشایی بس نیستند، یا چارچوب نامعتبر است."
+
+msgid "%d (%s)"
+msgstr "%d (%s)"
+
+msgid "%s/s"
+msgstr "%s/ثانیه"
+
+msgid "Node"
+msgstr "گره"
+
+msgid "Incoming RPC"
+msgstr "ورودی RPC"
+
+msgid "Outgoing RPC"
+msgstr "خروجی RPC"
+
+msgid "Synchronizer"
+msgstr "همگام‌ساز"
+
+msgid "Config"
+msgstr "پیکربندی"
+
+msgid "Count"
+msgstr "شمار"
+
+msgid "Select a replicator node in order to pick a property to add to it."
+msgstr ""
+"یک گره replicator را انتخاب کنید تا بتوانید ویژگی‌ای برای افزودن به آن انتخاب "
+"کنید."
+
+msgid "Property is already being synchronized."
+msgstr "ویژگی هم‌اکنون در حال هماهنگ‌سازی است."
+
+msgid "Add property to synchronizer"
+msgstr "افزودن ویژگی به همگام‌ساز"
+
+msgid "Pick a node to synchronize:"
+msgstr "یک گره برای هماهنگ‌سازی انتخاب کنید:"
+
+msgid "Add property to sync..."
+msgstr "افزودن ویژگی به همگام‌ساز..."
+
+msgid "Add from path"
+msgstr "افزودن از مسیر"
+
+msgid "Spawn"
+msgstr "تولید"
+
+msgid ""
+"Add properties using the options above, or\n"
+"drag them from the inspector and drop them here."
+msgstr ""
+"ویژگی‌ها را با به‌کارگیری گزینه‌های بالا بیفزایید، یا\n"
+"آنها را از بازرس بکشانید و اینجا بیندازید."
+
+msgctxt "Replication Mode"
+msgid "Never"
+msgstr "هرگز"
+
+msgctxt "Replication Mode"
+msgid "Always"
+msgstr "همیشه"
+
+msgid "The MultiplayerSynchronizer needs a root path."
+msgstr "MultiplayerSynchronizer به مسیر ریشه نیاز دارد."
+
+msgid "Property/path must not be empty."
+msgstr "ویژگی/مسیر نباید تهی باشد."
+
+msgid "Invalid property path: '%s'"
+msgstr "مسیر ویژگی نامعتبر است: «%s»"
+
+msgid "Set sync property"
+msgstr "نشاندن ویژگی همگام‌سازی"
+
+msgid ""
+"Each MultiplayerSynchronizer can have no more than 64 watched properties."
+msgstr ""
+"هر MultiplayerSynchronizer نمی‌تواند بیش از ۶۴ ویژگی مشاهده‌شده داشته باشد."
+
+msgid "Delete Property?"
+msgstr "زدایش ویژگی؟"
+
+msgid "Remove Property"
+msgstr "برچیدن ویژگی"
+
+msgid "Property of this type not supported."
+msgstr "از این گونه ویژگی پشتیبانی نمی‌شود."
+
+msgid "Set start_position"
+msgstr "نشاندن start_position"
+
+msgid "Set end_position"
+msgstr "نشاندن نهشت پایانی"
+
+msgid "Create Navigation Polygon"
+msgstr "ساخت چندضلعی ناوبری"
+
+msgid "Bake NavigationPolygon"
+msgstr "پخت NavigationPolygon"
+
+msgid ""
+"Bakes the NavigationPolygon by first parsing the scene for source geometry "
+"and then creating the navigation polygon vertices and polygons."
+msgstr ""
+"نورنگاشت NavigationPolygon را ابتدا با تجزیه صحنه برای هندسه منبع و سپس ایجاد "
+"رئوس و پلی‌گون‌های ناوبری می‌پزد."
+
+msgid "Clear NavigationPolygon"
+msgstr "پاک‌کردن NavigationPolygon"
+
+msgid "Clears the internal NavigationPolygon outlines, vertices and polygons."
+msgstr "حاشیه‌ها، رئوس و چندضلعی‌های داخلی NavigationPolygon را پاک می‌کند."
+
+msgid "Change Start Position"
+msgstr "دگرش نهشت آغازین"
+
+msgid "Change End Position"
+msgstr "دگرش نهشت پایانی"
+
+msgid "Edit Obstacle (Flip Winding)"
+msgstr "ویرایش مانع (معکوس کردن گردش)"
+
+msgid "Add Vertex"
+msgstr "افزودن رأس"
+
+msgid "Edit Vertex"
+msgstr "ویرایش رأس"
+
+msgid "Delete Vertex"
+msgstr "زدایش رأس"
+
+msgid "Clear Vertices"
+msgstr "پاک کردن رأس‌ها"
+
+msgid "Edit Obstacle (Add Vertex)"
+msgstr "ویرایش مانع (افزودن راس)"
+
+msgid "Edit Obstacle (Move Vertex)"
+msgstr "ویرایش مانع (جابجایی راس)"
+
+msgid "Remove all vertices?"
+msgstr "برچیدن همهٔ رأس‌ها؟"
+
+msgid "A NavigationMesh resource must be set or created for this node to work."
+msgstr ""
+"برای اینکه این گره کار کند باید یک بنمایهٔ NavigationMesh برای آن نشانده یا "
+"ساخته شود."
+
+msgid ""
+"Cannot generate navigation mesh because it does not belong to the edited "
+"scene. Make it unique first."
+msgstr ""
+"نمی‌توان مش ناوبری تولید کرد زیرا به صحنهٔ ویراسته تعلق ندارد. نخست آن را یکتا "
+"کنید."
+
+msgid ""
+"Cannot generate navigation mesh because it belongs to a resource which was "
+"imported."
+msgstr ""
+"امکان ایجاد شبکه ناوبری وجود ندارد زیرا متعلق به منبعی است که وارد شده است."
+
+msgid ""
+"Cannot generate navigation mesh because the resource was imported from "
+"another type."
+msgstr "امکان ایجاد شبکه ناوبری وجود ندارد زیرا منبع از نوع دیگری وارد شده است."
+
+msgid "Bake NavigationMesh"
+msgstr "پخت NavigationMesh"
+
+msgid ""
+"Bakes the NavigationMesh by first parsing the scene for source geometry and "
+"then creating the navigation mesh vertices and polygons."
+msgstr ""
+"شبکه ناوبری را با ابتدا پردازش صحنه برای یافتن هندسه منبع و سپس ایجاد رئوس و "
+"چندضلعی‌های شبکه ناوبری می‌سازد."
+
+msgid "Clear NavigationMesh"
+msgstr "پاک کردن NavigationMesh"
+
+msgid "Clears the internal NavigationMesh vertices and polygons."
+msgstr "رئوس و چندضلعی‌های داخلی NavigationMesh را پاک می‌کند."
+
+msgid "A: %s"
+msgstr "A: %s"
+
+msgid "B: %s"
+msgstr "B: %s"
+
+msgid "Objects"
+msgstr "اشیا"
+
+msgid "A Objects"
+msgstr "اشیا A"
+
+msgid "B Objects"
+msgstr "اشیا B"
+
+msgid "Object's class"
+msgstr "کلاس شی"
+
+msgid "Object"
+msgstr "اشیا"
+
+msgid "Object's name"
+msgstr "نام شیء"
+
+msgid "Native References: %d"
+msgstr "ارجاعات بومی: %d"
+
+msgid "ObjectDB References: %d"
+msgstr "ارجاعات ObjectDB: %d"
+
+msgid "Total References: %d"
+msgstr "تمام ارجاعات: %d"
+
+msgid "ObjectDB Cycles: %d"
+msgstr "چرخه های ObjectDB: %d"
+
+msgid "Duplicate?"
+msgstr "تکثیر شود؟"
+
+msgid "Total Objects:"
+msgstr "تمام اشیاء:"
+
+msgid "Rename Action"
+msgstr "بازنامگذاری کنش"
+
+msgid "Rename Actions Localized name"
+msgstr "تغییر نام بومی‌سازی‌شده کنش‌ها"
+
+msgid "Change Action Type"
+msgstr "تغییر نوع کنش"
+
+msgid ""
+"Internal name of the action. Some XR runtimes don't allow spaces or special "
+"characters."
+msgstr ""
+"نام داخلی کنش. برخی زمان‌اجرای اکس‌آر اجازه استفاده از فاصله یا نویسه‌های ویژه "
+"را نمی‌دهند."
+
+msgid "Action Name"
+msgstr "نام کنش"
+
+msgid "Human-readable name of the action. This can be displayed to end users."
+msgstr "نام قابل‌خواندن برای کنش. این می‌تواند به کاربران نهایی نمایش داده شود."
+
+msgid "Action Localized Name"
+msgstr "نام بومی‌سازی‌شده کنش"
+
+msgid "Remove action"
+msgstr "برچیدن کنش"
+
+msgid "Error loading %s: %s."
+msgstr "خطا در بارکردن %s : %s."
+
+msgid "Error saving file %s: %s"
+msgstr "خطای در ذخیرهٔ پروندهٔ %s: %s"
+
+msgid "Remove interaction profile"
+msgstr "حذف نمایه تعامل"
+
+msgid "Add an action set."
+msgstr "افزودن مجموعه کنش."
+
+msgid "Add profile"
+msgstr "افزودن نمایه"
+
+msgid "Add an interaction profile."
+msgstr "افزودن نمایه تعاملی."
+
+msgid "Save this OpenXR action map."
+msgstr "ذخیره این نقشه کنش اوپن‌اکس‌آر."
+
+msgid "Reset to default OpenXR action map."
+msgstr "بازنشانی نقشه عملکرد اوپن‌اکس‌آر به حالت پیش‌فرض."
+
+msgid "Add action"
+msgstr "افزودن کنش"
+
+msgid "Delete action"
+msgstr "زدایش کنش"
+
+msgid ""
+"Priority of the action set. If multiple action sets bind to the same input, "
+"the action set with the highest priority will be updated."
+msgstr ""
+"اولویت مجموعه کنش. اگر چند مجموعه کنش به یک ورودی یکسان متصل شوند، مجموعه "
+"کنشی که بالاترین اولویت را دارد به‌روزرسانی خواهد شد."
+
+msgid "Add action."
+msgstr "افزودن کنش."
+
+msgid "Remove action set."
+msgstr "حذف مجموعه کنش."
+
+msgid "Note: modifiers will only be applied if supported on the host system."
+msgstr ""
+"توجه: اصلاح‌گرها تنها در صورتی اعمال می‌شوند که در سامانه میزبان پشتیبانی شوند."
+
+msgid "Binding modifiers for:"
+msgstr "در حال پیونددهی اصلاح‌گرها برای:"
+
+msgid "Remove action from interaction profile"
+msgstr "حذف کنش از نمایه تعامل"
+
+msgid "Edit binding modifiers"
+msgstr "ویرایش اصلاح‌گرهای پیوند"
+
+msgid "Note: This interaction profile requires extension %s support."
+msgstr "توجه: این نمایه تعامل به پشتیبانی از افزونه %s نیاز دارد."
+
+msgid "Add binding"
+msgstr "افزودن کلیدها"
+
+msgid "Remove binding"
+msgstr "برچیدن کلیدها"
+
+msgid "Note: This binding path requires extension %s support."
+msgstr "توجه: این مسیر پیوند به پشتیبانی از افزونه %s نیاز دارد."
+
+msgid "Boolean"
+msgstr "بولی"
+
+msgid "Float"
+msgstr "ممیز شناور"
+
+msgid "Pose"
+msgstr "ژست"
+
+msgid "Haptic"
+msgstr "بساوشی (لمسی)"
+
+msgid "Unknown"
+msgstr "ناشناخته"
+
+msgid "Select an action"
+msgstr "گزینش یک کنش"
+
+msgid "All interaction profiles have been added to the action map."
+msgstr "همه نمایه‌های برهم‌کنش به نقشه کنش افزوده شده‌اند."
+
+msgid ""
+"Hole punching won't work as expected unless the sort order is less than zero."
+msgstr ""
+"سوراخ‌سازی طبق انتظار عمل نخواهد کرد مگر اینکه ترتیب مرتب‌سازی کمتر از صفر باشد."
 
 msgid "Epsilon constant (0.00001). Smallest possible scalar number."
 msgstr "ثابت اپسیلون (۰.۰۰۰۰۱)، کوچکترین شمارهٔ نرده‌ای ممکن است."
@@ -14575,12 +15261,6 @@ msgstr "افزودن درونداد"
 
 msgid "Add Output"
 msgstr "افزودن برونداد"
-
-msgid "Float"
-msgstr "ممیز شناور"
-
-msgid "Boolean"
-msgstr "بولی"
 
 msgid "Sampler"
 msgstr "نمونه‌گیر"
@@ -14685,7 +15365,7 @@ msgid "Burn operator."
 msgstr "عملگر سوزاندن."
 
 msgid "Color constant."
-msgstr "مقدار ثابت رنگ"
+msgstr "ثابت رنگ."
 
 msgid "Returns the boolean result of the %s comparison between two parameters."
 msgstr "نتیجه‌ی بولین حاصل از مقایسه‌ی %s بین دو پارامتر را برمی‌گرداند."
@@ -15396,696 +16076,67 @@ msgstr ""
 msgid "Edit Visual Property: %s"
 msgstr "ویرایش ویژگی دیداری: %s"
 
-msgctxt "Locale"
-msgid "Script:"
-msgstr "دبیره:"
-
-msgctxt "Locale"
-msgid "Script"
-msgstr "دبیره"
-
-msgid "Changed Locale Language Filter"
-msgstr "فیلتر زبان محلی تغییر کرد"
-
-msgid "Changed Locale Script Filter"
-msgstr "پالایهٔ اسکریپت بوم دگرگون شد"
-
-msgid "Changed Locale Country Filter"
-msgstr "پالایهٔ بوم کشور دگرگون شد"
-
-msgid "Changed Locale Filter Mode"
-msgstr "حالت صافی بومی‌سازی تغییر کرد"
-
-msgid "[Default]"
-msgstr "[پیشفرض]"
-
-msgid "Select a Locale"
-msgstr "گزینش یک بوم"
-
-msgid "Locale Filter"
-msgstr "پالایهٔ بوم"
-
-msgid "Show All Locales"
-msgstr "نمایش همهٔ بوم‌ها"
-
-msgid "Show Selected Locales Only"
-msgstr "تنها نمایش بوم‌های برگزیده"
-
-msgid "Country:"
-msgstr "کشور:"
-
-msgid "Country"
-msgstr "کشور"
-
-msgid "Variant"
-msgstr "نوع"
-
-msgid "Previewing: %s"
-msgstr "در حال پیش‌نمایش: %s"
-
-msgid "Disable Translation Preview"
-msgstr "ازکاراندازی پیش‌نمایش ترجمه"
-
-msgid "Previewing translation. Click to disable."
-msgstr "در حال پیش‌نمایش ترجمه. برای ازکاراندازی کلیک کنید."
-
-msgid "Add %d Translation"
-msgid_plural "Add %d Translations"
-msgstr[0] "افزودن %d ترجمه"
-msgstr[1] "افزودن %d ترجمه"
-
-msgid "Translation Resource Remap: Add %d Path"
-msgid_plural "Translation Resource Remap: Add %d Paths"
-msgstr[0] "بازنهادن بنمایهٔ ترجمه: افزودن %d مسیر"
-msgstr[1] "بازنهادن بنمایهٔ ترجمه: افزودن %d مسیر"
-
-msgid "Translation Resource Remap: Add %d Remap"
-msgid_plural "Translation Resource Remap: Add %d Remaps"
-msgstr[0] "بازنهادن بنمایهٔ ترجمه: افزودن %d بازنهانی"
-msgstr[1] "بازنهادن بنمایهٔ ترجمه: افزودن %d بازنهانی"
-
-msgid "Change Resource Remap Language"
-msgstr "زبان بازنهادن بنمایه را دگرگون کنید"
-
-msgid "Remove Resource Remap"
-msgstr "برچیدن بازنهانی بنمایه"
-
-msgid "Remove Resource Remap Option"
-msgstr "برچیدن گزینهٔ بازنهانی بنمایه"
-
-msgid "Removed"
-msgstr "برچیده"
-
-msgid "%s cannot be found."
-msgstr "%s را نمیتوان پیدا کرد."
-
-msgid "Translations"
-msgstr "ترجمه‌ها"
-
-msgid "Translations:"
-msgstr "ترجمه‌ها:"
-
-msgid "Remaps"
-msgstr "بازنهاده‌ها"
-
-msgid "Resources:"
-msgstr "بنمایه‌ها:"
-
-msgid "Remaps by Locale:"
-msgstr "بازنهاده‌ها بر پایهٔ بومی‌سازی:"
-
-msgid "Files with translation strings:"
-msgstr "پرونده‌های دارای رشتهٔ ترجمه:"
-
-msgid "Add strings from built-in components such as certain Control nodes."
-msgstr "رشته‌هایی از مولفه‌های درون‌ساخته‌ای مانند گره‌های کنترل معینی را بیفزایید."
-
-msgid "Open in editor"
-msgstr "گشودن در ویراستار"
-
-msgid "Discard changes"
-msgstr "دور انداختن دگرش‌ها"
-
-msgid "Date:"
-msgstr "تاریخ:"
-
-msgid "Subtitle:"
-msgstr "زیرنویس:"
-
-msgid "File:"
-msgstr "پرونده:"
-
-msgid "Create Version Control Metadata"
-msgstr "ساخت فراداده کنترل نسخه"
-
-msgid "Local Settings"
-msgstr "تنظیمات بومی"
-
-msgid "Apply"
-msgstr "بکاربستن"
-
-msgid "Connect to VCS"
-msgstr "اتصال به VCS"
-
-msgid "Username"
-msgstr "نام کاربری"
-
-msgid "Password"
-msgstr "گذرواژه"
-
-msgid "SSH Public Key Path"
-msgstr "مسیر کلید عمومی اس‌اس‌اچ"
-
-msgid "Select SSH public key path"
-msgstr "انتخاب مسیر کلید عمومی اس‌اس‌اچ"
-
-msgid "SSH Private Key Path"
-msgstr "مسیر کلید خصوصی اس‌اس‌اچ"
-
-msgid "Select SSH private key path"
-msgstr "انتخاب مسیر کلید خصوصی اس‌اس‌اچ"
-
-msgid "SSH Passphrase"
-msgstr "عبارت عبور اس‌اس‌اچ"
-
-msgid "Detect new changes"
-msgstr "شناسایی تغییرات جدید"
-
-msgid "Discard all changes"
-msgstr "دور انداختن همهٔ دگرش‌ها"
-
-msgid "Permanentally delete my changes"
-msgstr "زدایش دگرش‌ها برای همیشه"
-
-msgid "Branches"
-msgstr "شاخه‌ها"
-
-msgid "Create New Branch"
-msgstr "ساخت شاخهٔ نو"
-
-msgid "Remove Branch"
-msgstr "برچیدن شاخه"
-
-msgid "Branch Name"
-msgstr "نام شاخه"
-
-msgid "Remotes"
-msgstr "ریموت‌ها"
-
-msgid "Create New Remote"
-msgstr "ساخت از دور نو"
-
-msgid "Remove Remote"
-msgstr "برچیدنِ از دور"
-
-msgid "Remote Name"
-msgstr "نام ریموت"
-
-msgid "Remote URL"
-msgstr "مسیر ریموت"
-
-msgid "Fetch"
-msgstr "فراخوانی"
-
-msgid "Pull"
-msgstr "Pull"
-
-msgid "Push"
-msgstr "Push"
-
-msgid "Modified"
-msgstr "تغییر کرده"
-
-msgid "Renamed"
-msgstr "بازنامگذاری شد"
-
-msgid "Deleted"
-msgstr "زدوده‌شده"
-
-msgid "Unmerged"
-msgstr "یکی نشده"
-
-msgid "View:"
-msgstr "دیدگاه:"
-
-msgid "Split"
-msgstr "شکافتن"
-
-msgid "Unified"
-msgstr "متحد شده"
-
-msgid "Invalid type argument to convert(), use TYPE_* constants."
+msgid ""
+"Shader keywords cannot be used as parameter names.\n"
+"Choose another name."
 msgstr ""
-"آرگومان گونه برای convert() نامعتبر است، ثابت‌های TYPE\\_\\* را به کار بگیرید."
+"کلیدواژه‌های سایه‌زن نمی‌توانند به‌عنوان نام پارامترها بکارروند.\n"
+"نام دیگری برگزینید."
 
-msgid "Not based on a script."
-msgstr "بر اساس یک اسکریپت نیست."
-
-msgid "Not based on a resource file."
-msgstr "بر اساس یک پرونده منبع نیست."
-
-msgid "Value argument is a previously freed instance."
-msgstr "آرگومان مقدار یک نمونه آزاد شده قبلی است."
-
-msgid "Export Scene to glTF 2.0 File"
-msgstr "برون‌برد صحنه به پروندهٔ glTF 2.0"
-
-msgid "glTF 2.0 Scene..."
-msgstr "صحنهٔ glTF 2.0..."
-
-msgid "Path does not point to a valid executable."
-msgstr "مسیر به یک اجراپذیر معتبر اشاره نمی کند."
-
-msgid "Couldn't run Blender executable."
-msgstr "ناتوانی در اجرای پروندهٔ اجراپذیر بلندر."
-
-msgid "Unexpected --version output from Blender executable at: %s."
-msgstr "خروجی غیرمنتظره --version از برنامه اجرایی Blender در: %s."
-
-msgid "Couldn't extract version information from Blender executable at: %s."
-msgstr "ناتوانی در استخراج اطلاعات نسخه از اجراپذیر بلندر در: %s."
+msgid "This parameter type does not support the '%s' qualifier."
+msgstr "نوع این پارامتر از ویژگی «%s» پشتیبانی نمی‌کند."
 
 msgid ""
-"Found Blender version %d.x, which is too old for this importer (3.0+ is "
-"required)."
+"Global parameter '%s' does not exist.\n"
+"Create it in the Project Settings."
 msgstr ""
-"نسخهٔ «%d.x» بلندر یافت شد، که بیش از اندازه برای این درون‌بردگر کهنه است (۳.۰+ "
-"نیاز است)."
-
-msgid "Path to Blender executable is valid (Autodetected)."
-msgstr "مسیر اجراپذیر بلندر معتبر است (شناسایی خودکار)."
-
-msgid "Path to Blender executable is valid."
-msgstr "مسیر اجراپذیر بلندر معتبر است."
-
-msgid "Configure Blender Importer"
-msgstr "پیکربندی درون‌بردگر بلندر"
+"پارامتر جهانی «%s» وجود ندارد.\n"
+"آن را در تنظیمات پروژه ایجاد کنید."
 
 msgid ""
-"Blender 3.0+ is required to import '.blend' files.\n"
-"Please provide a valid path to a Blender executable."
+"Global parameter '%s' has an incompatible type for this kind of node.\n"
+"Change it in the Project Settings."
 msgstr ""
-"برای درون‌برد پرونده‌های '.blend' به بلندر ۳.۰ یا بالاتر نیاز است.\n"
-"لطفا برای پروندهٔ اجراپذیر بلندر مسیری معتبر فراهم کنید."
+"پارامتر جهانی «%s» نوع ناسازگاری برای این نوع گره دارد.\n"
+"آن را در تنظیمات پروژه تغییر دهید."
 
 msgid ""
-"On macOS, this should be the `Contents/MacOS/blender` file within the Blender "
-"`.app` folder."
+"The sampler port is connected but not used. Consider changing the source to "
+"'SamplerPort'."
 msgstr ""
-"در مک‌او‌اس، این باید پرونده `Contents/MacOS/blender` در داخل پوشه `.app` بلندر "
-"باشد."
+"درگاه نمونه‌گیر متصل است اما استفاده نمی‌شود. در نظر بگیرید که منبع را به "
+"'SamplerPort' تغییر دهید."
 
-msgid "Disable '.blend' Import"
-msgstr "ازکاراندازی درون‌برد «.blend»"
+msgid "Invalid source for preview."
+msgstr "منبع نامعتبر برای پیش نمایش."
 
-msgid "GridMap Selection"
-msgstr "GridMap برگزیده"
-
-msgid "Previous Floor"
-msgstr "زمین پیشین"
-
-msgid "Next Floor"
-msgstr "زمین بعدی"
-
-msgid "Edit X Axis"
-msgstr "ویرایش محور X"
-
-msgid "Edit Y Axis"
-msgstr "ویرایش محور Y"
-
-msgid "Edit Z Axis"
-msgstr "ویراش محور Z"
-
-msgid "GridMap Settings"
-msgstr "تنظیمات GridMap"
-
-msgid "Pick Distance:"
-msgstr "انتخاب فاصله:"
-
-msgid "Cursor Rotate X"
-msgstr "چرخش X نشانگر"
-
-msgid "Cursor Rotate Y"
-msgstr "چرخش Y نشانگر"
-
-msgid "Cursor Rotate Z"
-msgstr "چرخش Z نشانگر"
-
-msgid "Filter Meshes"
-msgstr "پالایش مش‌ها"
-
-msgid "View as Thumbnails"
-msgstr "دیدن به‌عنوان ناخن‌شستی"
-
-msgid "View as List"
-msgstr "دیدن به‌عنوان فهرست"
-
-msgid "Disabled"
-msgstr "ازکارانداخته"
-
-msgid "Fade-In"
-msgstr "محو به درون"
-
-msgid "Fade-Out"
-msgstr "محو به بیرون"
-
-msgid "Cross-Fade"
-msgstr "محو متقاطع"
-
-msgid "Automatic"
-msgstr "خودکار"
-
-msgid "Edit Transitions"
-msgstr "ویرایش گذار‌ها"
-
-msgid "No transition available."
-msgstr "گذاری در دسترس نیست."
-
-msgctxt "Transition Time Position"
-msgid "Same"
-msgstr "یکسان"
-
-msgctxt "Transition Time Position"
-msgid "Start"
-msgstr "آغاز"
-
-msgctxt "Transition Time Position"
-msgid "Prev"
-msgstr "پیشین"
-
-msgid "From / To"
-msgstr "از / به"
-
-msgid "Use Transition:"
-msgstr "به‌کارگیری گذار:"
-
-msgid "Transition From:"
-msgstr "گذار از:"
-
-msgid "Transition To:"
-msgstr "گذار به:"
-
-msgid "Fade Mode:"
-msgstr "حالت پریدگی:"
-
-msgid "Fade Beats:"
-msgstr "ضرب‌های پریدگی:"
-
-msgid "Begin Bake"
-msgstr "آغاز پخت"
-
-msgid "Preparing shaders"
-msgstr "آماده‌سازی سایه‌زن‌ها"
-
-msgid "Plot direct lighting %d%%"
-msgstr "رسم نور مستقیم %d%%"
-
-msgid "Integrate indirect lighting %d%%"
-msgstr "یکپارچه‌سازی نور غیرمستقیم %d%%"
-
-msgid "Baking light probes"
-msgstr "در حال پخت کاوَندهای نور"
-
-msgid "Not enough bytes for decoding bytes, or invalid format."
-msgstr "شمار بایت‌ها برای رمزگشایی بس نیستند، یا چارچوب نامعتبر است."
-
-msgid "%d (%s)"
-msgstr "%d (%s)"
-
-msgid "%s/s"
-msgstr "%s/ثانیه"
-
-msgid "Node"
-msgstr "گره"
-
-msgid "Incoming RPC"
-msgstr "ورودی RPC"
-
-msgid "Outgoing RPC"
-msgstr "خروجی RPC"
-
-msgid "Synchronizer"
-msgstr "همگام‌ساز"
-
-msgid "Config"
-msgstr "پیکربندی"
-
-msgid "Count"
-msgstr "شمار"
-
-msgid "Select a replicator node in order to pick a property to add to it."
-msgstr ""
-"یک گره replicator را انتخاب کنید تا بتوانید ویژگی‌ای برای افزودن به آن انتخاب "
-"کنید."
-
-msgid "Property is already being synchronized."
-msgstr "ویژگی هم‌اکنون در حال هماهنگ‌سازی است."
-
-msgid "Add property to synchronizer"
-msgstr "افزودن ویژگی به همگام‌ساز"
-
-msgid "Pick a node to synchronize:"
-msgstr "یک گره برای هماهنگ‌سازی انتخاب کنید:"
-
-msgid "Add property to sync..."
-msgstr "افزودن ویژگی به همگام‌ساز..."
-
-msgid "Add from path"
-msgstr "افزودن از مسیر"
-
-msgid "Spawn"
-msgstr "تولید"
+msgid "Invalid source for shader."
+msgstr "منبع نامعتبر برای شیدر."
 
 msgid ""
-"Add properties using the options above, or\n"
-"drag them from the inspector and drop them here."
+"`%s` precision mode is not available for `gl_compatibility` profile.\n"
+"Reverted to `None` precision."
 msgstr ""
-"ویژگی‌ها را با به‌کارگیری گزینه‌های بالا بیفزایید، یا\n"
-"آنها را از بازرس بکشانید و اینجا بیندازید."
+"حالت دقت `%s` برای نمایه `gl_compatibility` در دسترس نیست.\n"
+"به دقت `None` بازگشت داده شد."
 
-msgctxt "Replication Mode"
-msgid "Never"
-msgstr "هرگز"
+msgid "'%s' type is incompatible with '%s' source."
+msgstr "نوع '%s' با منبع '%s' ناسازگار است."
 
-msgctxt "Replication Mode"
-msgid "Always"
-msgstr "همیشه"
+msgid "'%s' default color is incompatible with '%s' source."
+msgstr "نوع '%s' با منبع '%s' ناسازگار است."
 
-msgid "The MultiplayerSynchronizer needs a root path."
-msgstr "MultiplayerSynchronizer به مسیر ریشه نیاز دارد."
+msgid "Default Color"
+msgstr "رنگ پیشفرض"
 
-msgid "Property/path must not be empty."
-msgstr "ویژگی/مسیر نباید تهی باشد."
+msgid "Repeat"
+msgstr "تکرار"
 
-msgid "Invalid property path: '%s'"
-msgstr "مسیر ویژگی نامعتبر است: «%s»"
+msgid "Invalid comparison function for that type."
+msgstr "تابع همسنجی برای آن گونه نامعتبر است."
 
-msgid "Set sync property"
-msgstr "نشاندن ویژگی همگام‌سازی"
-
-msgid ""
-"Each MultiplayerSynchronizer can have no more than 64 watched properties."
-msgstr ""
-"هر MultiplayerSynchronizer نمی‌تواند بیش از ۶۴ ویژگی مشاهده‌شده داشته باشد."
-
-msgid "Delete Property?"
-msgstr "زدایش ویژگی؟"
-
-msgid "Remove Property"
-msgstr "برچیدن ویژگی"
-
-msgid "Property of this type not supported."
-msgstr "از این گونه ویژگی پشتیبانی نمی‌شود."
-
-msgid "Set start_position"
-msgstr "نشاندن start_position"
-
-msgid "Set end_position"
-msgstr "نشاندن نهشت پایانی"
-
-msgid "Create Navigation Polygon"
-msgstr "ساخت چندضلعی ناوبری"
-
-msgid "Bake NavigationPolygon"
-msgstr "پخت NavigationPolygon"
-
-msgid ""
-"Bakes the NavigationPolygon by first parsing the scene for source geometry "
-"and then creating the navigation polygon vertices and polygons."
-msgstr ""
-"نورنگاشت NavigationPolygon را ابتدا با تجزیه صحنه برای هندسه منبع و سپس ایجاد "
-"رئوس و پلی‌گون‌های ناوبری می‌پزد."
-
-msgid "Clear NavigationPolygon"
-msgstr "پاک‌کردن NavigationPolygon"
-
-msgid "Clears the internal NavigationPolygon outlines, vertices and polygons."
-msgstr "حاشیه‌ها، رئوس و چندضلعی‌های داخلی NavigationPolygon را پاک می‌کند."
-
-msgid "Change Start Position"
-msgstr "دگرش نهشت آغازین"
-
-msgid "Change End Position"
-msgstr "دگرش نهشت پایانی"
-
-msgid "Edit Obstacle (Flip Winding)"
-msgstr "ویرایش مانع (معکوس کردن گردش)"
-
-msgid "Add Vertex"
-msgstr "افزودن رأس"
-
-msgid "Edit Vertex"
-msgstr "ویرایش رأس"
-
-msgid "Delete Vertex"
-msgstr "زدایش رأس"
-
-msgid "Clear Vertices"
-msgstr "پاک کردن رأس‌ها"
-
-msgid "Edit Obstacle (Add Vertex)"
-msgstr "ویرایش مانع (افزودن راس)"
-
-msgid "Edit Obstacle (Move Vertex)"
-msgstr "ویرایش مانع (جابجایی راس)"
-
-msgid "Remove all vertices?"
-msgstr "برچیدن همهٔ رأس‌ها؟"
-
-msgid "A NavigationMesh resource must be set or created for this node to work."
-msgstr ""
-"برای اینکه این گره کار کند باید یک بنمایهٔ NavigationMesh برای آن نشانده یا "
-"ساخته شود."
-
-msgid ""
-"Cannot generate navigation mesh because it does not belong to the edited "
-"scene. Make it unique first."
-msgstr ""
-"نمی‌توان مش ناوبری تولید کرد زیرا به صحنهٔ ویراسته تعلق ندارد. نخست آن را یکتا "
-"کنید."
-
-msgid ""
-"Cannot generate navigation mesh because it belongs to a resource which was "
-"imported."
-msgstr ""
-"امکان ایجاد شبکه ناوبری وجود ندارد زیرا متعلق به منبعی است که وارد شده است."
-
-msgid ""
-"Cannot generate navigation mesh because the resource was imported from "
-"another type."
-msgstr "امکان ایجاد شبکه ناوبری وجود ندارد زیرا منبع از نوع دیگری وارد شده است."
-
-msgid "Bake NavigationMesh"
-msgstr "پخت NavigationMesh"
-
-msgid ""
-"Bakes the NavigationMesh by first parsing the scene for source geometry and "
-"then creating the navigation mesh vertices and polygons."
-msgstr ""
-"شبکه ناوبری را با ابتدا پردازش صحنه برای یافتن هندسه منبع و سپس ایجاد رئوس و "
-"چندضلعی‌های شبکه ناوبری می‌سازد."
-
-msgid "Clear NavigationMesh"
-msgstr "پاک کردن NavigationMesh"
-
-msgid "Clears the internal NavigationMesh vertices and polygons."
-msgstr "رئوس و چندضلعی‌های داخلی NavigationMesh را پاک می‌کند."
-
-msgid "Rename Action"
-msgstr "بازنامگذاری کنش"
-
-msgid "Rename Actions Localized name"
-msgstr "تغییر نام بومی‌سازی‌شده کنش‌ها"
-
-msgid "Change Action Type"
-msgstr "تغییر نوع کنش"
-
-msgid ""
-"Internal name of the action. Some XR runtimes don't allow spaces or special "
-"characters."
-msgstr ""
-"نام داخلی کنش. برخی زمان‌اجرای اکس‌آر اجازه استفاده از فاصله یا نویسه‌های ویژه "
-"را نمی‌دهند."
-
-msgid "Action Name"
-msgstr "نام کنش"
-
-msgid "Human-readable name of the action. This can be displayed to end users."
-msgstr "نام قابل‌خواندن برای کنش. این می‌تواند به کاربران نهایی نمایش داده شود."
-
-msgid "Action Localized Name"
-msgstr "نام بومی‌سازی‌شده کنش"
-
-msgid "Remove action"
-msgstr "برچیدن کنش"
-
-msgid "Error loading %s: %s."
-msgstr "خطا در بارکردن %s : %s."
-
-msgid "Error saving file %s: %s"
-msgstr "خطای در ذخیرهٔ پروندهٔ %s: %s"
-
-msgid "Remove interaction profile"
-msgstr "حذف نمایه تعامل"
-
-msgid "Add an action set."
-msgstr "افزودن مجموعه کنش."
-
-msgid "Add profile"
-msgstr "افزودن نمایه"
-
-msgid "Add an interaction profile."
-msgstr "افزودن نمایه تعاملی."
-
-msgid "Save this OpenXR action map."
-msgstr "ذخیره این نقشه کنش اوپن‌اکس‌آر."
-
-msgid "Reset to default OpenXR action map."
-msgstr "بازنشانی نقشه عملکرد اوپن‌اکس‌آر به حالت پیش‌فرض."
-
-msgid "Add action"
-msgstr "افزودن کنش"
-
-msgid "Delete action"
-msgstr "زدایش کنش"
-
-msgid ""
-"Priority of the action set. If multiple action sets bind to the same input, "
-"the action set with the highest priority will be updated."
-msgstr ""
-"اولویت مجموعه کنش. اگر چند مجموعه کنش به یک ورودی یکسان متصل شوند، مجموعه "
-"کنشی که بالاترین اولویت را دارد به‌روزرسانی خواهد شد."
-
-msgid "Add action."
-msgstr "افزودن کنش."
-
-msgid "Remove action set."
-msgstr "حذف مجموعه کنش."
-
-msgid "Note: modifiers will only be applied if supported on the host system."
-msgstr ""
-"توجه: اصلاح‌گرها تنها در صورتی اعمال می‌شوند که در سامانه میزبان پشتیبانی شوند."
-
-msgid "Binding modifiers for:"
-msgstr "در حال پیونددهی اصلاح‌گرها برای:"
-
-msgid "Remove action from interaction profile"
-msgstr "حذف کنش از نمایه تعامل"
-
-msgid "Edit binding modifiers"
-msgstr "ویرایش اصلاح‌گرهای پیوند"
-
-msgid "Note: This interaction profile requires extension %s support."
-msgstr "توجه: این نمایه تعامل به پشتیبانی از افزونه %s نیاز دارد."
-
-msgid "Add binding"
-msgstr "افزودن کلیدها"
-
-msgid "Remove binding"
-msgstr "برچیدن کلیدها"
-
-msgid "Note: This binding path requires extension %s support."
-msgstr "توجه: این مسیر پیوند به پشتیبانی از افزونه %s نیاز دارد."
-
-msgid "Pose"
-msgstr "ژست"
-
-msgid "Haptic"
-msgstr "بساوشی (لمسی)"
-
-msgid "Unknown"
-msgstr "ناشناخته"
-
-msgid "Select an action"
-msgstr "گزینش یک کنش"
-
-msgid "All interaction profiles have been added to the action map."
-msgstr "همه نمایه‌های برهم‌کنش به نقشه کنش افزوده شده‌اند."
-
-msgid ""
-"Hole punching won't work as expected unless the sort order is less than zero."
-msgstr ""
-"سوراخ‌سازی طبق انتظار عمل نخواهد کرد مگر اینکه ترتیب مرتب‌سازی کمتر از صفر باشد."
+msgid "2D Mode"
+msgstr "حالت دوبعدی"
 
 msgid "Building Android Project (gradle)"
 msgstr "در حال ساخت پروژه اندروید (گریدل)"
@@ -16104,9 +16155,6 @@ msgstr "کاراکتر «%s» نمی‌تواند نخستین کاراکتر د
 
 msgid "The package must have at least one '.' separator."
 msgstr "بسته باید حداقل یک جداکننده «.» داشته باشد."
-
-msgid "Invalid public key for APK expansion."
-msgstr "کلید عمومی نامعتبر برای گسترش APK."
 
 msgid "Invalid package name:"
 msgstr "نام پکیج نامعتبر:"
@@ -16336,9 +16384,6 @@ msgstr "در حال برون‌برد برای اندروید"
 msgid "Invalid filename! Android App Bundle requires the *.aab extension."
 msgstr "نام پرونده نامعتبر است! بسته برنامه اندروید نیاز به پسوند «*.aab» دارد."
 
-msgid "APK Expansion not compatible with Android App Bundle."
-msgstr "گسترش ای‌پی‌کی با بسته برنامه اندروید سازگار نیست."
-
 msgid "Invalid filename! Android APK requires the *.apk extension."
 msgstr "نام پرونده نامعتبر است! ای‌پی‌کی اندروید نیاز به پسوند *.apk دارد."
 
@@ -16354,9 +16399,6 @@ msgstr ""
 
 msgid "Unable to overwrite res/*.xml files with project name."
 msgstr "امکان بازنویسی پرونده‌های res/*.xml با نام پروژه وجود ندارد."
-
-msgid "Could not write expansion package file!"
-msgstr "امکان نوشتن پرونده بسته گسترش وجود ندارد!"
 
 msgid "Building of Android project failed, check output for the error:"
 msgstr "ناکامی در ساخت پروژهٔ اندروید، برای خطا برونداد را بررسی کنید:"
@@ -16667,7 +16709,7 @@ msgid "Making PKG"
 msgstr "ساخت PKG"
 
 msgid "Entitlements Modified"
-msgstr "حق دسترسی‌ها تغییر یافته‌اند."
+msgstr "حق دسترسی‌ها تغییر کرد"
 
 msgid ""
 "Ad-hoc signed applications require the 'Disable Library Validation' "
@@ -16771,7 +16813,7 @@ msgid "Could not create HTTP server directory: %s."
 msgstr "ناتوانی در ساخت پوشه‌دان سرور اچ.تی.تی.پی: %s."
 
 msgid "Error starting HTTP server: %d."
-msgstr "خطا در راه‌اندازی سرور ‭"
+msgstr "خطا در راه‌اندازی سرور: %d."
 
 msgid "Icon size \"%d\" is missing."
 msgstr "اندازه آیکون «%d» گم شده است."
@@ -17115,9 +17157,8 @@ msgid ""
 msgstr ""
 "برچسب دارای تکسچر Normal و/یا ORM است، اما تکسچر Albedo تنظیم نشده است.\n"
 "برای ترکیب نقشه‌های normal/ORM بر روی سطح زیرین، به یک تکسچر Albedo با کانال "
-"آلفا نیاز است. \n"
-"\n"
-"گر نمی‌خواهید تکسچر Albedo قابل مشاهده باشد، مقدار Albedo Mix را به ۰ تنظیم "
+"آلفا نیاز است.\n"
+"اگر نمی‌خواهید تکسچر Albedo قابل مشاهده باشد، مقدار Albedo Mix را به ۰ تنظیم "
 "کنید."
 
 msgid ""
@@ -17581,17 +17622,47 @@ msgstr ""
 "مگر اینکه فعال شوند. لطفاً «xr/shaders/enabled» را برای استفاده از خروجی "
 "استریوسکوپی فعال کنید."
 
-msgid "On BlendTree node '%s', animation not found: '%s'"
-msgstr "در گره BlendTree «%s»، پویانمایی یافت نشد: «%s»"
-
-msgid "Animation not found: '%s'"
-msgstr "پویانمایی یافت نشد: '%s'"
-
-msgid "Nothing connected to input '%s' of node '%s'."
-msgstr "چیزی به درونداد '%s' گرهٔ '%s' متصل نیست."
+msgid "No playback resource set at path: %s."
+msgstr "هیچ بنمایهٔ بازنواختی در مسیر نشانده نیست: %s."
 
 msgid "No root AnimationNode for the graph is set."
 msgstr "هیچ AnimationNode ریشه‌ای برای گراف تنظیم نشده است."
+
+msgid "Top Orthogonal"
+msgstr "قائم بالا"
+
+msgid "Top Perspective"
+msgstr "چشم‌انداز از بالا"
+
+msgid "Bottom Orthogonal"
+msgstr "قائم از پایین"
+
+msgid "Bottom Perspective"
+msgstr "چشم‌انداز از پایین"
+
+msgid "Left Orthogonal"
+msgstr "قائم از چپ"
+
+msgid "Left Perspective"
+msgstr "چشم‌انداز از چپ"
+
+msgid "Right Perspective"
+msgstr "چشم‌انداز از راست"
+
+msgid "Front Orthogonal"
+msgstr "قائم جلو"
+
+msgid "Front Perspective"
+msgstr "چشم‌انداز از روبه‌رو"
+
+msgid "Rear Orthogonal"
+msgstr "قائم عقب"
+
+msgid "Rear Perspective"
+msgstr "نمای پشتی پرسپکتیو"
+
+msgid "[auto]"
+msgstr "[خودکار]"
 
 msgid ""
 "ButtonGroup is intended to be used only with buttons that have toggle_mode "
@@ -17643,13 +17714,6 @@ msgstr ""
 
 msgid "%s can not be dropped here. Use %s to cancel."
 msgstr "«%s» را نمی‌توان اینجا رها کرد. برای لغو از «%s» استفاده کنید."
-
-msgid ""
-"Labels with autowrapping enabled must have a custom minimum size configured "
-"to work correctly inside a container."
-msgstr ""
-"برچسب‌هایی که پیچش خودکار متن در آن‌ها فعال است، باید حداقل اندازه‌ی سفارشی "
-"داشته باشند تا درون یک ظرف به‌درستی کار کنند."
 
 msgid ""
 "The current font does not support rendering one or more characters used in "
@@ -17793,68 +17857,6 @@ msgstr ""
 "نمونه‌سازی تو در توتر).\n"
 "گره با عمق کمتری تغییر نام خواهد یافت. لطفاً مشکل را برطرف کرده و صحنه را "
 "دوباره ذخیره کنید."
-
-msgid ""
-"Shader keywords cannot be used as parameter names.\n"
-"Choose another name."
-msgstr ""
-"کلیدواژه‌های سایه‌زن نمی‌توانند به‌عنوان نام پارامترها بکارروند.\n"
-"نام دیگری برگزینید."
-
-msgid "This parameter type does not support the '%s' qualifier."
-msgstr "نوع این پارامتر از ویژگی «%s» پشتیبانی نمی‌کند."
-
-msgid ""
-"Global parameter '%s' does not exist.\n"
-"Create it in the Project Settings."
-msgstr ""
-"پارامتر جهانی «%s» وجود ندارد.\n"
-"آن را در تنظیمات پروژه ایجاد کنید."
-
-msgid ""
-"Global parameter '%s' has an incompatible type for this kind of node.\n"
-"Change it in the Project Settings."
-msgstr ""
-"پارامتر جهانی «%s» نوع ناسازگاری برای این نوع گره دارد.\n"
-"آن را در تنظیمات پروژه تغییر دهید."
-
-msgid ""
-"The sampler port is connected but not used. Consider changing the source to "
-"'SamplerPort'."
-msgstr ""
-"درگاه نمونه‌گیر متصل است اما استفاده نمی‌شود. در نظر بگیرید که منبع را به "
-"'SamplerPort' تغییر دهید."
-
-msgid "Invalid source for preview."
-msgstr "منبع نامعتبر برای پیش نمایش."
-
-msgid "Invalid source for shader."
-msgstr "منبع نامعتبر برای شیدر."
-
-msgid ""
-"`%s` precision mode is not available for `gl_compatibility` profile.\n"
-"Reverted to `None` precision."
-msgstr ""
-"حالت دقت `%s` برای نمایه `gl_compatibility` در دسترس نیست.\n"
-"به دقت `None` بازگشت داده شد."
-
-msgid "'%s' type is incompatible with '%s' source."
-msgstr "نوع '%s' با منبع '%s' ناسازگار است."
-
-msgid "'%s' default color is incompatible with '%s' source."
-msgstr "نوع '%s' با منبع '%s' ناسازگار است."
-
-msgid "Default Color"
-msgstr "رنگ پیشفرض"
-
-msgid "Repeat"
-msgstr "تکرار"
-
-msgid "Invalid comparison function for that type."
-msgstr "تابع همسنجی برای آن گونه نامعتبر است."
-
-msgid "2D Mode"
-msgstr "حالت دوبعدی"
 
 msgid "Division by zero error."
 msgstr "خطای تقسیم بر صفر."
@@ -18353,8 +18355,13 @@ msgid "Expected an identifier for render mode."
 msgstr "انتظار می‌رفت یک شناسه برای حالت رندر."
 
 msgid ""
+"Redefinition of stencil mode: '%s'. The '%s' mode has already been set to "
+"'%s'."
+msgstr "بازتعریف حالت رندر: «%s». حالت «%s» از پیش به «%s» تنظیم شده است."
+
+msgid ""
 "Redefinition of render mode: '%s'. The '%s' mode has already been set to '%s'."
-msgstr "تعریف مجدد حالت رندر: «%s». حالت «%s» قبلاً به «%s» تنظیم شده است."
+msgstr "بازتعریف حالت رندر: «%s». حالت «%s» از پیش به «%s» تنظیم شده است."
 
 msgid "Expected a '%s'."
 msgstr "%s انتظار میرود."
@@ -18372,7 +18379,7 @@ msgid "Unknown directive."
 msgstr "دستور ناشناخته."
 
 msgid "Macro redefinition."
-msgstr "تعریف مجدد ماکرو."
+msgstr "بازتعریف ماکرو."
 
 msgid "Invalid argument name."
 msgstr "نام آرگومان نامعتبر."
@@ -18391,6 +18398,9 @@ msgstr "نبود شرط."
 
 msgid "Condition evaluation error."
 msgstr "خطای ارزیابی شرط."
+
+msgid "Invalid '%s' directive."
+msgstr "دستورِ '%s' نامعتبر است."
 
 msgid "Shader include file does not exist:"
 msgstr "فایل سایه‌زن موجود نیست:"
@@ -18425,6 +18435,9 @@ msgstr "تعداد آرگومان کوچک نامعتبر."
 
 msgid "Can't find matching branch directive."
 msgstr "دستور شاخه‌ی تطبیق یافت نشد."
+
+msgid "Invalid symbols placed before directive."
+msgstr "نمادهای نامعتبر پیش از دستور قرار گرفته‌اند."
 
 msgid "Unmatched conditional statement."
 msgstr "بیانیه شرطی تطابق ندارد."

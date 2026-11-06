@@ -2,7 +2,7 @@
 import hashlib
 from pathlib import Path
 
-SOURCE_SHA256='b451eaa16d3abe0c7430e9ce1c4e83b146e5670e5b683dd8995c931fc82b57a0'
+SOURCE_SHA256='e954996374cbd1cb5d72e0e3781cc537408e6ce73b010b12c6c2f308a820690a'
 
 def digest(path):
     with Path(path).open('rb') as file:
@@ -11,7 +11,7 @@ def digest(path):
 def seal(package,manifest):
     package=Path(package)
     identity=dict(package_format='dora-godot-runtime',package_version=1,
-        godot_version='4.6-stable',bridge_abi=1,source_archive_sha256=SOURCE_SHA256)
+        godot_version='4.7.2-stable',bridge_abi=1,source_archive_sha256=SOURCE_SHA256)
     for key,expected in identity.items():
         if key in manifest and manifest[key]!=expected:
             raise ValueError('Cannot seal incompatible identity: '+key)
