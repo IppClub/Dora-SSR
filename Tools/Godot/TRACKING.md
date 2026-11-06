@@ -30,6 +30,8 @@
 ## 已完成
 
 - [x] **UPGRADE-47-CROSS-REVIEW**：13 份清单补齐搬迁/新增源、Visual Shader 与 WGL 生成目录隔离；18 个 Windows/Android/Web/iOS 关键编译单元、5 种 profile 生成、xmake 图/147 项增量、协议/封包/分发/部署/SDK 入口回归通过。普通组件现复制桌面完整附属文件，保留 AccessKit/NIR 溯源且不重复 JNI 载荷。上述是构建配置和定向编译检查，不替代未完成平台的完整构建/动态验收；过程在 `build/godot-4.7-cross-review/`。
+- [x] **UPGRADE-47-COMMUNITY**：macOS Metal 串行测试比赛真实作品；《桥之守护者》输入、动画、PCM 与卸载通过。《心-桥》独立副本修复 Dialogic 返回路径、编辑器面板退出及未挂树子系统分配，4/3/2 缓冲“心桥→守护者→心桥”12 图通过，卸载节点 0、资源 1、心桥对象数 241/241，GPU 错误/未完成读取/blit/音频欠载均 0。原仓库未改，适配补丁及通用测试在 Dora-Example；证据 `build/godot-4.7-community/`。
+- [x] **COMMUNITY-PROJECT-COMPAT**：《渡忆之桥》独立副本移除内嵌脚本未使用的 `class_name Hurtbox`，原仓库不变；共享卸载层新增项目节点边界及脱树根节点回收，未修改《跳跃的箱子》即从 12 个残留降为 0。macOS Metal 五次 A→B→A→B→A、2/3/4 缓冲、20 图通过，JumpBox 每次回收 4 根、暖态对象 254/254，渡忆 250/250，资源均 1、节点均 0，无退出泄漏/GPU 错误/音频欠载。常驻节点/后代保护、ID 重查、补充与有界清理及取消删除 CPU 回归、214 项 ABI、5 个其它平台关键编译入口与完整源码溯源通过；其它平台新清理路径仅定向编译，未追加动态矩阵。证据 `build/godot-project-orphan-cleanup/`。
 
 - [x] **RELEASE-1.10.1-01**：正式Release 42053162310、10项公开资产/8组运行时/完整NIR溯源及发布后原生Windows安装验收42074803183全部通过；包含同版后端切换、repair、卸载和数据保留。证据`build/release-v1.10.1-validation/REPORT.md`；未追加GPU或本地VM测试。
 

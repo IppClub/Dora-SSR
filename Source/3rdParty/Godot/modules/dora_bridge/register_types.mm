@@ -166,7 +166,7 @@ void *open(const DoraGodotConfig *config) {
             print_line("DORA_GODOT_PROJECT_CACHE "+cache);
         }
         if (!runtime.scene.empty()) ProjectSettings::get_singleton()->set("application/run/main_scene", String::utf8(runtime.scene.c_str()));
-        if (!runtime.instance->start()) { runtime.error = "Godot project startup failed"; runtime.terminated=true; return nullptr; }
+        if (!(runtime.supports_project_unload ? DoraGodotProject::start(runtime.instance) : runtime.instance->start())) { runtime.error = "Godot project startup failed"; runtime.terminated=true; return nullptr; }
         if (runtime.supports_project_unload && !DoraGodotProject::supported(runtime.error)) { runtime.terminated=true; return nullptr; }
         runtime.tree = Object::cast_to<SceneTree>(OS::get_singleton()->get_main_loop());
         if (!runtime.tree) { runtime.error = "project does not use SceneTree"; return nullptr; }

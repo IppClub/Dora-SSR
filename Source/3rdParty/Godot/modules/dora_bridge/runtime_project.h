@@ -23,10 +23,73 @@
 #include "scene/theme/theme_db.h"
 #include "servers/audio/audio_server.h"
 #include <string>
+#include <set>
+#include <vector>
 
 void dora_godot_reset_certificates();
 
 namespace DoraGodotProject {
+// A project can allocate Nodes without ever parenting them (e.g. object
+// pools). SceneTree::finalize cannot own those Nodes. Keep the pre-project
+// identities so teardown never treats process-owned Nodes as project garbage.
+inline std::set<uint64_t> preserved_nodes;
+inline bool node_boundary_active=false;
+inline void begin_node_boundary() {
+    preserved_nodes.clear();
+    ObjectDB::debug_objects([](Object *object, void *state) {
+        if (Object::cast_to<Node>(object)) {
+            static_cast<std::set<uint64_t> *>(state)->insert(uint64_t(object->get_instance_id()));
+        }
+    }, &preserved_nodes);
+    node_boundary_active=true;
+}
+inline bool start(GodotInstance *instance) {
+    // Match GodotInstance::start, but capture after engine setup and before
+    // Main::start creates the project SceneTree/autoloads/script instances.
+    if (Main::setup2()!=OK) return false;
+    begin_node_boundary();
+    return instance->start_embedded_project();
+}
+inline bool contains_preserved_node(Node *node) {
+    if (preserved_nodes.count(uint64_t(node->get_instance_id()))) return true;
+    for (int i=0;i<node->get_child_count(true);++i) {
+        if (contains_preserved_node(node->get_child(i,true))) return true;
+    }
+    return false;
+}
+inline void free_detached_project_nodes() {
+    if (!node_boundary_active) return;
+    int freed_roots=0;
+    // Destructors may free another candidate or create another orphan. Work
+    // from IDs outside ObjectDB's lock and bound the drain rather than calling
+    // user destructors under debug_objects' non-recursive spin lock.
+    for (int pass=0;pass<8;++pass) {
+        std::vector<ObjectID> roots;
+        ObjectDB::debug_objects([](Object *object, void *state) {
+            auto *node=Object::cast_to<Node>(object);
+            if (node && !node->get_parent() && !node->is_inside_tree()
+                && !preserved_nodes.count(uint64_t(node->get_instance_id()))) {
+                static_cast<std::vector<ObjectID> *>(state)->push_back(node->get_instance_id());
+            }
+        }, &roots);
+        int freed=0;
+        for (ObjectID id : roots) {
+            // Deleting an earlier root may already have deleted this one.
+            auto *node=Object::cast_to<Node>(ObjectDB::get_instance(id));
+            if (!node || node->get_parent() || node->is_inside_tree() || contains_preserved_node(node)) continue;
+            memdelete(node);
+            // A script may cancel NOTIFICATION_PREDELETE. Do not report that
+            // candidate as freed or spin indefinitely trying to delete it.
+            if (!ObjectDB::get_instance(id)) ++freed;
+        }
+        freed_roots+=freed;
+        MessageQueue::get_singleton()->flush();
+        if (!freed) break;
+    }
+    print_line(vformat("DORA_GODOT_PROJECT_ORPHANS freed_roots=%d preserved=%d", freed_roots, preserved_nodes.size()));
+    preserved_nodes.clear();
+    node_boundary_active=false;
+}
 inline bool supported(std::string &error) {
     for (const String &extension : GDExtensionManager::get_singleton()->get_loaded_extensions()) {
         if (extension != "libgodot://main") {
@@ -70,6 +133,7 @@ inline void unload(GodotInstance *instance) {
         if (singleton.user_created) Engine::get_singleton()->remove_singleton(singleton.name);
     }
     MessageQueue::get_singleton()->flush();
+    free_detached_project_nodes();
     ResourceLoader::remove_custom_loaders();
     ResourceSaver::remove_custom_savers();
     ResourceLoader::clear_translation_remaps();
@@ -102,6 +166,7 @@ inline void unload(GodotInstance *instance) {
     print_line(vformat("DORA_GODOT_PROJECT_CLEAN objects=%d resources=%d nodes=%d", ObjectDB::get_object_count(), ResourceCache::get_cached_resource_count(), orphan_nodes));
 }
 inline bool load(GodotInstance *instance, const char *path, const char *scene, int width, int height, std::string &error) {
+    begin_node_boundary();
     auto *settings = ProjectSettings::get_singleton();
     const String project = String::utf8(path);
     const bool directory = DirAccess::dir_exists_absolute(project);

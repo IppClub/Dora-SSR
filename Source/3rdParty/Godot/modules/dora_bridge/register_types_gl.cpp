@@ -245,7 +245,12 @@ void *open(const DoraGodotConfig *config) {
         ProjectSettings::get_singleton()->set("audio/general/default_playback_type",0);
         ProjectSettings::get_singleton()->set("audio/general/default_playback_type.web",0);
 #endif
-        if (!runtime.instance->start()) { runtime.error="Godot project startup failed"; runtime.terminated=true; return nullptr; }
+#ifdef DORA_GODOT_GL_PROJECT_LIFECYCLE
+        const bool started=DoraGodotProject::start(runtime.instance);
+#else
+        const bool started=runtime.instance->start();
+#endif
+        if (!started) { runtime.error="Godot project startup failed"; runtime.terminated=true; return nullptr; }
 #ifdef DORA_GODOT_GL_PROJECT_LIFECYCLE
         if (!DoraGodotProject::supported(runtime.error)) { runtime.terminated=true; return nullptr; }
 #endif

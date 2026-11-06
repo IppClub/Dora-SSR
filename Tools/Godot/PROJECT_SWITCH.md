@@ -14,6 +14,7 @@ macOS Metal、Linux EGL、Windows x64 WGL、Android EGL 和 WebGL2 的项目卸�
 当前清理包括：
 
 - 场景树、Autoload、定时器、Tween、排队回调及工程注册的 Engine singleton。
+- 本项目新增的脱树 Node：在初次引擎 setup2 后、项目启动前记录既有节点 ID；删除场景树后、脚本与渲染服务仍可用时，按根节点回收树外对象池等遗留节点。清理发生在 ObjectDB 扫描锁之外，按 ID 重新检查存活状态，最多扫描 8 轮；已有节点及包含已有节点的父对象不会被删除。拒绝删除或归属不明的对象仍会计入残留，不能据回收日志推定全部清理成功。
 - GDScript 全局常量、静态脚本、解析/编译缓存、全局类列表和 `res://` 资源身份。
 - 项目设置与内建默认值、功能覆盖、资源包挂载、UID、InputMap 和按下状态。
 - 工程主题、主翻译域、全局 shader 参数、音频总线、待播放项与混音余量、默认 TLS 证书。
@@ -26,7 +27,7 @@ macOS Metal、Linux EGL、Windows x64 WGL、Android EGL、WebGL2 已作为默认
 
 - 已接入 macOS Metal、Linux EGL、Windows x64 WGL、Android EGL 和 WebGL2；Linux ARM64 Debug 已在 Ubuntu / Mesa virgl 虚拟机动态验收；此处为 4.6 基线；4.7.2 的 ARM64 Release / virgl 与 x64 Release / QEMU/llvmpipe 最小验收已通过，原生 x64 CPU/物理 GPU 及长期显存稳定性仍待验证。Windows x64 Debug WGL 已在 Parallels Windows 11 ARM VM 的 x64 普通进程通过：复用先前五次加载/边界控制证据，修复阴影采样后只复验 B→A→B 的完整画面与同步；物理 Windows GPU、Release 和长期稳定性未覆盖；Android arm64 Release EGL已在API35／SwiftShader模拟器完成五次真实项目切换，保留已知shader binary回退告警，严格缓存无告警仍未验收；WebGL2默认Release已在宿主浏览器验收，见下文；iOS 和 D3D12 尚未接入项目切换。
 - 使用标准 SceneTree 与 GDScript。Godot C#/Mono、原生 GDExtension 不支持；Dora 原有 C# 不变。未 join 的脚本 Thread 会被拒绝。关闭时发现不支持状态，会保留暂停树用于最终退出，并拒绝再次打开项目。
-- 工程必须释放自己创建的树外对象、线程、网络连接及外部回调。当前实现不保证任意第三方工程的全部全局副作用都被隔离；附加翻译域、服务器全局状态、树外引用和实际联网仍须审计。
+- 工程仍应释放自己创建的树外对象、线程、网络连接及外部回调。卸载补充清理本项目新增的脱树 Node，但不强制释放任意 Object、RefCounted 引用环或原生扩展全局对象，也不删除项目启动前已有节点。当前实现不保证任意第三方工程的全部全局副作用都被隔离；附加翻译域、服务器全局状态、树外引用和实际联网仍须审计。
 - 首次引擎初始化失败后需重启 Dora；已成功启动后的无主场景项目拒绝与后续有效工程恢复已验证，其他失败阶段仍须补充。
 - `GodotNode` 关闭在渲染线程排队执行；现在通过 `unloadAsync` 回调确认完成，`GodotPlayer` 以此串行切换。不能把 `running=false` 或固定延时当作卸载完成通知。
 - `project.py run` 仍是单次试玩进程入口；常驻项目切换由 Lua 节点或控制器驱动，未接入工程浏览/Hub UI，也未改动单次试玩命令的环境隔离规则。
