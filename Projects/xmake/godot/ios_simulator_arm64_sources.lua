@@ -8719,7 +8719,8 @@ target("godot-servers")
         source("servers/display/display_server_headless.cpp"),
         source("servers/rendering/dummy/rasterizer_dummy.cpp"),
         source("servers/rendering/dummy/rasterizer_scene_dummy.cpp"),
-        source("servers/rendering/renderer_rd/effects/metal_fx.cpp"),
+        -- MetalFX render-buffer APIs are excluded under IOS_SIMULATOR.
+        -- Keep this effect out of the simulator archive to match those guards.
         source("servers/rendering/shader_expression.cpp"),
         source("servers/rendering/storage/render_data_extension.cpp"),
         {cxxflags = {
