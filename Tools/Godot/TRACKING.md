@@ -25,6 +25,7 @@
 - [ ] **UPGRADE-47-WEB**：WASM 源清单/链接来源身份已对齐，Web 桥接/OS 关键编译与代码生成检查通过；保留可选 Godot 导出。完整链接和浏览器动态回归仍待 CI/设备验证。
 - [ ] **UPGRADE-47-IOS**：device/simulator 清单与 metal-cpp 已对齐，移除失效的旧 .mm 预检条件，framework/ABI 版本改为 4.7.2 并拒绝旧源码 archive；device/simulator 关键 Metal 编译和 SDK 选择/错误拒绝通过。完整 archive/framework 及 Apple4 正向/模拟器拒绝仍待验。
 - [x] **UPGRADE-47-IOS-INCLUDES**：最新 CI 的 device/simulator Debug 均复现 metal-cpp `std::size_t` 模块可见性错误；iOS 两份清单补齐与 macOS 一致的 `<cstddef>` 预导入，未改第三方源码。本机保留失败对照，device/simulator 的 Debug/Release 实际定向编译与 SDK 选择/拒绝回归通过；完整四项 CI 构建仍待本轮确认。证据 `build/godot-ci-closure-20261106/`。
+- [x] **UPGRADE-47-WEB-VERSION**：修正 Studio 后端仍只接受 4.6 的运行库校验；Web 产物检查与 Studio HTTP 夹具改为读取固定上游版本，保留 ABI/后端/摘要校验。当前后端与 4.7.2 清单的本地失败对照、HTTP 隔离/错误版本/缺失/篡改拒绝及 Web 实际校验块回归通过；最终 Web/Studio CI 产物验证仍待本轮确认。证据同上。
 
 本轮过程与原始证据暂存 `build/godot-4.7-assessment/`、`build/godot-4.7-macos/`、`build/godot-4.7-linux/`、`build/godot-4.7-linux-x64/`；测试维护在 Dora-Example，不重建 history 目录。
 

@@ -14,6 +14,10 @@ import (
 var godotFiles = []string{"dora-godot.js", "dora-godot.wasm", "shared_gl.mjs", "runtime_bridge.mjs",
 	"LICENSE.txt", "COPYRIGHT.txt", "AUTHORS.md"}
 
+// Match the pinned runtime shipped by this Studio build. The serving contract
+// test compares this consumer with Source/3rdParty/Godot/UPSTREAM.json.
+const godotRuntimeVersion = "4.7.2-stable"
+
 func loadGodotAssets(root string) (map[string][]byte, error) {
 	raw, err := os.ReadFile(filepath.Join(root, "godot", "manifest.json"))
 	if err != nil {
@@ -28,7 +32,7 @@ func loadGodotAssets(root string) (map[string][]byte, error) {
 		Artifacts map[string]string `json:"artifacts"`
 	}
 	if json.Unmarshal(raw, &manifest) != nil || manifest.Format != "dora-godot-runtime" || manifest.Version != 1 ||
-		manifest.Godot != "4.6-stable" || manifest.ABI != 1 || manifest.Backend != "webgl2" {
+		manifest.Godot != godotRuntimeVersion || manifest.ABI != 1 || manifest.Backend != "webgl2" {
 		return nil, fmt.Errorf("invalid Godot Web runtime manifest")
 	}
 	files := map[string][]byte{"godot/manifest.json": raw}
