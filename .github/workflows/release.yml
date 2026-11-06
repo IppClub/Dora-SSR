@@ -386,7 +386,7 @@ jobs:
           test -s release-assets/dora-ssr-${{ needs.web-assets.outputs.version }}-android.zip
           test -s release-assets/dora-ssr-${{ needs.web-assets.outputs.version }}-linux-x86_64.AppImage
           test -s release-assets/dora-ssr-${{ needs.web-assets.outputs.version }}-linux-aarch64.AppImage
-          sha256sum release-assets/* > release-assets/SHA256SUMS
+          (cd release-assets && sha256sum -- *.zip *.msi *.AppImage) > release-assets/SHA256SUMS
           cat release-assets/SHA256SUMS
 
       - name: Check Homebrew tap token

@@ -39,7 +39,8 @@
 - [x] **UPGRADE-47-COMMUNITY**：macOS Metal 串行测试比赛真实作品；《桥之守护者》输入、动画、PCM 与卸载通过。《心-桥》独立副本修复 Dialogic 返回路径、编辑器面板退出及未挂树子系统分配，4/3/2 缓冲“心桥→守护者→心桥”12 图通过，卸载节点 0、资源 1、心桥对象数 241/241，GPU 错误/未完成读取/blit/音频欠载均 0。原仓库未改，适配补丁及通用测试在 Dora-Example；证据 `build/godot-4.7-community/`。
 - [x] **COMMUNITY-PROJECT-COMPAT**：《渡忆之桥》独立副本移除内嵌脚本未使用的 `class_name Hurtbox`，原仓库不变；共享卸载层新增项目节点边界及脱树根节点回收，未修改《跳跃的箱子》即从 12 个残留降为 0。macOS Metal 五次 A→B→A→B→A、2/3/4 缓冲、20 图通过，JumpBox 每次回收 4 根、暖态对象 254/254，渡忆 250/250，资源均 1、节点均 0，无退出泄漏/GPU 错误/音频欠载。常驻节点/后代保护、ID 重查、补充与有界清理及取消删除 CPU 回归、214 项 ABI、5 个其它平台关键编译入口与完整源码溯源通过；其它平台新清理路径仅定向编译，未追加动态矩阵。证据 `build/godot-project-orphan-cleanup/`。
 
-- [ ] **RELEASE-1.10.2-01**：统一 Dora/Studio/Web/Docs/平台版本为 1.10.2，Apple/Android build126；基于已通过 12 项 CI 的 Godot 4.7.2 代码正式打 tag，待 Release 和最终资产/Windows 发布后安装验收。
+- [x] **RELEASE-1.10.2-01**：版本 1.10.2 / Apple、Android build126 已正式发布（tag `b30f6ab60`，Release 42200358479）；10 项公开资产、8 组 Godot 4.7.2 运行库/完整许可与架构/签名通过。发布后 Windows 验收 42215369733 完成安装、同版后端切换、repair、卸载及数据保留，5 份 MSI 日志返回 0。官网线上版本及作品播放器同步，Godot 仍关闭。证据 `build/release-v1.10.2-validation/FINAL.json`。
+- [x] **RELEASE-1.10.2-SHA**：修正 SHA256SUMS 的 CI 目录前缀及生成规则；公开清单重新下载后，标准 `sha256sum -c SHA256SUMS` 对 9 个载荷全部通过，载荷 ID/大小/摘要保持一致。生成命令实际执行与重复生成回归、actionlint 通过。
 - [x] **RELEASE-1.10.1-01**：正式Release 42053162310、10项公开资产/8组运行时/完整NIR溯源及发布后原生Windows安装验收42074803183全部通过；包含同版后端切换、repair、卸载和数据保留。证据`build/release-v1.10.1-validation/REPORT.md`；未追加GPU或本地VM测试。
 
 - [x] **RELEASE-PACKAGING-02**：桌面封包复制并验证runtime manifest的完整附属文件清单，修复D3D12溯源JSON漏包；Windows ZIP/MSI打包入口拒绝缺失或篡改的附属文件。真实staging函数及缺失/损坏负向回归通过。Android三ABI的C++库差异已由NDK28.1剥离符号逐字节重现，未发现替换依赖。
