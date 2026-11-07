@@ -1518,9 +1518,13 @@ entryWindow = threadLoop ->
 	allEntries.anyEntryMatched = false
 	SetNextWindowPos Vec2 0, 50
 	SetNextWindowSize Vec2 fullWidth, height - 100
+	-- Keep the card layout width stable when the vertical scrollbar appears.
+	const scrollbarSize = 25
+	SetNextWindowContentSize Vec2(math.max(1, fullWidth - paddingX * 2 - scrollbarSize), 0)
 	do
 		<- PushStyleColor "WindowBg", transparant
 		<- PushStyleVar "WindowPadding", Vec2 paddingX, 10
+		<- PushStyleVar "ScrollbarSize", scrollbarSize
 		<- PushStyleVar "Alpha", 1
 		<- Begin "Content", windowFlags
 		const DemoViewWidth = 220
