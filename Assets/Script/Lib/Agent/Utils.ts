@@ -1161,7 +1161,6 @@ export type LLMConfig = {
 	maxTokens: number;
 	reasoningEffort?: string;
 	customOptions?: Record<string, unknown>;
-	supportsFunctionCalling: boolean;
 	studioGateway?: boolean;
 	studioVision?: {
 		provider: "deepseek" | "glm-coding-cn";
@@ -1188,10 +1187,6 @@ function normalizeContextWindow(value: unknown): number {
 		return math.floor(value);
 	}
 	return 64000;
-}
-
-function normalizeSupportsFunctionCalling(value: unknown): boolean {
-	return value === undefined || value !== 0;
 }
 
 function normalizeLLMTemperature(value: unknown): number {
@@ -1295,7 +1290,6 @@ function parseLLMConfig(config: Record<string, unknown> | undefined): { success:
 			maxTokens: normalizeLLMMaxTokens(config["max_tokens"]),
 			reasoningEffort: normalizeReasoningEffort(config["reasoning_effort"]),
 			customOptions: normalizeLLMCustomOptions(config["custom_options"]),
-			supportsFunctionCalling: normalizeSupportsFunctionCalling(config["supports_function_calling"]),
 		},
 	};
 }

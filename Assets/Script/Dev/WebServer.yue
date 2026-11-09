@@ -1487,7 +1487,7 @@ ensureLLMConfigTable = ->
 			max_tokens: true
 			reasoning_effort: true
 			custom_options: true
-			supports_function_calling: true
+			supports_function_calling: true -- Legacy column accepted but no longer used.
 			active: true
 			created_at: true
 			updated_at: true
@@ -1511,8 +1511,6 @@ ensureLLMConfigTable = ->
 				DB\exec "ALTER TABLE LLMConfig ADD COLUMN reasoning_effort TEXT NOT NULL DEFAULT ''"
 			unless existing.custom_options
 				DB\exec "ALTER TABLE LLMConfig ADD COLUMN custom_options TEXT NOT NULL DEFAULT ''"
-			unless existing.supports_function_calling
-				DB\exec "ALTER TABLE LLMConfig ADD COLUMN supports_function_calling INTEGER NOT NULL DEFAULT 1"
 		else
 			DB\exec "DROP TABLE IF EXISTS LLMConfig"
 	DB\exec [[
@@ -1527,7 +1525,6 @@ ensureLLMConfigTable = ->
 			max_tokens INTEGER NOT NULL DEFAULT 64000,
 			reasoning_effort TEXT NOT NULL DEFAULT '',
 			custom_options TEXT NOT NULL DEFAULT '',
-			supports_function_calling INTEGER NOT NULL DEFAULT 1,
 			active INTEGER NOT NULL DEFAULT 1,
 			created_at INTEGER,
 			updated_at INTEGER
@@ -1578,18 +1575,18 @@ validateCustomOptions = (value) ->
 HttpServer\post "/llm/list", ->
 	ensureLLMConfigTable!
 	rows = DB\query "
-		select id, name, url, model, api_key, context_window, temperature, max_tokens, reasoning_effort, custom_options, supports_function_calling
+		select id, name, url, model, api_key, context_window, temperature, max_tokens, reasoning_effort, custom_options
 		from LLMConfig
 		order by id asc"
 	items = if rows and #rows > 0
-		for [id, name, url, model, key, contextWindow, temperature, maxTokens, reasoningEffort, customOptions, supportsFunctionCalling] in *rows
-			:id, :name, :url, :model, :key, contextWindow: normalizeContextWindow(contextWindow), temperature: normalizeTemperature(temperature), maxTokens: normalizeMaxTokens(maxTokens), reasoningEffort: normalizeReasoningEffort(reasoningEffort), customOptions: normalizeCustomOptions(customOptions), supportsFunctionCalling: supportsFunctionCalling ~= 0
+		for [id, name, url, model, key, contextWindow, temperature, maxTokens, reasoningEffort, customOptions] in *rows
+			:id, :name, :url, :model, :key, contextWindow: normalizeContextWindow(contextWindow), temperature: normalizeTemperature(temperature), maxTokens: normalizeMaxTokens(maxTokens), reasoningEffort: normalizeReasoningEffort(reasoningEffort), customOptions: normalizeCustomOptions(customOptions)
 	return success: true, :items
 
 HttpServer\post "/llm/create", (req): invalidArguments ->
 	ensureLLMConfigTable!
 	switch req when {body: body}
-		{:name, :url, :model, :key, :contextWindow, :temperature, :maxTokens, :reasoningEffort, :customOptions, :supportsFunctionCalling} = body
+		{:name, :url, :model, :key, :contextWindow, :temperature, :maxTokens, :reasoningEffort, :customOptions} = body
 		now = os.time!
 		if name == nil or url == nil or model == nil or key == nil
 			return invalidArguments
@@ -1604,12 +1601,11 @@ HttpServer\post "/llm/create", (req): invalidArguments ->
 		reasoningEffort = normalizeReasoningEffort reasoningEffort
 		customOptions = normalizeCustomOptions customOptions
 		return success: false, message: "customOptions must be a JSON object" unless validateCustomOptions customOptions
-		supportsFunctionCalling = if supportsFunctionCalling == false then 0 else 1
 		affected = DB\exec "
 			insert into LLMConfig (
-				name, url, model, api_key, context_window, temperature, max_tokens, reasoning_effort, custom_options, supports_function_calling, active, created_at, updated_at
+				name, url, model, api_key, context_window, temperature, max_tokens, reasoning_effort, custom_options, active, created_at, updated_at
 			) values (
-				?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+				?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
 			)", [
 			tostring name
 			tostring url
@@ -1620,7 +1616,6 @@ HttpServer\post "/llm/create", (req): invalidArguments ->
 			maxTokens
 			reasoningEffort
 			customOptions
-			supportsFunctionCalling
 			1
 			now
 			now
@@ -1633,7 +1628,7 @@ HttpServer\post "/llm/create", (req): invalidArguments ->
 HttpServer\post "/llm/update", (req): invalidArguments ->
 	ensureLLMConfigTable!
 	switch req when {body: body}
-		{:id, :name, :url, :model, :key, :contextWindow, :temperature, :maxTokens, :reasoningEffort, :customOptions, :supportsFunctionCalling} = body
+		{:id, :name, :url, :model, :key, :contextWindow, :temperature, :maxTokens, :reasoningEffort, :customOptions} = body
 		now = os.time!
 		id = tonumber id
 		return invalidArguments if id == nil or id <= 0 or id ~= math.floor id
@@ -1648,10 +1643,9 @@ HttpServer\post "/llm/update", (req): invalidArguments ->
 		reasoningEffort = normalizeReasoningEffort reasoningEffort
 		customOptions = normalizeCustomOptions customOptions
 		return success: false, message: "customOptions must be a JSON object" unless validateCustomOptions customOptions
-		supportsFunctionCalling = if supportsFunctionCalling == false then 0 else 1
 		affected = DB\exec "
 			update LLMConfig
-			set name = ?, url = ?, model = ?, api_key = ?, context_window = ?, temperature = ?, max_tokens = ?, reasoning_effort = ?, custom_options = ?, supports_function_calling = ?, updated_at = ?
+			set name = ?, url = ?, model = ?, api_key = ?, context_window = ?, temperature = ?, max_tokens = ?, reasoning_effort = ?, custom_options = ?, updated_at = ?
 			where id = ?", [
 			tostring name
 			tostring url
@@ -1662,7 +1656,6 @@ HttpServer\post "/llm/update", (req): invalidArguments ->
 			maxTokens
 			reasoningEffort
 			customOptions
-			supportsFunctionCalling
 			now
 			id
 		]

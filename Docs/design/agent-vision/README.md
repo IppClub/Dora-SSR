@@ -51,7 +51,7 @@
 | [Remix.tsx](../../../Assets/Script/Dev/Mobile/Remix.tsx) `startMobileRemix` | host 挂到 systemUI；页面有全屏不透明渐变背景 | 窗口截图可能始终只有 Remix 页面 |
 | [Entry.yue](../../../Assets/Script/Dev/Entry.yue) `allClear` | 本地运行清理保留系统 UI；远程控制存在不同清理分支 | 启动测试入口不会自然消除本地 Remix 遮挡；需分别验证本地与远程 |
 | [Command.ts](../../../Assets/Script/Lib/Agent/Tool/Command.ts) `agentEntryRuntimeOwner` / `stopOwnedEntry` | 测试入口由命令独占，命令完成、异常等路径会清理自己启动的入口 | 不能先执行启动命令、等其返回后再独立取景 |
-| [Utils.ts](../../../Assets/Script/Lib/Agent/Utils.ts) `Message` / `postLLM` / `LLMConfig` | content 是字符串；发送 messages 型请求；配置包含 supportsFunctionCalling | 需补充附件及模型协议配置，不应把工具调用能力当成图像能力 |
+| [Utils.ts](../../../Assets/Script/Lib/Agent/Utils.ts) `Message` / `postLLM` / `LLMConfig` | content 是字符串；发送 messages 型请求；决策统一使用 Function Calling | 需补充附件及模型协议配置，不应把工具调用能力当成图像能力 |
 | [DoraAgent.ts](../../../Assets/Script/Lib/Agent/DoraAgent.ts) `appendToolResultMessage` | 工具结果编码为 JSON 文本写入会话 | 返回路径不会自动成为图像输入 |
 | [Memory.ts](../../../Assets/Script/Lib/Agent/Runtime/Memory.ts) `decodeConversationMessage` / `TokenEstimator` | 恢复仅接收字符串 content；预算按文本估算 | 新附件须显式保存与恢复，不能仅修改请求 JSON |
 | [HistoryProjection.ts](../../../Assets/Script/Lib/Agent/Runtime/HistoryProjection.ts) | 工具历史投影、裁剪按文本结果处理 | 附件要绕开普通文本截断，保持工具关联 |

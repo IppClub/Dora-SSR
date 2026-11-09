@@ -703,7 +703,6 @@ export interface LLMConfigItem {
 	maxTokens: number;
 	reasoningEffort?: string;
 	customOptions?: string;
-	supportsFunctionCalling: boolean;
 };
 
 export interface LLMConfigListResponse {

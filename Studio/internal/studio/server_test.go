@@ -21,9 +21,15 @@ import (
 
 const testOrigin = "https://studio.test"
 
-func TestXYWHSoftUsesXMLAgentDecisions(t *testing.T) {
+func TestModelProfilesOmitLegacyDecisionMode(t *testing.T) {
+	for _, provider := range []string{"deepseek", "zai", "openai", "xywhsoft"} {
+		config, _ := profile(provider)
+		if _, exists := config["supportsFunctionCalling"]; exists {
+			t.Fatalf("%s profile still exposes the removed XML decision switch", provider)
+		}
+	}
 	config, vision := profile("xywhsoft")
-	if config["contextWindow"] != 128000 || config["maxTokens"] != 8192 || config["supportsFunctionCalling"] != false || vision != nil {
+	if config["contextWindow"] != 128000 || config["maxTokens"] != 8192 || vision != nil {
 		t.Fatalf("unexpected XYWH Soft profile: %#v, vision=%#v", config, vision)
 	}
 }
