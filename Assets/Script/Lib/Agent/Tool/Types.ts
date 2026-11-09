@@ -9,6 +9,7 @@ export type AgentWorkMode = "code" | "plan";
 export type AgentToolName =
 	| "read_file"
 	| "edit_file"
+	| "write_file"
 	| "grep_files"
 	| "search_dora_doc"
 	| "build"

@@ -189,6 +189,7 @@ function applyCompressedSessionState(shared, compressedCount, carryMessageIndex,
 			local toolNames = { -- 1334
 				"read_file", -- 1335
 				"edit_file", -- 1335
+				"write_file", -- 1335
 				"grep_files", -- 1335
 				"search_dora_doc", -- 1335
 				"build", -- 1336
@@ -760,7 +761,7 @@ local function executeToolActionWithGuidance(shared, action) -- 774
 		if shared.workflow.failedTestNeedsBuild == true then -- 808
 			if action.tool == "build" and result.success == true and shared.workflow.failedTestHasSourceEdit ~= true then -- 808
 				guidance[#guidance + 1] = "The build passed, but no authored source change has addressed the deterministic test failure. Make a narrow source fix before rebuilding or retesting." -- 812
-			elseif action.tool == "edit_file" and result.success == true and result.changed ~= false then -- 812
+			elseif (action.tool == "edit_file" or action.tool == "write_file") and result.success == true and result.changed ~= false then -- 812
 				guidance[#guidance + 1] = "Source changed after a deterministic test failure. Build the authored changes before running more tests." -- 818
 			elseif action.tool ~= "build" then -- 818
 				guidance[#guidance + 1] = "A deterministic test failure remains unresolved. Prefer a narrow authored-source fix and a successful build before further testing or generated-output investigation." -- 820
@@ -774,7 +775,7 @@ local function executeToolActionWithGuidance(shared, action) -- 774
 				guidance[#guidance + 1] = "Dora API documentation has already been searched since the last build. Prefer applying the evidence and building before another lookup." -- 828
 			end -- 828
 		end -- 828
-		if action.tool == "edit_file" and not AgentRuntimePolicy.isAgentInternalDocumentPath(getDecisionPath(action.params)) and AgentRuntimePolicy.isEditBudgetExhausted(shared.workflow) then -- 828
+		if (action.tool == "edit_file" or action.tool == "write_file") and not AgentRuntimePolicy.isAgentInternalDocumentPath(getDecisionPath(action.params)) and AgentRuntimePolicy.isEditBudgetExhausted(shared.workflow) then -- 828
 			guidance[#guidance + 1] = "Several source files have changed since the last build. Prefer compiling now to obtain concrete diagnostics before broadening the edit set." -- 836
 		end -- 836
 		if action.tool == "edit_file" and wasResumeNarrowReadMode then -- 836
@@ -798,7 +799,7 @@ local function executeToolActionWithGuidance(shared, action) -- 774
 		if shared.workflow.buildRepairPending == true then -- 851
 			if action.tool == "build" then -- 851
 				guidance[#guidance + 1] = "This build reported authored-file diagnostics. Make a narrow source repair before building again." -- 857
-			elseif action.tool == "edit_file" and result.success == true and result.changed ~= false then -- 857
+			elseif (action.tool == "edit_file" or action.tool == "write_file") and result.success == true and result.changed ~= false then -- 857
 				guidance[#guidance + 1] = "A source repair was applied after build diagnostics. Build again before broadening the investigation." -- 863
 			else -- 863
 				guidance[#guidance + 1] = "The last build reported authored-file diagnostics. Prefer a narrow source repair, then build again." -- 865
@@ -1903,7 +1904,7 @@ local function emitCheckpointEventForAction(shared, action) -- 2012
 	if not result then -- 2013
 		return -- 2014
 	end -- 2014
-	if action.tool == "edit_file" and type(result.checkpointId) == "number" and type(result.checkpointSeq) == "number" and isArray(result.files) then -- 2014
+	if (action.tool == "edit_file" or action.tool == "write_file") and type(result.checkpointId) == "number" and type(result.checkpointSeq) == "number" and isArray(result.files) then -- 2014
 		emitAgentEvent(shared, { -- 2019
 			type = "checkpoint_created", -- 2020
 			sessionId = shared.sessionId, -- 2021
@@ -1953,7 +1954,7 @@ local function sanitizeToolActionResultForHistory(action, result) -- 2153
 	if action.tool == "build" then -- 2160
 		return sanitizeBuildResultForHistory(result) -- 2165
 	end -- 2165
-	if action.tool == "edit_file" then -- 2165
+	if action.tool == "edit_file" or action.tool == "write_file" then -- 2165
 		if result.success ~= true then -- 2165
 			return result -- 2168
 		end -- 2168

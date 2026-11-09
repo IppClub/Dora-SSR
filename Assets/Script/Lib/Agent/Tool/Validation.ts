@@ -145,6 +145,16 @@ export function validateAgentToolInput(tool: AgentToolName, input: Record<string
 		value.reads = reads;
 		return { success: true, value };
 	}
+	if (tool === "write_file") {
+		if (Array.isArray(value.edits)) return { success: false, message: "write_file does not support batch edits" };
+		if (value.delete === true) return { success: false, message: "write_file cannot delete; use edit_file delete" };
+		if (value.old_str !== undefined) return { success: false, message: "write_file does not take old_str; it writes the complete file" };
+		const path = typeof value.path === "string" ? value.path.trim() : "";
+		if (path === "") return { success: false, message: "write_file requires path" };
+		value.path = path;
+		value.new_str = typeof value.new_str === "string" ? value.new_str : "";
+		return { success: true, value };
+	}
 	if (tool === "edit_file") {
 		if (value.delete === true) {
 			// Unified write tool: explicit delete form. Must not mix with edit payloads.
@@ -167,9 +177,13 @@ export function validateAgentToolInput(tool: AgentToolName, input: Record<string
 		}
 		if (!hasBatch) {
 			if (edits[0].path === "") return { success: false, message: "edit_file requires path" };
+			if (edits[0].oldStr === "") return { success: false, message: "edit_file requires a non-empty old_str anchor; use write_file to create or rewrite a whole file" };
 			if (edits[0].oldStr === edits[0].newStr) return { success: false, message: "edit_file requires old_str and new_str to differ" };
 		}
 		if (hasBatch) {
+			for (let i = 0; i < edits.length; i++) {
+				if (edits[i].oldStr === "") return { success: false, message: "batch entry requires non-empty old_str; use write_file for whole-file creation or rewrite" };
+			}
 			value.edits = edits.map(edit => ({ path: edit.path, old_str: edit.oldStr, new_str: edit.newStr }));
 		} else {
 			value.path = edits[0].path;
@@ -297,6 +311,7 @@ export function validateAgentToolInput(tool: AgentToolName, input: Record<string
 export const AGENT_TOOL_VALIDATORS: Partial<Record<AgentToolName, AgentToolInputValidator>> = {
 	read_file: value => validateAgentToolInput("read_file", value),
 	edit_file: value => validateAgentToolInput("edit_file", value),
+	write_file: value => validateAgentToolInput("write_file", value),
 	grep_files: value => validateAgentToolInput("grep_files", value),
 	search_dora_doc: value => validateAgentToolInput("search_dora_doc", value),
 	build: value => validateAgentToolInput("build", value),

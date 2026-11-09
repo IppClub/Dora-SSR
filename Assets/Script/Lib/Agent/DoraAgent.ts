@@ -279,7 +279,7 @@ export type CodingAgentEvent =
 		sessionId?: number;
 		taskId: number;
 		step: number;
-		tool: "edit_file";
+		tool: "edit_file" | "write_file";
 		checkpointId: number;
 		checkpointSeq: number;
 		files: {
@@ -811,7 +811,7 @@ async function executeToolActionWithGuidance(shared: AgentShared, action: AgentA
 		if (action.tool === "build" && result.success === true && shared.workflow.failedTestHasSourceEdit !== true) {
 			guidance.push("The build passed, but no authored source change has addressed the deterministic test failure. Make a narrow source fix before rebuilding or retesting.");
 		} else if (
-			(action.tool === "edit_file")
+			(action.tool === "edit_file" || action.tool === "write_file")
 			&& result.success === true
 			&& result.changed !== false
 		) {
@@ -829,7 +829,7 @@ async function executeToolActionWithGuidance(shared: AgentShared, action: AgentA
 		}
 	}
 	if (
-		(action.tool === "edit_file")
+		(action.tool === "edit_file" || action.tool === "write_file")
 		&& !AgentRuntimePolicy.isAgentInternalDocumentPath(getDecisionPath(action.params))
 		&& AgentRuntimePolicy.isEditBudgetExhausted(shared.workflow)
 	) {
@@ -856,7 +856,7 @@ async function executeToolActionWithGuidance(shared: AgentShared, action: AgentA
 		if (action.tool === "build") {
 			guidance.push("This build reported authored-file diagnostics. Make a narrow source repair before building again.");
 		} else if (
-			(action.tool === "edit_file")
+			(action.tool === "edit_file" || action.tool === "write_file")
 			&& result.success === true
 			&& result.changed !== false
 		) {
@@ -1332,7 +1332,7 @@ function applyCompressedSessionState(
 		if (markerIndex >= 0) {
 			const nextToolLine = sessionSummary.slice(markerIndex, markerIndex + 120);
 			const toolNames: AgentToolName[] = [
-				"read_file", "edit_file", "grep_files", "search_dora_doc",
+				"read_file", "edit_file", "write_file", "grep_files", "search_dora_doc",
 				"build", "fetch_url", "execute_command", "analyze_image", "spawn_agent",
 				"finish",
 			];
@@ -2012,7 +2012,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 function emitCheckpointEventForAction(shared: AgentShared, action: AgentActionRecord): void {
 	const result = action.result;
 	if (!result) return;
-	if ((action.tool === "edit_file")
+	if ((action.tool === "edit_file" || action.tool === "write_file")
 		&& typeof result.checkpointId === "number"
 		&& typeof result.checkpointSeq === "number"
 		&& isArray(result.files)) {
@@ -2164,7 +2164,7 @@ function sanitizeToolActionResultForHistory(action: AgentActionRecord, result: R
 	if (action.tool === "build") {
 		return sanitizeBuildResultForHistory(result);
 	}
-	if (action.tool === "edit_file") {
+	if (action.tool === "edit_file" || action.tool === "write_file") {
 		if (result.success !== true) return result;
 		if (typeof result.checkpointId !== "number" || typeof result.checkpointSeq !== "number") return result;
 		if (isArray(result.fileContext)) return result;

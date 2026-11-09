@@ -171,7 +171,7 @@ const AGENT_TOOL_DEFINITION_SOURCES: AgentToolDefinitionSource[] = [
 		name: "edit_file",
 		roles: ["main", "sub"],
 		workModes: ["code", "plan"],
-		description: "Unified file write tool: targeted edit (old_str anchor), ordered batch (edits), whole-file create/rewrite (empty old_str), or delete (delete=true).",
+		description: "Make targeted edits with old_str anchors, apply an ordered best-effort batch of edits, or delete a file. Whole-file creation/rewrite belongs to write_file.",
 		parameters: [
 			{ name: "path", type: "string", description: "Workspace-relative file path for the legacy single-edit form or delete, or the default path for batch entries that omit path." },
 			{ name: "old_str", type: "string", description: "Legacy single-edit form: existing text to replace. If empty, rewrite the whole file or create it when missing." },
@@ -195,8 +195,7 @@ const AGENT_TOOL_DEFINITION_SOURCES: AgentToolDefinitionSource[] = [
 			{ name: "delete", type: "boolean", description: "Set true to delete the file at `path`. Cannot be combined with old_str, new_str, or edits. Only single files; directories are rejected. Deletions create a checkpoint like any edit." },
 		],
 		rules: [
-			"Whole-file mode: leave old_str empty with the full new_str content to create or completely rewrite a file. Prefer this over many single-line replacements whenever the change spans most of the file.",
-			"Targeted mode: path + old_str + new_str where old_str is an exact existing anchor. Batch mode: edits array with per-entry paths, entries may also use empty old_str to create whole files. Delete mode: path + delete=true. Do not combine delete with other forms.",
+			"Use path + old_str + new_str for one targeted edit; edits for a batch; or path + delete=true to remove one file. old_str must be a non-empty exact anchor; use write_file to create or rewrite whole files.",
 			"Prefer one batch when several independent files or several known replacements can be changed coherently before the next build.",
 			"Each batch entry succeeds or fails independently. Failed entries are reported and skipped; all successful staged results are committed together in one checkpoint.",
 			"Repeated paths are allowed and execute in array order against content from earlier successful entries; the final successful content for each unique path is written once.",
@@ -205,6 +204,22 @@ const AGENT_TOOL_DEFINITION_SOURCES: AgentToolDefinitionSource[] = [
 						"Deletion is an explicit, separate call with delete=true and a path; a capped or missing listing never implies deletion, and directories cannot be deleted.",
 			"Files under .agent/main are writable persistent memory for deliberate proactive updates. Record only durable project knowledge, user decisions, or a precise active checkpoint; these memory-only edits do not require a project build.",
 		],
+	},
+	{
+		name: "write_file",
+		roles: ["main", "sub"],
+		workModes: ["code", "plan"],
+		description: "Create a file or overwrite it with complete new content.",
+		parameters: [
+			{ name: "path", type: "string", required: true, description: "Workspace-relative file path to create or overwrite." },
+			{ name: "new_str", type: "string", required: true, description: "Complete file content. The file is replaced or created with exactly this content." },
+		],
+		rules: [
+			"Use this to create new files or rewrite a file completely.",
+			"For targeted changes inside an existing file, prefer edit_file with an old_str anchor instead of rewriting the whole file.",
+			"Each write creates a checkpoint like any edit.",
+		],
+		parallelSafe: false,
 	},
 	{
 		name: "grep_files",

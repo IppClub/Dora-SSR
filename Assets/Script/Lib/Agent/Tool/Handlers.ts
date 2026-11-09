@@ -67,6 +67,12 @@ const readFile: AgentToolHandler = async (context, input) => {
 	return { output: readOneFile(context, input) };
 };
 
+const writeFile: AgentToolHandler = async (context, input) => {
+	// Explicit whole-file write (create or overwrite); reuses the unified edit pipeline
+	// with an empty old_str so checkpoints and accounting stay identical.
+	return editFile(context, { path: input.path, old_str: "", new_str: input.new_str });
+};
+
 const grepFiles: AgentToolHandler = async (context, input) => {
 	const pattern = typeof input.pattern === "string" ? input.pattern.trim() : "";
 	if (pattern === "") {
@@ -628,6 +634,7 @@ export const AGENT_TOOL_HANDLERS: Partial<Record<AgentToolName, AgentToolHandler
 	execute_command: executeCommand,
 	analyze_image: analyzeImageHandler,
 	edit_file: editFile,
+	write_file: writeFile,
 	ask_user: askUser,
 	spawn_agent: spawnAgent,
 	finish,
