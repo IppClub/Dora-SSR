@@ -15,6 +15,8 @@ import * as Service from './Service';
 import Info from './Info';
 import * as wa from './languages/wa';
 import * as yarn from './languages/yarn';
+import { getGodotFileLanguage } from './GodotFiles';
+import { registerGodotLanguages } from './languages/godot';
 import {
 	EditorTheme,
 	getInferDefinitionCommand,
@@ -37,7 +39,7 @@ const getLanguageForFile = (file: string) => {
 		case ".wa": return "wa";
 		case ".mod": return "ini";
 		case ".yarn": return "yarn";
-		default: return undefined;
+		default: return getGodotFileLanguage(file);
 	}
 };
 
@@ -630,6 +632,7 @@ const codeActionProvider = {
 } as monaco.languages.CodeActionProvider;
 
 monaco.languages.register({ id: 'tl' });
+registerGodotLanguages(monaco);
 monaco.languages.setLanguageConfiguration("tl", teal.config);
 monaco.languages.setMonarchTokensProvider("tl", teal.language);
 const tlComplete = completionItemProvider([".", ":", "\"", "'", "/"], "tl");

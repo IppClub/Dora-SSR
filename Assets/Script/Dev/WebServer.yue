@@ -1718,10 +1718,11 @@ HttpServer\post "/new", (req): success: false, message: "Failed" ->
 				return success: true
 		else
 			name = Path\getName(path)\lower!
+			targetExt = Path\getExt path
 			for file in *files
 				if name == Path\getName(file)\lower!
 					ext = Path\getExt file
-					if ext not in ["tl", "yue", "ts", "tsx", "vs", "bl", "xml", "lua"]
+					if targetExt not in ["tl", "yue", "ts", "tsx", "vs", "bl", "xml", "lua"] or ext not in ["tl", "yue", "ts", "tsx", "vs", "bl", "xml", "lua"]
 						continue
 					elseif ("d" == Path\getExt name) and (ext ~= Path\getExt path)
 						continue
@@ -1763,7 +1764,8 @@ moveAsset = (old, new) ->
 		ext = Path\getExt new
 		for file in *files
 			if name == Path\getName(file)\lower!
-				if ext not in ["tl", "yue", "ts", "tsx", "vs", "bl", "xml", "lua"]
+				fileExt = Path\getExt file
+				if ext not in ["tl", "yue", "ts", "tsx", "vs", "bl", "xml", "lua"] or fileExt not in ["tl", "yue", "ts", "tsx", "vs", "bl", "xml", "lua"]
 					continue
 				elseif ("d" == Path\getExt name) and (Path\getExt(file) ~= ext)
 					continue
@@ -2122,9 +2124,9 @@ visitAssets = (path, workspace, builtin, recursive = true) ->
 	dirs = Content\getDirs path
 	for dir in *dirs
 		if workspace
-			if dir in [".upload", ".download", ".www", ".build", ".git", ".cache", "node_modules"]
+			if dir in [".upload", ".download", ".www", ".build", ".git", ".cache", ".godot", "node_modules"]
 				continue
-		elseif dir == ".git"
+		elseif dir == ".git" or dir == ".godot"
 			continue
 		children = [] unless children
 		dirPath = Path path, dir
@@ -2142,6 +2144,10 @@ visitAssets = (path, workspace, builtin, recursive = true) ->
 	names = {}
 	for file in *files
 		if file in [".DS_Store",]
+			continue
+		ext = Path\getExt file
+		unless extentionLevels[ext]
+			names[file] = ""
 			continue
 		name = Path\getName file
 		if ext := names[name]
@@ -2195,13 +2201,14 @@ HttpServer\post "/assets/files", (req): success: false ->
 		builtin = relativeToRoot(path, Content.assetPath) ~= nil
 		return success: false unless workspace or builtin
 		return success: false unless Content\exist(path) and Content\isdir(path)
-		globs = {"**", "!**/.DS_Store"}
+		globs = {"**", "!**/.DS_Store", "!**/.godot/**"}
 		if workspace
 			globs = {
 				"**", "!**/.DS_Store"
 				"!**/.upload/**", "!**/.download/**"
 				"!**/.www/**", "!**/.build/**"
 				"!**/.git/**", "!**/.cache/**"
+				"!**/.godot/**"
 				"!**/node_modules/**"
 			}
 		files = [Path(path, file) for file in *Content\glob(path, globs, extentionLevels)]
@@ -3016,6 +3023,28 @@ status = {}
 export default status
 
 status.transpileTSFile = transpileTSFile
+
+-- Manual Web IDE builds share the Agent's editor version, import checks and lock.
+HttpServer\postSchedule "/godot/project", (req): invalidArguments ->
+	switch req when {body: {:path}}
+		return invalidArguments unless type(path) == "string" and Content\isAbsolutePath path
+		releaseAgent = AgentHost.acquire!
+		close _ = <close>: -> releaseAgent!
+		import "Agent.Tool.GodotBuild" as GodotBuild
+		project = GodotBuild.findGodotProject(Content.writablePath, path) or GodotBuild.findGodotProject(Content.assetPath, path)
+		return success: true, found: false unless project
+		return success: true, found: true, projectRoot: project unless req.body.build == true
+		local result
+		promise = GodotBuild.buildGodotProject project
+		onFulfilled = (_, value) ->
+			result = value
+		onRejected = (_, err) ->
+			result = success: false, message: tostring err
+		promise["then"] promise, onFulfilled, onRejected
+		wait -> result ~= nil
+		result.found = true
+		result.projectRoot = project
+		return result
 
 status.buildAsync = (path) ->
 	if not Content\exist path

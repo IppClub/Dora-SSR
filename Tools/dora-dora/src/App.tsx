@@ -77,6 +77,8 @@ import AudioPreviewCard from './AudioPreviewCard';
 import {useWebPackage} from './WebPackage/useWebPackage';
 import ExportDialog from './WebPackage/ExportDialog';
 import { getGodotProjectTemplate, isGodotProjectType, type GodotProjectType } from './GodotProjectTemplate';
+import { godotFileTypes, getGodotFileTemplate, getGodotFileLanguage, type GodotFileType } from './GodotFiles';
+import { formatGodotDiagnostics } from './GodotDiagnostics';
 
 const SpinePlayer = React.lazy(() => import('./SpinePlayer'));
 const Markdown = React.lazy(() => import('./Markdown'));
@@ -772,6 +774,7 @@ export default function PersistentDrawerLeft() {
 			ext: string,
 			project?: boolean,
 			projectType?: FolderProjectType,
+			godotFileType?: GodotFileType,
 		} | null>(null);
 	const [firstProjectTourOpen, setFirstProjectTourOpen] = useState(false);
 	const [firstProjectTourCurrent, setFirstProjectTourCurrent] = useState<FirstProjectTourStepValue>(FirstProjectTourStep.Welcome);
@@ -2819,6 +2822,15 @@ export default function PersistentDrawerLeft() {
 			key = path.join(key, "init");
 			asProj = true;
 		}
+		if (getGodotFileLanguage(key) !== undefined) {
+			const project = await Service.godotProject({ path: key });
+			if (!project.success || !project.found || !project.projectRoot) {
+				addAlert(project.message ?? t("alert.buildProjectNoRoot"), "error");
+				return;
+			}
+			key = path.join(project.projectRoot, "init");
+			asProj = true;
+		}
 		const ext = path.extname(key).toLowerCase();
 		if ((ext === ".model" || ext === ".par") && !asProj) {
 			addAlert(t("alert.modelRunCurrentUnsupported", { title }), "info");
@@ -3323,9 +3335,38 @@ export default function PersistentDrawerLeft() {
 
 	const buildTreeData = useCallback(async (data: TreeDataType, quiet = false) => {
 		const { key } = data;
+		if (checkFileReadonly(key, false)) return false;
 		let built = false;
 		let succeeded = true;
+		const godotProjects = new Map<string, boolean>();
+		const checkGodot = async (target: string) => {
+			try {
+				const project = await Service.godotProject({ path: target });
+				if (!project.success) throw new Error(project.message ?? "Cannot locate Godot project");
+				if (!project.found || !project.projectRoot) {
+					if (getGodotFileLanguage(target) !== undefined) throw new Error("Godot file does not belong to a project with project.godot");
+					return true;
+				}
+				built = true;
+				const previous = godotProjects.get(project.projectRoot);
+				if (previous !== undefined) return previous;
+				const result = await Service.godotProject({ path: target, build: true });
+				godotProjects.set(project.projectRoot, result.success);
+				if (!result.success) {
+					succeeded = false;
+					Service.addLog(`[error] ${formatGodotDiagnostics(result.message ?? "Godot build failed", project.projectRoot)}\n`);
+					if (!quiet) setOpenLog({ title: t("menu.build") + " " + data.title, stopOnClose: false });
+				}
+				return result.success;
+			} catch (error) {
+				succeeded = false;
+				Service.addLog(`[error] ${error instanceof Error ? error.message : String(error)}\n`);
+				if (!quiet) setOpenLog({ title: t("menu.build") + " " + data.title, stopOnClose: false });
+				return false;
+			}
+		};
 		const buildFile = async (key: string, buildFolder: boolean) => {
+			if (key.split(/[\\/]/).some(part => part === '.godot' || part === '.agent')) return;
 			const preferLog = buildFolder;
 			if (checkFileReadonly(key, false)) { succeeded = false; return; }
 			let title: string;
@@ -3341,6 +3382,7 @@ export default function PersistentDrawerLeft() {
 			const luaFile = path.join(dir, name + ".lua");
 			const fileInTab = files.find(f => path.relative(f.key, luaFile) === "");
 			try {
+				if (getGodotFileLanguage(key) !== undefined && !await checkGodot(key)) return;
 				if (ext === '.wa' && !buildFolder) {
 					built = true;
 					setIsWaSaving(true);
@@ -3482,6 +3524,7 @@ export default function PersistentDrawerLeft() {
 			}
 			isSaving = true;
 			try {
+				if (!await checkGodot(key)) return false;
 				const listRes = await Service.assetFiles(data.key);
 				if (!listRes.success) succeeded = false;
 				if (listRes.success) {
@@ -3496,7 +3539,9 @@ export default function PersistentDrawerLeft() {
 				isSaving = false;
 			}
 		} else {
+			if (!await checkGodot(key)) return false;
 			await buildFile(key, false);
+			if (succeeded && getGodotFileLanguage(key) !== undefined) addAlert(t("alert.build", { title: data.title }), "success");
 		}
 		return succeeded;
 	}, [addAlert, checkFileReadonly, files, t]);
@@ -3846,7 +3891,8 @@ export default function PersistentDrawerLeft() {
 	}, [addAlert, buildTreeData, refreshTreeDirectory, t, files, deleteFile, treeData, openFileInTab, onEditorDidMount, switchTab, openAgentSessionTab, firstProjectTourOpen, firstProjectTourCurrent, webPackageAction]);
 
 	const onNewFileClose = (item?: DoraFileType) => {
-		let ext: string | null = null;
+		const godotType = godotFileTypes.find(type => type.name === item);
+		let ext: string | null = godotType?.extension ?? null;
 		switch (item) {
 			case "Lua": ext = ".lua"; break;
 			case "Teal": ext = ".tl"; break;
@@ -3871,6 +3917,7 @@ export default function PersistentDrawerLeft() {
 				name: "",
 				ext,
 				projectType: ext === "" ? "TypeScript" : undefined,
+				godotFileType: godotType?.name,
 			});
 			if (
 				item === "Folder"
@@ -4072,6 +4119,7 @@ export default function PersistentDrawerLeft() {
 				const folder = fileInfo.title === "file.newFolder";
 				const template = getNewFileTemplate(ext);
 				let { content } = template;
+				content = getGodotFileTemplate(ext, trimmedName, fileInfo.godotFileType) ?? content;
 				const { position } = template;
 				if (ext === ".model") {
 					content = writeLegacyModel(createEmptyActionDocument(newFile, `${trimmedName}.clip`));
@@ -5298,6 +5346,10 @@ export default function PersistentDrawerLeft() {
 					height={editorHeight * 0.9}
 					onClose={onCloseLog}
 					onFixLog={onFixLog}
+					onOpenFile={(file, row, col) => {
+						setOpenLog(null);
+						setJumpToFile({ key: file, title: path.basename(file), row, col });
+					}}
 					allowBackgroundInteraction={false}
 				/>
 			) : null}
@@ -5996,7 +6048,7 @@ export default function PersistentDrawerLeft() {
 							</Main>;
 						}
 						const ext = file.folder ? "" : path.extname(file.title);
-						let language: "lua" | "tl" | "yue" | "typescript" | "xml" | "markdown" | "wa" | "yarn" | "ini" | "txt" | null = null;
+						let language: string | null = null;
 						let image = false;
 						let spine = false;
 						let yarn = false;
@@ -6039,7 +6091,7 @@ export default function PersistentDrawerLeft() {
 							case ".tic": tic80 = true; break;
 							case ".model": actionModel = true; break;
 							default:
-								if (!file.folder) language = "txt";
+								if (!file.folder) language = getGodotFileLanguage(file.title) ?? "txt";
 								break
 						}
 						const markdown = language === "markdown";

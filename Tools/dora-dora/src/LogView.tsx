@@ -8,7 +8,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 import { LazyLog } from 'react-lazylog';
 import * as Service from './Service';
-import { FormEvent, memo, useCallback, useEffect, useRef, useState } from 'react';
+import { FormEvent, memo, useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { Box, Button, Dialog, DialogActions, DialogContent, FormControl, TextField, Tooltip } from '@mui/material';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTranslation } from 'react-i18next';
@@ -29,12 +29,14 @@ import Info from './Info';
 import { LogFixRequest, buildLogFixMessage, logFixLineClassName } from './LogFix';
 import LogFixPanel from './LogFixPanel';
 import { useBatchedLog } from './useBatchedLog';
+import { diagnosticLinkPattern } from './GodotDiagnostics';
 
 export interface LogViewProps {
 	openName: string | null;
 	height: number;
 	onClose: () => void;
 	onFixLog?: (request: LogFixRequest) => void;
+	onOpenFile?: (file: string, row: number, column: number) => void;
 	allowBackgroundInteraction?: boolean;
 };
 
@@ -98,6 +100,24 @@ const transitionProps = {
 
 const LogView = memo((props: LogViewProps) => {
 	const { t } = useTranslation();
+	const formatLogPart = useCallback((text: string) => {
+		const parts: ReactNode[] = [];
+		let offset = 0;
+		for (const match of text.matchAll(diagnosticLinkPattern)) {
+			parts.push(<span key={`text-${offset}`}>{formatPart(text.slice(offset, match.index))}</span>);
+			try {
+				const file = decodeURIComponent(match[1]);
+				const row = Math.max(1, Number(match[2]));
+				const column = Math.max(1, Number(match[3]));
+				parts.push(<button key={`link-${match.index}`} type="button" style={{ font: 'inherit', color: '#80bfff', cursor: 'pointer', background: 'none', border: 0, padding: 0, textDecoration: 'underline' }} onClick={() => props.onOpenFile?.(file, row, column)}>{file}:{row}</button>);
+			} catch {
+				parts.push(match[0]);
+			}
+			offset = match.index! + match[0].length;
+		}
+		parts.push(<span key={`text-${offset}`}>{formatPart(text.slice(offset))}</span>);
+		return <span>{parts}</span>;
+	}, [props.onOpenFile]);
 	const compactLayout = useMediaQuery('(max-width: 760px), (max-height: 520px)');
 	const portraitLayout = useMediaQuery('(max-width: 760px) and (orientation: portrait)');
 	const logContainerRef = useRef<HTMLDivElement | null>(null);
@@ -795,7 +815,7 @@ const LogView = memo((props: LogViewProps) => {
 							color: Color.TextSecondary,
 							background: Color.BackgroundDark,
 						}}
-						formatPart={formatPart}
+						formatPart={formatLogPart}
 						lineClassName={logFixLineClassName}
 						rowHeight={22}
 						extraLines={5}

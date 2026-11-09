@@ -48,34 +48,34 @@ var elapsed := 0.0
 var alternate := false
 
 func _ready() -> void:
-    var title := Label.new()
-    title.text = "Godot 2D inside Dora"
-    title.position = Vector2(24, 20)
-    title.add_theme_font_size_override("font_size", 26)
-    add_child(title)
-    var hint := Label.new()
-    hint.text = "Click to change the ball color"
-    hint.position = Vector2(24, 60)
-    hint.add_theme_font_size_override("font_size", 18)
-    add_child(hint)
+	var title := Label.new()
+	title.text = "Godot 2D inside Dora"
+	title.position = Vector2(24, 20)
+	title.add_theme_font_size_override("font_size", 26)
+	add_child(title)
+	var hint := Label.new()
+	hint.text = "Click to change the ball color"
+	hint.position = Vector2(24, 60)
+	hint.add_theme_font_size_override("font_size", 18)
+	add_child(hint)
 
 func _process(delta: float) -> void:
-    elapsed += delta
-    queue_redraw()
+	elapsed += delta
+	queue_redraw()
 
 func _draw() -> void:
-    draw_rect(Rect2(20, 110, 600, 220), Color(0.06, 0.11, 0.17))
-    for index in range(13):
-        var x := 32.0 + index * 48.0
-        draw_line(Vector2(x, 120), Vector2(x, 320), Color(0.12, 0.19, 0.26))
-    var ball_position := Vector2(320 + sin(elapsed * 1.4) * 220, 220 + cos(elapsed * 2.0) * 55)
-    var color := Color(1, 0.6, 0.2) if alternate else Color(0.12, 0.85, 0.65)
-    draw_circle(ball_position, 28, color)
+	draw_rect(Rect2(20, 110, 600, 220), Color(0.06, 0.11, 0.17))
+	for index in range(13):
+		var x := 32.0 + index * 48.0
+		draw_line(Vector2(x, 120), Vector2(x, 320), Color(0.12, 0.19, 0.26))
+	var ball_position := Vector2(320 + sin(elapsed * 1.4) * 220, 220 + cos(elapsed * 2.0) * 55)
+	var color := Color(1, 0.6, 0.2) if alternate else Color(0.12, 0.85, 0.65)
+	draw_circle(ball_position, 28, color)
 
 func _input(event: InputEvent) -> void:
-    if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
-        alternate = not alternate
-        queue_redraw()
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+		alternate = not alternate
+		queue_redraw()
 `;
 
 const SCRIPT_3D = `extends Node3D
@@ -83,41 +83,41 @@ const SCRIPT_3D = `extends Node3D
 var cube: MeshInstance3D
 
 func _ready() -> void:
-    cube = MeshInstance3D.new()
-    cube.mesh = BoxMesh.new()
-    var material := StandardMaterial3D.new()
-    material.albedo_color = Color(0.12, 0.85, 0.65)
-    material.roughness = 0.55
-    cube.material_override = material
-    add_child(cube)
-    var light := DirectionalLight3D.new()
-    light.rotation_degrees = Vector3(-40, -30, 0)
-    light.light_energy = 1.8
-    add_child(light)
-    var camera := Camera3D.new()
-    camera.position = Vector3(0, 1.2, 3.8)
-    add_child(camera)
-    camera.look_at(Vector3.ZERO)
-    camera.current = true
-    var environment := WorldEnvironment.new()
-    environment.environment = Environment.new()
-    environment.environment.background_mode = Environment.BG_COLOR
-    environment.environment.background_color = Color(0.025, 0.045, 0.08)
-    environment.environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-    environment.environment.ambient_light_color = Color(0.6, 0.7, 0.85)
-    environment.environment.ambient_light_energy = 0.5
-    add_child(environment)
-    var title := Label.new()
-    title.text = "Godot 3D inside Dora"
-    title.position = Vector2(24, 20)
-    title.add_theme_font_size_override("font_size", 26)
-    var overlay := CanvasLayer.new()
-    add_child(overlay)
-    overlay.add_child(title)
+	cube = MeshInstance3D.new()
+	cube.mesh = BoxMesh.new()
+	var material := StandardMaterial3D.new()
+	material.albedo_color = Color(0.12, 0.85, 0.65)
+	material.roughness = 0.55
+	cube.material_override = material
+	add_child(cube)
+	var light := DirectionalLight3D.new()
+	light.rotation_degrees = Vector3(-40, -30, 0)
+	light.light_energy = 1.8
+	add_child(light)
+	var camera := Camera3D.new()
+	camera.position = Vector3(0, 1.2, 3.8)
+	add_child(camera)
+	camera.look_at(Vector3.ZERO)
+	camera.current = true
+	var environment := WorldEnvironment.new()
+	environment.environment = Environment.new()
+	environment.environment.background_mode = Environment.BG_COLOR
+	environment.environment.background_color = Color(0.025, 0.045, 0.08)
+	environment.environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+	environment.environment.ambient_light_color = Color(0.6, 0.7, 0.85)
+	environment.environment.ambient_light_energy = 0.5
+	add_child(environment)
+	var title := Label.new()
+	title.text = "Godot 3D inside Dora"
+	title.position = Vector2(24, 20)
+	title.add_theme_font_size_override("font_size", 26)
+	var overlay := CanvasLayer.new()
+	add_child(overlay)
+	overlay.add_child(title)
 
 func _process(delta: float) -> void:
-    cube.rotate_y(delta * 0.9)
-    cube.rotate_x(delta * 0.35)
+	cube.rotate_y(delta * 0.9)
+	cube.rotate_x(delta * 0.35)
 `;
 
 const HOST_ENTRY = `// @preview-file on clear

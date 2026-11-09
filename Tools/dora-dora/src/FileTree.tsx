@@ -56,6 +56,7 @@ import tic80Logo from './tic80.png';
 import yarnLogo from './yarn.png';
 import doraAnimationLogo from './dora-animation.png';
 import doraBodyLogo from './dora-body.png';
+import { getGodotFileIcon } from './GodotIcons';
 import { DiCode } from 'react-icons/di';
 import { TbMusic, TbSql } from 'react-icons/tb';
 import { SiNodered } from 'react-icons/si';
@@ -129,6 +130,10 @@ const fileIcon = (props: TreeNodeProps) => {
 				return <AiOutlineFolder />;
 			}
 		} else {
+			const godotIcon = getGodotFileIcon(data.key);
+			if (godotIcon !== undefined) {
+				return <img src={godotIcon} alt="Godot resource" width={14} height={14} style={{ objectFit: 'contain' }} />;
+			}
 			if (data.key.toLowerCase().endsWith(".b.lua")) {
 				return <img src={doraBodyLogo} alt="body" width="14px" height="14px" style={{ objectFit: 'contain' }} />;
 			}

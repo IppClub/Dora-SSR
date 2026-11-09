@@ -829,6 +829,17 @@ export const build = (req: BuildRequest) => {
 	return post<BuildResponse>("/build", req);
 };
 
+export interface GodotProjectResponse {
+	success: boolean;
+	found?: boolean;
+	projectRoot?: string;
+	message?: string;
+}
+
+export const godotProject = (req: { path: string; build?: boolean }) => {
+	return post<GodotProjectResponse>("/godot/project", req);
+};
+
 // Rename
 
 export interface RenameRequest {

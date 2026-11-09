@@ -15,6 +15,8 @@ import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import { useEffect, useState } from 'react';
 
 import luaLogo from './lua.png';
 import yueLogo from './yuescript.png';
@@ -33,12 +35,14 @@ import { VscMarkdown } from 'react-icons/vsc';
 import { useTranslation } from 'react-i18next';
 import { DialogActions } from '@mui/material';
 import Grid from '@mui/material/Grid';
+import { godotFileTypes, type GodotFileType } from './GodotFiles';
+import { godotLogo, godotTypeIcons } from './GodotIcons';
 
-export type DoraFileType = "Lua" | "YueScript" | "Teal" | "TypeScript" | "Dora XML" | "Dora Animation" | "Dora Body" | "Dora Particle" | "Markdown" | "Yarn" | "Visual Script" | "Blockly" | "Folder" | "Wa" | "TIC80"
+export type DoraFileType = "Lua" | "YueScript" | "Teal" | "TypeScript" | "Dora XML" | "Dora Animation" | "Dora Body" | "Dora Particle" | "Markdown" | "Yarn" | "Visual Script" | "Blockly" | "Folder" | "Wa" | "TIC80" | GodotFileType;
 
 interface FileType {
 	icon: React.ReactNode;
-	name: DoraFileType;
+	name: DoraFileType | "Godot Resources";
 	label?: string;
 	desc: string;
 	padding: string;
@@ -140,7 +144,22 @@ const fileTypes: FileType[] = [
 		desc: "file.tic",
 		padding: '20px'
 	},
+	{
+		icon: <img src={godotLogo} alt="Godot" width={50} height={50} style={{ objectFit: 'contain' }} />,
+		name: "Godot Resources",
+		label: "file.typeGodotResources",
+		desc: "file.godotResources",
+		padding: '18px',
+	},
 ];
+
+const godotTypes: FileType[] = godotFileTypes.map((type) => ({
+	icon: <img src={godotTypeIcons[type.name]} alt={type.name} width={50} height={50} style={{ objectFit: 'contain' }} />,
+	name: type.name,
+	label: `file.type${type.description}`,
+	desc: `file.${type.description}`,
+	padding: '18px',
+}));
 
 export interface NewFileDialogProps {
 	open: boolean;
@@ -158,12 +177,18 @@ function NewFileDialog(props: NewFileDialogProps) {
 	const { onClose, open } = props;
 	const compact = useMediaQuery('(max-width: 600px)');
 	const veryNarrow = useMediaQuery('(max-width: 350px)');
+	const [godotMenu, setGodotMenu] = useState(false);
+	useEffect(() => { setGodotMenu(false); }, [open]);
 
 	const handleClose = () => {
 		onClose(undefined);
 	};
 
-	const handleListItemClick = (value: DoraFileType) => {
+	const handleListItemClick = (value: FileType['name']) => {
+		if (value === "Godot Resources") {
+			setGodotMenu(true);
+			return;
+		}
 		onClose(value);
 	};
 
@@ -197,7 +222,10 @@ function NewFileDialog(props: NewFileDialogProps) {
 					backgroundColor: "background.paper",
 				} : {}),
 			}}>
-				{t("file.new")}
+				<span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+					{godotMenu && <IconButton aria-label={t("file.backToTypes")} onClick={() => setGodotMenu(false)} size="small"><ArrowBackIcon fontSize="small" /></IconButton>}
+					{t(godotMenu ? "file.typeGodotResources" : "file.new")}
+				</span>
 				<IconButton
 					aria-label={t("action.close")}
 					onClick={handleClose}
@@ -207,9 +235,9 @@ function NewFileDialog(props: NewFileDialogProps) {
 					<CloseIcon fontSize="small" />
 				</IconButton>
 			</DialogTitle>
-			<Grid container columns={{ xs: 2, sm: 2, md: 3 }} sx={compact ? { px: 0.75, pb: 0.75 } : undefined}>
+			<Grid container columns={{ xs: 2, sm: 2, md: 3 }} sx={{ overflowY: 'auto', minHeight: 0, ...(compact ? { px: 0.75, pb: 0.75 } : {}) }}>
 				{
-					fileTypes.map((fileType) => (
+					(godotMenu ? godotTypes : fileTypes).map((fileType) => (
 						<Grid key={fileType.name} size={1}>
 							<ListItem sx={compact ? { p: 0.5 } : undefined}>
 								<ListItemButton

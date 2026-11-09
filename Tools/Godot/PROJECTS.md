@@ -6,6 +6,10 @@
 
 Web IDE 的“新建工程目录 → 创建为项目”提供 `Godot 2D` 和 `Godot 3D`。工程根目录同时包含 `init.ts`、`project.godot`、`main.tscn`、`main.gd`；`init.ts` 是 Dora 宿主入口，其余文件是可用官方编辑器打开的标准 Godot 工程。基础模板使用程序化图形，不需要先导入外部素材；创建完成后沿用普通工程的 Agent 会话入口。
 
+人工添加文件时，在“新建内容 → Godot 资源”二级菜单选择 GDScript（`.gd`）、2D/3D 场景（`.tscn`）、资源（`.tres`）、2D 着色器（`.gdshader`）或着色器片段（`.gdshaderinc`），创建后以文本方式编辑。编辑器提供基础语法高亮，不包含 Godot 图形场景编辑器或 GDScript 语言服务器。工程配置 `project.godot` 由新建工程流程生成。
+
+桌面 Web IDE 的手动构建与 Agent 共用 Godot 导入检查服务；构建错误中的 Godot 文件行号可在日志中点击跳转。编辑 Godot 文件时，“运行”和“运行当前文件”都会定位所属工程并运行 Dora 宿主 `init`，不会将 GDScript 当成 Lua 执行，也不会自动将当前场景替换为主场景。
+
 桌面 Agent 的 `build` 在发现目标所在的 Godot 工程后，先通过匹配的 Godot **4.7.2 stable** 编辑器执行无界面资源导入，再加载检查工程脚本、场景和资源，最后执行 Dora 脚本构建。建议以工程目录调用 `build`；即使目标是 `init.ts`，也不会跳过所在 Godot 工程的检查。Godot 3、声明依赖 C#/Mono 的工程和原生 GDExtension sidecar 会被拒绝。
 
 可通过启动 Dora 进程的环境变量 `DORA_GODOT_EDITOR` 指定编辑器可执行文件（macOS 也接受 `.app` 路径）。未指定时，macOS 检查 `/Applications/Godot.app/Contents/MacOS/Godot`，并尝试 PATH 中的 `godot`、`godot4`；其它桌面平台尝试 PATH。版本不匹配或缺少编辑器会报告工具配置错误。
