@@ -92,6 +92,7 @@ local Image <const> = Image -- 11
 local Dummy <const> = Dummy -- 11
 local SetNextItemWidth <const> = SetNextItemWidth -- 11
 local InputText <const> = InputText -- 11
+local SetNextWindowContentSize <const> = SetNextWindowContentSize -- 11
 local Columns <const> = Columns -- 11
 local GetColumnWidth <const> = GetColumnWidth -- 11
 local NextColumn <const> = NextColumn -- 11
@@ -2525,556 +2526,560 @@ entryWindow = threadLoop(function() -- 1438
 	allEntries.anyEntryMatched = false -- 1518
 	SetNextWindowPos(Vec2(0, 50)) -- 1519
 	SetNextWindowSize(Vec2(fullWidth, height - 100)) -- 1520
-	do -- 1521
-		return PushStyleColor("WindowBg", transparant, function() -- 1522
-			return PushStyleVar("WindowPadding", Vec2(paddingX, 10), function() -- 1523
-				return PushStyleVar("Alpha", 1, function() -- 1524
-					return Begin("Content", windowFlags, function() -- 1525
-						local DemoViewWidth <const> = 220 -- 1526
-						filterText = filterBuf.text:match("[^%%%.%[]+") -- 1527
-						if filterText then -- 1528
-							filterText = filterText:lower() -- 1528
-						end -- 1528
-						if App.platform == "Emscripten" then -- 1529
-							Dora.globals.webProjects.draw(zh, themeColor) -- 1530
-							allEntries.anyEntryMatched = true -- 1531
-						end -- 1529
-						if #gamesInDev > 0 then -- 1532
-							local columns = math.max(math.floor(width / DemoViewWidth), 1) -- 1533
-							Columns(columns, false) -- 1534
-							local realViewWidth = GetColumnWidth() - 50 -- 1535
-							for _index_0 = 1, #gamesInDev do -- 1536
-								local game = gamesInDev[_index_0] -- 1536
-								local gameName, fileName, examples, tests, repo, bannerFile, bannerTex = game.entryName, game.fileName, game.examples, game.tests, game.repo, game.bannerFile, game.bannerTex -- 1537
-								local displayName -- 1546
-								if repo then -- 1546
-									if zh then -- 1547
-										displayName = repo.title.zh -- 1547
-									else -- 1547
-										displayName = repo.title.en -- 1547
-									end -- 1547
-								end -- 1546
-								if displayName == nil then -- 1548
-									displayName = gameName -- 1548
-								end -- 1548
-								if allEntries.match(displayName) then -- 1549
-									TextColored(themeColor, zh and "项目：" or "Project:") -- 1550
-									SameLine() -- 1551
-									TextWrapped(displayName) -- 1552
-									if columns > 1 then -- 1553
-										if bannerFile and bannerTex then -- 1554
-											local texWidth, texHeight = bannerTex.width, bannerTex.height -- 1555
-											local displayWidth <const> = realViewWidth -- 1556
-											texHeight = displayWidth * texHeight / texWidth -- 1557
-											texWidth = displayWidth -- 1558
-											Dummy(Vec2.zero) -- 1559
-											SameLine() -- 1560
-											Image(bannerFile, Vec2(texWidth + 10, texHeight)) -- 1561
-										end -- 1554
-										if Button(tostring(zh and "开始测试" or "Game Test") .. "##" .. tostring(fileName), Vec2(-1, 40)) then -- 1562
-											enterDemoEntry(game) -- 1563
-										end -- 1562
-									else -- 1565
-										if bannerFile and bannerTex then -- 1565
-											local texWidth, texHeight = bannerTex.width, bannerTex.height -- 1566
-											local displayWidth = (fullWidth / 2 - paddingX) * 2 - 35 -- 1567
-											local sizing = 0.8 -- 1568
-											texHeight = displayWidth * sizing * texHeight / texWidth -- 1569
-											texWidth = displayWidth * sizing -- 1570
-											if texWidth > 500 then -- 1571
-												sizing = 0.6 -- 1572
+	local scrollbarSize <const> = 25 -- 1522
+	SetNextWindowContentSize(Vec2(math.max(1, fullWidth - paddingX * 2 - scrollbarSize), 0)) -- 1523
+	do -- 1524
+		return PushStyleColor("WindowBg", transparant, function() -- 1525
+			return PushStyleVar("WindowPadding", Vec2(paddingX, 10), function() -- 1526
+				return PushStyleVar("ScrollbarSize", scrollbarSize, function() -- 1527
+					return PushStyleVar("Alpha", 1, function() -- 1528
+						return Begin("Content", windowFlags, function() -- 1529
+							local DemoViewWidth <const> = 220 -- 1530
+							filterText = filterBuf.text:match("[^%%%.%[]+") -- 1531
+							if filterText then -- 1532
+								filterText = filterText:lower() -- 1532
+							end -- 1532
+							if App.platform == "Emscripten" then -- 1533
+								Dora.globals.webProjects.draw(zh, themeColor) -- 1534
+								allEntries.anyEntryMatched = true -- 1535
+							end -- 1533
+							if #gamesInDev > 0 then -- 1536
+								local columns = math.max(math.floor(width / DemoViewWidth), 1) -- 1537
+								Columns(columns, false) -- 1538
+								local realViewWidth = GetColumnWidth() - 50 -- 1539
+								for _index_0 = 1, #gamesInDev do -- 1540
+									local game = gamesInDev[_index_0] -- 1540
+									local gameName, fileName, examples, tests, repo, bannerFile, bannerTex = game.entryName, game.fileName, game.examples, game.tests, game.repo, game.bannerFile, game.bannerTex -- 1541
+									local displayName -- 1550
+									if repo then -- 1550
+										if zh then -- 1551
+											displayName = repo.title.zh -- 1551
+										else -- 1551
+											displayName = repo.title.en -- 1551
+										end -- 1551
+									end -- 1550
+									if displayName == nil then -- 1552
+										displayName = gameName -- 1552
+									end -- 1552
+									if allEntries.match(displayName) then -- 1553
+										TextColored(themeColor, zh and "项目：" or "Project:") -- 1554
+										SameLine() -- 1555
+										TextWrapped(displayName) -- 1556
+										if columns > 1 then -- 1557
+											if bannerFile and bannerTex then -- 1558
+												local texWidth, texHeight = bannerTex.width, bannerTex.height -- 1559
+												local displayWidth <const> = realViewWidth -- 1560
+												texHeight = displayWidth * texHeight / texWidth -- 1561
+												texWidth = displayWidth -- 1562
+												Dummy(Vec2.zero) -- 1563
+												SameLine() -- 1564
+												Image(bannerFile, Vec2(texWidth + 10, texHeight)) -- 1565
+											end -- 1558
+											if Button(tostring(zh and "开始测试" or "Game Test") .. "##" .. tostring(fileName), Vec2(-1, 40)) then -- 1566
+												enterDemoEntry(game) -- 1567
+											end -- 1566
+										else -- 1569
+											if bannerFile and bannerTex then -- 1569
+												local texWidth, texHeight = bannerTex.width, bannerTex.height -- 1570
+												local displayWidth = (fullWidth / 2 - paddingX) * 2 - 35 -- 1571
+												local sizing = 0.8 -- 1572
 												texHeight = displayWidth * sizing * texHeight / texWidth -- 1573
 												texWidth = displayWidth * sizing -- 1574
-											end -- 1571
-											local padding = displayWidth * (1 - sizing) / 2 - 10 -- 1575
-											Dummy(Vec2(padding, 0)) -- 1576
-											SameLine() -- 1577
-											Image(bannerFile, Vec2(texWidth, texHeight)) -- 1578
-										end -- 1565
-										if Button(tostring(zh and "开始测试" or "Game Test") .. "##" .. tostring(fileName), Vec2(-1, 40)) then -- 1579
-											enterDemoEntry(game) -- 1580
-										end -- 1579
+												if texWidth > 500 then -- 1575
+													sizing = 0.6 -- 1576
+													texHeight = displayWidth * sizing * texHeight / texWidth -- 1577
+													texWidth = displayWidth * sizing -- 1578
+												end -- 1575
+												local padding = displayWidth * (1 - sizing) / 2 - 10 -- 1579
+												Dummy(Vec2(padding, 0)) -- 1580
+												SameLine() -- 1581
+												Image(bannerFile, Vec2(texWidth, texHeight)) -- 1582
+											end -- 1569
+											if Button(tostring(zh and "开始测试" or "Game Test") .. "##" .. tostring(fileName), Vec2(-1, 40)) then -- 1583
+												enterDemoEntry(game) -- 1584
+											end -- 1583
+										end -- 1557
+										if #tests == 0 and #examples == 0 then -- 1585
+											allEntries.thinSep() -- 1586
+										end -- 1585
+										NextColumn() -- 1587
 									end -- 1553
-									if #tests == 0 and #examples == 0 then -- 1581
-										allEntries.thinSep() -- 1582
-									end -- 1581
-									NextColumn() -- 1583
-								end -- 1549
-								local showSep = false -- 1584
-								if #examples > 0 then -- 1585
-									local showExample = false -- 1586
-									for _index_1 = 1, #examples do -- 1587
-										local _des_0 = examples[_index_1] -- 1587
-										local entryName = _des_0.entryName -- 1587
-										if allEntries.match(entryName) then -- 1588
-											showExample = true -- 1588
-											break -- 1588
-										end -- 1588
-									end -- 1587
-									if showExample then -- 1589
-										showSep = true -- 1590
-										Columns(1, false) -- 1591
-										TextColored(themeColor, zh and "示例：" or "Example:") -- 1592
-										SameLine() -- 1593
-										local opened -- 1594
-										if (filterText ~= nil) then -- 1594
-											opened = showExample -- 1594
-										else -- 1594
-											opened = false -- 1594
-										end -- 1594
-										if game.exampleOpen == nil then -- 1595
-											game.exampleOpen = opened -- 1595
-										end -- 1595
-										SetNextItemOpen(game.exampleOpen) -- 1596
-										TreeNode(tostring(gameName) .. "##example-" .. tostring(fileName), function() -- 1597
-											return PushStyleVar("ItemSpacing", Vec2(20, 10), function() -- 1598
-												Columns(maxColumns, false) -- 1599
-												for _index_1 = 1, #examples do -- 1600
-													local example = examples[_index_1] -- 1600
-													local entryName = example.entryName -- 1601
-													if not allEntries.match(entryName) then -- 1602
-														goto _continue_0 -- 1602
-													end -- 1602
-													PushID(tostring(gameName) .. " " .. tostring(entryName) .. " example", function() -- 1603
-														if Button(entryName, Vec2(-1, 40)) then -- 1604
-															enterDemoEntry(example) -- 1605
-														end -- 1604
-														return NextColumn() -- 1606
-													end) -- 1603
-													opened = true -- 1607
-													::_continue_0:: -- 1601
-												end -- 1600
-											end) -- 1598
-										end) -- 1597
-										game.exampleOpen = opened -- 1608
+									local showSep = false -- 1588
+									if #examples > 0 then -- 1589
+										local showExample = false -- 1590
+										for _index_1 = 1, #examples do -- 1591
+											local _des_0 = examples[_index_1] -- 1591
+											local entryName = _des_0.entryName -- 1591
+											if allEntries.match(entryName) then -- 1592
+												showExample = true -- 1592
+												break -- 1592
+											end -- 1592
+										end -- 1591
+										if showExample then -- 1593
+											showSep = true -- 1594
+											Columns(1, false) -- 1595
+											TextColored(themeColor, zh and "示例：" or "Example:") -- 1596
+											SameLine() -- 1597
+											local opened -- 1598
+											if (filterText ~= nil) then -- 1598
+												opened = showExample -- 1598
+											else -- 1598
+												opened = false -- 1598
+											end -- 1598
+											if game.exampleOpen == nil then -- 1599
+												game.exampleOpen = opened -- 1599
+											end -- 1599
+											SetNextItemOpen(game.exampleOpen) -- 1600
+											TreeNode(tostring(gameName) .. "##example-" .. tostring(fileName), function() -- 1601
+												return PushStyleVar("ItemSpacing", Vec2(20, 10), function() -- 1602
+													Columns(maxColumns, false) -- 1603
+													for _index_1 = 1, #examples do -- 1604
+														local example = examples[_index_1] -- 1604
+														local entryName = example.entryName -- 1605
+														if not allEntries.match(entryName) then -- 1606
+															goto _continue_0 -- 1606
+														end -- 1606
+														PushID(tostring(gameName) .. " " .. tostring(entryName) .. " example", function() -- 1607
+															if Button(entryName, Vec2(-1, 40)) then -- 1608
+																enterDemoEntry(example) -- 1609
+															end -- 1608
+															return NextColumn() -- 1610
+														end) -- 1607
+														opened = true -- 1611
+														::_continue_0:: -- 1605
+													end -- 1604
+												end) -- 1602
+											end) -- 1601
+											game.exampleOpen = opened -- 1612
+										end -- 1593
 									end -- 1589
-								end -- 1585
-								if #tests > 0 then -- 1609
-									local showTest = false -- 1610
-									for _index_1 = 1, #tests do -- 1611
-										local _des_0 = tests[_index_1] -- 1611
-										local entryName = _des_0.entryName -- 1611
-										if allEntries.match(entryName) then -- 1612
-											showTest = true -- 1612
-											break -- 1612
-										end -- 1612
-									end -- 1611
-									if showTest then -- 1613
-										showSep = true -- 1614
-										Columns(1, false) -- 1615
-										TextColored(themeColor, zh and "测试：" or "Test:") -- 1616
-										SameLine() -- 1617
-										local opened -- 1618
-										if (filterText ~= nil) then -- 1618
-											opened = showTest -- 1618
-										else -- 1618
-											opened = false -- 1618
-										end -- 1618
-										if game.testOpen == nil then -- 1619
-											game.testOpen = opened -- 1619
-										end -- 1619
-										SetNextItemOpen(game.testOpen) -- 1620
-										TreeNode(tostring(gameName) .. "##test-" .. tostring(fileName), function() -- 1621
-											return PushStyleVar("ItemSpacing", Vec2(20, 10), function() -- 1622
-												Columns(maxColumns, false) -- 1623
-												for _index_1 = 1, #tests do -- 1624
-													local test = tests[_index_1] -- 1624
-													local entryName = test.entryName -- 1625
-													if not allEntries.match(entryName) then -- 1626
-														goto _continue_0 -- 1626
-													end -- 1626
-													PushID(tostring(gameName) .. " " .. tostring(entryName) .. " test", function() -- 1627
-														if Button(entryName, Vec2(-1, 40)) then -- 1628
-															enterDemoEntry(test) -- 1629
-														end -- 1628
-														return NextColumn() -- 1630
-													end) -- 1627
-													opened = true -- 1631
-													::_continue_0:: -- 1625
-												end -- 1624
-											end) -- 1622
-										end) -- 1621
-										game.testOpen = opened -- 1632
+									if #tests > 0 then -- 1613
+										local showTest = false -- 1614
+										for _index_1 = 1, #tests do -- 1615
+											local _des_0 = tests[_index_1] -- 1615
+											local entryName = _des_0.entryName -- 1615
+											if allEntries.match(entryName) then -- 1616
+												showTest = true -- 1616
+												break -- 1616
+											end -- 1616
+										end -- 1615
+										if showTest then -- 1617
+											showSep = true -- 1618
+											Columns(1, false) -- 1619
+											TextColored(themeColor, zh and "测试：" or "Test:") -- 1620
+											SameLine() -- 1621
+											local opened -- 1622
+											if (filterText ~= nil) then -- 1622
+												opened = showTest -- 1622
+											else -- 1622
+												opened = false -- 1622
+											end -- 1622
+											if game.testOpen == nil then -- 1623
+												game.testOpen = opened -- 1623
+											end -- 1623
+											SetNextItemOpen(game.testOpen) -- 1624
+											TreeNode(tostring(gameName) .. "##test-" .. tostring(fileName), function() -- 1625
+												return PushStyleVar("ItemSpacing", Vec2(20, 10), function() -- 1626
+													Columns(maxColumns, false) -- 1627
+													for _index_1 = 1, #tests do -- 1628
+														local test = tests[_index_1] -- 1628
+														local entryName = test.entryName -- 1629
+														if not allEntries.match(entryName) then -- 1630
+															goto _continue_0 -- 1630
+														end -- 1630
+														PushID(tostring(gameName) .. " " .. tostring(entryName) .. " test", function() -- 1631
+															if Button(entryName, Vec2(-1, 40)) then -- 1632
+																enterDemoEntry(test) -- 1633
+															end -- 1632
+															return NextColumn() -- 1634
+														end) -- 1631
+														opened = true -- 1635
+														::_continue_0:: -- 1629
+													end -- 1628
+												end) -- 1626
+											end) -- 1625
+											game.testOpen = opened -- 1636
+										end -- 1617
 									end -- 1613
-								end -- 1609
-								if showSep then -- 1633
-									Columns(1, false) -- 1634
-									allEntries.thinSep() -- 1635
-									Columns(columns, false) -- 1636
-								end -- 1633
+									if showSep then -- 1637
+										Columns(1, false) -- 1638
+										allEntries.thinSep() -- 1639
+										Columns(columns, false) -- 1640
+									end -- 1637
+								end -- 1540
 							end -- 1536
-						end -- 1532
-						if #doraTools > 0 then -- 1637
-							local showTool = false -- 1638
-							for _index_0 = 1, #doraTools do -- 1639
-								local _des_0 = doraTools[_index_0] -- 1639
-								local entryName, repo = _des_0.entryName, _des_0.repo -- 1639
-								local displayName -- 1640
-								if repo then -- 1640
-									if zh then -- 1641
-										displayName = repo.title.zh -- 1641
-									else -- 1641
-										displayName = repo.title.en -- 1641
-									end -- 1641
-								end -- 1640
-								if displayName == nil then -- 1642
-									displayName = entryName -- 1642
-								end -- 1642
-								if allEntries.match(displayName) then -- 1643
-									showTool = true -- 1643
-									break -- 1643
+							if #doraTools > 0 then -- 1641
+								local showTool = false -- 1642
+								for _index_0 = 1, #doraTools do -- 1643
+									local _des_0 = doraTools[_index_0] -- 1643
+									local entryName, repo = _des_0.entryName, _des_0.repo -- 1643
+									local displayName -- 1644
+									if repo then -- 1644
+										if zh then -- 1645
+											displayName = repo.title.zh -- 1645
+										else -- 1645
+											displayName = repo.title.en -- 1645
+										end -- 1645
+									end -- 1644
+									if displayName == nil then -- 1646
+										displayName = entryName -- 1646
+									end -- 1646
+									if allEntries.match(displayName) then -- 1647
+										showTool = true -- 1647
+										break -- 1647
+									end -- 1647
 								end -- 1643
-							end -- 1639
-							if not showTool then -- 1644
-								goto endEntry -- 1644
-							end -- 1644
-							Columns(1, false) -- 1645
-							TextColored(themeColor, "Dora SSR:") -- 1646
-							SameLine() -- 1647
-							Text(zh and "开发支持" or "Development Support") -- 1648
-							Separator() -- 1649
-							if #doraTools > 0 then -- 1650
-								local opened -- 1651
-								if (filterText ~= nil) then -- 1651
-									opened = showTool -- 1651
-								else -- 1651
-									opened = false -- 1651
-								end -- 1651
-								SetNextItemOpen(toolOpen) -- 1652
-								TreeNode(zh and "引擎工具" or "Engine Tools", function() -- 1653
-									return PushStyleVar("ItemSpacing", Vec2(20, 10), function() -- 1654
-										Columns(maxColumns, false) -- 1655
-										for _index_0 = 1, #doraTools do -- 1656
-											local tool = doraTools[_index_0] -- 1656
-											local entryName, repo = tool.entryName, tool.repo -- 1657
-											local displayName -- 1658
-											if repo then -- 1658
-												if zh then -- 1659
-													displayName = repo.title.zh -- 1659
-												else -- 1659
-													displayName = repo.title.en -- 1659
-												end -- 1659
-											end -- 1658
-											if displayName == nil then -- 1660
-												displayName = entryName -- 1660
+								if not showTool then -- 1648
+									goto endEntry -- 1648
+								end -- 1648
+								Columns(1, false) -- 1649
+								TextColored(themeColor, "Dora SSR:") -- 1650
+								SameLine() -- 1651
+								Text(zh and "开发支持" or "Development Support") -- 1652
+								Separator() -- 1653
+								if #doraTools > 0 then -- 1654
+									local opened -- 1655
+									if (filterText ~= nil) then -- 1655
+										opened = showTool -- 1655
+									else -- 1655
+										opened = false -- 1655
+									end -- 1655
+									SetNextItemOpen(toolOpen) -- 1656
+									TreeNode(zh and "引擎工具" or "Engine Tools", function() -- 1657
+										return PushStyleVar("ItemSpacing", Vec2(20, 10), function() -- 1658
+											Columns(maxColumns, false) -- 1659
+											for _index_0 = 1, #doraTools do -- 1660
+												local tool = doraTools[_index_0] -- 1660
+												local entryName, repo = tool.entryName, tool.repo -- 1661
+												local displayName -- 1662
+												if repo then -- 1662
+													if zh then -- 1663
+														displayName = repo.title.zh -- 1663
+													else -- 1663
+														displayName = repo.title.en -- 1663
+													end -- 1663
+												end -- 1662
+												if displayName == nil then -- 1664
+													displayName = entryName -- 1664
+												end -- 1664
+												if not allEntries.match(displayName) then -- 1665
+													goto _continue_0 -- 1665
+												end -- 1665
+												if Button(displayName, Vec2(-1, 40)) then -- 1666
+													enterDemoEntry(tool) -- 1667
+												end -- 1666
+												NextColumn() -- 1668
+												::_continue_0:: -- 1661
 											end -- 1660
-											if not allEntries.match(displayName) then -- 1661
-												goto _continue_0 -- 1661
-											end -- 1661
-											if Button(displayName, Vec2(-1, 40)) then -- 1662
-												enterDemoEntry(tool) -- 1663
-											end -- 1662
-											NextColumn() -- 1664
-											::_continue_0:: -- 1657
-										end -- 1656
-										Columns(1, false) -- 1665
-										opened = true -- 1666
-									end) -- 1654
-								end) -- 1653
-								toolOpen = opened -- 1667
-							end -- 1650
-						end -- 1637
-						::endEntry:: -- 1668
-						if not allEntries.anyEntryMatched then -- 1669
-							SetNextWindowBgAlpha(0) -- 1670
-							SetNextWindowPos(Vec2(fullWidth / 2, height / 2), "Always", Vec2(0.5, 0.5)) -- 1671
-							Begin("Entries Not Found", displayWindowFlags, function() -- 1672
-								Separator() -- 1673
-								TextColored(themeColor, zh and "多萝：" or "Dora:") -- 1674
-								TextColored(descColor, zh and '别担心，改变一些咒语，我们会找到新的冒险～' or 'Don\'t worry, more magic words and we\'ll find a new adventure!') -- 1675
-								return Separator() -- 1676
-							end) -- 1672
-						end -- 1669
-						Columns(1, false) -- 1677
-						Dummy(Vec2(100, 80)) -- 1678
-						return ScrollWhenDraggingOnVoid() -- 1679
-					end) -- 1525
-				end) -- 1524
-			end) -- 1523
-		end) -- 1522
-	end -- 1521
+											Columns(1, false) -- 1669
+											opened = true -- 1670
+										end) -- 1658
+									end) -- 1657
+									toolOpen = opened -- 1671
+								end -- 1654
+							end -- 1641
+							::endEntry:: -- 1672
+							if not allEntries.anyEntryMatched then -- 1673
+								SetNextWindowBgAlpha(0) -- 1674
+								SetNextWindowPos(Vec2(fullWidth / 2, height / 2), "Always", Vec2(0.5, 0.5)) -- 1675
+								Begin("Entries Not Found", displayWindowFlags, function() -- 1676
+									Separator() -- 1677
+									TextColored(themeColor, zh and "多萝：" or "Dora:") -- 1678
+									TextColored(descColor, zh and '别担心，改变一些咒语，我们会找到新的冒险～' or 'Don\'t worry, more magic words and we\'ll find a new adventure!') -- 1679
+									return Separator() -- 1680
+								end) -- 1676
+							end -- 1673
+							Columns(1, false) -- 1681
+							Dummy(Vec2(100, 80)) -- 1682
+							return ScrollWhenDraggingOnVoid() -- 1683
+						end) -- 1529
+					end) -- 1528
+				end) -- 1527
+			end) -- 1526
+		end) -- 1525
+	end -- 1524
 end) -- 1438
-if not (App.platform == "Emscripten") then -- 1684
-	local sceneModuleCache = moduleCache -- 1685
-	moduleCache = { } -- 1686
-	webStatus = oldRequire("Script.Dev.WebServer") -- 1687
-	moduleCache = sceneModuleCache -- 1688
-end -- 1684
-local _anon_func_7 = function(saved) -- 1711
-	local _val_0 = saved.kind -- 1711
-	return "local" == _val_0 or "discover" == _val_0 -- 1711
-end -- 1711
-local _anon_func_8 = function(saved) -- 1715
-	local _val_0 = saved.activeTab -- 1715
+if not (App.platform == "Emscripten") then -- 1688
+	local sceneModuleCache = moduleCache -- 1689
+	moduleCache = { } -- 1690
+	webStatus = oldRequire("Script.Dev.WebServer") -- 1691
+	moduleCache = sceneModuleCache -- 1692
+end -- 1688
+local _anon_func_7 = function(saved) -- 1715
+	local _val_0 = saved.kind -- 1715
 	return "local" == _val_0 or "discover" == _val_0 -- 1715
 end -- 1715
-startMobileUI = function() -- 1690
-	local mobileFeed = oldRequire("Script.Dev.Mobile.Feed") -- 1691
-	local mobileCatalog = oldRequire("Script.Dev.Mobile.MobileCatalog") -- 1692
-	local projectCreate = oldRequire("Script.Dev.Mobile.ProjectCreate") -- 1693
-	local getMobileFeedResources -- 1694
-	do -- 1694
-		local _obj_0 = require("Script.Tools.ResourceDownloader.Catalog") -- 1694
-		getMobileFeedResources = _obj_0.getMobileFeedResources -- 1694
-	end -- 1694
-	local loadCachedCatalog -- 1695
-	do -- 1695
-		local _obj_0 = require("Script.Tools.ResourceDownloader.CatalogSync") -- 1695
-		loadCachedCatalog = _obj_0.loadCachedCatalog -- 1695
-	end -- 1695
-	local getResourceInstallPath, getInstalledCatalogResource -- 1696
-	do -- 1696
-		local _obj_0 = require("Script.Tools.ResourceDownloader.GitInstaller") -- 1696
-		getResourceInstallPath, getInstalledCatalogResource = _obj_0.getResourceInstallPath, _obj_0.getInstalledCatalogResource -- 1696
-	end -- 1696
-	local lifecycle = oldRequire("Script.Dev.Mobile.Lifecycle") -- 1697
-	local playOverlay = oldRequire("Script.Dev.Mobile.PlayOverlay") -- 1698
-	local feedOptions = nil -- 1699
-	local mobileLaunchErrors = { } -- 1700
-	local withMobileLaunchErrors -- 1701
-	withMobileLaunchErrors = function(items) -- 1701
-		for _index_0 = 1, #items do -- 1702
-			local item = items[_index_0] -- 1702
-			item.launchError = mobileLaunchErrors[item.id] -- 1703
-		end -- 1702
-		return items -- 1704
-	end -- 1701
-	local rememberedMobileFeedData = config.mobileFeedCurrentCard -- 1705
-	local loadRememberedMobileFeedState -- 1706
-	loadRememberedMobileFeedState = function() -- 1706
-		local raw = rememberedMobileFeedData -- 1707
-		if not (type(raw) == "string" and raw ~= "") then -- 1708
-			return -- 1708
-		end -- 1708
-		local ok, saved = pcall(json.decode, raw) -- 1709
-		if not (ok and type(saved) == "table") then -- 1710
-			return -- 1710
-		end -- 1710
-		if type(saved.id) == "string" and _anon_func_7(saved) then -- 1711
-			local state = { -- 1712
-				activeTab = saved.kind -- 1712
-			} -- 1712
-			state[saved.kind] = saved -- 1713
-			return state -- 1714
-		end -- 1711
-		local state = { -- 1715
-			activeTab = _anon_func_8(saved) and saved.activeTab or "local" -- 1715
-		} -- 1715
-		local _list_0 = { -- 1716
-			"local", -- 1716
-			"discover" -- 1716
-		} -- 1716
-		for _index_0 = 1, #_list_0 do -- 1716
-			local kind = _list_0[_index_0] -- 1716
-			local entry = saved[kind] -- 1717
-			if type(entry) == "table" and type(entry.id) == "string" and entry.kind == kind then -- 1718
-				state[kind] = entry -- 1718
-			end -- 1718
-		end -- 1716
-		return state -- 1719
-	end -- 1706
-	local rememberedMobileFeedState = loadRememberedMobileFeedState() or { -- 1720
-		activeTab = "local" -- 1720
-	} -- 1720
-	local rememberMobileFeedEntry -- 1721
-	rememberMobileFeedEntry = function(entry) -- 1721
-		rememberedMobileFeedState.activeTab = entry.kind -- 1722
-		rememberedMobileFeedState[entry.kind] = { -- 1724
-			id = entry.id, -- 1724
-			kind = entry.kind, -- 1725
-			workDir = entry.workDir, -- 1726
-			fileName = entry.fileName -- 1727
-		} -- 1723
-		rememberedMobileFeedData = json.encode(rememberedMobileFeedState) -- 1729
-		rawset(config, getmetatable(config).mobileFeedCurrentCard, rememberedMobileFeedData) -- 1730
-		return DB:exec("insert or replace into Config(name, value_num, value_str, value_bool) values('mobileFeedCurrentCard', NULL, ?, NULL)", { -- 1731
-			rememberedMobileFeedData -- 1731
-		}) -- 1731
-	end -- 1721
-	local restartMobileFeed -- 1732
-	restartMobileFeed = function(entry) -- 1732
-		if feedHost then -- 1733
-			feedHost:removeFromParent(true) -- 1733
-		end -- 1733
-		feedOptions.initialEntry = entry or rememberedMobileFeedState[rememberedMobileFeedState.activeTab] -- 1734
-		local initialEntries = { } -- 1735
-		initialEntries["local"] = rememberedMobileFeedState["local"] -- 1736
-		initialEntries["discover"] = rememberedMobileFeedState["discover"] -- 1737
-		feedOptions.initialEntries = initialEntries -- 1738
-		feedHost = trackMobileHost(mobileFeed.startMobileFeed(feedOptions)) -- 1739
-	end -- 1732
-	local startMobilePlay -- 1740
-	startMobilePlay = function(entry) -- 1740
-		if HttpServer.wsConnectionCount > 0 then -- 1741
-			return -- 1741
-		end -- 1741
-		local originFeed = feedHost -- 1742
-		if remixHost then -- 1743
-			remixHost:removeFromParent(true) -- 1743
-		end -- 1743
-		remixHost = nil -- 1744
-		mobileLaunchErrors[entry.id] = nil -- 1745
-		entry.launchError = nil -- 1746
-		local playActive = true -- 1747
-		local restoreMobileFeed -- 1748
-		restoreMobileFeed = function() -- 1748
-			if not playActive then -- 1749
-				return -- 1749
-			end -- 1749
-			playActive = false -- 1750
-			allClear() -- 1751
-			isInEntry = true -- 1752
-			currentEntry = nil -- 1753
-			return restartMobileFeed(entry) -- 1754
-		end -- 1748
-		trackMobileHost(playOverlay.startMobilePlayOverlay({ -- 1756
-			onExit = function() -- 1756
-				return restoreMobileFeed() -- 1756
-			end, -- 1756
-			onRuntimeError = function() -- 1757
-				mobileLaunchErrors[entry.id] = useChinese and "作品运行异常，已安全返回作品卡，请修改后重试。" or "The game stopped after a runtime error. Fix it and try again." -- 1758
-				return restoreMobileFeed() -- 1759
-			end -- 1757
-		})) -- 1755
-		return thread(function() -- 1761
-			local success, err = enterEntryAsync(lifecycle.resolveMobileLaunchEntry(entry)) -- 1765
-			if not playActive then -- 1766
-				return -- 1766
-			end -- 1766
-			if success then -- 1767
-				if originFeed and originFeed.parent then -- 1768
-					originFeed.visible = false -- 1768
-				end -- 1768
-				return -- 1769
-			end -- 1767
-			mobileLaunchErrors[entry.id] = useChinese and "作品启动失败，已返回作品卡，请修改后重试。" or "The game failed to start. Fix it and try again." -- 1770
-			return restoreMobileFeed() -- 1771
-		end) -- 1761
-	end -- 1740
-	feedOptions = { -- 1773
-		takeReceivedFile = function() -- 1773
-			if allEntries.pendingPackagePath then -- 1774
-				local path = allEntries.pendingPackagePath -- 1775
-				allEntries.pendingPackagePath = nil -- 1776
-				return path -- 1777
-			end -- 1774
-			return App:takeReceivedFile() -- 1778
-		end, -- 1773
-		onSwitchMode = function() -- 1779
-			if HttpServer.wsConnectionCount == 0 then -- 1779
-				pendingUIMode = false -- 1779
-			end -- 1779
-		end, -- 1779
-		onCurrentEntryChanged = rememberMobileFeedEntry, -- 1780
-		getLocalEntries = function(importedProjectPath) -- 1781
-			local dirtyProjectPath = importedProjectPath or feedOptions.dirtyProjectPath -- 1782
-			feedOptions.dirtyProjectPath = nil -- 1783
-			local items = withMobileLaunchErrors(getMobileFeedEntries(false, dirtyProjectPath)) -- 1784
-			local cached = loadCachedCatalog() -- 1785
-			if cached.success and cached.snapshot then -- 1786
-				for _index_0 = 1, #items do -- 1787
-					local entry = items[_index_0] -- 1787
-					local resource = getInstalledCatalogResource(entry.workDir, cached.snapshot.catalog.resources) -- 1788
-					if resource then -- 1789
-						entry.resource = resource -- 1790
-						entry.catalogCommit = cached.snapshot.commit -- 1791
-					end -- 1789
-				end -- 1787
-			end -- 1786
-			return items -- 1792
-		end, -- 1781
-		syncDiscover = function(onProgress, onDone, force) -- 1793
-			return mobileCatalog.syncMobileCatalog(onProgress, onDone, nil, force) -- 1793
-		end, -- 1793
-		getDiscoverEntries = function() -- 1794
-			local cached = loadCachedCatalog() -- 1795
-			if not (cached.success and cached.snapshot) then -- 1796
-				return { } -- 1796
-			end -- 1796
-			local items = { } -- 1797
-			local _list_0 = getMobileFeedResources(cached.snapshot.catalog.resources) -- 1798
-			for _index_0 = 1, #_list_0 do -- 1798
-				local resource = _list_0[_index_0] -- 1798
-				local installed = lifecycle.isMobileResourceReady(resource) -- 1799
-				local installPath = getResourceInstallPath(resource.id) -- 1800
-				items[#items + 1] = { -- 1802
-					id = resource.id, -- 1802
-					title = resource.title[useChinese and "zh-Hans" or "en"], -- 1803
-					description = resource.description[useChinese and "zh-Hans" or "en"], -- 1804
-					kind = "discover", -- 1805
-					bannerFile = resource.bannerPath, -- 1806
-					webPlayUrl = not (resource.runnable and #resource.entrypoints > 0) and resource.playUrl or nil, -- 1807
-					sourceUrl = resource.versions[1].sources[1].url, -- 1808
-					workDir = installed and installPath or nil, -- 1809
-					fileName = installed and Path(installPath, Path:replaceExt(resource.entrypoints[1].path, "")) or nil, -- 1810
-					installed = installed, -- 1811
-					resource = resource, -- 1812
-					catalogCommit = cached.snapshot.commit, -- 1813
-					launchError = mobileLaunchErrors[resource.id] -- 1814
-				} -- 1801
-			end -- 1798
-			return items -- 1816
-		end, -- 1794
-		prepare = function(entry, repairIncomplete, onProgress, onDone, isCanceled) -- 1817
-			return lifecycle.prepareMobileResource(entry.resource, entry.catalogCommit, onProgress, (function(result) -- 1818
-				return onDone(result.success, result.entry, result.message, result.repairable) -- 1819
-			end), repairIncomplete, isCanceled) -- 1818
-		end, -- 1817
-		sync = function(entry, force, onProgress, onDone, isCanceled) -- 1821
-			return lifecycle.syncMobileResource(entry.resource.id, force, onProgress, (function(result) -- 1822
-				return onDone(result.success, result.entry, result.message, result.forceable) -- 1823
-			end), isCanceled) -- 1822
+local _anon_func_8 = function(saved) -- 1719
+	local _val_0 = saved.activeTab -- 1719
+	return "local" == _val_0 or "discover" == _val_0 -- 1719
+end -- 1719
+startMobileUI = function() -- 1694
+	local mobileFeed = oldRequire("Script.Dev.Mobile.Feed") -- 1695
+	local mobileCatalog = oldRequire("Script.Dev.Mobile.MobileCatalog") -- 1696
+	local projectCreate = oldRequire("Script.Dev.Mobile.ProjectCreate") -- 1697
+	local getMobileFeedResources -- 1698
+	do -- 1698
+		local _obj_0 = require("Script.Tools.ResourceDownloader.Catalog") -- 1698
+		getMobileFeedResources = _obj_0.getMobileFeedResources -- 1698
+	end -- 1698
+	local loadCachedCatalog -- 1699
+	do -- 1699
+		local _obj_0 = require("Script.Tools.ResourceDownloader.CatalogSync") -- 1699
+		loadCachedCatalog = _obj_0.loadCachedCatalog -- 1699
+	end -- 1699
+	local getResourceInstallPath, getInstalledCatalogResource -- 1700
+	do -- 1700
+		local _obj_0 = require("Script.Tools.ResourceDownloader.GitInstaller") -- 1700
+		getResourceInstallPath, getInstalledCatalogResource = _obj_0.getResourceInstallPath, _obj_0.getInstalledCatalogResource -- 1700
+	end -- 1700
+	local lifecycle = oldRequire("Script.Dev.Mobile.Lifecycle") -- 1701
+	local playOverlay = oldRequire("Script.Dev.Mobile.PlayOverlay") -- 1702
+	local feedOptions = nil -- 1703
+	local mobileLaunchErrors = { } -- 1704
+	local withMobileLaunchErrors -- 1705
+	withMobileLaunchErrors = function(items) -- 1705
+		for _index_0 = 1, #items do -- 1706
+			local item = items[_index_0] -- 1706
+			item.launchError = mobileLaunchErrors[item.id] -- 1707
+		end -- 1706
+		return items -- 1708
+	end -- 1705
+	local rememberedMobileFeedData = config.mobileFeedCurrentCard -- 1709
+	local loadRememberedMobileFeedState -- 1710
+	loadRememberedMobileFeedState = function() -- 1710
+		local raw = rememberedMobileFeedData -- 1711
+		if not (type(raw) == "string" and raw ~= "") then -- 1712
+			return -- 1712
+		end -- 1712
+		local ok, saved = pcall(json.decode, raw) -- 1713
+		if not (ok and type(saved) == "table") then -- 1714
+			return -- 1714
+		end -- 1714
+		if type(saved.id) == "string" and _anon_func_7(saved) then -- 1715
+			local state = { -- 1716
+				activeTab = saved.kind -- 1716
+			} -- 1716
+			state[saved.kind] = saved -- 1717
+			return state -- 1718
+		end -- 1715
+		local state = { -- 1719
+			activeTab = _anon_func_8(saved) and saved.activeTab or "local" -- 1719
+		} -- 1719
+		local _list_0 = { -- 1720
+			"local", -- 1720
+			"discover" -- 1720
+		} -- 1720
+		for _index_0 = 1, #_list_0 do -- 1720
+			local kind = _list_0[_index_0] -- 1720
+			local entry = saved[kind] -- 1721
+			if type(entry) == "table" and type(entry.id) == "string" and entry.kind == kind then -- 1722
+				state[kind] = entry -- 1722
+			end -- 1722
+		end -- 1720
+		return state -- 1723
+	end -- 1710
+	local rememberedMobileFeedState = loadRememberedMobileFeedState() or { -- 1724
+		activeTab = "local" -- 1724
+	} -- 1724
+	local rememberMobileFeedEntry -- 1725
+	rememberMobileFeedEntry = function(entry) -- 1725
+		rememberedMobileFeedState.activeTab = entry.kind -- 1726
+		rememberedMobileFeedState[entry.kind] = { -- 1728
+			id = entry.id, -- 1728
+			kind = entry.kind, -- 1729
+			workDir = entry.workDir, -- 1730
+			fileName = entry.fileName -- 1731
+		} -- 1727
+		rememberedMobileFeedData = json.encode(rememberedMobileFeedState) -- 1733
+		rawset(config, getmetatable(config).mobileFeedCurrentCard, rememberedMobileFeedData) -- 1734
+		return DB:exec("insert or replace into Config(name, value_num, value_str, value_bool) values('mobileFeedCurrentCard', NULL, ?, NULL)", { -- 1735
+			rememberedMobileFeedData -- 1735
+		}) -- 1735
+	end -- 1725
+	local restartMobileFeed -- 1736
+	restartMobileFeed = function(entry) -- 1736
+		if feedHost then -- 1737
+			feedHost:removeFromParent(true) -- 1737
+		end -- 1737
+		feedOptions.initialEntry = entry or rememberedMobileFeedState[rememberedMobileFeedState.activeTab] -- 1738
+		local initialEntries = { } -- 1739
+		initialEntries["local"] = rememberedMobileFeedState["local"] -- 1740
+		initialEntries["discover"] = rememberedMobileFeedState["discover"] -- 1741
+		feedOptions.initialEntries = initialEntries -- 1742
+		feedHost = trackMobileHost(mobileFeed.startMobileFeed(feedOptions)) -- 1743
+	end -- 1736
+	local startMobilePlay -- 1744
+	startMobilePlay = function(entry) -- 1744
+		if HttpServer.wsConnectionCount > 0 then -- 1745
+			return -- 1745
+		end -- 1745
+		local originFeed = feedHost -- 1746
+		if remixHost then -- 1747
+			remixHost:removeFromParent(true) -- 1747
+		end -- 1747
+		remixHost = nil -- 1748
+		mobileLaunchErrors[entry.id] = nil -- 1749
+		entry.launchError = nil -- 1750
+		local playActive = true -- 1751
+		local restoreMobileFeed -- 1752
+		restoreMobileFeed = function() -- 1752
+			if not playActive then -- 1753
+				return -- 1753
+			end -- 1753
+			playActive = false -- 1754
+			allClear() -- 1755
+			isInEntry = true -- 1756
+			currentEntry = nil -- 1757
+			return restartMobileFeed(entry) -- 1758
+		end -- 1752
+		trackMobileHost(playOverlay.startMobilePlayOverlay({ -- 1760
+			onExit = function() -- 1760
+				return restoreMobileFeed() -- 1760
+			end, -- 1760
+			onRuntimeError = function() -- 1761
+				mobileLaunchErrors[entry.id] = useChinese and "作品运行异常，已安全返回作品卡，请修改后重试。" or "The game stopped after a runtime error. Fix it and try again." -- 1762
+				return restoreMobileFeed() -- 1763
+			end -- 1761
+		})) -- 1759
+		return thread(function() -- 1765
+			local success, err = enterEntryAsync(lifecycle.resolveMobileLaunchEntry(entry)) -- 1769
+			if not playActive then -- 1770
+				return -- 1770
+			end -- 1770
+			if success then -- 1771
+				if originFeed and originFeed.parent then -- 1772
+					originFeed.visible = false -- 1772
+				end -- 1772
+				return -- 1773
+			end -- 1771
+			mobileLaunchErrors[entry.id] = useChinese and "作品启动失败，已返回作品卡，请修改后重试。" or "The game failed to start. Fix it and try again." -- 1774
+			return restoreMobileFeed() -- 1775
+		end) -- 1765
+	end -- 1744
+	feedOptions = { -- 1777
+		takeReceivedFile = function() -- 1777
+			if allEntries.pendingPackagePath then -- 1778
+				local path = allEntries.pendingPackagePath -- 1779
+				allEntries.pendingPackagePath = nil -- 1780
+				return path -- 1781
+			end -- 1778
+			return App:takeReceivedFile() -- 1782
+		end, -- 1777
+		onSwitchMode = function() -- 1783
+			if HttpServer.wsConnectionCount == 0 then -- 1783
+				pendingUIMode = false -- 1783
+			end -- 1783
+		end, -- 1783
+		onCurrentEntryChanged = rememberMobileFeedEntry, -- 1784
+		getLocalEntries = function(importedProjectPath) -- 1785
+			local dirtyProjectPath = importedProjectPath or feedOptions.dirtyProjectPath -- 1786
+			feedOptions.dirtyProjectPath = nil -- 1787
+			local items = withMobileLaunchErrors(getMobileFeedEntries(false, dirtyProjectPath)) -- 1788
+			local cached = loadCachedCatalog() -- 1789
+			if cached.success and cached.snapshot then -- 1790
+				for _index_0 = 1, #items do -- 1791
+					local entry = items[_index_0] -- 1791
+					local resource = getInstalledCatalogResource(entry.workDir, cached.snapshot.catalog.resources) -- 1792
+					if resource then -- 1793
+						entry.resource = resource -- 1794
+						entry.catalogCommit = cached.snapshot.commit -- 1795
+					end -- 1793
+				end -- 1791
+			end -- 1790
+			return items -- 1796
+		end, -- 1785
+		syncDiscover = function(onProgress, onDone, force) -- 1797
+			return mobileCatalog.syncMobileCatalog(onProgress, onDone, nil, force) -- 1797
+		end, -- 1797
+		getDiscoverEntries = function() -- 1798
+			local cached = loadCachedCatalog() -- 1799
+			if not (cached.success and cached.snapshot) then -- 1800
+				return { } -- 1800
+			end -- 1800
+			local items = { } -- 1801
+			local _list_0 = getMobileFeedResources(cached.snapshot.catalog.resources) -- 1802
+			for _index_0 = 1, #_list_0 do -- 1802
+				local resource = _list_0[_index_0] -- 1802
+				local installed = lifecycle.isMobileResourceReady(resource) -- 1803
+				local installPath = getResourceInstallPath(resource.id) -- 1804
+				items[#items + 1] = { -- 1806
+					id = resource.id, -- 1806
+					title = resource.title[useChinese and "zh-Hans" or "en"], -- 1807
+					description = resource.description[useChinese and "zh-Hans" or "en"], -- 1808
+					kind = "discover", -- 1809
+					bannerFile = resource.bannerPath, -- 1810
+					webPlayUrl = not (resource.runnable and #resource.entrypoints > 0) and resource.playUrl or nil, -- 1811
+					sourceUrl = resource.versions[1].sources[1].url, -- 1812
+					workDir = installed and installPath or nil, -- 1813
+					fileName = installed and Path(installPath, Path:replaceExt(resource.entrypoints[1].path, "")) or nil, -- 1814
+					installed = installed, -- 1815
+					resource = resource, -- 1816
+					catalogCommit = cached.snapshot.commit, -- 1817
+					launchError = mobileLaunchErrors[resource.id] -- 1818
+				} -- 1805
+			end -- 1802
+			return items -- 1820
+		end, -- 1798
+		prepare = function(entry, repairIncomplete, onProgress, onDone, isCanceled) -- 1821
+			return lifecycle.prepareMobileResource(entry.resource, entry.catalogCommit, onProgress, (function(result) -- 1822
+				return onDone(result.success, result.entry, result.message, result.repairable) -- 1823
+			end), repairIncomplete, isCanceled) -- 1822
 		end, -- 1821
-		createProject = function(name, language) -- 1825
-			local result = projectCreate.createMobileProject(name, language) -- 1826
-			if not result.success then -- 1827
-				return result -- 1827
-			end -- 1827
-			local _list_0 = getMobileFeedEntries(false, result.workDir) -- 1828
-			for _index_0 = 1, #_list_0 do -- 1828
-				local entry = _list_0[_index_0] -- 1828
-				if entry.workDir == result.workDir then -- 1829
-					return { -- 1830
-						success = true, -- 1830
-						entry = entry -- 1830
-					} -- 1830
-				end -- 1829
-			end -- 1828
-			return { -- 1831
-				success = false, -- 1831
-				error = "created-project-not-found" -- 1831
-			} -- 1831
+		sync = function(entry, force, onProgress, onDone, isCanceled) -- 1825
+			return lifecycle.syncMobileResource(entry.resource.id, force, onProgress, (function(result) -- 1826
+				return onDone(result.success, result.entry, result.message, result.forceable) -- 1827
+			end), isCanceled) -- 1826
 		end, -- 1825
-		onPlay = function(entry) -- 1832
-			return startMobilePlay(entry) -- 1832
-		end, -- 1832
-		onRemix = function(entry) -- 1833
-			if HttpServer.wsConnectionCount > 0 then -- 1834
-				return -- 1834
-			end -- 1834
-			local remix = oldRequire("Script.Dev.Mobile.Remix") -- 1835
-			local originFeed = feedHost -- 1836
-			feedHost.visible = false -- 1837
-			remixHost = trackMobileHost(remix.startMobileRemix({ -- 1839
-				entry = entry, -- 1839
-				onProjectChanged = function(current) -- 1840
-					feedOptions.dirtyProjectPath = current.workDir -- 1840
-				end, -- 1840
-				onBack = function() -- 1841
-					if mobileMode and feedHost == originFeed and originFeed.parent then -- 1842
-						originFeed:emit("RestoreFeedEntry", entry) -- 1843
-						originFeed.visible = true -- 1844
-					end -- 1842
-				end, -- 1841
-				onPlay = function(current) -- 1845
-					return startMobilePlay(current) -- 1845
-				end -- 1845
-			})) -- 1838
-		end -- 1833
-	} -- 1772
-	return restartMobileFeed() -- 1848
-end -- 1690
-if mobileMode then -- 1850
-	applyUIMode(true) -- 1850
-end -- 1850
+		createProject = function(name, language) -- 1829
+			local result = projectCreate.createMobileProject(name, language) -- 1830
+			if not result.success then -- 1831
+				return result -- 1831
+			end -- 1831
+			local _list_0 = getMobileFeedEntries(false, result.workDir) -- 1832
+			for _index_0 = 1, #_list_0 do -- 1832
+				local entry = _list_0[_index_0] -- 1832
+				if entry.workDir == result.workDir then -- 1833
+					return { -- 1834
+						success = true, -- 1834
+						entry = entry -- 1834
+					} -- 1834
+				end -- 1833
+			end -- 1832
+			return { -- 1835
+				success = false, -- 1835
+				error = "created-project-not-found" -- 1835
+			} -- 1835
+		end, -- 1829
+		onPlay = function(entry) -- 1836
+			return startMobilePlay(entry) -- 1836
+		end, -- 1836
+		onRemix = function(entry) -- 1837
+			if HttpServer.wsConnectionCount > 0 then -- 1838
+				return -- 1838
+			end -- 1838
+			local remix = oldRequire("Script.Dev.Mobile.Remix") -- 1839
+			local originFeed = feedHost -- 1840
+			feedHost.visible = false -- 1841
+			remixHost = trackMobileHost(remix.startMobileRemix({ -- 1843
+				entry = entry, -- 1843
+				onProjectChanged = function(current) -- 1844
+					feedOptions.dirtyProjectPath = current.workDir -- 1844
+				end, -- 1844
+				onBack = function() -- 1845
+					if mobileMode and feedHost == originFeed and originFeed.parent then -- 1846
+						originFeed:emit("RestoreFeedEntry", entry) -- 1847
+						originFeed.visible = true -- 1848
+					end -- 1846
+				end, -- 1845
+				onPlay = function(current) -- 1849
+					return startMobilePlay(current) -- 1849
+				end -- 1849
+			})) -- 1842
+		end -- 1837
+	} -- 1776
+	return restartMobileFeed() -- 1852
+end -- 1694
+if mobileMode then -- 1854
+	applyUIMode(true) -- 1854
+end -- 1854
 return _module_0 -- 1
