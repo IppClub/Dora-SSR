@@ -2,6 +2,18 @@
 
 `project.py` 提供本地分发流程：仓库/源码 ZIP → 识别工程 → 独立副本导入 → Dora 试玩，或导出 PCK → 归档 → 校验安装 → Dora 试玩。生产逻辑位于 `project_delivery.py`，回归程序位于 Dora-Example `Test/Godot`。
 
+## Web IDE 新建工程与 Agent 开发
+
+Web IDE 的“新建工程目录 → 创建为项目”提供 `Godot 2D` 和 `Godot 3D`。工程根目录同时包含 `init.ts`、`project.godot`、`main.tscn`、`main.gd`；`init.ts` 是 Dora 宿主入口，其余文件是可用官方编辑器打开的标准 Godot 工程。基础模板使用程序化图形，不需要先导入外部素材；创建完成后沿用普通工程的 Agent 会话入口。
+
+桌面 Agent 的 `build` 在发现目标所在的 Godot 工程后，先通过匹配的 Godot **4.7.2 stable** 编辑器执行无界面资源导入，再加载检查工程脚本、场景和资源，最后执行 Dora 脚本构建。建议以工程目录调用 `build`；即使目标是 `init.ts`，也不会跳过所在 Godot 工程的检查。Godot 3、声明依赖 C#/Mono 的工程和原生 GDExtension sidecar 会被拒绝。
+
+可通过启动 Dora 进程的环境变量 `DORA_GODOT_EDITOR` 指定编辑器可执行文件（macOS 也接受 `.app` 路径）。未指定时，macOS 检查 `/Applications/Godot.app/Contents/MacOS/Godot`，并尝试 PATH 中的 `godot`、`godot4`；其它桌面平台尝试 PATH。版本不匹配或缺少编辑器会报告工具配置错误。
+
+Agent 开发构建直接导入当前源码工程，正常生成 `.uid`、`.import` 等元数据及 `.godot` 缓存；这与下方 `project.py` 的独立副本交付流程不同。诊断另存于 `.agent/godot/import.log`、`.agent/godot/validate.log`。导入或检查失败、超时、取消及输出超限均不会记为构建通过；检查成功也不代表游戏逻辑或 GPU 画面已验收。试玩和截图仍通过 Dora 宿主入口进行。
+
+Godot 开发面向桌面 Dora 的 Web IDE。Dora Studio 面向轻量的浏览器游戏开发，明确不支持 Godot 开发，也不规划为其接入编辑器导入服务。移动端当前没有编辑器导入服务；包含 Godot 运行库不等于可以进行编辑器资源导入。
+
 ## 从仓库运行
 
 可指定工程目录、`project.godot`，或只包含一个工程的仓库。多工程仓库用 `--project` 选择相对目录。Git URL 会 clone 到本次工作目录；源码 ZIP 会先解包，省略 `.git` 和 `.godot`，再重新导入。

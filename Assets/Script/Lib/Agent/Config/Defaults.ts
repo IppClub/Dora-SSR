@@ -38,6 +38,11 @@ export const AGENT_LIMITS = {
 
 export const AGENT_FILE_PATTERNS = {
 	freshProjectCodeGlobs: [
+		"**/project.godot",
+		"**/*.gd",
+		"**/*.tscn",
+		"**/*.tres",
+		"**/*.gdshader",
 		"**/*.ts",
 		"**/*.tsx",
 		"**/*.lua",

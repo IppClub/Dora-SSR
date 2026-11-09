@@ -46,6 +46,9 @@ for _, name in ipairs({"dora-build", "dora-run"}) do
             local root = os.projectdir()
             local sdk = platform == "iphoneos" and option.get("appledev") or "native"
             local envs = {XMAKE_CONFIGDIR = path.join(root, "build/native-config", platform, sdk, arch, mode)}
+            -- Run uses source Assets instead of the bundled resources. Let the
+            -- configured target stage its matching runtime into that directory.
+            if run then envs.DORA_NATIVE_RUN_ASSET_DIR = path.join(root, "Assets") end
             local tests = option.get("tests") and import("Projects.xmake.testing.repository", {rootdir = root, anonymous = true})()
             configure(platform, arch, mode, envs, option.get("appledev"), api, tests)
             os.execv(os.programfile(), {"build", "-j", tostring(jobs), "Dora"}, {curdir = root, envs = envs})

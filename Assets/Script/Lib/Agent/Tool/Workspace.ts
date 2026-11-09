@@ -630,7 +630,7 @@ export function readFile(
 	);
 }
 
-export const codeExtensions = [".lua", ".tl", ".yue", ".ts", ".tsx", ".xml", ".md", ".yarn", ".wa", ".mod"];
+export const codeExtensions = [".lua", ".tl", ".yue", ".ts", ".tsx", ".xml", ".md", ".yarn", ".wa", ".mod", ".gd", ".tscn", ".tres", ".gdshader", ".gdshaderinc", ".godot"];
 const extensionLevels: Record<string, number> = {
 	vs: 2,
 	bl: 2,

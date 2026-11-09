@@ -76,6 +76,7 @@ import { getResourceTreeReconcileDirectories } from './ResourceTreeSync';
 import AudioPreviewCard from './AudioPreviewCard';
 import {useWebPackage} from './WebPackage/useWebPackage';
 import ExportDialog from './WebPackage/ExportDialog';
+import { getGodotProjectTemplate, isGodotProjectType, type GodotProjectType } from './GodotProjectTemplate';
 
 const SpinePlayer = React.lazy(() => import('./SpinePlayer'));
 const Markdown = React.lazy(() => import('./Markdown'));
@@ -437,12 +438,13 @@ interface Modified {
 	blocklyCode?: string;
 };
 
-type FolderProjectType = "TypeScript" | "TSX" | "Teal" | "Lua" | "YueScript";
+type FolderProjectType = "TypeScript" | "TSX" | "Teal" | "Lua" | "YueScript" | GodotProjectType;
 
-const folderProjectTypes: FolderProjectType[] = ["TypeScript", "TSX", "Teal", "Lua", "YueScript"];
+const folderProjectTypes: FolderProjectType[] = ["TypeScript", "TSX", "Teal", "Lua", "YueScript", "Godot 2D", "Godot 3D"];
 
 const getFolderProjectExtension = (type: FolderProjectType) => {
 	switch (type) {
+		case "Godot 2D": case "Godot 3D":
 		case "TypeScript": return ".ts";
 		case "TSX": return ".tsx";
 		case "Teal": return ".tl";
@@ -3488,7 +3490,8 @@ export default function PersistentDrawerLeft() {
 					}
 				}
 				await new Promise(resolve => setTimeout(resolve, 100));
-				Service.command({ code: `Log "Info", "${t(built ? "alert.buildDone" : "alert.noBuild", { title }).replace(/[\\"]/g, "\\$&")}"`, log: false });
+				const summary = t(!succeeded ? "alert.failedCompile" : built ? "alert.buildDone" : "alert.noBuild", { title });
+				Service.command({ code: `Log "${succeeded ? 'Info' : 'Error'}", "${summary.replace(/[\\"]/g, "\\$&")}"`, log: false });
 			} finally {
 				isSaving = false;
 			}
@@ -4075,7 +4078,12 @@ export default function PersistentDrawerLeft() {
 				}
 				const initExt = folder && fileInfo.project ? getFolderProjectExtension(fileInfo.projectType ?? "TypeScript") : null;
 				const initFile = initExt ? path.join(newFile, `init${initExt}`) : null;
-				const initTemplate = initExt ? getNewFileTemplate(initExt) : null;
+				const projectType = fileInfo.projectType ?? "TypeScript";
+				const godotFiles = folder && fileInfo.project && isGodotProjectType(projectType)
+					? getGodotProjectTemplate(projectType, trimmedName) : null;
+				const initTemplate = godotFiles
+					? { content: godotFiles.find(file => file.name === "init.ts")!.content, position: undefined }
+					: initExt ? getNewFileTemplate(initExt) : null;
 				(async () => {
 					// Prepare the cartridge before creating a placeholder, and finish writing
 					// it before opening the editor (which may immediately request the file).
@@ -4103,21 +4111,20 @@ export default function PersistentDrawerLeft() {
 							throw error;
 						}
 					}
-					if (initFile !== null && initTemplate !== null) {
-						const initRes = await Service.newFile({
-							path: initFile,
-							content: initTemplate.content,
-							folder: false
-						});
-						if (!initRes.success) {
-							addAlert(t(`alert.new${initRes.message}`), "error");
+					const projectFiles = godotFiles ?? (initFile !== null && initTemplate !== null
+						? [{ name: path.basename(initFile), content: initTemplate.content }] : []);
+					for (const file of projectFiles) {
+						const filePath = path.join(newFile, file.name);
+						const fileRes = await Service.newFile({ path: filePath, content: file.content, folder: false });
+						if (!fileRes.success) {
+							addAlert(t(`alert.new${fileRes.message}`), "error");
+							await refreshTreeDirectory(dir, true);
 							callbacks?.onFailed?.();
 							return;
 						}
+						updateCachedFileSearch(filePath, true);
 					}
-					if (initFile !== null) {
-						updateCachedFileSearch(initFile, true);
-					} else if (!folder) {
+					if (!folder) {
 						updateCachedFileSearch(newFile, true);
 					}
 					await refreshTreeDirectory(dir, true);

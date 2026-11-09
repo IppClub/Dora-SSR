@@ -486,18 +486,22 @@ async function post<T>(url: string, data: any = {}) {
 	return json;
 };
 
-function getSync<T>(url: string, params: URLSearchParams): T | null {
+function postSync<T>(url: string, data: object): T | null {
 	const xhr = new XMLHttpRequest();
-	const target = addr(url) + '?' + params.toString();
-	xhr.open('GET', target, false);
+	const target = addr(url);
+	const body = JSON.stringify(data);
+	// WebKit may omit Origin and Fetch Metadata on synchronous same-origin GET.
+	// POST provides Origin without relaxing the server's local-access policy.
+	xhr.open('POST', target, false);
+	xhr.setRequestHeader('Content-Type', 'application/json');
 	if (authRequired) {
 		const session = parseSession(localStorage.getItem('doraWebAuthSession'));
 		if (!session) throw new Error('Authentication is required before synchronous file reads');
-		const headers = createAuthHeaders(session, 'GET', new URL(target, window.location.href), new Uint8Array(),
+		const headers = createAuthHeaders(session, 'POST', new URL(target, window.location.href), new TextEncoder().encode(body),
 			!process.env.NODE_ENV || process.env.NODE_ENV === 'development');
 		for (const [name, value] of Object.entries(headers)) xhr.setRequestHeader(name, value);
 	}
-	xhr.send();
+	xhr.send(body);
 	if (xhr.status === 200) {
 		try {
 			const json = JSON.parse(xhr.responseText);
@@ -507,7 +511,7 @@ function getSync<T>(url: string, params: URLSearchParams): T | null {
 			return null;
 		}
 	} else {
-		throw new Error('failed to get: ' + xhr.status);
+		throw new Error('failed to read: ' + xhr.status);
 	}
 }
 
@@ -789,12 +793,11 @@ export const readSync = (req: ReadSyncRequest) => {
 	const exts = req.exts ? req.exts.join("|") : "";
 	const projFile = req.projFile ? req.projFile : "";
 	const projectRoot = req.projectRoot ? req.projectRoot : "";
-	const params = new URLSearchParams();
-	params.set('path', path);
-	if (exts !== "") params.set('exts', exts);
-	if (projFile !== "") params.set('projFile', projFile);
-	if (projectRoot !== "") params.set('projectRoot', projectRoot);
-	return getSync<ReadSyncResponse>("/read-sync", params);
+	const data: Record<string, string> = { path };
+	if (exts !== "") data.exts = exts;
+	if (projFile !== "") data.projFile = projFile;
+	if (projectRoot !== "") data.projectRoot = projectRoot;
+	return postSync<ReadSyncResponse>("/read-sync", data);
 };
 
 // Write

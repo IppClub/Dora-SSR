@@ -1,0 +1,32 @@
+---
+name: godot-game-development
+description: Create, modify, or debug GDScript Godot games hosted by Dora GodotNode, including project.godot, scenes, resources, resource import, and Dora preview.
+---
+
+# Godot Game Development
+
+## Project and runtime boundaries
+
+- Locate `project.godot` before editing. The Web IDE's Godot 2D/3D templates put it beside `init.ts`, `main.tscn`, and `main.gd` in the project root.
+- `init.ts` runs in Dora and creates a `GodotNode`. Godot scripts run in the Godot SceneTree and use GDScript/Godot APIs. Keep Dora imports and globals out of `.gd` files.
+- Keep the standard Godot project editable in the official editor. Retain resource paths, node paths, scene IDs, signal connections, and `.uid`/`.import` metadata when changing existing files. Do not hand-edit `.godot` caches or generated `init.lua` when `init.ts` exists.
+- Current Dora Godot delivery supports GDScript projects; Godot C#/Mono and native GDExtension sidecars are outside that supported workflow.
+
+## Edit, import, validate, run
+
+1. Read the project settings, main scene, relevant scripts, and Dora host entry. Check Autoloads, input actions, and the configured renderer when the change depends on them.
+2. Edit authored Godot files and assets with the workspace tools. Small procedural scenes can run without external asset imports. New or changed PNG, audio, fonts, and models normally require editor import.
+3. Call `build` with the Godot project directory, for example `{"paths":["."]}`. On desktop Dora this runs a matching editor's headless import and resource validation, then compiles the Dora scripts. It may generate Godot resource metadata and caches. The host uses `DORA_GODOT_EDITOR` or a discovered editor executable; a missing/mismatched editor is a tool configuration failure. Do not repeatedly rewrite working game code to fix that failure.
+4. Repair the returned diagnostics and rebuild. Import and validation output is also saved in `.agent/godot/import.log` and `.agent/godot/validate.log`; read the relevant log if the tool message was truncated. A successful Dora wrapper compilation alone does not establish that Godot scripts or assets are valid. Resource validation does not establish correct gameplay or GPU rendering.
+5. Run the built Dora host entry, normally `init.ts`/`init.lua`, through the existing entry tools. Do not run `main.gd` as a Dora Lua entry. For a requested visual check, `previewGame({entry="init.ts", captureAtSeconds={1}})` uses the same host entry and capture budgets as other Dora games.
+6. Check asynchronous startup (`GodotNode.running` and `lastError`) and reproduce relevant inputs. GodotNode forwards mouse/touch and provides `sendPointer`, `sendKey`, and `sendText`. Confirm gameplay separately from a screenshot.
+
+## Iteration and diagnostics
+
+- Only one GodotNode may be active. Wait for `unloadAsync` completion before replacing it; use the serial `GodotPlayer` helper for explicit project switching. Do not assume `running === false` means unload completed.
+- `restart()` reloads a scene and retains Autoloads. To validate project settings, changed scripts, or a fresh project state, stop/unload and relaunch the host entry.
+- Keep a fixed design viewport and fit the Dora Sprite once. Avoid applying equivalent scaling in both Dora and Godot.
+- Use build diagnostics for script/resource errors. Dora's virtual engine log includes host-side startup messages; do not assume it contains every Godot print or script stack trace.
+- Godot API signatures are distinct from Dora APIs. Check matching Godot documentation or existing verified project usage; `search_dora_doc` currently documents the Dora host APIs, not the GDScript API.
+- Godot game development is supported in the desktop Dora Web IDE. Dora Studio intentionally does not support Godot game development; direct those projects to desktop Dora rather than proposing a Studio editor import service.
+- Mobile runtime builds do not contain an editor import service. If `build` reports that limitation, preserve the source and report the missing service instead of claiming validation passed.

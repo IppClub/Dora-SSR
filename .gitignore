@@ -73,6 +73,10 @@ imgui.ini
 # Ignore dev files
 Assets/www/
 Assets/dora-wa/
+Assets/libdora_godot.dylib
+Assets/libdora_godot.so
+Assets/dora_godot.dll
+Assets/GodotRuntimeNotices/
 Tools/dora-dora/public/typescript.js
 Tools/dora-dora/public/web-player/
 Tools/dora-dora/public/web-player.tmp-*/

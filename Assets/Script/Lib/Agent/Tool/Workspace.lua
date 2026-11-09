@@ -694,7 +694,13 @@ ____exports.codeExtensions = { -- 633
 	".md", -- 633
 	".yarn", -- 633
 	".wa", -- 633
-	".mod" -- 633
+	".mod", -- 633
+	".gd", -- 633
+	".tscn", -- 633
+	".tres", -- 633
+	".gdshader", -- 633
+	".gdshaderinc", -- 633
+	".godot" -- 633
 } -- 633
 extensionLevels = { -- 634
 	vs = 2, -- 635

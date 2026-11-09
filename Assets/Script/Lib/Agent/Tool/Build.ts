@@ -2,6 +2,7 @@
 import { Content, Path, Director, once, Node, emit, wait, App, HttpServer } from 'Dora';
 import { Log, safeJsonDecode, safeJsonEncode } from 'Agent/Utils';
 import { sendWebIDEFileUpdate } from 'Agent/Tool/WebIDESync';
+import { buildGodotProject, findGodotProject } from 'Agent/Tool/GodotBuild';
 import {
 	resolveWorkspaceSearchPath,
 	toWorkspaceRelativePath,
@@ -293,9 +294,17 @@ export async function build(req: { workDir: string; path: string; isCancelled?: 
 		return { success: false, message: "path not existed" };
 	}
 	const messages: BuildMessage[] = [];
+	// Validate the enclosing Godot project even for a host-only target such as
+	// init.ts; compiling its Dora wrapper cannot validate the game it starts.
+	const godotProject = findGodotProject(req.workDir, target);
+	if (godotProject !== undefined) {
+		messages.push(await buildGodotProject(godotProject, req.isCancelled));
+		if (!messages[0].success) return finalizeBuildResult(req.workDir, messages);
+	}
 	if (!Content.isdir(target)) {
 		const kind = getSupportedBuildKind(target);
 		if (!kind) {
+			if (godotProject !== undefined) return finalizeBuildResult(req.workDir, messages);
 			return { success: false, message: "expecting a ts/tsx, tl, lua, yue or yarn file" };
 		}
 		if (kind === "ts") {
@@ -331,6 +340,10 @@ export async function build(req: { workDir: string; path: string; isCancelled?: 
 	const buildQueue: { file: string; kind: SupportedBuildKind }[] = [];
 	for (const rel of relFiles) {
 		const file = Content.isAbsolutePath(rel) ? rel : Path(target, rel);
+		if (Path.getFilename(file) === 'project.godot' && Path.getPath(file) !== godotProject) {
+			messages.push(await buildGodotProject(Path.getPath(file), req.isCancelled));
+			if (req.isCancelled?.() === true) return finalizeBuildResult(req.workDir, messages);
+		}
 		const kind = getSupportedBuildKind(file);
 		if (!kind) continue;
 		buildQueue.push({ file, kind });

@@ -214,8 +214,13 @@ const LogView = memo((props: LogViewProps) => {
 	};
 
 	const onToggleProfiler = () => {
-		Service.command({ code: `Director.profilerSending = ${toggleProfiler ? 'false' : 'true'}`, log: false }).then(() => {
-			setToggleProfiler(!toggleProfiler);
+		const enabled = !toggleProfiler;
+		Service.command({ code: `Director.profilerSending = ${enabled ? 'true' : 'false'}`, log: false }).then((res) => {
+			if (!res.success) return;
+			// Closing the dialog unmounts it. Keep the cached preference current
+			// so the next mount does not restore the initial /info response.
+			Info.webProfiler = enabled;
+			setToggleProfiler(enabled);
 		}).catch((err) => {
 			console.error(err);
 		});
@@ -626,7 +631,6 @@ const LogView = memo((props: LogViewProps) => {
 		memoryItems = [];
 	}
 
-	const consoleMinHeight = props.height * 0.3;
 	const showLogPanel = !toggleProfiler || !compactLayout;
 
 	return <Entry>
@@ -656,7 +660,7 @@ const LogView = memo((props: LogViewProps) => {
 				transition: transitionProps,
 				paper: {
 					sx: {
-						height: compactLayout ? "var(--dora-viewport-height, 100dvh)" : "auto",
+						height: compactLayout ? "var(--dora-viewport-height, 100dvh)" : props.height,
 						maxHeight: compactLayout ? "var(--dora-viewport-height, 100dvh)" : undefined,
 						m: compactLayout ? 0 : undefined,
 						overflow: "hidden",
@@ -667,9 +671,8 @@ const LogView = memo((props: LogViewProps) => {
 			<DialogContent sx={{
 				display: "flex",
 				flexDirection: "column",
-				flex: compactLayout ? "1 1 auto" : "0 0 auto",
+				flex: "1 1 auto",
 				width: "100%",
-				height: compactLayout ? "auto" : props.height,
 				minHeight: 0,
 				overflow: "hidden",
 				m: 0,
@@ -681,13 +684,15 @@ const LogView = memo((props: LogViewProps) => {
 					sx={{
 						display: toggleProfiler ? "flex" : "none",
 						flexDirection: "column",
-						flex: compactLayout ? "1 1 auto" : "0 0 auto",
+						flex: compactLayout ? "1 1 auto" : "7 1 0",
 						minHeight: 0,
 					}}
 				>
 					<Box sx={{
 						width: "100%",
-						height: compactLayout ? "100%" : props.height - consoleMinHeight - 1,
+						display: "flex",
+						flexDirection: "column",
+						flex: "1 1 0",
 						minHeight: 0,
 						background: Color.BackgroundDark,
 					}}>
@@ -774,9 +779,8 @@ const LogView = memo((props: LogViewProps) => {
 						position: "relative",
 						display: showLogPanel ? "block" : "none",
 						flex: toggleProfiler && !compactLayout
-							? `0 0 ${consoleMinHeight}px`
+							? "3 1 0"
 							: "1 1 auto",
-						height: toggleProfiler && !compactLayout ? consoleMinHeight : "auto",
 						minHeight: 0,
 						overflow: "hidden",
 					}}

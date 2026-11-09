@@ -1934,7 +1934,7 @@ HttpServer\postSchedule "/doc/read", (req) ->
 		result.docLanguage = language
 	result
 
-HttpServer\get "/read-sync", (req): success: false ->
+readSyncFile = (req): success: false ->
 	switch req when :params
 		:path = params
 		return success: false, message: "invalid path" unless type(path) == "string" and path ~= ""
@@ -1977,6 +1977,9 @@ HttpServer\get "/read-sync", (req): success: false ->
 				fallbackPaths[] = dir unless exists
 		if readResult := readFile fallbackPaths
 			return readResult
+
+HttpServer\get "/read-sync", readSyncFile
+HttpServer\post "/read-sync", (req) -> readSyncFile params: req.body
 
 addGeneratedSourceHeader = (codes, language, file, preserveTIC80 = false) ->
 	header = "-- [#{language}]: #{file}"

@@ -9,7 +9,10 @@ if is_plat("macosx", "iphoneos", "linux", "windows") then
     target_end()
     rule("dora.godot-component")
         before_build(function (target)
-            import("Projects.xmake.godot.component", {rootdir = os.projectdir()})(target, true)
+            local component = import("Projects.xmake.godot.component", {rootdir = os.projectdir()})
+            component(target, true)
+            local run_assets = os.getenv("DORA_NATIVE_RUN_ASSET_DIR")
+            if run_assets and run_assets ~= "" then component(target, true, run_assets) end
         end)
         on_config(function (target)
             import("core.project.config")

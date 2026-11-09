@@ -35,13 +35,18 @@ ____exports.AGENT_LIMITS = { -- 11
 	completionEvidenceMaxItems = 8 -- 36
 } -- 36
 ____exports.AGENT_FILE_PATTERNS = {freshProjectCodeGlobs = { -- 39
-	"**/*.ts", -- 41
-	"**/*.tsx", -- 42
-	"**/*.lua", -- 43
-	"**/*.yue", -- 44
-	"**/*.tl", -- 45
-	"**/*.yarn", -- 46
-	"**/*.xml", -- 47
-	"!**/*.d.ts" -- 48
-}} -- 48
-return ____exports -- 48
+	"**/project.godot", -- 41
+	"**/*.gd", -- 42
+	"**/*.tscn", -- 43
+	"**/*.tres", -- 44
+	"**/*.gdshader", -- 45
+	"**/*.ts", -- 46
+	"**/*.tsx", -- 47
+	"**/*.lua", -- 48
+	"**/*.yue", -- 49
+	"**/*.tl", -- 50
+	"**/*.yarn", -- 51
+	"**/*.xml", -- 52
+	"!**/*.d.ts" -- 53
+}} -- 53
+return ____exports -- 53
