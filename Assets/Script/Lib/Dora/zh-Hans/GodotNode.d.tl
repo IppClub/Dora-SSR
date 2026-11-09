@@ -23,6 +23,7 @@ local record GodotNode
 end
 local record GodotNodeClass
     getUnsupportedReason: function(): string
+    checkCodeAsync: function(self: GodotNodeClass, project: string, file: string, content: string, callback: function(available: boolean, result: string))
     type Type = GodotNode
     metamethod __call: function(self: GodotNodeClass, projectPath: string, sceneFile?: string, width?: integer, height?: integer, buffers?: integer): GodotNode | nil
 end

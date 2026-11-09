@@ -1020,10 +1020,28 @@ getCompiledYueLine = (content, line, row, file, lax) ->
 	else
 		nil
 
+godotCheckAsync = (file, content, coalesce = true) ->
+	return success: false, info: {{"syntax", tostring(file), 1, 0, "Invalid Godot check request"}} unless type(file) == "string" and Content\isAbsolutePath(file) and type(content) == "string"
+	releaseAgent = AgentHost.acquire!
+	close _ = <close>: -> releaseAgent!
+	import "Agent.Tool.GodotBuild" as GodotBuild
+	project = GodotBuild.findGodotProject(Content.writablePath, file) or GodotBuild.findGodotProject(Content.assetPath, file)
+	return success: false, info: {{"syntax", file, 1, 0, "Godot file does not belong to a project with project.godot"}} unless project
+	import "Agent.Tool.GodotCheck" as GodotCheck
+	local result
+	onFulfilled = (_, value) -> result = value
+	onRejected = (_, err) -> result = success: false, info: {{"tool", file, 1, 0, tostring err}}
+	promise = GodotCheck.checkGodotFile project, file, content, coalesce
+	promise["then"] promise, onFulfilled, onRejected
+	wait -> result ~= nil
+	return result
+
 HttpServer\postSchedule "/check", (req): success: true ->
 	switch req when {body: {:file, :content}}
 		ext = Path\getExt file
-		switch ext when "tl"
+		switch ext when "gd", "tscn", "tres", "gdshader", "gdshaderinc"
+			return godotCheckAsync file, content
+		when "tl"
 			searchPath = getSearchPath file
 			if isTIC80 := CheckTIC80Code content
 				content = content\gsub "^%-%-[ \t]*tic80[ \t]*", "require(\"tic80\")"
@@ -2093,6 +2111,11 @@ HttpServer\postSchedule "/build", (req): success: false ->
 				else
 					success: false, :message
 		switch Path\getExt path
+			when "gd", "tscn", "tres", "gdshader", "gdshaderinc"
+				if content := Content\loadAsync path
+					result = godotCheckAsync path, content, false
+					buildSucceeded = result.success and not result.skipped
+					return success: buildSucceeded, resultCodes: "", info: result.info
 			when "tl", "yue", "xml"
 				if '' == Path\getExt Path\getName path
 					if content := Content\loadAsync path

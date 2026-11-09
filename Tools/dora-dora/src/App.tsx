@@ -4609,10 +4609,13 @@ export default function PersistentDrawerLeft() {
 			return;
 		}
 		switch (ext) {
-			case ".lua": case ".tl": case ".yue": case ".xml": break;
+			case ".lua": case ".tl": case ".yue": case ".xml":
+			case ".gd": case ".tscn": case ".tres": case ".gdshader": case ".gdshaderinc": break;
 			default: return;
 		}
+		const checkedVersion = model.getVersionId();
 		Service.check({ file: file.key, content }).then((res) => {
+			if (res.skipped || model.isDisposed() || model.getVersionId() !== checkedVersion) return;
 			let status: TabStatus = "normal";
 			const markers: Monaco.editor.IMarkerData[] = [];
 			if (!res.success && res.info !== undefined) {
@@ -4624,6 +4627,7 @@ export default function PersistentDrawerLeft() {
 						switch (errType) {
 							case "parsing":
 							case "syntax":
+							case "tool":
 							case "type":
 								status = "error";
 								severity = monaco.MarkerSeverity.Error;
@@ -4664,6 +4668,7 @@ export default function PersistentDrawerLeft() {
 					switch (errType) {
 						case "parsing":
 						case "syntax":
+						case "tool":
 						case "type":
 							status = "error";
 							markers.push({

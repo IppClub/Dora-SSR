@@ -128,6 +128,11 @@ private:
 
 public:
 	Ref<Resource> get_resource();
+	// Dora's embedded code checker uses the native, non-instantiating syntax
+	// scanner and exposes its diagnostics without importing/loading resources.
+	String get_error_text() const { return error_text; }
+	int get_error_line() const { return lines; }
+	void set_local_path_for_validation(const String &p_path) { local_path = p_path; res_path = p_path; }
 	Error load();
 	Error set_uid(Ref<FileAccess> p_f, ResourceUID::ID p_uid);
 	int get_stage() const;

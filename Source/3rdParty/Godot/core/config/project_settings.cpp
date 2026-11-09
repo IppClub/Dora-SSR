@@ -47,6 +47,7 @@
 #include "core/variant/typed_array.h"
 #include "core/variant/variant_parser.h"
 #include "core/version.h"
+#include "modules/modules_enabled.gen.h" // Dora source-project runtime capability.
 
 #ifdef TOOLS_ENABLED
 #include "core/config/engine.h"
@@ -1493,6 +1494,11 @@ TypedArray<Dictionary> ProjectSettings::get_global_class_list() {
 	} else {
 #ifndef TOOLS_ENABLED
 		// Script classes can't be recreated in exported project, so print an error.
+#ifdef MODULE_DORA_BRIDGE_ENABLED
+		// Dora's embedded compiler scans source class declarations in memory.
+		// A source-only project need not have an editor-generated cache yet.
+		if (FileAccess::exists(get_global_class_list_path()))
+#endif
 		ERR_PRINT("Could not load global script cache.");
 #endif
 	}

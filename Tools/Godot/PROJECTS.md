@@ -8,13 +8,15 @@ Web IDE 的“新建工程目录 → 创建为项目”提供 `Godot 2D` 和 `Go
 
 人工添加文件时，在“新建内容 → Godot 资源”二级菜单选择 GDScript（`.gd`）、2D/3D 场景（`.tscn`）、资源（`.tres`）、2D 着色器（`.gdshader`）或着色器片段（`.gdshaderinc`），创建后以文本方式编辑。编辑器提供基础语法高亮，不包含 Godot 图形场景编辑器或 GDScript 语言服务器。工程配置 `project.godot` 由新建工程流程生成。
 
-桌面 Web IDE 的手动构建与 Agent 共用 Godot 导入检查服务；构建错误中的 Godot 文件行号可在日志中点击跳转。编辑 Godot 文件时，“运行”和“运行当前文件”都会定位所属工程并运行 Dora 宿主 `init`，不会将 GDScript 当成 Lua 执行，也不会自动将当前场景替换为主场景。
+桌面 Web IDE 的手动构建与 Agent 共用内置 Godot runtime 的原生编译检查服务，不启动外部 Godot 编辑器或其它检查进程。编辑 `.gd`、`.tscn`、`.tres`、`.gdshader`、`.gdshaderinc` 时，停止输入后通过 `/check` 异步检查未保存文本，返回文件、行列和诊断；过期结果会丢弃，修复后清除错误标记。通用 `/build` 入口也支持这些 Godot 文件。
 
-桌面 Agent 的 `build` 在发现目标所在的 Godot 工程后，先通过匹配的 Godot **4.7.2 stable** 编辑器执行无界面资源导入，再加载检查工程脚本、场景和资源，最后执行 Dora 脚本构建。建议以工程目录调用 `build`；即使目标是 `init.ts`，也不会跳过所在 Godot 工程的检查。Godot 3、声明依赖 C#/Mono 的工程和原生 GDExtension sidecar 会被拒绝。
+着色器使用 Godot 原生预处理器和 ShaderLanguage 检查语法、类型、内置函数、uniform 与 include，错误定位到实际文件和行号；全局 uniform 类型从工程设置读取，不修改渲染服务器。`.gdshaderinc` 独立检查使用 Godot include 模式，引用方 shader 展开后再检查完整上下文；独立检查不能证明所有引用上下文均有效。GDScript 使用 Godot 自身的解析器与语义分析器，场景和文本资源使用 Godot 文本资源扫描器检查语法、类型和外部资源路径。检查不启动主场景、不实例化游戏节点、不运行 Autoload、不覆写源文件。运行中的 Godot 工程只能检查该工程，检查另一工程时需要先停止当前工程。当前原生检查桥接已接入 macOS Metal；其它宿主后端明确返回能力缺失，不回退到外部命令。新接口需要同时更新 Dora 宿主和内置运行库。
 
-可通过启动 Dora 进程的环境变量 `DORA_GODOT_EDITOR` 指定编辑器可执行文件（macOS 也接受 `.app` 路径）。未指定时，macOS 检查 `/Applications/Godot.app/Contents/MacOS/Godot`，并尝试 PATH 中的 `godot`、`godot4`；其它桌面平台尝试 PATH。版本不匹配或缺少编辑器会报告工具配置错误。
+Agent 的 `build` 以工程目录检查全部 `.gd`、`.tscn`、`.tres`、`.gdshader`、`.gdshaderinc` 后，再构建 Dora 宿主脚本。即使目标为 `init.ts`，也不会跳过 Godot 检查。Godot 3、C#/Mono 和原生 GDExtension sidecar 不在支持范围。该检查不生成资源导入缓存、不进行 GPU 后端着色器或管线编译，也不等于游戏运行和 GPU 画面验收。下方 `project.py` 的独立副本导入/打包是单独的资源准备流程，不会被代码检查隐式调用。
 
-Agent 开发构建直接导入当前源码工程，正常生成 `.uid`、`.import` 等元数据及 `.godot` 缓存；这与下方 `project.py` 的独立副本交付流程不同。诊断另存于 `.agent/godot/import.log`、`.agent/godot/validate.log`。导入或检查失败、超时、取消及输出超限均不会记为构建通过；检查成功也不代表游戏逻辑或 GPU 画面已验收。试玩和截图仍通过 Dora 宿主入口进行。
+构建错误可在日志中定位；编辑 Godot 文件时，“运行”和“运行当前文件”均定位所属工程并启动 Dora 宿主 `init`，不会将 GDScript 当作 Lua 执行，也不会自动替换项目主场景。
+
+显式构建会为每个检查成功的 Godot 文件输出 `Built Godot 工程名/文件名`，不受 Agent 调试日志级别过滤；编辑时的自动检查不会输出成功日志。Agent `build` 按文件返回成功/失败明细和 `total`、`passed`、`failed` 统计，源码检查失败前已成功的文件也会保留，供模型上下文和工具调用界面的构建结果使用。
 
 Godot 开发面向桌面 Dora 的 Web IDE。Dora Studio 面向轻量的浏览器游戏开发，明确不支持 Godot 开发，也不规划为其接入编辑器导入服务。移动端当前没有编辑器导入服务；包含 Godot 运行库不等于可以进行编辑器资源导入。
 

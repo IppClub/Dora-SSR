@@ -9747,7 +9747,7 @@ Error ShaderLanguage::_parse_shader(const HashMap<StringName, FunctionInfo> &p_f
 				}
 
 				if (is_uniform) {
-					if (uniform_scope == ShaderNode::Uniform::SCOPE_GLOBAL && Engine::get_singleton()->is_editor_hint()) { // Type checking for global uniforms is not allowed outside the editor.
+					if (uniform_scope == ShaderNode::Uniform::SCOPE_GLOBAL && (Engine::get_singleton()->is_editor_hint() || validate_global_uniforms)) { // Opt-in for Dora in-process static validation.
 						//validate global uniform
 						DataType gvtype = global_shader_uniform_get_type_func(name);
 						if (gvtype == TYPE_MAX) {
@@ -11448,6 +11448,7 @@ uint32_t ShaderLanguage::get_warning_flags() const {
 Error ShaderLanguage::compile(const String &p_code, const ShaderCompileInfo &p_info) {
 	clear();
 	is_shader_inc = p_info.is_include;
+	validate_global_uniforms = p_info.validate_global_uniforms;
 
 	code = p_code;
 	global_shader_uniform_get_type_func = p_info.global_shader_uniform_type_func;
@@ -11475,6 +11476,7 @@ Error ShaderLanguage::compile(const String &p_code, const ShaderCompileInfo &p_i
 Error ShaderLanguage::complete(const String &p_code, const ShaderCompileInfo &p_info, List<ScriptLanguage::CodeCompletionOption> *r_options, String &r_call_hint) {
 	clear();
 	is_shader_inc = p_info.is_include;
+	validate_global_uniforms = p_info.validate_global_uniforms;
 
 	code = p_code;
 	varying_function_names = p_info.varying_function_names;

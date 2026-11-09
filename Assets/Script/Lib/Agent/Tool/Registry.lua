@@ -256,7 +256,7 @@ local AGENT_TOOL_DEFINITION_SOURCES = { -- 138
 		name = "build", -- 283
 		roles = {"main", "sub"}, -- 284
 		workModes = {"code"}, -- 285
-		description = "Compile Dora scripts (ts/tsx, teal, lua, yue, yarn) and import/validate enclosing Godot projects on desktop hosts.", -- 286
+		description = "Compile Dora scripts (ts/tsx, teal, lua, yue, yarn) and validate enclosing Godot projects through the bundled runtime compiler.", -- 286
 		parameters = BUILD_PARAMETERS, -- 287
 		modelInputSchema = function(____, context) return __TS__ObjectAssign( -- 288
 			{}, -- 288
@@ -278,7 +278,7 @@ local AGENT_TOOL_DEFINITION_SOURCES = { -- 138
 			"Prefer one common directory target when edited files share a root; otherwise include the required targets in order.", -- 304
 			"Targets build sequentially and best-effort. A failed target does not discard earlier successful results.", -- 305
 			"Read the result and then decide whether another action is needed.", -- 306
-			"For Godot projects, use the project directory target. Desktop builds import resources with a matching Godot editor and validate scripts/scenes/resources as well as the Dora host entry. A successful init.ts compilation alone is not Godot validation. Missing editor services are tool failures, not successful builds." -- 307
+			"For Godot projects, use the project directory target. Builds check GDScript, text resources and shader/include syntax/types through the bundled Godot runtime and compile the Dora host entry. No external editor is launched. Asset import and backend GPU shader/pipeline compilation are separate from static code validation. Standalone shader includes use Godot include mode; full shader checks validate their expanded include context. A successful init.ts compilation alone is not Godot validation. Missing compiler bridge capabilities are tool failures, not successful builds." -- 307
 		} -- 307
 	}, -- 307
 	{ -- 310

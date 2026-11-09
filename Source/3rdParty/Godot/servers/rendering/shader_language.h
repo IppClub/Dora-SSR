@@ -1060,6 +1060,7 @@ private:
 	bool is_const_decl = false;
 	StringName last_name;
 	bool is_shader_inc = false;
+	bool validate_global_uniforms = false; // Dora static checks without changing Engine editor state.
 
 	String current_uniform_group_name;
 
@@ -1264,6 +1265,7 @@ public:
 		HashSet<String> shader_types;
 		GlobalShaderUniformGetTypeFunc global_shader_uniform_type_func = nullptr;
 		bool is_include = false;
+		bool validate_global_uniforms = false;
 		uint32_t base_varying_index = 0;
 	};
 

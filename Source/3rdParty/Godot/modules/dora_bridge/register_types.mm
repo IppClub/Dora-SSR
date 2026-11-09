@@ -12,6 +12,7 @@
 #include "GodotBridgeIME.h"
 #include "runtime_ime.h"
 #include "runtime_project.h"
+#include "runtime_check.h"
 #include "core/config/engine.h"
 #include "servers/audio/audio_driver_dummy.h"
 #include "core/extension/libgodot.h"
@@ -34,6 +35,7 @@
 #include <string>
 #include <set>
 #include <filesystem>
+#include <fstream>
 
 void initialize_dora_bridge_module(ModuleInitializationLevel) {}
 void uninitialize_dora_bridge_module(ModuleInitializationLevel) {}
@@ -123,6 +125,44 @@ void drain() {
         if (marker.status == MTLCommandBufferStatusError) ++runtime.errors;
     }
 }
+bool boot_check(const DoraGodotConfig *config) {
+    if(!runtime.supports_project_unload) { runtime.error="Embedded code checking requires project lifecycle support";return false; }
+    if(!prepare_audio()) return false;
+    runtime.project=config->project_path;
+    // Initialize servers against an empty, private bootstrap project. User
+    // project themes/audio/shaders must not load as a side effect of checking.
+    std::error_code cwd_error;
+    const auto previous_directory=std::filesystem::current_path(cwd_error);
+    if(cwd_error) { runtime.error="Cannot preserve host working directory";return false; }
+    char bootstrap[]="/tmp/dora-godot-check-XXXXXX";
+    if(!mkdtemp(bootstrap)) { runtime.error="Cannot create compiler bootstrap directory";return false; }
+    auto cleanup_bootstrap=[&] {
+        // Main::setup changes the process cwd. Restore it before removing the
+        // private directory, otherwise later FileAccess/DirAccess calls fail.
+        std::error_code error;std::filesystem::current_path(previous_directory,error);
+        std::filesystem::remove_all(bootstrap,error);
+    };
+    { std::ofstream file(std::string(bootstrap)+"/project.godot");file<<"config_version=5\n[application]\nrun/main_scene=\"res://empty.tscn\"\n"; }
+    { std::ofstream file(std::string(bootstrap)+"/empty.tscn");file<<"[gd_scene format=3]\n[node name=\"Compiler\" type=\"Node\"]\n"; }
+    char executable[]="Dora-Godot";
+    char *args[]={executable,(char*)"--path",bootstrap,(char*)"--display-driver",(char*)"dora-metal",
+        (char*)"--rendering-driver",(char*)"metal",(char*)"--rendering-method",(char*)"mobile",(char*)"--audio-driver",(char*)"Dummy",
+        (char*)"--accessibility-driver",(char*)"dummy",(char*)"--disable-render-loop",(char*)"--disable-crash-handler"};
+    runtime.instance=(GodotInstance*)libgodot_create_godot_instance(sizeof(args)/sizeof(args[0]),args,extension_init);
+    if(!runtime.instance) { cleanup_bootstrap();runtime.error="Cannot initialize embedded Godot checker";return false; }
+    const String cache=OS::get_singleton()->get_cache_path().path_join("Dora/LibGodot-4.7.2/metal");
+    DirAccess::make_dir_recursive_absolute(cache);Engine::get_singleton()->set_shader_cache_path(cache);
+    const Error setup=Main::setup2(false);
+    cleanup_bootstrap();
+    if(setup!=OK) { runtime.error="Cannot initialize Godot compiler services";runtime.terminated=true;return false; }
+    DoraGodotProject::unload(runtime.instance);
+    return true;
+}
+const char *check_code(const DoraGodotConfig *config,const char *file,const char *source) {
+    if(!config || config->backend!=DORA_GODOT_METAL || !config->native_device)
+        return DoraGodotCodeCheck::failure(file,"Invalid Metal Godot compiler configuration");
+    return DoraGodotCodeCheck::check(runtime,config,file,source,boot_check);
+}
 void *open(const DoraGodotConfig *config) {
     runtime.error.clear();
     if (!config || config->size < sizeof(*config) || config->backend != DORA_GODOT_METAL
@@ -184,6 +224,8 @@ void *open(const DoraGodotConfig *config) {
         runtime.project=config->project_path;
         runtime.tree=Object::cast_to<SceneTree>(OS::get_singleton()->get_main_loop());
         runtime.root=runtime.tree->get_root();
+        auto *rd=RenderingDevice::get_singleton();
+        runtime.queue=(__bridge id<MTLCommandQueue>)(void*)(uintptr_t)rd->get_driver_resource(RenderingDevice::DRIVER_RESOURCE_COMMAND_QUEUE);
     } else {
         runtime.root->set_size(Size2i(config->width,config->height));
         const String scene = runtime.scene.empty() ? String(ProjectSettings::get_singleton()->get("application/run/main_scene")) : String::utf8(runtime.scene.c_str());
@@ -339,6 +381,10 @@ extern "C" DORA_GODOT_EXPORT int dora_godot_get_api(uint32_t requested, DoraGodo
     if (requested != DORA_GODOT_ABI_VERSION || !api || api->size < sizeof(*api)) return 0;
     *api = {sizeof(*api), DORA_GODOT_ABI_VERSION, version, open, last_error, get_slot, advance, input, set_paused, restart_scene, close, shutdown};
     return 1;
+}
+extern "C" DORA_GODOT_EXPORT int dora_godot_get_check_api(uint32_t requested,DoraGodotCheckAPI *api) {
+    if(requested!=DORA_GODOT_CHECK_ABI_VERSION || !api || api->size<sizeof(*api)) return 0;
+    *api={sizeof(*api),DORA_GODOT_CHECK_ABI_VERSION,check_code};return 1;
 }
 extern "C" DORA_GODOT_EXPORT int dora_godot_get_metal_targets_api(uint32_t requested,DoraGodotMetalTargetsAPI *api) {
     if (requested!=DORA_GODOT_METAL_TARGETS_ABI_VERSION || !api || api->size<sizeof(*api)) return 0;

@@ -29,6 +29,16 @@
 /**************************************************************************/
 
 #import "display_server_macos.h"
+#include <dlfcn.h>
+
+// New Apple SDKs declare the legacy capture API unavailable. Dora uses its own
+// offscreen display server; retain this fallback only when the symbol exists.
+static CGImageRef dora_legacy_window_capture(CGRect bounds, CFArrayRef windows, CGWindowImageOption options) {
+    using Capture = CGImageRef (*)(CGRect, CFArrayRef, CGWindowImageOption);
+    static const auto capture = reinterpret_cast<Capture>(dlsym(RTLD_DEFAULT, "CGWindowListCreateImageFromArray"));
+    return capture ? capture(bounds, windows, options) : nullptr;
+}
+
 
 #import "godot_application.h"
 #import "godot_application_delegate.h"
@@ -1556,7 +1566,7 @@ Color DisplayServerMacOS::screen_get_pixel(const Point2i &p_position) const {
 	position /= screen_get_max_scale();
 
 	Color color;
-	CGImageRef image = CGWindowListCreateImageFromArray(CGRectMake(position.x, position.y, 1, 1), capture_windows, kCGWindowListOptionAll);
+	CGImageRef image = dora_legacy_window_capture(CGRectMake(position.x, position.y, 1, 1), capture_windows, kCGWindowListOptionAll);
 	if (image) {
 		CGColorSpaceRef color_space = CGColorSpaceCreateDeviceRGB();
 		if (color_space) {
@@ -1603,7 +1613,7 @@ Ref<Image> DisplayServerMacOS::screen_get_image(int p_screen) const {
 	size /= screen_get_max_scale();
 
 	Ref<Image> img;
-	CGImageRef image = CGWindowListCreateImageFromArray(CGRectMake(position.x, position.y, size.width, size.height), capture_windows, kCGWindowListOptionAll);
+	CGImageRef image = dora_legacy_window_capture(CGRectMake(position.x, position.y, size.width, size.height), capture_windows, kCGWindowListOptionAll);
 	if (image) {
 		CGColorSpaceRef color_space = CGColorSpaceCreateDeviceRGB();
 		if (color_space) {
@@ -1651,7 +1661,7 @@ Ref<Image> DisplayServerMacOS::screen_get_image_rect(const Rect2i &p_rect) const
 	size /= screen_get_max_scale();
 
 	Ref<Image> img;
-	CGImageRef image = CGWindowListCreateImageFromArray(CGRectMake(position.x, position.y, size.width, size.height), capture_windows, kCGWindowListOptionAll);
+	CGImageRef image = dora_legacy_window_capture(CGRectMake(position.x, position.y, size.width, size.height), capture_windows, kCGWindowListOptionAll);
 	if (image) {
 		CGColorSpaceRef color_space = CGColorSpaceCreateDeviceRGB();
 		if (color_space) {

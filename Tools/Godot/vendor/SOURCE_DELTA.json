@@ -5,7 +5,7 @@
   "attributes_baseline_commit": "199c2c69c0e707808ad189200922bf71d04057b8",
   "policy": "Canonical Git text/EOL content using attributes from the fixed initial import; no other content normalization",
   "upstream_files": 13989,
-  "registered_current_files": 14033,
+  "registered_current_files": 14035,
   "archive_crlf_to_git_lf_files": [
     "misc/msvs/nmake.substitution.props",
     "misc/msvs/props.template",
@@ -33,7 +33,7 @@
     "modules/mono/glue/GodotSharp/GodotSharpEditor/GodotSharpEditor.csproj",
     "platform/android/java/gradlew.bat"
   ],
-  "delta_patch_sha256": "9571265f719816f40c8aed5790f9591292cb9ebec99a1abb747da0a98f321879",
+  "delta_patch_sha256": "9c375ad3013a44cf5018b1d824d7d08dfcbbe46df71cd670b3357e4c05d29516",
   "files": [
     {
       "path": "UPSTREAM.json",
@@ -53,7 +53,7 @@
       "path": "core/config/project_settings.cpp",
       "status": "modified",
       "mode": "100644",
-      "canonical_sha256": "ba223e3b8466774a1fe10ffb753a1f9861358656825cf88f41ecd1269895e68f",
+      "canonical_sha256": "97490b257d58cdc13aa3138dd4769f2e58a7ee94cba9f0f40b11e18f1087df34",
       "upstream_canonical_sha256": "7de9335773ee4498d7559300d06f14717e715909db92b62b52dd44887e19cc94"
     },
     {
@@ -88,7 +88,7 @@
       "path": "dora_bridge.exports",
       "status": "added",
       "mode": "100644",
-      "canonical_sha256": "87ddecc1394cb9b3776df169a8c10cb1f08cf6efaf4e809fa07ce71ff73c4aee",
+      "canonical_sha256": "b57047a9642b96a0badc88b317aedc537f7ee4453f955b7c78b7ff7f66ca8992",
       "upstream_canonical_sha256": null
     },
     {
@@ -208,6 +208,13 @@
       "status": "added",
       "mode": "100644",
       "canonical_sha256": "5a0c846044fe6681a9453771da8ffe325151d3432d0b61269da3892c84432ca4",
+      "upstream_canonical_sha256": null
+    },
+    {
+      "path": "modules/dora_bridge/GodotBridgeCheck.h",
+      "status": "added",
+      "mode": "100644",
+      "canonical_sha256": "bcee0e66b4ddefdb9ca5a0407c1527875c3451771fdbd1c29e925535f06f9393",
       "upstream_canonical_sha256": null
     },
     {
@@ -375,7 +382,7 @@
       "path": "modules/dora_bridge/register_types.mm",
       "status": "added",
       "mode": "100644",
-      "canonical_sha256": "95ab0d112f4b930f49c364a9535ccbc7f244415d9ead1e4121703d5f8d2fe5f4",
+      "canonical_sha256": "888104dffb5ff08ea3e1df7c85141913c957d2a93db7b3c87600505d7d60c08e",
       "upstream_canonical_sha256": null
     },
     {
@@ -397,6 +404,13 @@
       "status": "added",
       "mode": "100644",
       "canonical_sha256": "99b59cc2436b9f216f7f84a46a8ee7f15958b809361c9a1f422c79752e63216a",
+      "upstream_canonical_sha256": null
+    },
+    {
+      "path": "modules/dora_bridge/runtime_check.h",
+      "status": "added",
+      "mode": "100644",
+      "canonical_sha256": "3d7e387198ee88b8d539ba31218f1d9821a8e4b88c170427faebe48560f0ac74",
       "upstream_canonical_sha256": null
     },
     {
@@ -424,7 +438,7 @@
       "path": "modules/dora_bridge/runtime_project.h",
       "status": "added",
       "mode": "100644",
-      "canonical_sha256": "368fafb159fc12e94ed3d22315612cf5140c9c39d8c4453809ab5debf297ea2d",
+      "canonical_sha256": "7209140919a1c1e3bc80fd6ccef8a3c33d54a41310d5730e4a4627726d05ac44",
       "upstream_canonical_sha256": null
     },
     {
@@ -533,6 +547,13 @@
       "upstream_canonical_sha256": "a518dd327ca0ce446c2ba88c2e134d2d6300b8ef62bd09e5f096533b43d6f606"
     },
     {
+      "path": "platform/macos/display_server_macos.mm",
+      "status": "modified",
+      "mode": "100644",
+      "canonical_sha256": "a1ae3c668c21faee7b3d73b0ab1c7438dbbb30e1f19296678b090f653055ec4a",
+      "upstream_canonical_sha256": "57800301ae2770745c92854f38eee1f0dd859ae08f5c7d711f4d13fd48a9cf27"
+    },
+    {
       "path": "platform/macos/libgodot_macos.mm",
       "status": "modified",
       "mode": "100644",
@@ -594,6 +615,13 @@
       "mode": "100644",
       "canonical_sha256": "45376ecf764845e221379f91af17372b5292a7eed713ad3eeb9afe72fdcc77ae",
       "upstream_canonical_sha256": "89cf6a1fd9da2c4ccb6b0cc7b912c90e05d3ca489ab0aa852b4150c1a9bb56ab"
+    },
+    {
+      "path": "scene/resources/resource_format_text.h",
+      "status": "modified",
+      "mode": "100644",
+      "canonical_sha256": "3ab0e3b84cc6cc93204f7055fde8fae0f858ee5ae98c1389698304dc1d57a0a2",
+      "upstream_canonical_sha256": "fe4af94ab6f23243c94595dae0848374f2de58d85cc005d1d4a5c8903cd42686"
     },
     {
       "path": "servers/audio/audio_server.cpp",
@@ -664,6 +692,34 @@
       "mode": "100644",
       "canonical_sha256": "a4aa5a708c0bf4cd036b8c9e0ccb3124f1fa4fae5003638128ccd752ad18149b",
       "upstream_canonical_sha256": "b108f62d9d6113061dd1261e7bef51515fbdba9080b4393245e84cecc67ad7ca"
+    },
+    {
+      "path": "servers/rendering/shader_language.cpp",
+      "status": "modified",
+      "mode": "100644",
+      "canonical_sha256": "ba624ef41f684c834ec1236fc3b2b73cd267d24aa115c0641e74009849c46f9f",
+      "upstream_canonical_sha256": "75026f16f3e33eb570f0c391336f401341f055e98dbd555193e07aa45854c3f2"
+    },
+    {
+      "path": "servers/rendering/shader_language.h",
+      "status": "modified",
+      "mode": "100644",
+      "canonical_sha256": "3adf3782c7589537e1811b737ec44e0e7817c767773961e51e62769f9ece3f35",
+      "upstream_canonical_sha256": "891f96e844b5a796ac3ed4c2d42eb4057e615c91fb240909e991e2d9cb839c11"
+    },
+    {
+      "path": "servers/rendering/shader_preprocessor.cpp",
+      "status": "modified",
+      "mode": "100644",
+      "canonical_sha256": "4b3a622df46142fe7a853ed4ed0bbc12469d9d8f0f4a77c1a937ec5c8f533589",
+      "upstream_canonical_sha256": "e96f641b5f1cb74d092ddec35aad205a5de2a411fb021b074c0a8e1c949819f4"
+    },
+    {
+      "path": "servers/rendering/shader_preprocessor.h",
+      "status": "modified",
+      "mode": "100644",
+      "canonical_sha256": "886bf10157ec80a381f93468aa180ea4e5fe12e19d291966caf10b01923f57d9",
+      "upstream_canonical_sha256": "4f2c00bd178ca7062df626252436e302400efb412a617754eae35d648fd602cc"
     },
     {
       "path": "thirdparty/metal-cpp/Metal/MTLPrivate.hpp",

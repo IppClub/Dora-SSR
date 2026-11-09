@@ -29,6 +29,24 @@
 void dora_godot_reset_certificates();
 
 namespace DoraGodotProject {
+// Source projects can declare global GDScript classes without an editor cache.
+inline void source_classes(const String &directory,int depth=0) {
+    if(depth>64) return;
+    Ref<DirAccess> dir=DirAccess::open(directory);
+    if(dir.is_null()) return;
+    for(const String &name:dir->get_files()) {
+        if(name.get_extension()!="gd") continue;
+        const String path=directory.path_join(name);
+        String base;bool abstract=false,tool=false;
+        const String type=GDScriptLanguage::get_singleton()->get_global_class_name(path,&base,nullptr,&abstract,&tool);
+        if(!type.is_empty()) ScriptServer::add_global_class(type,base,"GDScript",path,abstract,tool);
+    }
+    for(const String &name:dir->get_directories()) {
+        if(name.begins_with(".") || name=="node_modules" || name=="build" || name=="dist" || dir->is_link(name)) continue;
+        source_classes(directory.path_join(name),depth+1);
+    }
+}
+
 // A project can allocate Nodes without ever parenting them (e.g. object
 // pools). SceneTree::finalize cannot own those Nodes. Keep the pre-project
 // identities so teardown never treats process-owned Nodes as project garbage.
@@ -47,6 +65,7 @@ inline bool start(GodotInstance *instance) {
     // Match GodotInstance::start, but capture after engine setup and before
     // Main::start creates the project SceneTree/autoloads/script instances.
     if (Main::setup2()!=OK) return false;
+    source_classes("res://");
     begin_node_boundary();
     return instance->start_embedded_project();
 }
@@ -165,7 +184,7 @@ inline void unload(GodotInstance *instance) {
     }, &orphan_nodes);
     print_line(vformat("DORA_GODOT_PROJECT_CLEAN objects=%d resources=%d nodes=%d", ObjectDB::get_object_count(), ResourceCache::get_cached_resource_count(), orphan_nodes));
 }
-inline bool load(GodotInstance *instance, const char *path, const char *scene, int width, int height, std::string &error) {
+inline bool load(GodotInstance *instance, const char *path, const char *scene, int width, int height, std::string &error, bool start_scene=true) {
     begin_node_boundary();
     auto *settings = ProjectSettings::get_singleton();
     const String project = String::utf8(path);
@@ -183,7 +202,12 @@ inline bool load(GodotInstance *instance, const char *path, const char *scene, i
 #endif
     if (scene && *scene) settings->set("application/run/main_scene", String::utf8(scene));
     const String main_scene = GLOBAL_GET("application/run/main_scene");
-    if (main_scene.is_empty()) { error = "Godot project has no main scene"; return false; }
+    if (start_scene && main_scene.is_empty()) { error = "Godot project has no main scene"; return false; }
+    if (!start_scene) {
+        ResourceUID::get_singleton()->load_from_cache(true);
+        ScriptServer::init_languages();
+        return true; // No input actions, translations, themes, buses or shaders.
+    }
     OS::get_singleton()->ensure_user_data_dir();
     OS::get_singleton()->set_exit_code(0);
     ResourceUID::get_singleton()->load_from_cache(true);
@@ -200,6 +224,7 @@ inline bool load(GodotInstance *instance, const char *path, const char *scene, i
     TranslationServer::get_singleton()->load_project_translations(TranslationServer::get_singleton()->get_main_domain());
     ResourceLoader::load_translation_remaps();
     ScriptServer::init_languages();
+    source_classes("res://");
     ThemeDB::get_singleton()->initialize_theme();
     AudioServer::get_singleton()->load_default_bus_layout();
     RenderingServer::get_singleton()->global_shader_parameters_load_settings(true);

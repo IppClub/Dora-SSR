@@ -587,9 +587,10 @@ export interface CheckRequest {
 	file: string;
 	content: string;
 };
-type CheckError = "parsing" | "syntax" | "type" | "warning" | "crash";
+type CheckError = "parsing" | "syntax" | "type" | "warning" | "crash" | "tool";
 export interface CheckResponse {
 	success: boolean;
+	skipped?: boolean;
 	info?: [CheckError, string, number, number, string][];
 };
 export const check = (req: CheckRequest) => {
@@ -834,6 +835,7 @@ export interface GodotProjectResponse {
 	found?: boolean;
 	projectRoot?: string;
 	message?: string;
+	messages?: { success: boolean; file: string; message?: string }[];
 }
 
 export const godotProject = (req: { path: string; build?: boolean }) => {

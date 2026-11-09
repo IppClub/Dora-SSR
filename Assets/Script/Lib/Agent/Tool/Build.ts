@@ -13,6 +13,7 @@ import {
 export type BuildMessage = {
 	success: true;
 	file: string;
+	message?: string;
 } | {
 	success: false;
 	file: string;
@@ -298,8 +299,9 @@ export async function build(req: { workDir: string; path: string; isCancelled?: 
 	// init.ts; compiling its Dora wrapper cannot validate the game it starts.
 	const godotProject = findGodotProject(req.workDir, target);
 	if (godotProject !== undefined) {
-		messages.push(await buildGodotProject(godotProject, req.isCancelled));
-		if (!messages[0].success) return finalizeBuildResult(req.workDir, messages);
+		const result = await buildGodotProject(godotProject, req.isCancelled);
+		messages.push(...(result.messages ?? [result]));
+		if (!result.success) return finalizeBuildResult(req.workDir, messages);
 	}
 	if (!Content.isdir(target)) {
 		const kind = getSupportedBuildKind(target);
@@ -341,7 +343,8 @@ export async function build(req: { workDir: string; path: string; isCancelled?: 
 	for (const rel of relFiles) {
 		const file = Content.isAbsolutePath(rel) ? rel : Path(target, rel);
 		if (Path.getFilename(file) === 'project.godot' && Path.getPath(file) !== godotProject) {
-			messages.push(await buildGodotProject(Path.getPath(file), req.isCancelled));
+			const result = await buildGodotProject(Path.getPath(file), req.isCancelled);
+			messages.push(...(result.messages ?? [result]));
 			if (req.isCancelled?.() === true) return finalizeBuildResult(req.workDir, messages);
 		}
 		const kind = getSupportedBuildKind(file);

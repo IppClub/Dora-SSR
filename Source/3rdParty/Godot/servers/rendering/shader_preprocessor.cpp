@@ -31,6 +31,7 @@
 #include "shader_preprocessor.h"
 
 #include "core/io/resource_loader.h"
+#include "core/io/file_access.h"
 #include "core/os/os.h"
 #include "servers/rendering/shader_expression.h"
 
@@ -712,24 +713,41 @@ void ShaderPreprocessor::process_include(Tokenizer *p_tokenizer) {
 		path = state->current_filename.get_base_dir().path_join(path);
 	}
 
-	if (!ResourceLoader::exists(path)) {
-		set_error(RTR("Shader include file does not exist:") + " " + path, line);
-		return;
+	String included;
+	String real_path = path;
+	if (state->read_includes_from_source) {
+		// Static checks read fresh source without loading ShaderInclude resources,
+		// recursively preprocessing them during load, or touching a running game.
+		if (path.get_extension() != "gdshaderinc") {
+			set_error(RTR("Shader include resource type is wrong."), line);
+			return;
+		}
+		Ref<FileAccess> source = FileAccess::open(path, FileAccess::READ);
+		if (source.is_null()) {
+			set_error(RTR("Shader include file could not be read:") + " " + path, line);
+			return;
+		}
+		included = source->get_as_text();
+	} else {
+		if (!ResourceLoader::exists(path)) {
+			set_error(RTR("Shader include file does not exist:") + " " + path, line);
+			return;
+		}
+		Ref<Resource> res = ResourceLoader::load(path);
+		if (res.is_null()) {
+			set_error(RTR("Shader include load failed. Does the shader include exist? Is there a cyclic dependency?"), line);
+			return;
+		}
+		Ref<ShaderInclude> shader_inc = res;
+		if (shader_inc.is_null()) {
+			set_error(RTR("Shader include resource type is wrong."), line);
+			return;
+		}
+		included = shader_inc->get_code();
+		state->shader_includes.insert(shader_inc);
+		real_path = shader_inc->get_path();
 	}
 
-	Ref<Resource> res = ResourceLoader::load(path);
-	if (res.is_null()) {
-		set_error(RTR("Shader include load failed. Does the shader include exist? Is there a cyclic dependency?"), line);
-		return;
-	}
-
-	Ref<ShaderInclude> shader_inc = res;
-	if (shader_inc.is_null()) {
-		set_error(RTR("Shader include resource type is wrong."), line);
-		return;
-	}
-
-	String included = shader_inc->get_code();
 	if (!included.is_empty()) {
 		uint64_t code_hash = included.hash64();
 		if (state->cyclic_include_hashes.find(code_hash)) {
@@ -738,9 +756,6 @@ void ShaderPreprocessor::process_include(Tokenizer *p_tokenizer) {
 		}
 	}
 
-	state->shader_includes.insert(shader_inc);
-
-	const String real_path = shader_inc->get_path();
 	if (state->includes.has(real_path)) {
 		// Already included, skip.
 		// This is a valid check because 2 separate include paths could use some
@@ -1341,8 +1356,9 @@ Error ShaderPreprocessor::preprocess(State *p_state, const String &p_code, Strin
 	return OK;
 }
 
-Error ShaderPreprocessor::preprocess(const String &p_code, const String &p_filename, String &r_result, String *r_error_text, List<FilePosition> *r_error_position, List<Region> *r_regions, HashSet<Ref<ShaderInclude>> *r_includes, List<ScriptLanguage::CodeCompletionOption> *r_completion_options, List<ScriptLanguage::CodeCompletionOption> *r_completion_defines, IncludeCompletionFunction p_include_completion_func) {
+Error ShaderPreprocessor::preprocess(const String &p_code, const String &p_filename, String &r_result, String *r_error_text, List<FilePosition> *r_error_position, List<Region> *r_regions, HashSet<Ref<ShaderInclude>> *r_includes, List<ScriptLanguage::CodeCompletionOption> *r_completion_options, List<ScriptLanguage::CodeCompletionOption> *r_completion_defines, IncludeCompletionFunction p_include_completion_func, bool p_read_includes_from_source) {
 	State pp_state;
+	pp_state.read_includes_from_source = p_read_includes_from_source;
 	if (!p_filename.is_empty()) {
 		pp_state.current_filename = p_filename;
 		pp_state.save_regions = r_regions != nullptr;

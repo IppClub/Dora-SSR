@@ -16,6 +16,7 @@ NS_DORA_BEGIN
 std::shared_ptr<GodotSession> createGodotMetalSession(GodotNode *node);
 void shutdownGodotMetalRuntime();
 std::string godotMetalUnsupportedReason();
+void checkGodotMetalCode(std::string,std::string,std::string,std::function<void(bool,std::string)>);
 #elif BX_PLATFORM_WINDOWS
 #if defined(DORA_GODOT_WINDOWS_D3D12_BACKEND)
 std::shared_ptr<GodotSession> createGodotD3D12Session(GodotNode *node);
@@ -62,6 +63,16 @@ std::string GodotNode::getUnsupportedReason() {
     return "GPU backend is not implemented for this target";
 #endif
     return {};
+}
+void GodotNode::checkCodeAsync(String project,String file,String content,const std::function<void(bool,std::string)> &callback) {
+#if BX_PLATFORM_OSX
+    const auto reason=getUnsupportedReason();
+    if(!reason.empty()) { callback(false,reason);return; }
+    runtimeShutdownRequired=true;
+    checkGodotMetalCode(project.toString(),file.toString(),content.toString(),callback);
+#else
+    callback(false,"Embedded Godot compiler checks are not available on this runtime backend yet");
+#endif
 }
 GodotNode *GodotNode::create(String projectPath, String sceneFile, int width, int height, int buffers) {
     const auto unsupported=getUnsupportedReason();
