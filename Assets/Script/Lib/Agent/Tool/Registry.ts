@@ -5,7 +5,6 @@ import { AGENT_TOOL_VALIDATORS } from 'Agent/Tool/Validation';
 import { ANALYZE_IMAGE_TIMEOUT_SECONDS } from 'Agent/Tool/ToolBudgets';
 import type { JsonSchema, JsonSchemaObject, JsonSchemaType } from 'Agent/Tool/JsonSchema';
 import type {
-	AgentDecisionMode,
 	AgentRole,
 	AgentToolCapabilityOptions,
 	AgentToolDefinition,
@@ -16,7 +15,6 @@ import type {
 } from 'Agent/Tool/Types';
 
 export type {
-	AgentDecisionMode,
 	AgentRole,
 	AgentToolCapabilityOptions,
 	AgentToolDefinition,
@@ -570,13 +568,6 @@ function formatToolPrompt(tool: AgentToolDefinition, index: number, context: Age
 	return lines.join("\n");
 }
 
-function formatXMLRepairToolReference(tool: AgentToolDefinition): string {
-	const parameterList = formatParameterList(tool);
-	const params = parameterList !== "" ? parameterList : "none";
-	const reason = tool.name === "finish" ? "no reason tag" : "reason tag required";
-	return `- ${tool.name}: params: ${params}; ${reason}`;
-}
-
 export function isKnownToolName(name: string): name is AgentToolName {
 	return getToolDefinition(name) !== undefined;
 }
@@ -639,32 +630,17 @@ function getDecisionToolDefinitionsForRole(role: AgentRole, options?: {
 
 export function buildToolDefinitionsDetailed(tools: AgentToolDefinition[], options?: {
 	title?: string;
-	includeXmlRules?: boolean;
 	context?: AgentToolSchemaContext;
 }): string {
 	const title = options?.title !== undefined ? options.title : "Available tools:";
 	const context = options?.context ?? DEFAULT_SCHEMA_CONTEXT;
 	const sections: string[] = tools.map((tool, index) => formatToolPrompt(tool, index, context));
-	if (options?.includeXmlRules === true) {
-		const reasonTools = tools
-			.filter(tool => tool.name !== "finish")
-			.map(tool => tool.name)
-			.join(", ");
-		sections.push(`XML mode object fields:
-- Use a single root tag: <tool_call>.
-- For ${reasonTools !== "" ? reasonTools : "tools other than finish"}, include <tool>, <reason>, and <params>.
-${tools.some(tool => tool.name === "finish")
-	? "- For finish, omit <reason> and include <message> plus every other required parameter shown above inside <params>."
-	: "- When all requested work is complete, return the final answer as plain text without XML. Do not use a finish tool. Do not return a standalone progress sentence when another tool call is still needed."}
-- Inside <params>, use one child tag per parameter and preserve each tag content as raw text.`);
-	}
 	const body = sections.join("\n\n");
 	return title !== "" ? `${title}\n${body}` : body;
 }
 
 export function buildRoleToolDefinitionsDetailed(role: AgentRole, options?: {
 	includeFinish?: boolean;
-	includeXmlRules?: boolean;
 	title?: string;
 	context?: AgentToolSchemaContext;
 	disabledAgentTools?: AgentToolName[];
@@ -678,29 +654,9 @@ export function buildRoleToolDefinitionsDetailed(role: AgentRole, options?: {
 		}),
 		{
 			title: options?.title,
-			includeXmlRules: options?.includeXmlRules,
 			context: options?.context,
 		}
 	);
-}
-
-export function buildXMLRepairToolReference(role: AgentRole, options?: AgentToolCapabilityOptions): string {
-	const tools = getToolDefinitionsForRole(role, {
-		includeFinish: true,
-		disabledAgentTools: options?.disabledAgentTools,
-		workMode: options?.workMode,
-	});
-	const lines = [
-		"Allowed tools and XML params:",
-		...tools.map(tool => formatXMLRepairToolReference(tool)),
-		"",
-		"XML shape:",
-		"- Wrap the decision in exactly one <tool_call> root.",
-		"- For tools except finish: include <tool>, <reason>, and <params>.",
-		"- For finish: include <tool>, omit <reason>, and include <message> plus every other required parameter shown above inside <params>.",
-		"- Inside <params>, use one child tag per parameter name above.",
-	];
-	return lines.join("\n");
 }
 
 export const AGENT_TOOL_DEFINITIONS_DETAILED = buildToolDefinitionsDetailed(
@@ -712,11 +668,6 @@ export const MAIN_AGENT_TOOL_DEFINITIONS_DETAILED = "\n" + buildToolDefinitionsD
 	getToolDefinitionsForRole("main")
 		.filter(tool => getToolDefinitionsForRole("sub").map(subTool => subTool.name).indexOf(tool.name) < 0),
 	{ title: "" }
-);
-
-export const XML_TOOL_DEFINITIONS_DETAILED = "\n\n" + buildToolDefinitionsDetailed(
-	AGENT_TOOL_DEFINITIONS.filter(tool => tool.name === "finish"),
-	{ title: "", includeXmlRules: true }
 );
 
 export function canPreExecuteTool(tool: AgentToolName): boolean {

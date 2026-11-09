@@ -142,10 +142,10 @@ export function startMobileLLMSetup(options: MobileLLMSetupOptions) {
 		const name = uniqueConfigName(preset.name);
 		const affected = DB.exec(`insert into LLMConfig(
 			name, url, model, api_key, context_window, temperature, max_tokens, reasoning_effort,
-			custom_options, supports_function_calling, active, created_at, updated_at
-		) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, [
+			custom_options, active, created_at, updated_at
+		) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, [
 			name, preset.url, preset.model, key, preset.contextWindow, 0.1, preset.maxTokens, "",
-			preset.customOptions, 1, 1, now, now,
+			preset.customOptions, 1, now, now,
 		]);
 		if (affected < 0) { error = zh ? "配置保存失败，请重试" : "Could not save the configuration"; render(); return; }
 		const rows = DB.query("select last_insert_rowid()") as unknown[][] | undefined;
@@ -227,12 +227,11 @@ interface MobileLLMConfigItem {
 	url: string;
 	model: string;
 	contextWindow: number;
-	supportsFunctionCalling: boolean;
 }
 
 function getMobileLLMConfigs(): MobileLLMConfigItem[] {
 	ensureLLMConfigTable();
-	const rows = DB.query(`select id, name, url, model, context_window, supports_function_calling
+	const rows = DB.query(`select id, name, url, model, context_window
 		from LLMConfig order by id asc`) as unknown[][] | undefined;
 	return (rows ?? []).flatMap(row => {
 		const id = tonumber(row[0]);
@@ -243,7 +242,6 @@ function getMobileLLMConfigs(): MobileLLMConfigItem[] {
 			url: tostring(row[2]),
 			model: tostring(row[3]),
 			contextWindow: tonumber(row[4]) ?? 128000,
-			supportsFunctionCalling: tonumber(row[5]) !== 0,
 		}];
 	});
 }
@@ -425,7 +423,7 @@ export function startMobileLLMManager(options: MobileLLMManagerOptions) {
 					<label x={20} y={sheetHeight - 132} anchorX={0} anchorY={1} fontName={fontName} fontSize={13} text="API URL" color3={0xa8afbd} />
 					<label x={20} y={sheetHeight - 158} anchorX={0} anchorY={1} fontName={fontName} fontSize={13} text={compactText(detail.url, shortLandscape ? 72 : 42)} color3={0xf4f1e8} />
 					<label x={20} y={sheetHeight - 200} anchorX={0} anchorY={1} fontName={fontName} fontSize={13}
-						text={`${zh ? "上下文" : "Context"}  ${detail.contextWindow}   ·   Function Call  ${detail.supportsFunctionCalling ? (zh ? "支持" : "On") : (zh ? "不支持" : "Off")}`} color3={0xa8afbd} />
+						text={`${zh ? "上下文" : "Context"}  ${detail.contextWindow}`} color3={0xa8afbd} />
 					<MobileButton tag="mobile-llm-detail-key-edit" x={20} y={76} width={math.floor((contentWidth - 12) * 0.62)} text={zh ? "修改 API Key" : "Update API key"} renderOrder={10} onTapped={() => { detailMode = "key"; detailKey = ""; detailError = ""; render(); }} />
 					<MobileButton tag="mobile-llm-detail-delete" x={32 + math.floor((contentWidth - 12) * 0.62)} y={76} width={contentWidth - 12 - math.floor((contentWidth - 12) * 0.62)} text={zh ? "删除" : "Delete"} danger={true} renderOrder={10} onTapped={() => { detailMode = "delete"; detailError = ""; render(); }} />
 					<MobileButton tag="mobile-llm-detail-back" x={20} y={20} width={math.floor((contentWidth - 12) * 0.36)} text={zh ? "返回列表" : "Back"} renderOrder={10} onTapped={() => { detailId = 0; render(); }} />

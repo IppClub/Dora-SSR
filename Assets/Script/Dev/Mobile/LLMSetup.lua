@@ -36,14 +36,14 @@ local ____TextInput = require("Dev.Mobile.TextInput") -- 8
 local createTextInput = ____TextInput.createTextInput -- 8
 local ____Visual = require("Dev.Mobile.Visual") -- 9
 local RoundedSurface = ____Visual.RoundedSurface -- 9
-function compactText(value, limit) -- 251
-	local length = (utf8.len(value)) or 0 -- 252
-	if length <= limit then -- 252
-		return value -- 253
-	end -- 253
-	local stop = utf8.offset(value, limit) or #value -- 254
-	return string.sub(value, 1, stop - 1) .. "…" -- 255
-end -- 255
+function compactText(value, limit) -- 249
+	local length = (utf8.len(value)) or 0 -- 250
+	if length <= limit then -- 250
+		return value -- 251
+	end -- 251
+	local stop = utf8.offset(value, limit) or #value -- 252
+	return string.sub(value, 1, stop - 1) .. "…" -- 253
+end -- 253
 local function auxiliary(body) -- 36
 	return ("{\"auxiliaryOptions\":" .. body) .. "}" -- 36
 end -- 36
@@ -331,7 +331,7 @@ function ____exports.startMobileLLMSetup(options) -- 89
 		ensureLLMConfigTable() -- 140
 		local now = os.time() -- 141
 		local name = uniqueConfigName(preset.name) -- 142
-		local affected = DB:exec("insert into LLMConfig(\n\t\t\tname, url, model, api_key, context_window, temperature, max_tokens, reasoning_effort,\n\t\t\tcustom_options, supports_function_calling, active, created_at, updated_at\n\t\t) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", { -- 143
+		local affected = DB:exec("insert into LLMConfig(\n\t\t\tname, url, model, api_key, context_window, temperature, max_tokens, reasoning_effort,\n\t\t\tcustom_options, active, created_at, updated_at\n\t\t) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", { -- 143
 			name, -- 147
 			preset.url, -- 147
 			preset.model, -- 147
@@ -341,7 +341,6 @@ function ____exports.startMobileLLMSetup(options) -- 89
 			preset.maxTokens, -- 147
 			"", -- 147
 			preset.customOptions, -- 148
-			1, -- 148
 			1, -- 148
 			now, -- 148
 			now -- 148
@@ -627,593 +626,624 @@ function ____exports.startMobileLLMSetup(options) -- 89
 	render() -- 220
 	return host -- 221
 end -- 89
-local function getMobileLLMConfigs() -- 233
-	ensureLLMConfigTable() -- 234
-	local rows = DB:query("select id, name, url, model, context_window, supports_function_calling\n\t\tfrom LLMConfig order by id asc") -- 235
-	return __TS__ArrayFlatMap( -- 237
-		rows or ({}), -- 237
-		function(____, row) -- 237
-			local id = tonumber(row[1]) -- 238
-			if not id then -- 238
-				return {} -- 239
-			end -- 239
-			return {{ -- 240
-				id = id, -- 241
-				name = tostring(row[2]), -- 242
-				url = tostring(row[3]), -- 243
-				model = tostring(row[4]), -- 244
-				contextWindow = tonumber(row[5]) or 128000, -- 245
-				supportsFunctionCalling = tonumber(row[6]) ~= 0 -- 246
-			}} -- 246
-		end -- 237
-	) -- 237
-end -- 233
-function ____exports.startMobileLLMManager(options) -- 258
-	local render -- 258
-	local configs = getMobileLLMConfigs() -- 259
-	if #configs == 0 then -- 259
-		return ____exports.startMobileLLMSetup({coveredNode = options.coveredNode, onSaved = options.onSelected, onClose = options.onClose}) -- 261
-	end -- 261
-	if activeSetup ~= nil then -- 261
-		activeSetup:removeFromParent(true) -- 267
+local function getMobileLLMConfigs() -- 232
+	ensureLLMConfigTable() -- 233
+	local rows = DB:query("select id, name, url, model, context_window\n\t\tfrom LLMConfig order by id asc") -- 234
+	return __TS__ArrayFlatMap( -- 236
+		rows or ({}), -- 236
+		function(____, row) -- 236
+			local id = tonumber(row[1]) -- 237
+			if not id then -- 237
+				return {} -- 238
+			end -- 238
+			return {{ -- 239
+				id = id, -- 240
+				name = tostring(row[2]), -- 241
+				url = tostring(row[3]), -- 242
+				model = tostring(row[4]), -- 243
+				contextWindow = tonumber(row[5]) or 128000 -- 244
+			}} -- 244
+		end -- 236
+	) -- 236
+end -- 232
+function ____exports.startMobileLLMManager(options) -- 256
+	local render -- 256
+	local configs = getMobileLLMConfigs() -- 257
+	if #configs == 0 then -- 257
+		return ____exports.startMobileLLMSetup({coveredNode = options.coveredNode, onSaved = options.onSelected, onClose = options.onClose}) -- 259
+	end -- 259
+	if activeSetup ~= nil then -- 259
+		activeSetup:removeFromParent(true) -- 265
+	end -- 265
+	local coveredNode = options.coveredNode -- 266
+	if coveredNode then -- 266
+		coveredNode.visible = false -- 267
 	end -- 267
-	local coveredNode = options.coveredNode -- 268
-	if coveredNode then -- 268
-		coveredNode.visible = false -- 269
-	end -- 269
-	local coveredRestored = false -- 270
-	local function restoreCovered() -- 271
-		if coveredRestored then -- 271
-			return -- 272
+	local coveredRestored = false -- 268
+	local function restoreCovered() -- 269
+		if coveredRestored then -- 269
+			return -- 270
+		end -- 270
+		coveredRestored = true -- 271
+		if coveredNode and coveredNode.parent then -- 271
+			coveredNode.visible = true -- 272
 		end -- 272
-		coveredRestored = true -- 273
-		if coveredNode and coveredNode.parent then -- 273
-			coveredNode.visible = true -- 274
-		end -- 274
-	end -- 271
-	local zh = (string.match(App.locale, "^zh")) ~= nil -- 276
-	local host = Node() -- 277
-	host.tag = "mobile-llm-manager" -- 278
-	host.order = 10000 -- 279
-	host.renderGroup = true -- 280
-	host.scaleX = App.devicePixelRatio -- 281
-	host.scaleY = App.devicePixelRatio -- 282
-	host:addTo(Director.systemUI) -- 283
-	activeSetup = host -- 284
-	local page = -1 -- 285
-	local detailId = 0 -- 286
-	local detailMode = "view" -- 287
-	local detailKey = "" -- 288
-	local detailError = "" -- 289
-	local selectedId = options.selectedId -- 290
-	local disposed = false -- 291
-	local detailKeyRef = reference() -- 292
-	local function canEdit() -- 293
-		return not disposed and host.parent ~= nil and host.visible and HttpServer.wsConnectionCount == 0 -- 293
-	end -- 293
-	local detailKeyInput = createTextInput({ -- 294
-		fontSize = math.floor(15 * mobileFontScale), -- 295
-		singleLine = true, -- 295
-		isSecure = function() return true end, -- 295
-		getText = function() return detailKey end, -- 296
-		setText = function(value) -- 296
-			detailKey = value -- 296
-			detailError = "" -- 296
-		end, -- 296
-		getPlaceholder = function() return zh and "粘贴新的 API Key" or "Paste a new API key" end, -- 297
-		isEnabled = canEdit, -- 297
-		onReturn = function() return true end -- 298
-	}) -- 298
-	local function close(notify) -- 300
-		if notify == nil then -- 300
-			notify = true -- 300
-		end -- 300
-		if disposed then -- 300
-			return -- 301
-		end -- 301
-		disposed = true -- 302
-		detailKeyInput.blur() -- 303
-		restoreCovered() -- 304
-		host:removeFromParent(true) -- 305
-		if activeSetup == host then -- 305
-			activeSetup = nil -- 306
-		end -- 306
-		if notify then -- 306
-			local ____opt_12 = options.onClose -- 306
-			if ____opt_12 ~= nil then -- 306
-				____opt_12() -- 307
-			end -- 307
-		end -- 307
-	end -- 300
-	local function select(id) -- 309
-		DB:exec("insert or replace into Config(name, value_num, value_str, value_bool) values('mobileRemixLLMConfigId', ?, NULL, NULL)", {id}) -- 310
-		options.onSelected(id) -- 311
-		close() -- 312
-	end -- 309
-	local function openDetail(id) -- 314
-		detailId = id -- 315
-		detailMode = "view" -- 316
-		detailKey = "" -- 317
-		detailError = "" -- 318
-		render() -- 319
-	end -- 314
-	local function saveDetailKey() -- 321
-		if not canEdit() or detailId <= 0 then -- 321
+	end -- 269
+	local zh = (string.match(App.locale, "^zh")) ~= nil -- 274
+	local host = Node() -- 275
+	host.tag = "mobile-llm-manager" -- 276
+	host.order = 10000 -- 277
+	host.renderGroup = true -- 278
+	host.scaleX = App.devicePixelRatio -- 279
+	host.scaleY = App.devicePixelRatio -- 280
+	host:addTo(Director.systemUI) -- 281
+	activeSetup = host -- 282
+	local page = -1 -- 283
+	local detailId = 0 -- 284
+	local detailMode = "view" -- 285
+	local detailKey = "" -- 286
+	local detailError = "" -- 287
+	local selectedId = options.selectedId -- 288
+	local disposed = false -- 289
+	local detailKeyRef = reference() -- 290
+	local function canEdit() -- 291
+		return not disposed and host.parent ~= nil and host.visible and HttpServer.wsConnectionCount == 0 -- 291
+	end -- 291
+	local detailKeyInput = createTextInput({ -- 292
+		fontSize = math.floor(15 * mobileFontScale), -- 293
+		singleLine = true, -- 293
+		isSecure = function() return true end, -- 293
+		getText = function() return detailKey end, -- 294
+		setText = function(value) -- 294
+			detailKey = value -- 294
+			detailError = "" -- 294
+		end, -- 294
+		getPlaceholder = function() return zh and "粘贴新的 API Key" or "Paste a new API key" end, -- 295
+		isEnabled = canEdit, -- 295
+		onReturn = function() return true end -- 296
+	}) -- 296
+	local function close(notify) -- 298
+		if notify == nil then -- 298
+			notify = true -- 298
+		end -- 298
+		if disposed then -- 298
+			return -- 299
+		end -- 299
+		disposed = true -- 300
+		detailKeyInput.blur() -- 301
+		restoreCovered() -- 302
+		host:removeFromParent(true) -- 303
+		if activeSetup == host then -- 303
+			activeSetup = nil -- 304
+		end -- 304
+		if notify then -- 304
+			local ____opt_12 = options.onClose -- 304
+			if ____opt_12 ~= nil then -- 304
+				____opt_12() -- 305
+			end -- 305
+		end -- 305
+	end -- 298
+	local function select(id) -- 307
+		DB:exec("insert or replace into Config(name, value_num, value_str, value_bool) values('mobileRemixLLMConfigId', ?, NULL, NULL)", {id}) -- 308
+		options.onSelected(id) -- 309
+		close() -- 310
+	end -- 307
+	local function openDetail(id) -- 312
+		detailId = id -- 313
+		detailMode = "view" -- 314
+		detailKey = "" -- 315
+		detailError = "" -- 316
+		render() -- 317
+	end -- 312
+	local function saveDetailKey() -- 319
+		if not canEdit() or detailId <= 0 then -- 319
+			return -- 320
+		end -- 320
+		local key = trim(detailKey) -- 321
+		if key == "" then -- 321
+			detailError = zh and "请粘贴新的 API Key" or "Paste a new API key" -- 322
+			render() -- 322
 			return -- 322
 		end -- 322
-		local key = trim(detailKey) -- 323
-		if key == "" then -- 323
-			detailError = zh and "请粘贴新的 API Key" or "Paste a new API key" -- 324
+		local affected = DB:exec( -- 323
+			"update LLMConfig set api_key = ?, updated_at = ? where id = ?", -- 323
+			{ -- 323
+				key, -- 323
+				os.time(), -- 323
+				detailId -- 323
+			} -- 323
+		) -- 323
+		if affected <= 0 then -- 323
+			detailError = zh and "API Key 保存失败" or "Could not save the API key" -- 324
 			render() -- 324
 			return -- 324
 		end -- 324
-		local affected = DB:exec( -- 325
-			"update LLMConfig set api_key = ?, updated_at = ? where id = ?", -- 325
-			{ -- 325
-				key, -- 325
-				os.time(), -- 325
-				detailId -- 325
-			} -- 325
-		) -- 325
-		if affected <= 0 then -- 325
-			detailError = zh and "API Key 保存失败" or "Could not save the API key" -- 326
-			render() -- 326
-			return -- 326
-		end -- 326
-		detailKeyInput.blur() -- 327
-		detailKey = "" -- 328
-		detailError = zh and "API Key 已更新" or "API key updated" -- 329
-		detailMode = "view" -- 330
-		render() -- 331
-	end -- 321
-	local function deleteDetail() -- 333
-		if not canEdit() or detailId <= 0 then -- 333
-			return -- 334
-		end -- 334
-		local deletingId = detailId -- 335
-		local affected = DB:exec("delete from LLMConfig where id = ?", {deletingId}) -- 336
-		if affected <= 0 then -- 336
-			detailError = zh and "删除失败，请重试" or "Could not delete the configuration" -- 337
-			render() -- 337
-			return -- 337
-		end -- 337
-		configs = getMobileLLMConfigs() -- 338
-		if selectedId == deletingId then -- 338
-			local ____opt_14 = configs[1] -- 338
-			selectedId = ____opt_14 and ____opt_14.id or 0 -- 340
-			if selectedId > 0 then -- 340
-				DB:exec("insert or replace into Config(name, value_num, value_str, value_bool) values('mobileRemixLLMConfigId', ?, NULL, NULL)", {selectedId}) -- 341
-			else -- 341
-				DB:exec("delete from Config where name = 'mobileRemixLLMConfigId'") -- 342
-			end -- 342
-			options.onSelected(selectedId) -- 343
-		end -- 343
-		detailId = 0 -- 345
-		detailMode = "view" -- 346
-		detailKey = "" -- 347
-		detailError = "" -- 348
-		page = -1 -- 349
-		if #configs > 0 then -- 349
-			render() -- 350
-		else -- 350
-			close(false) -- 352
-			____exports.startMobileLLMSetup({coveredNode = coveredNode, onSaved = options.onSelected, onClose = options.onClose}) -- 353
-		end -- 353
-	end -- 333
-	local function add() -- 356
-		close(false) -- 357
-		local saved = false -- 358
-		____exports.startMobileLLMSetup({ -- 359
-			coveredNode = coveredNode, -- 360
-			onSaved = function(id) -- 361
-				saved = true -- 361
-				options.onSelected(id) -- 361
-			end, -- 361
-			onClose = function() -- 362
-				if saved then -- 362
-					local ____opt_16 = options.onClose -- 362
-					if ____opt_16 ~= nil then -- 362
-						____opt_16() -- 363
-					end -- 363
-				else -- 363
-					____exports.startMobileLLMManager(options) -- 364
-				end -- 364
-			end -- 362
-		}) -- 362
-	end -- 356
-	render = function() -- 368
-		if disposed then -- 368
-			return -- 369
-		end -- 369
-		detailKeyInput.unmount() -- 370
-		detailKeyRef = reference() -- 371
-		host:removeAllChildren() -- 372
-		host.scaleX = App.devicePixelRatio -- 373
-		host.scaleY = App.devicePixelRatio -- 374
-		local ____App_visualSize_18 = App.visualSize -- 375
-		local width = ____App_visualSize_18.width -- 375
-		local height = ____App_visualSize_18.height -- 375
-		local safe = App.safeArea -- 376
-		local shortLandscape = safe.width >= 760 and safe.height < 500 -- 377
-		local rowsPerPage = shortLandscape and 3 or 5 -- 378
-		local desiredHeight = detailId > 0 and 410 or math.max( -- 379
-			260, -- 379
-			160 + math.min(#configs, rowsPerPage) * 68 -- 379
-		) -- 379
-		local sheetWidth = shortLandscape and math.min(720, safe.width - 24) or safe.width -- 380
-		local sheetHeight = math.min(desiredHeight, safe.height - (shortLandscape and 16 or 20)) -- 381
-		local left = safe.x + (safe.width - sheetWidth) / 2 -- 382
-		local bottom = safe.y -- 383
-		local contentWidth = sheetWidth - 40 -- 384
-		local pageCount = math.max( -- 385
-			1, -- 385
-			math.ceil(#configs / rowsPerPage) -- 385
-		) -- 385
-		if page < 0 then -- 385
-			local selectedIndex = __TS__ArrayFindIndex( -- 387
-				configs, -- 387
-				function(____, item) return item.id == selectedId end -- 387
-			) -- 387
-			page = selectedIndex < 0 and 0 or math.floor(selectedIndex / rowsPerPage) -- 388
-		end -- 388
-		page = math.max( -- 390
-			0, -- 390
-			math.min(pageCount - 1, page) -- 390
+		detailKeyInput.blur() -- 325
+		detailKey = "" -- 326
+		detailError = zh and "API Key 已更新" or "API key updated" -- 327
+		detailMode = "view" -- 328
+		render() -- 329
+	end -- 319
+	local function deleteDetail() -- 331
+		if not canEdit() or detailId <= 0 then -- 331
+			return -- 332
+		end -- 332
+		local deletingId = detailId -- 333
+		local affected = DB:exec("delete from LLMConfig where id = ?", {deletingId}) -- 334
+		if affected <= 0 then -- 334
+			detailError = zh and "删除失败，请重试" or "Could not delete the configuration" -- 335
+			render() -- 335
+			return -- 335
+		end -- 335
+		configs = getMobileLLMConfigs() -- 336
+		if selectedId == deletingId then -- 336
+			local ____opt_14 = configs[1] -- 336
+			selectedId = ____opt_14 and ____opt_14.id or 0 -- 338
+			if selectedId > 0 then -- 338
+				DB:exec("insert or replace into Config(name, value_num, value_str, value_bool) values('mobileRemixLLMConfigId', ?, NULL, NULL)", {selectedId}) -- 339
+			else -- 339
+				DB:exec("delete from Config where name = 'mobileRemixLLMConfigId'") -- 340
+			end -- 340
+			options.onSelected(selectedId) -- 341
+		end -- 341
+		detailId = 0 -- 343
+		detailMode = "view" -- 344
+		detailKey = "" -- 345
+		detailError = "" -- 346
+		page = -1 -- 347
+		if #configs > 0 then -- 347
+			render() -- 348
+		else -- 348
+			close(false) -- 350
+			____exports.startMobileLLMSetup({coveredNode = coveredNode, onSaved = options.onSelected, onClose = options.onClose}) -- 351
+		end -- 351
+	end -- 331
+	local function add() -- 354
+		close(false) -- 355
+		local saved = false -- 356
+		____exports.startMobileLLMSetup({ -- 357
+			coveredNode = coveredNode, -- 358
+			onSaved = function(id) -- 359
+				saved = true -- 359
+				options.onSelected(id) -- 359
+			end, -- 359
+			onClose = function() -- 360
+				if saved then -- 360
+					local ____opt_16 = options.onClose -- 360
+					if ____opt_16 ~= nil then -- 360
+						____opt_16() -- 361
+					end -- 361
+				else -- 361
+					____exports.startMobileLLMManager(options) -- 362
+				end -- 362
+			end -- 360
+		}) -- 360
+	end -- 354
+	render = function() -- 366
+		if disposed then -- 366
+			return -- 367
+		end -- 367
+		detailKeyInput.unmount() -- 368
+		detailKeyRef = reference() -- 369
+		host:removeAllChildren() -- 370
+		host.scaleX = App.devicePixelRatio -- 371
+		host.scaleY = App.devicePixelRatio -- 372
+		local ____App_visualSize_18 = App.visualSize -- 373
+		local width = ____App_visualSize_18.width -- 373
+		local height = ____App_visualSize_18.height -- 373
+		local safe = App.safeArea -- 374
+		local shortLandscape = safe.width >= 760 and safe.height < 500 -- 375
+		local rowsPerPage = shortLandscape and 3 or 5 -- 376
+		local desiredHeight = detailId > 0 and 410 or math.max( -- 377
+			260, -- 377
+			160 + math.min(#configs, rowsPerPage) * 68 -- 377
+		) -- 377
+		local sheetWidth = shortLandscape and math.min(720, safe.width - 24) or safe.width -- 378
+		local sheetHeight = math.min(desiredHeight, safe.height - (shortLandscape and 16 or 20)) -- 379
+		local left = safe.x + (safe.width - sheetWidth) / 2 -- 380
+		local bottom = safe.y -- 381
+		local contentWidth = sheetWidth - 40 -- 382
+		local pageCount = math.max( -- 383
+			1, -- 383
+			math.ceil(#configs / rowsPerPage) -- 383
+		) -- 383
+		if page < 0 then -- 383
+			local selectedIndex = __TS__ArrayFindIndex( -- 385
+				configs, -- 385
+				function(____, item) return item.id == selectedId end -- 385
+			) -- 385
+			page = selectedIndex < 0 and 0 or math.floor(selectedIndex / rowsPerPage) -- 386
+		end -- 386
+		page = math.max( -- 388
+			0, -- 388
+			math.min(pageCount - 1, page) -- 388
+		) -- 388
+		local pageItems = __TS__ArraySlice(configs, page * rowsPerPage, (page + 1) * rowsPerPage) -- 389
+		local detail = __TS__ArrayFind( -- 390
+			configs, -- 390
+			function(____, item) return item.id == detailId end -- 390
 		) -- 390
-		local pageItems = __TS__ArraySlice(configs, page * rowsPerPage, (page + 1) * rowsPerPage) -- 391
-		local detail = __TS__ArrayFind( -- 392
-			configs, -- 392
-			function(____, item) return item.id == detailId end -- 392
+		local switchPending = options.taskRunning and (options.runningId or selectedId) ~= selectedId -- 391
+		local ____toNode_39 = toNode -- 392
+		local ____React_createElement_38 = React.createElement -- 392
+		local ____temp_36 = { -- 392
+			order = 10000, -- 392
+			x = -width / 2, -- 392
+			y = -height / 2, -- 392
+			width = width, -- 392
+			height = height, -- 392
+			anchorX = 0, -- 392
+			anchorY = 0 -- 392
+		} -- 392
+		local ____React_createElement_result_37 = React.createElement( -- 392
+			"node", -- 392
+			{ -- 392
+				tag = "mobile-llm-manager-backdrop", -- 392
+				width = width, -- 392
+				height = height, -- 392
+				anchorX = 0, -- 392
+				anchorY = 0, -- 392
+				touchEnabled = true, -- 392
+				swallowTouches = true, -- 392
+				onTapped = function() return close() end -- 392
+			}, -- 392
+			React.createElement(RoundedSurface, { -- 392
+				width = width, -- 392
+				height = height, -- 392
+				radius = 0, -- 392
+				fillColor = 2348810240, -- 392
+				renderOrder = 0 -- 392
+			}) -- 392
 		) -- 392
-		local switchPending = options.taskRunning and (options.runningId or selectedId) ~= selectedId -- 393
-		local ____toNode_39 = toNode -- 394
-		local ____React_createElement_38 = React.createElement -- 394
-		local ____temp_36 = { -- 394
-			order = 10000, -- 394
-			x = -width / 2, -- 394
-			y = -height / 2, -- 394
-			width = width, -- 394
-			height = height, -- 394
-			anchorX = 0, -- 394
-			anchorY = 0 -- 394
-		} -- 394
-		local ____React_createElement_result_37 = React.createElement( -- 394
-			"node", -- 394
-			{ -- 394
-				tag = "mobile-llm-manager-backdrop", -- 394
-				width = width, -- 394
-				height = height, -- 394
-				anchorX = 0, -- 394
-				anchorY = 0, -- 394
-				touchEnabled = true, -- 394
-				swallowTouches = true, -- 394
-				onTapped = function() return close() end -- 394
-			}, -- 394
-			React.createElement(RoundedSurface, { -- 394
-				width = width, -- 394
-				height = height, -- 394
-				radius = 0, -- 394
-				fillColor = 2348810240, -- 394
-				renderOrder = 0 -- 394
-			}) -- 394
-		) -- 394
-		local ____React_createElement_35 = React.createElement -- 394
-		local ____temp_33 = { -- 394
-			order = 10, -- 394
-			x = left, -- 394
-			y = bottom, -- 394
-			width = sheetWidth, -- 394
-			height = sheetHeight, -- 394
-			anchorX = 0, -- 394
-			anchorY = 0, -- 394
-			touchEnabled = true, -- 394
-			swallowTouches = true -- 394
-		} -- 394
-		local ____React_createElement_result_34 = React.createElement(MobilePanelSurface, {width = sheetWidth, height = sheetHeight, renderOrder = 10}) -- 394
-		local ____detail_32 -- 400
-		if detail then -- 400
-			local ____temp_24 -- 400
-			if detailMode == "key" then -- 400
-				____temp_24 = React.createElement( -- 400
-					"node", -- 400
-					{tag = "mobile-llm-detail-key"}, -- 400
-					React.createElement("label", { -- 400
-						x = 20, -- 400
-						y = sheetHeight - 24, -- 400
-						anchorX = 0, -- 400
-						anchorY = 1, -- 400
-						fontName = fontName, -- 400
-						fontSize = 22, -- 400
-						text = zh and "修改 API Key" or "Update API key", -- 400
-						color3 = 16052712 -- 400
-					}), -- 400
-					React.createElement( -- 400
-						"label", -- 400
-						{ -- 400
-							x = 20, -- 400
-							y = sheetHeight - 66, -- 400
-							anchorX = 0, -- 400
-							anchorY = 1, -- 400
-							fontName = fontName, -- 400
-							fontSize = 13, -- 400
-							text = compactText(detail.name, shortLandscape and 44 or 28), -- 400
-							color3 = 11055037 -- 400
-						} -- 400
-					), -- 400
-					React.createElement("label", { -- 400
-						x = 20, -- 400
-						y = sheetHeight - 104, -- 400
-						anchorX = 0, -- 400
-						anchorY = 1, -- 400
-						fontName = fontName, -- 400
-						fontSize = 13, -- 400
-						text = zh and "原 Key 不会显示，保存后立即替换" or "The current key stays hidden and will be replaced", -- 400
-						color3 = 11055037 -- 400
-					}), -- 400
-					React.createElement("node", { -- 400
-						tag = "mobile-llm-detail-key-input", -- 400
-						ref = detailKeyRef, -- 400
-						renderOrder = 10, -- 400
-						x = 20, -- 400
-						y = sheetHeight - 166, -- 400
-						width = contentWidth - 104, -- 400
-						height = 44, -- 400
-						anchorX = 0, -- 400
-						anchorY = 0, -- 400
-						onMount = detailKeyInput.mount -- 400
-					}), -- 400
-					React.createElement( -- 400
-						MobileButton, -- 405
-						{ -- 405
-							tag = "mobile-llm-detail-key-paste", -- 405
-							x = contentWidth - 72, -- 405
-							y = sheetHeight - 168, -- 405
-							width = 92, -- 405
-							text = zh and "粘贴" or "Paste", -- 405
-							renderOrder = 10, -- 405
-							onTapped = function() -- 405
-								if not detailKeyInput.pasteFromClipboard(true) then -- 405
-									detailError = zh and "剪贴板为空" or "Clipboard is empty" -- 406
-								else -- 406
-									detailError = "" -- 407
-								end -- 407
-								detailKeyInput.refresh() -- 408
-							end -- 405
-						} -- 405
-					), -- 405
-					React.createElement("label", { -- 405
-						x = 20, -- 405
-						y = 82, -- 405
-						anchorX = 0, -- 405
-						fontName = fontName, -- 405
-						fontSize = 12, -- 405
-						text = detailError, -- 405
-						textWidth = contentWidth, -- 405
-						alignment = "Left", -- 405
-						color3 = 16739179 -- 405
-					}), -- 405
-					React.createElement( -- 405
-						MobileButton, -- 411
-						{ -- 411
-							tag = "mobile-llm-detail-key-cancel", -- 411
+		local ____React_createElement_35 = React.createElement -- 392
+		local ____temp_33 = { -- 392
+			order = 10, -- 392
+			x = left, -- 392
+			y = bottom, -- 392
+			width = sheetWidth, -- 392
+			height = sheetHeight, -- 392
+			anchorX = 0, -- 392
+			anchorY = 0, -- 392
+			touchEnabled = true, -- 392
+			swallowTouches = true -- 392
+		} -- 392
+		local ____React_createElement_result_34 = React.createElement(MobilePanelSurface, {width = sheetWidth, height = sheetHeight, renderOrder = 10}) -- 392
+		local ____detail_32 -- 398
+		if detail then -- 398
+			local ____temp_24 -- 398
+			if detailMode == "key" then -- 398
+				____temp_24 = React.createElement( -- 398
+					"node", -- 398
+					{tag = "mobile-llm-detail-key"}, -- 398
+					React.createElement("label", { -- 398
+						x = 20, -- 398
+						y = sheetHeight - 24, -- 398
+						anchorX = 0, -- 398
+						anchorY = 1, -- 398
+						fontName = fontName, -- 398
+						fontSize = 22, -- 398
+						text = zh and "修改 API Key" or "Update API key", -- 398
+						color3 = 16052712 -- 398
+					}), -- 398
+					React.createElement( -- 398
+						"label", -- 398
+						{ -- 398
+							x = 20, -- 398
+							y = sheetHeight - 66, -- 398
+							anchorX = 0, -- 398
+							anchorY = 1, -- 398
+							fontName = fontName, -- 398
+							fontSize = 13, -- 398
+							text = compactText(detail.name, shortLandscape and 44 or 28), -- 398
+							color3 = 11055037 -- 398
+						} -- 398
+					), -- 398
+					React.createElement("label", { -- 398
+						x = 20, -- 398
+						y = sheetHeight - 104, -- 398
+						anchorX = 0, -- 398
+						anchorY = 1, -- 398
+						fontName = fontName, -- 398
+						fontSize = 13, -- 398
+						text = zh and "原 Key 不会显示，保存后立即替换" or "The current key stays hidden and will be replaced", -- 398
+						color3 = 11055037 -- 398
+					}), -- 398
+					React.createElement("node", { -- 398
+						tag = "mobile-llm-detail-key-input", -- 398
+						ref = detailKeyRef, -- 398
+						renderOrder = 10, -- 398
+						x = 20, -- 398
+						y = sheetHeight - 166, -- 398
+						width = contentWidth - 104, -- 398
+						height = 44, -- 398
+						anchorX = 0, -- 398
+						anchorY = 0, -- 398
+						onMount = detailKeyInput.mount -- 398
+					}), -- 398
+					React.createElement( -- 398
+						MobileButton, -- 403
+						{ -- 403
+							tag = "mobile-llm-detail-key-paste", -- 403
+							x = contentWidth - 72, -- 403
+							y = sheetHeight - 168, -- 403
+							width = 92, -- 403
+							text = zh and "粘贴" or "Paste", -- 403
+							renderOrder = 10, -- 403
+							onTapped = function() -- 403
+								if not detailKeyInput.pasteFromClipboard(true) then -- 403
+									detailError = zh and "剪贴板为空" or "Clipboard is empty" -- 404
+								else -- 404
+									detailError = "" -- 405
+								end -- 405
+								detailKeyInput.refresh() -- 406
+							end -- 403
+						} -- 403
+					), -- 403
+					React.createElement("label", { -- 403
+						x = 20, -- 403
+						y = 82, -- 403
+						anchorX = 0, -- 403
+						fontName = fontName, -- 403
+						fontSize = 12, -- 403
+						text = detailError, -- 403
+						textWidth = contentWidth, -- 403
+						alignment = "Left", -- 403
+						color3 = 16739179 -- 403
+					}), -- 403
+					React.createElement( -- 403
+						MobileButton, -- 409
+						{ -- 409
+							tag = "mobile-llm-detail-key-cancel", -- 409
+							x = 20, -- 409
+							y = 20, -- 409
+							width = math.floor((contentWidth - 12) * 0.36), -- 409
+							text = zh and "取消" or "Cancel", -- 409
+							renderOrder = 10, -- 409
+							onTapped = function() -- 409
+								detailKeyInput.blur() -- 409
+								detailMode = "view" -- 409
+								detailKey = "" -- 409
+								detailError = "" -- 409
+								render() -- 409
+							end -- 409
+						} -- 409
+					), -- 409
+					React.createElement( -- 409
+						MobileButton, -- 410
+						{ -- 410
+							tag = "mobile-llm-detail-key-save", -- 410
+							x = 32 + math.floor((contentWidth - 12) * 0.36), -- 410
+							y = 20, -- 410
+							width = contentWidth - 12 - math.floor((contentWidth - 12) * 0.36), -- 410
+							text = zh and "保存新 Key" or "Save new key", -- 410
+							primary = true, -- 410
+							renderOrder = 10, -- 410
+							onTapped = saveDetailKey -- 410
+						} -- 410
+					) -- 410
+				) -- 410
+			else -- 410
+				local ____temp_23 -- 411
+				if detailMode == "delete" then -- 411
+					____temp_23 = React.createElement( -- 411
+						"node", -- 411
+						{tag = "mobile-llm-detail-delete"}, -- 411
+						React.createElement("label", { -- 411
 							x = 20, -- 411
-							y = 20, -- 411
-							width = math.floor((contentWidth - 12) * 0.36), -- 411
-							text = zh and "取消" or "Cancel", -- 411
-							renderOrder = 10, -- 411
-							onTapped = function() -- 411
-								detailKeyInput.blur() -- 411
-								detailMode = "view" -- 411
-								detailKey = "" -- 411
-								detailError = "" -- 411
-								render() -- 411
-							end -- 411
-						} -- 411
-					), -- 411
-					React.createElement( -- 411
-						MobileButton, -- 412
-						{ -- 412
-							tag = "mobile-llm-detail-key-save", -- 412
-							x = 32 + math.floor((contentWidth - 12) * 0.36), -- 412
-							y = 20, -- 412
-							width = contentWidth - 12 - math.floor((contentWidth - 12) * 0.36), -- 412
-							text = zh and "保存新 Key" or "Save new key", -- 412
-							primary = true, -- 412
-							renderOrder = 10, -- 412
-							onTapped = saveDetailKey -- 412
-						} -- 412
-					) -- 412
-				) -- 412
-			else -- 412
-				local ____temp_23 -- 413
-				if detailMode == "delete" then -- 413
-					____temp_23 = React.createElement( -- 413
-						"node", -- 413
-						{tag = "mobile-llm-detail-delete"}, -- 413
-						React.createElement("label", { -- 413
-							x = 20, -- 413
-							y = sheetHeight - 24, -- 413
-							anchorX = 0, -- 413
-							anchorY = 1, -- 413
-							fontName = fontName, -- 413
-							fontSize = 22, -- 413
-							text = zh and "删除这个配置？" or "Delete this configuration?", -- 413
-							color3 = 16052712 -- 413
-						}), -- 413
-						React.createElement( -- 413
-							"label", -- 413
-							{ -- 413
-								x = 20, -- 413
-								y = sheetHeight - 78, -- 413
-								anchorX = 0, -- 413
-								anchorY = 1, -- 413
-								fontName = fontName, -- 413
-								fontSize = 16, -- 413
-								text = compactText(detail.name, shortLandscape and 52 or 32), -- 413
-								color3 = 4294935941 -- 413
-							} -- 413
-						), -- 413
-						React.createElement("label", { -- 413
-							x = 20, -- 413
-							y = sheetHeight - 120, -- 413
-							anchorX = 0, -- 413
-							anchorY = 1, -- 413
-							fontName = fontName, -- 413
-							fontSize = 13, -- 413
-							text = zh and "删除后无法恢复；若它是当前配置，将自动切换到下一项。" or "This cannot be undone. The next configuration will become active.", -- 413
-							textWidth = contentWidth, -- 413
-							alignment = "Left", -- 413
-							color3 = 11055037 -- 413
-						}), -- 413
-						React.createElement("label", { -- 413
-							x = 20, -- 413
-							y = 82, -- 413
-							anchorX = 0, -- 413
-							fontName = fontName, -- 413
-							fontSize = 12, -- 413
-							text = detailError, -- 413
-							textWidth = contentWidth, -- 413
-							alignment = "Left", -- 413
-							color3 = 16739179 -- 413
-						}), -- 413
-						React.createElement( -- 413
-							MobileButton, -- 418
-							{ -- 418
-								tag = "mobile-llm-detail-delete-cancel", -- 418
-								x = 20, -- 418
-								y = 20, -- 418
-								width = math.floor((contentWidth - 12) * 0.42), -- 418
-								text = zh and "保留配置" or "Keep it", -- 418
-								renderOrder = 10, -- 418
-								onTapped = function() -- 418
-									detailMode = "view" -- 418
-									detailError = "" -- 418
-									render() -- 418
-								end -- 418
-							} -- 418
-						), -- 418
-						React.createElement( -- 418
-							MobileButton, -- 419
-							{ -- 419
-								tag = "mobile-llm-detail-delete-confirm", -- 419
-								x = 32 + math.floor((contentWidth - 12) * 0.42), -- 419
-								y = 20, -- 419
-								width = contentWidth - 12 - math.floor((contentWidth - 12) * 0.42), -- 419
-								text = zh and "确认删除" or "Delete", -- 419
-								danger = true, -- 419
-								renderOrder = 10, -- 419
-								onTapped = deleteDetail -- 419
-							} -- 419
-						) -- 419
-					) -- 419
-				else -- 419
-					local ____React_createElement_22 = React.createElement -- 419
-					local ____temp_20 = {tag = "mobile-llm-detail"} -- 419
-					local ____React_createElement_result_21 = React.createElement( -- 419
-						"label", -- 419
-						{ -- 419
-							x = 20, -- 419
-							y = sheetHeight - 24, -- 419
-							anchorX = 0, -- 419
-							anchorY = 1, -- 419
-							fontName = fontName, -- 419
-							fontSize = 22, -- 419
-							text = compactText(detail.name, 28), -- 419
-							color3 = 16052712 -- 419
-						} -- 419
-					) -- 419
-					local ____temp_19 -- 422
-					if detailError ~= "" then -- 422
-						____temp_19 = React.createElement("label", { -- 422
-							x = sheetWidth - 20, -- 422
-							y = sheetHeight - 25, -- 422
-							anchorX = 1, -- 422
-							anchorY = 1, -- 422
-							fontName = fontName, -- 422
-							fontSize = 12, -- 422
-							text = detailError, -- 422
-							color3 = 4286505640 -- 422
-						}) -- 422
-					else -- 422
-						____temp_19 = nil -- 422
-					end -- 422
-					____temp_23 = ____React_createElement_22( -- 422
-						"node", -- 422
-						____temp_20, -- 422
-						____React_createElement_result_21, -- 422
-						____temp_19, -- 422
-						React.createElement("label", { -- 422
-							x = 20, -- 422
-							y = sheetHeight - 68, -- 422
-							anchorX = 0, -- 422
-							anchorY = 1, -- 422
-							fontName = fontName, -- 422
-							fontSize = 13, -- 422
-							text = zh and "模型" or "Model", -- 422
-							color3 = 11055037 -- 422
-						}), -- 422
-						React.createElement( -- 422
-							"label", -- 422
-							{ -- 422
-								x = 20, -- 422
-								y = sheetHeight - 94, -- 422
-								anchorX = 0, -- 422
-								anchorY = 1, -- 422
-								fontName = fontName, -- 422
-								fontSize = 15, -- 422
-								text = compactText(detail.model, shortLandscape and 56 or 38), -- 422
-								color3 = 16052712 -- 422
-							} -- 422
-						), -- 422
-						React.createElement("label", { -- 422
-							x = 20, -- 422
-							y = sheetHeight - 132, -- 422
-							anchorX = 0, -- 422
-							anchorY = 1, -- 422
-							fontName = fontName, -- 422
-							fontSize = 13, -- 422
-							text = "API URL", -- 422
-							color3 = 11055037 -- 422
-						}), -- 422
-						React.createElement( -- 422
-							"label", -- 422
-							{ -- 422
-								x = 20, -- 422
-								y = sheetHeight - 158, -- 422
-								anchorX = 0, -- 422
-								anchorY = 1, -- 422
-								fontName = fontName, -- 422
-								fontSize = 13, -- 422
-								text = compactText(detail.url, shortLandscape and 72 or 42), -- 422
-								color3 = 16052712 -- 422
-							} -- 422
-						), -- 422
-						React.createElement( -- 422
-							"label", -- 422
-							{ -- 422
-								x = 20, -- 422
-								y = sheetHeight - 200, -- 422
-								anchorX = 0, -- 422
-								anchorY = 1, -- 422
-								fontName = fontName, -- 422
-								fontSize = 13, -- 422
-								text = ((((zh and "上下文" or "Context") .. "  ") .. tostring(detail.contextWindow)) .. "   ·   Function Call  ") .. (detail.supportsFunctionCalling and (zh and "支持" or "On") or (zh and "不支持" or "Off")), -- 422
-								color3 = 11055037 -- 422
-							} -- 422
-						), -- 422
-						React.createElement( -- 422
+							y = sheetHeight - 24, -- 411
+							anchorX = 0, -- 411
+							anchorY = 1, -- 411
+							fontName = fontName, -- 411
+							fontSize = 22, -- 411
+							text = zh and "删除这个配置？" or "Delete this configuration?", -- 411
+							color3 = 16052712 -- 411
+						}), -- 411
+						React.createElement( -- 411
+							"label", -- 411
+							{ -- 411
+								x = 20, -- 411
+								y = sheetHeight - 78, -- 411
+								anchorX = 0, -- 411
+								anchorY = 1, -- 411
+								fontName = fontName, -- 411
+								fontSize = 16, -- 411
+								text = compactText(detail.name, shortLandscape and 52 or 32), -- 411
+								color3 = 4294935941 -- 411
+							} -- 411
+						), -- 411
+						React.createElement("label", { -- 411
+							x = 20, -- 411
+							y = sheetHeight - 120, -- 411
+							anchorX = 0, -- 411
+							anchorY = 1, -- 411
+							fontName = fontName, -- 411
+							fontSize = 13, -- 411
+							text = zh and "删除后无法恢复；若它是当前配置，将自动切换到下一项。" or "This cannot be undone. The next configuration will become active.", -- 411
+							textWidth = contentWidth, -- 411
+							alignment = "Left", -- 411
+							color3 = 11055037 -- 411
+						}), -- 411
+						React.createElement("label", { -- 411
+							x = 20, -- 411
+							y = 82, -- 411
+							anchorX = 0, -- 411
+							fontName = fontName, -- 411
+							fontSize = 12, -- 411
+							text = detailError, -- 411
+							textWidth = contentWidth, -- 411
+							alignment = "Left", -- 411
+							color3 = 16739179 -- 411
+						}), -- 411
+						React.createElement( -- 411
+							MobileButton, -- 416
+							{ -- 416
+								tag = "mobile-llm-detail-delete-cancel", -- 416
+								x = 20, -- 416
+								y = 20, -- 416
+								width = math.floor((contentWidth - 12) * 0.42), -- 416
+								text = zh and "保留配置" or "Keep it", -- 416
+								renderOrder = 10, -- 416
+								onTapped = function() -- 416
+									detailMode = "view" -- 416
+									detailError = "" -- 416
+									render() -- 416
+								end -- 416
+							} -- 416
+						), -- 416
+						React.createElement( -- 416
+							MobileButton, -- 417
+							{ -- 417
+								tag = "mobile-llm-detail-delete-confirm", -- 417
+								x = 32 + math.floor((contentWidth - 12) * 0.42), -- 417
+								y = 20, -- 417
+								width = contentWidth - 12 - math.floor((contentWidth - 12) * 0.42), -- 417
+								text = zh and "确认删除" or "Delete", -- 417
+								danger = true, -- 417
+								renderOrder = 10, -- 417
+								onTapped = deleteDetail -- 417
+							} -- 417
+						) -- 417
+					) -- 417
+				else -- 417
+					local ____React_createElement_22 = React.createElement -- 417
+					local ____temp_20 = {tag = "mobile-llm-detail"} -- 417
+					local ____React_createElement_result_21 = React.createElement( -- 417
+						"label", -- 417
+						{ -- 417
+							x = 20, -- 417
+							y = sheetHeight - 24, -- 417
+							anchorX = 0, -- 417
+							anchorY = 1, -- 417
+							fontName = fontName, -- 417
+							fontSize = 22, -- 417
+							text = compactText(detail.name, 28), -- 417
+							color3 = 16052712 -- 417
+						} -- 417
+					) -- 417
+					local ____temp_19 -- 420
+					if detailError ~= "" then -- 420
+						____temp_19 = React.createElement("label", { -- 420
+							x = sheetWidth - 20, -- 420
+							y = sheetHeight - 25, -- 420
+							anchorX = 1, -- 420
+							anchorY = 1, -- 420
+							fontName = fontName, -- 420
+							fontSize = 12, -- 420
+							text = detailError, -- 420
+							color3 = 4286505640 -- 420
+						}) -- 420
+					else -- 420
+						____temp_19 = nil -- 420
+					end -- 420
+					____temp_23 = ____React_createElement_22( -- 420
+						"node", -- 420
+						____temp_20, -- 420
+						____React_createElement_result_21, -- 420
+						____temp_19, -- 420
+						React.createElement("label", { -- 420
+							x = 20, -- 420
+							y = sheetHeight - 68, -- 420
+							anchorX = 0, -- 420
+							anchorY = 1, -- 420
+							fontName = fontName, -- 420
+							fontSize = 13, -- 420
+							text = zh and "模型" or "Model", -- 420
+							color3 = 11055037 -- 420
+						}), -- 420
+						React.createElement( -- 420
+							"label", -- 420
+							{ -- 420
+								x = 20, -- 420
+								y = sheetHeight - 94, -- 420
+								anchorX = 0, -- 420
+								anchorY = 1, -- 420
+								fontName = fontName, -- 420
+								fontSize = 15, -- 420
+								text = compactText(detail.model, shortLandscape and 56 or 38), -- 420
+								color3 = 16052712 -- 420
+							} -- 420
+						), -- 420
+						React.createElement("label", { -- 420
+							x = 20, -- 420
+							y = sheetHeight - 132, -- 420
+							anchorX = 0, -- 420
+							anchorY = 1, -- 420
+							fontName = fontName, -- 420
+							fontSize = 13, -- 420
+							text = "API URL", -- 420
+							color3 = 11055037 -- 420
+						}), -- 420
+						React.createElement( -- 420
+							"label", -- 420
+							{ -- 420
+								x = 20, -- 420
+								y = sheetHeight - 158, -- 420
+								anchorX = 0, -- 420
+								anchorY = 1, -- 420
+								fontName = fontName, -- 420
+								fontSize = 13, -- 420
+								text = compactText(detail.url, shortLandscape and 72 or 42), -- 420
+								color3 = 16052712 -- 420
+							} -- 420
+						), -- 420
+						React.createElement( -- 420
+							"label", -- 420
+							{ -- 420
+								x = 20, -- 420
+								y = sheetHeight - 200, -- 420
+								anchorX = 0, -- 420
+								anchorY = 1, -- 420
+								fontName = fontName, -- 420
+								fontSize = 13, -- 420
+								text = ((zh and "上下文" or "Context") .. "  ") .. tostring(detail.contextWindow), -- 420
+								color3 = 11055037 -- 420
+							} -- 420
+						), -- 420
+						React.createElement( -- 420
+							MobileButton, -- 427
+							{ -- 427
+								tag = "mobile-llm-detail-key-edit", -- 427
+								x = 20, -- 427
+								y = 76, -- 427
+								width = math.floor((contentWidth - 12) * 0.62), -- 427
+								text = zh and "修改 API Key" or "Update API key", -- 427
+								renderOrder = 10, -- 427
+								onTapped = function() -- 427
+									detailMode = "key" -- 427
+									detailKey = "" -- 427
+									detailError = "" -- 427
+									render() -- 427
+								end -- 427
+							} -- 427
+						), -- 427
+						React.createElement( -- 427
+							MobileButton, -- 428
+							{ -- 428
+								tag = "mobile-llm-detail-delete", -- 428
+								x = 32 + math.floor((contentWidth - 12) * 0.62), -- 428
+								y = 76, -- 428
+								width = contentWidth - 12 - math.floor((contentWidth - 12) * 0.62), -- 428
+								text = zh and "删除" or "Delete", -- 428
+								danger = true, -- 428
+								renderOrder = 10, -- 428
+								onTapped = function() -- 428
+									detailMode = "delete" -- 428
+									detailError = "" -- 428
+									render() -- 428
+								end -- 428
+							} -- 428
+						), -- 428
+						React.createElement( -- 428
 							MobileButton, -- 429
 							{ -- 429
-								tag = "mobile-llm-detail-key-edit", -- 429
+								tag = "mobile-llm-detail-back", -- 429
 								x = 20, -- 429
-								y = 76, -- 429
-								width = math.floor((contentWidth - 12) * 0.62), -- 429
-								text = zh and "修改 API Key" or "Update API key", -- 429
+								y = 20, -- 429
+								width = math.floor((contentWidth - 12) * 0.36), -- 429
+								text = zh and "返回列表" or "Back", -- 429
 								renderOrder = 10, -- 429
 								onTapped = function() -- 429
-									detailMode = "key" -- 429
-									detailKey = "" -- 429
-									detailError = "" -- 429
+									detailId = 0 -- 429
 									render() -- 429
 								end -- 429
 							} -- 429
@@ -1221,337 +1251,305 @@ function ____exports.startMobileLLMManager(options) -- 258
 						React.createElement( -- 429
 							MobileButton, -- 430
 							{ -- 430
-								tag = "mobile-llm-detail-delete", -- 430
-								x = 32 + math.floor((contentWidth - 12) * 0.62), -- 430
-								y = 76, -- 430
-								width = contentWidth - 12 - math.floor((contentWidth - 12) * 0.62), -- 430
-								text = zh and "删除" or "Delete", -- 430
-								danger = true, -- 430
+								tag = "mobile-llm-detail-select", -- 430
+								x = 32 + math.floor((contentWidth - 12) * 0.36), -- 430
+								y = 20, -- 430
+								width = contentWidth - 12 - math.floor((contentWidth - 12) * 0.36), -- 430
+								text = detail.id == selectedId and (switchPending and (zh and "下一轮使用" or "Use next") or (options.taskRunning and (zh and "本轮使用" or "In this run") or (zh and "当前使用" or "In use"))) or (zh and "切换到此配置" or "Use this config"), -- 430
+								primary = detail.id ~= selectedId, -- 430
 								renderOrder = 10, -- 430
-								onTapped = function() -- 430
-									detailMode = "delete" -- 430
-									detailError = "" -- 430
-									render() -- 430
-								end -- 430
+								onTapped = function() return select(detail.id) end -- 430
 							} -- 430
-						), -- 430
-						React.createElement( -- 430
-							MobileButton, -- 431
-							{ -- 431
-								tag = "mobile-llm-detail-back", -- 431
-								x = 20, -- 431
-								y = 20, -- 431
-								width = math.floor((contentWidth - 12) * 0.36), -- 431
-								text = zh and "返回列表" or "Back", -- 431
-								renderOrder = 10, -- 431
-								onTapped = function() -- 431
-									detailId = 0 -- 431
-									render() -- 431
-								end -- 431
-							} -- 431
-						), -- 431
-						React.createElement( -- 431
-							MobileButton, -- 432
-							{ -- 432
-								tag = "mobile-llm-detail-select", -- 432
-								x = 32 + math.floor((contentWidth - 12) * 0.36), -- 432
-								y = 20, -- 432
-								width = contentWidth - 12 - math.floor((contentWidth - 12) * 0.36), -- 432
-								text = detail.id == selectedId and (switchPending and (zh and "下一轮使用" or "Use next") or (options.taskRunning and (zh and "本轮使用" or "In this run") or (zh and "当前使用" or "In use"))) or (zh and "切换到此配置" or "Use this config"), -- 432
-								primary = detail.id ~= selectedId, -- 432
-								renderOrder = 10, -- 432
-								onTapped = function() return select(detail.id) end -- 432
-							} -- 432
-						) -- 432
-					) -- 432
-				end -- 432
-				____temp_24 = ____temp_23 -- 413
-			end -- 413
-			____detail_32 = ____temp_24 -- 400
-		else -- 400
-			local ____React_createElement_31 = React.createElement -- 400
-			local ____array_30 = __TS__SparseArrayNew( -- 400
-				"node", -- 400
-				{tag = "mobile-llm-list"}, -- 400
-				React.createElement("label", { -- 400
-					x = 20, -- 400
-					y = sheetHeight - 24, -- 400
-					anchorX = 0, -- 400
-					anchorY = 1, -- 400
-					fontName = fontName, -- 400
-					fontSize = 22, -- 400
-					text = zh and "模型配置" or "Model configurations", -- 400
-					color3 = 16052712 -- 400
-				}), -- 400
-				React.createElement("label", { -- 400
-					x = 20, -- 400
-					y = sheetHeight - 58, -- 400
-					anchorX = 0, -- 400
-					anchorY = 1, -- 400
-					fontName = fontName, -- 400
-					fontSize = 13, -- 400
-					text = options.taskRunning and (zh and "切换将在下一轮生效" or "Changes apply to the next run") or (zh and "选择当前 Remix 使用的配置" or "Choose the configuration for Remix"), -- 400
-					color3 = 11055037 -- 400
-				}) -- 400
-			) -- 400
-			local ____temp_25 -- 439
-			if pageCount > 1 then -- 439
-				____temp_25 = React.createElement( -- 439
-					"label", -- 439
-					{ -- 439
-						x = sheetWidth - 20, -- 439
-						y = sheetHeight - 58, -- 439
-						anchorX = 1, -- 439
-						anchorY = 1, -- 439
-						fontName = fontName, -- 439
-						fontSize = 12, -- 439
-						text = (tostring(page + 1) .. " / ") .. tostring(pageCount), -- 439
-						color3 = 11055037 -- 439
-					} -- 439
-				) -- 439
-			else -- 439
-				____temp_25 = nil -- 439
-			end -- 439
-			__TS__SparseArrayPush( -- 439
-				____array_30, -- 439
-				____temp_25, -- 439
-				__TS__ArrayMap( -- 440
-					pageItems, -- 440
-					function(____, item, index) -- 440
-						local y = sheetHeight - 126 - index * 68 -- 441
-						local selected = item.id == selectedId -- 442
-						local ____React_createElement_28 = React.createElement -- 442
-						local ____array_27 = __TS__SparseArrayNew( -- 442
-							"node", -- 442
-							{ -- 442
-								key = tostring(item.id), -- 442
-								tag = "mobile-llm-config-" .. tostring(item.id), -- 442
-								x = 20, -- 442
-								y = y, -- 442
-								width = contentWidth, -- 442
-								height = 54, -- 442
-								anchorX = 0, -- 442
-								anchorY = 0, -- 442
-								touchEnabled = true, -- 442
-								swallowTouches = true, -- 442
-								onTapped = function() return select(item.id) end -- 442
-							}, -- 442
-							React.createElement(RoundedSurface, { -- 442
-								width = contentWidth, -- 442
-								height = 54, -- 442
-								radius = 14, -- 442
-								topColor = selected and 4282004512 or 4280626233, -- 442
-								bottomColor = selected and 4280360210 or 4279704613, -- 442
-								borderWidth = 1, -- 442
-								borderColor = selected and 4294954035 or 4281613128 -- 442
-							}), -- 442
-							React.createElement( -- 442
-								"draw-node", -- 442
-								{x = 20, y = 27}, -- 442
-								React.createElement("dot-shape", {radius = 8, color = selected and 4294954035 or 4285495432}), -- 442
-								React.createElement("dot-shape", {radius = selected and 3 or 5, color = selected and 4279702282 or 4279704613}) -- 442
-							), -- 442
-							React.createElement( -- 442
-								"label", -- 442
-								{ -- 442
-									x = 38, -- 442
-									y = 34, -- 442
-									anchorX = 0, -- 442
-									fontName = fontName, -- 442
-									fontSize = 15, -- 442
-									text = compactText(item.name, shortLandscape and 34 or 22), -- 442
-									color3 = 16052712 -- 442
-								} -- 442
-							), -- 442
-							React.createElement( -- 442
-								"label", -- 442
-								{ -- 442
-									x = 38, -- 442
-									y = 15, -- 442
-									anchorX = 0, -- 442
-									fontName = fontName, -- 442
-									fontSize = 11, -- 442
-									text = compactText(item.model, shortLandscape and 52 or 30), -- 442
-									color3 = 11055037 -- 442
-								} -- 442
-							) -- 442
-						) -- 442
-						local ____selected_26 -- 448
-						if selected then -- 448
-							____selected_26 = React.createElement("label", { -- 448
-								x = contentWidth - 54, -- 448
-								y = 27, -- 448
-								anchorX = 1, -- 448
-								fontName = fontName, -- 448
-								fontSize = 11, -- 448
-								text = switchPending and (zh and "下一轮" or "Next") or (options.taskRunning and (zh and "本轮" or "Running") or (zh and "当前" or "Current")), -- 448
-								color3 = 16763955 -- 448
-							}) -- 448
-						else -- 448
-							____selected_26 = nil -- 448
-						end -- 448
-						__TS__SparseArrayPush( -- 448
-							____array_27, -- 448
-							____selected_26, -- 448
-							React.createElement( -- 448
-								"node", -- 448
-								{ -- 448
-									tag = "mobile-llm-detail-" .. tostring(item.id), -- 448
-									x = contentWidth - 44, -- 448
-									y = 0, -- 448
-									width = 44, -- 448
-									height = 54, -- 448
-									anchorX = 0, -- 448
-									anchorY = 0, -- 448
-									touchEnabled = true, -- 448
-									swallowTouches = true, -- 448
-									onTapped = function() return openDetail(item.id) end -- 448
-								}, -- 448
-								React.createElement("label", { -- 448
-									x = 26, -- 448
-									y = 27, -- 448
-									fontName = fontName, -- 448
-									fontSize = 18, -- 448
-									text = "›", -- 448
-									color3 = 11055037 -- 448
-								}) -- 448
-							) -- 448
-						) -- 448
-						return ____React_createElement_28(__TS__SparseArraySpread(____array_27)) -- 443
-					end -- 440
-				) -- 440
-			) -- 440
-			local ____temp_29 -- 454
-			if pageCount > 1 then -- 454
+						) -- 430
+					) -- 430
+				end -- 430
+				____temp_24 = ____temp_23 -- 411
+			end -- 411
+			____detail_32 = ____temp_24 -- 398
+		else -- 398
+			local ____React_createElement_31 = React.createElement -- 398
+			local ____array_30 = __TS__SparseArrayNew( -- 398
+				"node", -- 398
+				{tag = "mobile-llm-list"}, -- 398
+				React.createElement("label", { -- 398
+					x = 20, -- 398
+					y = sheetHeight - 24, -- 398
+					anchorX = 0, -- 398
+					anchorY = 1, -- 398
+					fontName = fontName, -- 398
+					fontSize = 22, -- 398
+					text = zh and "模型配置" or "Model configurations", -- 398
+					color3 = 16052712 -- 398
+				}), -- 398
+				React.createElement("label", { -- 398
+					x = 20, -- 398
+					y = sheetHeight - 58, -- 398
+					anchorX = 0, -- 398
+					anchorY = 1, -- 398
+					fontName = fontName, -- 398
+					fontSize = 13, -- 398
+					text = options.taskRunning and (zh and "切换将在下一轮生效" or "Changes apply to the next run") or (zh and "选择当前 Remix 使用的配置" or "Choose the configuration for Remix"), -- 398
+					color3 = 11055037 -- 398
+				}) -- 398
+			) -- 398
+			local ____temp_25 -- 437
+			if pageCount > 1 then -- 437
+				____temp_25 = React.createElement( -- 437
+					"label", -- 437
+					{ -- 437
+						x = sheetWidth - 20, -- 437
+						y = sheetHeight - 58, -- 437
+						anchorX = 1, -- 437
+						anchorY = 1, -- 437
+						fontName = fontName, -- 437
+						fontSize = 12, -- 437
+						text = (tostring(page + 1) .. " / ") .. tostring(pageCount), -- 437
+						color3 = 11055037 -- 437
+					} -- 437
+				) -- 437
+			else -- 437
+				____temp_25 = nil -- 437
+			end -- 437
+			__TS__SparseArrayPush( -- 437
+				____array_30, -- 437
+				____temp_25, -- 437
+				__TS__ArrayMap( -- 438
+					pageItems, -- 438
+					function(____, item, index) -- 438
+						local y = sheetHeight - 126 - index * 68 -- 439
+						local selected = item.id == selectedId -- 440
+						local ____React_createElement_28 = React.createElement -- 440
+						local ____array_27 = __TS__SparseArrayNew( -- 440
+							"node", -- 440
+							{ -- 440
+								key = tostring(item.id), -- 440
+								tag = "mobile-llm-config-" .. tostring(item.id), -- 440
+								x = 20, -- 440
+								y = y, -- 440
+								width = contentWidth, -- 440
+								height = 54, -- 440
+								anchorX = 0, -- 440
+								anchorY = 0, -- 440
+								touchEnabled = true, -- 440
+								swallowTouches = true, -- 440
+								onTapped = function() return select(item.id) end -- 440
+							}, -- 440
+							React.createElement(RoundedSurface, { -- 440
+								width = contentWidth, -- 440
+								height = 54, -- 440
+								radius = 14, -- 440
+								topColor = selected and 4282004512 or 4280626233, -- 440
+								bottomColor = selected and 4280360210 or 4279704613, -- 440
+								borderWidth = 1, -- 440
+								borderColor = selected and 4294954035 or 4281613128 -- 440
+							}), -- 440
+							React.createElement( -- 440
+								"draw-node", -- 440
+								{x = 20, y = 27}, -- 440
+								React.createElement("dot-shape", {radius = 8, color = selected and 4294954035 or 4285495432}), -- 440
+								React.createElement("dot-shape", {radius = selected and 3 or 5, color = selected and 4279702282 or 4279704613}) -- 440
+							), -- 440
+							React.createElement( -- 440
+								"label", -- 440
+								{ -- 440
+									x = 38, -- 440
+									y = 34, -- 440
+									anchorX = 0, -- 440
+									fontName = fontName, -- 440
+									fontSize = 15, -- 440
+									text = compactText(item.name, shortLandscape and 34 or 22), -- 440
+									color3 = 16052712 -- 440
+								} -- 440
+							), -- 440
+							React.createElement( -- 440
+								"label", -- 440
+								{ -- 440
+									x = 38, -- 440
+									y = 15, -- 440
+									anchorX = 0, -- 440
+									fontName = fontName, -- 440
+									fontSize = 11, -- 440
+									text = compactText(item.model, shortLandscape and 52 or 30), -- 440
+									color3 = 11055037 -- 440
+								} -- 440
+							) -- 440
+						) -- 440
+						local ____selected_26 -- 446
+						if selected then -- 446
+							____selected_26 = React.createElement("label", { -- 446
+								x = contentWidth - 54, -- 446
+								y = 27, -- 446
+								anchorX = 1, -- 446
+								fontName = fontName, -- 446
+								fontSize = 11, -- 446
+								text = switchPending and (zh and "下一轮" or "Next") or (options.taskRunning and (zh and "本轮" or "Running") or (zh and "当前" or "Current")), -- 446
+								color3 = 16763955 -- 446
+							}) -- 446
+						else -- 446
+							____selected_26 = nil -- 446
+						end -- 446
+						__TS__SparseArrayPush( -- 446
+							____array_27, -- 446
+							____selected_26, -- 446
+							React.createElement( -- 446
+								"node", -- 446
+								{ -- 446
+									tag = "mobile-llm-detail-" .. tostring(item.id), -- 446
+									x = contentWidth - 44, -- 446
+									y = 0, -- 446
+									width = 44, -- 446
+									height = 54, -- 446
+									anchorX = 0, -- 446
+									anchorY = 0, -- 446
+									touchEnabled = true, -- 446
+									swallowTouches = true, -- 446
+									onTapped = function() return openDetail(item.id) end -- 446
+								}, -- 446
+								React.createElement("label", { -- 446
+									x = 26, -- 446
+									y = 27, -- 446
+									fontName = fontName, -- 446
+									fontSize = 18, -- 446
+									text = "›", -- 446
+									color3 = 11055037 -- 446
+								}) -- 446
+							) -- 446
+						) -- 446
+						return ____React_createElement_28(__TS__SparseArraySpread(____array_27)) -- 441
+					end -- 438
+				) -- 438
+			) -- 438
+			local ____temp_29 -- 452
+			if pageCount > 1 then -- 452
+				____temp_29 = React.createElement( -- 452
+					"node", -- 452
+					nil, -- 452
+					React.createElement( -- 452
+						MobileButton, -- 453
+						{ -- 453
+							tag = "mobile-llm-page-prev", -- 453
+							x = 20, -- 453
+							y = 20, -- 453
+							width = 54, -- 453
+							text = "‹", -- 453
+							renderOrder = 10, -- 453
+							onTapped = function() -- 453
+								page = (page - 1 + pageCount) % pageCount -- 453
+								render() -- 453
+							end -- 453
+						} -- 453
+					), -- 453
+					React.createElement( -- 453
+						MobileButton, -- 454
+						{ -- 454
+							tag = "mobile-llm-page-next", -- 454
+							x = 86, -- 454
+							y = 20, -- 454
+							width = 54, -- 454
+							text = "›", -- 454
+							renderOrder = 10, -- 454
+							onTapped = function() -- 454
+								page = (page + 1) % pageCount -- 454
+								render() -- 454
+							end -- 454
+						} -- 454
+					) -- 454
+				) -- 454
+			else -- 454
 				____temp_29 = React.createElement( -- 454
-					"node", -- 454
-					nil, -- 454
-					React.createElement( -- 454
-						MobileButton, -- 455
-						{ -- 455
-							tag = "mobile-llm-page-prev", -- 455
-							x = 20, -- 455
-							y = 20, -- 455
-							width = 54, -- 455
-							text = "‹", -- 455
-							renderOrder = 10, -- 455
-							onTapped = function() -- 455
-								page = (page - 1 + pageCount) % pageCount -- 455
-								render() -- 455
-							end -- 455
-						} -- 455
-					), -- 455
-					React.createElement( -- 455
-						MobileButton, -- 456
-						{ -- 456
-							tag = "mobile-llm-page-next", -- 456
-							x = 86, -- 456
-							y = 20, -- 456
-							width = 54, -- 456
-							text = "›", -- 456
-							renderOrder = 10, -- 456
-							onTapped = function() -- 456
-								page = (page + 1) % pageCount -- 456
-								render() -- 456
-							end -- 456
-						} -- 456
-					) -- 456
+					MobileButton, -- 455
+					{ -- 455
+						tag = "mobile-llm-close", -- 455
+						x = 20, -- 455
+						y = 20, -- 455
+						width = math.floor(contentWidth * 0.28), -- 455
+						text = zh and "关闭" or "Close", -- 455
+						renderOrder = 10, -- 455
+						onTapped = function() return close() end -- 455
+					} -- 455
+				) -- 455
+			end -- 455
+			__TS__SparseArrayPush( -- 455
+				____array_30, -- 455
+				____temp_29, -- 455
+				React.createElement( -- 455
+					MobileButton, -- 456
+					{ -- 456
+						tag = "mobile-llm-add", -- 456
+						x = pageCount > 1 and 152 or 32 + math.floor(contentWidth * 0.28), -- 456
+						y = 20, -- 456
+						width = pageCount > 1 and contentWidth - 132 or contentWidth - 12 - math.floor(contentWidth * 0.28), -- 456
+						text = zh and "＋ 从模板新增" or "+ Add from template", -- 456
+						primary = true, -- 456
+						renderOrder = 10, -- 456
+						onTapped = add -- 456
+					} -- 456
 				) -- 456
-			else -- 456
-				____temp_29 = React.createElement( -- 456
-					MobileButton, -- 457
-					{ -- 457
-						tag = "mobile-llm-close", -- 457
-						x = 20, -- 457
-						y = 20, -- 457
-						width = math.floor(contentWidth * 0.28), -- 457
-						text = zh and "关闭" or "Close", -- 457
-						renderOrder = 10, -- 457
-						onTapped = function() return close() end -- 457
-					} -- 457
-				) -- 457
-			end -- 457
-			__TS__SparseArrayPush( -- 457
-				____array_30, -- 457
-				____temp_29, -- 457
-				React.createElement( -- 457
-					MobileButton, -- 458
-					{ -- 458
-						tag = "mobile-llm-add", -- 458
-						x = pageCount > 1 and 152 or 32 + math.floor(contentWidth * 0.28), -- 458
-						y = 20, -- 458
-						width = pageCount > 1 and contentWidth - 132 or contentWidth - 12 - math.floor(contentWidth * 0.28), -- 458
-						text = zh and "＋ 从模板新增" or "+ Add from template", -- 458
-						primary = true, -- 458
-						renderOrder = 10, -- 458
-						onTapped = add -- 458
-					} -- 458
-				) -- 458
-			) -- 458
-			____detail_32 = ____React_createElement_31(__TS__SparseArraySpread(____array_30)) -- 458
-		end -- 458
-		local scene = ____toNode_39(____React_createElement_38( -- 394
-			"node", -- 394
-			____temp_36, -- 394
-			____React_createElement_result_37, -- 394
-			____React_createElement_35("node", ____temp_33, ____React_createElement_result_34, ____detail_32) -- 394
-		)) -- 394
-		if scene then -- 394
-			host:addChild(scene) -- 463
-		end -- 463
-	end -- 368
-	local ____attachGamepad_42 = attachGamepad -- 465
-	local ____opt_40 = __TS__ArrayFind( -- 465
-		configs, -- 466
-		function(____, item) return item.id == selectedId end -- 466
-	) -- 466
-	____attachGamepad_42( -- 465
-		host, -- 465
-		{ -- 465
-			initialTag = "mobile-llm-config-" .. tostring(____opt_40 and ____opt_40.id or selectedId), -- 466
-			onBack = function() -- 467
-				if detailKeyInput.isFocused() then -- 467
-					detailKeyInput.blur() -- 468
-				elseif detailMode ~= "view" then -- 468
-					detailMode = "view" -- 469
-					detailKey = "" -- 469
-					detailError = "" -- 469
-					render() -- 469
-				elseif detailId > 0 then -- 469
-					detailId = 0 -- 470
-					render() -- 470
-				else -- 470
-					close() -- 471
-				end -- 471
-			end -- 467
-		} -- 467
-	) -- 467
-	host:onAppChange(function(setting) -- 474
-		if setting == "Locale" then -- 474
-			zh = (string.match(App.locale, "^zh")) ~= nil -- 475
-		end -- 475
-		if setting == "Size" or setting == "Locale" then -- 475
-			render() -- 476
+			) -- 456
+			____detail_32 = ____React_createElement_31(__TS__SparseArraySpread(____array_30)) -- 456
+		end -- 456
+		local scene = ____toNode_39(____React_createElement_38( -- 392
+			"node", -- 392
+			____temp_36, -- 392
+			____React_createElement_result_37, -- 392
+			____React_createElement_35("node", ____temp_33, ____React_createElement_result_34, ____detail_32) -- 392
+		)) -- 392
+		if scene then -- 392
+			host:addChild(scene) -- 461
+		end -- 461
+	end -- 366
+	local ____attachGamepad_42 = attachGamepad -- 463
+	local ____opt_40 = __TS__ArrayFind( -- 463
+		configs, -- 464
+		function(____, item) return item.id == selectedId end -- 464
+	) -- 464
+	____attachGamepad_42( -- 463
+		host, -- 463
+		{ -- 463
+			initialTag = "mobile-llm-config-" .. tostring(____opt_40 and ____opt_40.id or selectedId), -- 464
+			onBack = function() -- 465
+				if detailKeyInput.isFocused() then -- 465
+					detailKeyInput.blur() -- 466
+				elseif detailMode ~= "view" then -- 466
+					detailMode = "view" -- 467
+					detailKey = "" -- 467
+					detailError = "" -- 467
+					render() -- 467
+				elseif detailId > 0 then -- 467
+					detailId = 0 -- 468
+					render() -- 468
+				else -- 468
+					close() -- 469
+				end -- 469
+			end -- 465
+		} -- 465
+	) -- 465
+	host:onAppChange(function(setting) -- 472
+		if setting == "Locale" then -- 472
+			zh = (string.match(App.locale, "^zh")) ~= nil -- 473
+		end -- 473
+		if setting == "Size" or setting == "Locale" then -- 473
+			render() -- 474
+		end -- 474
+	end) -- 472
+	host:onAppEvent(function(event) -- 476
+		if event == "BackButton" then -- 476
+			if detailId > 0 then -- 476
+				detailId = 0 -- 476
+				render() -- 476
+			else -- 476
+				close() -- 476
+			end -- 476
 		end -- 476
-	end) -- 474
-	host:onAppEvent(function(event) -- 478
-		if event == "BackButton" then -- 478
-			if detailId > 0 then -- 478
-				detailId = 0 -- 478
-				render() -- 478
-			else -- 478
-				close() -- 478
-			end -- 478
-		end -- 478
-	end) -- 478
-	host:onCleanup(function() -- 479
-		disposed = true -- 479
-		restoreCovered() -- 479
-		if activeSetup == host then -- 479
-			activeSetup = nil -- 479
-		end -- 479
-	end) -- 479
-	render() -- 480
-	return host -- 481
-end -- 258
-return ____exports -- 258
+	end) -- 476
+	host:onCleanup(function() -- 477
+		disposed = true -- 477
+		restoreCovered() -- 477
+		if activeSetup == host then -- 477
+			activeSetup = nil -- 477
+		end -- 477
+	end) -- 477
+	render() -- 478
+	return host -- 479
+end -- 256
+return ____exports -- 256
