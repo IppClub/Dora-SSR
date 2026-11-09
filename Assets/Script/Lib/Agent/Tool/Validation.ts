@@ -146,6 +146,16 @@ export function validateAgentToolInput(tool: AgentToolName, input: Record<string
 		return { success: true, value };
 	}
 	if (tool === "edit_file") {
+		if (value.delete === true) {
+			// Unified write tool: explicit delete form. Must not mix with edit payloads.
+			if (Array.isArray(value.edits)) return { success: false, message: "edit_file delete cannot be combined with edits; call delete separately" };
+			if (value.old_str !== undefined || value.new_str !== undefined) return { success: false, message: "edit_file delete cannot be combined with old_str/new_str" };
+			const target = getDecisionPath(value);
+			if (target === "") return { success: false, message: "edit_file delete requires path" };
+			value.path = target;
+			value.target_file = undefined;
+			return { success: true, value };
+		}
 		const hasBatch = Array.isArray(value.edits);
 		const hasLegacyPayload = value.old_str !== undefined || value.new_str !== undefined;
 		if ((hasBatch && hasLegacyPayload) || (!hasBatch && !hasLegacyPayload)) {
@@ -168,19 +178,14 @@ export function validateAgentToolInput(tool: AgentToolName, input: Record<string
 		}
 		return { success: true, value };
 	}
-	if (tool === "delete_file") {
-		const target = getDecisionPath(value);
-		if (target === "") return { success: false, message: "delete_file requires target_file" };
-		value.target_file = target;
-		return { success: true, value };
-	}
 	if (tool === "grep_files" || tool === "search_dora_doc") {
 		const pattern = typeof value.pattern === "string" ? value.pattern.trim() : "";
-		if (pattern === "") return { success: false, message: `${tool} requires pattern` };
-		value.pattern = pattern;
+		if (pattern === "" && tool === "search_dora_doc") return { success: false, message: `${tool} requires pattern` };
+		value.pattern = pattern === "" ? undefined : pattern;
 		if (tool === "grep_files") {
 			value.limit = clampInteger(value.limit, AgentConfig.AGENT_LIMITS.searchFilesLimitDefault, 1);
 			value.offset = clampInteger(value.offset, 0, 0);
+			value.maxEntries = clampInteger(value.maxEntries, AgentConfig.AGENT_LIMITS.listFilesMaxEntriesDefault, 1);
 		} else {
 			const docType = typeof value.docType === "string" ? value.docType : "dora-api";
 			if (docType !== "dora-api" && docType !== "dora-tutorial" && docType !== "love-api" && docType !== "tic80-api") {
@@ -189,10 +194,6 @@ export function validateAgentToolInput(tool: AgentToolName, input: Record<string
 			value.docType = docType;
 			value.limit = clampInteger(value.limit, 8, 1, AgentConfig.AGENT_LIMITS.searchDoraDocLimitMax);
 		}
-		return { success: true, value };
-	}
-	if (tool === "glob_files") {
-		value.maxEntries = clampInteger(value.maxEntries, AgentConfig.AGENT_LIMITS.listFilesMaxEntriesDefault, 1);
 		return { success: true, value };
 	}
 	if (tool === "build") {
@@ -261,23 +262,32 @@ export function validateAgentToolInput(tool: AgentToolName, input: Record<string
 		value.timeoutSeconds = clampInteger(value.timeoutSeconds, mode === "lua" ? 30 : 600, 1, mode === "lua" ? 600 : 1800);
 		return { success: true, value };
 	}
-	if (tool === "list_sub_agents") {
-		if (typeof value.status === "string" && value.status.trim() !== "") value.status = value.status.trim();
-		value.limit = clampInteger(value.limit, 5, 1);
-		value.offset = clampInteger(value.offset, 0, 0);
-		if (typeof value.query === "string") value.query = value.query.trim();
-		return { success: true, value };
-	}
-	if (tool === "spawn_sub_agent") {
+	if (tool === "spawn_agent") {
 		const prompt = typeof value.prompt === "string" ? value.prompt.trim() : "";
-		const title = typeof value.title === "string" ? value.title.trim() : "";
-		if (prompt === "") return { success: false, message: "spawn_sub_agent requires prompt" };
-		if (title === "") return { success: false, message: "spawn_sub_agent requires title" };
-		value.prompt = prompt;
-		value.title = title;
-		if (typeof value.expectedOutput === "string") value.expectedOutput = value.expectedOutput.trim();
-		if (Array.isArray(value.filesHint)) {
-			value.filesHint = value.filesHint.filter(item => typeof item === "string").map(item => AgentUtils.sanitizeUTF8(item as string));
+		if (prompt !== "") {
+			// Spawn form: prompt + title; list filters must not ride along.
+			if (value.status !== undefined || value.limit !== undefined || value.offset !== undefined || value.query !== undefined) {
+				return { success: false, message: "spawn_agent spawn form cannot combine the list filters (status/limit/offset/query)" };
+			}
+			const title = typeof value.title === "string" ? value.title.trim() : "";
+			if (title === "") return { success: false, message: "spawn_agent spawn form requires title" };
+			value.prompt = prompt;
+			value.title = title;
+			if (typeof value.expectedOutput === "string") value.expectedOutput = value.expectedOutput.trim();
+			if (Array.isArray(value.filesHint)) {
+				value.filesHint = value.filesHint.filter(item => typeof item === "string").map(item => AgentUtils.sanitizeUTF8(item as string));
+			}
+		} else {
+			// List form: no prompt, no spawn fields.
+			if (value.title !== undefined || value.expectedOutput !== undefined || value.filesHint !== undefined) {
+				return { success: false, message: "spawn_agent list form cannot carry spawn fields (title/expectedOutput/filesHint)" };
+			}
+			value.prompt = undefined;
+			value.title = undefined;
+			if (typeof value.status === "string" && value.status.trim() !== "") value.status = value.status.trim();
+			value.limit = clampInteger(value.limit, 5, 1);
+			value.offset = clampInteger(value.offset, 0, 0);
+			if (typeof value.query === "string") value.query = value.query.trim();
 		}
 		return { success: true, value };
 	}
@@ -287,16 +297,13 @@ export function validateAgentToolInput(tool: AgentToolName, input: Record<string
 export const AGENT_TOOL_VALIDATORS: Partial<Record<AgentToolName, AgentToolInputValidator>> = {
 	read_file: value => validateAgentToolInput("read_file", value),
 	edit_file: value => validateAgentToolInput("edit_file", value),
-	delete_file: value => validateAgentToolInput("delete_file", value),
 	grep_files: value => validateAgentToolInput("grep_files", value),
 	search_dora_doc: value => validateAgentToolInput("search_dora_doc", value),
-	glob_files: value => validateAgentToolInput("glob_files", value),
 	build: value => validateAgentToolInput("build", value),
 	fetch_url: value => validateAgentToolInput("fetch_url", value),
 	analyze_image: value => validateAgentToolInput("analyze_image", value),
 	execute_command: value => validateAgentToolInput("execute_command", value),
-	list_sub_agents: value => validateAgentToolInput("list_sub_agents", value),
-	spawn_sub_agent: value => validateAgentToolInput("spawn_sub_agent", value),
+	spawn_agent: value => validateAgentToolInput("spawn_agent", value),
 	ask_user: value => validateAgentToolInput("ask_user", value),
 	finish: value => validateAgentToolInput("finish", value),
 };

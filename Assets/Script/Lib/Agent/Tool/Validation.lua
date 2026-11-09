@@ -182,229 +182,241 @@ function ____exports.validateAgentToolInput(tool, input) -- 91
 		return {success = true, value = value} -- 146
 	end -- 146
 	if tool == "edit_file" then -- 146
-		local hasBatch = __TS__ArrayIsArray(value.edits) -- 149
-		local hasLegacyPayload = value.old_str ~= nil or value.new_str ~= nil -- 150
-		if hasBatch and hasLegacyPayload or not hasBatch and not hasLegacyPayload then -- 150
-			return {success = false, message = "edit_file requires path + old_str + new_str, edits, or path + edits; do not mix edits with top-level old_str/new_str"} -- 152
-		end -- 152
-		local edits = ____exports.getAgentFileEditInputs(value) -- 154
-		if #edits < 1 then -- 154
-			return {success = false, message = "edit_file edits must not be empty"} -- 156
-		end -- 156
-		if not hasBatch then -- 156
-			if edits[1].path == "" then -- 156
-				return {success = false, message = "edit_file requires path"} -- 159
-			end -- 159
-			if edits[1].oldStr == edits[1].newStr then -- 159
-				return {success = false, message = "edit_file requires old_str and new_str to differ"} -- 160
-			end -- 160
-		end -- 160
-		if hasBatch then -- 160
-			value.edits = __TS__ArrayMap( -- 163
-				edits, -- 163
-				function(____, edit) return {path = edit.path, old_str = edit.oldStr, new_str = edit.newStr} end -- 163
-			) -- 163
-		else -- 163
-			value.path = edits[1].path -- 165
-			value.old_str = edits[1].oldStr -- 166
-			value.new_str = edits[1].newStr -- 167
-		end -- 167
-		return {success = true, value = value} -- 169
-	end -- 169
-	if tool == "delete_file" then -- 169
-		local target = getDecisionPath(value) -- 172
-		if target == "" then -- 172
-			return {success = false, message = "delete_file requires target_file"} -- 173
-		end -- 173
-		value.target_file = target -- 174
-		return {success = true, value = value} -- 175
-	end -- 175
-	if tool == "grep_files" or tool == "search_dora_doc" then -- 175
-		local pattern = type(value.pattern) == "string" and __TS__StringTrim(value.pattern) or "" -- 178
-		if pattern == "" then -- 178
-			return {success = false, message = tool .. " requires pattern"} -- 179
-		end -- 179
-		value.pattern = pattern -- 180
-		if tool == "grep_files" then -- 180
-			value.limit = clampInteger(value.limit, AgentConfig.AGENT_LIMITS.searchFilesLimitDefault, 1) -- 182
-			value.offset = clampInteger(value.offset, 0, 0) -- 183
-		else -- 183
-			local docType = type(value.docType) == "string" and value.docType or "dora-api" -- 185
-			if docType ~= "dora-api" and docType ~= "dora-tutorial" and docType ~= "love-api" and docType ~= "tic80-api" then -- 185
-				return {success = false, message = "search_dora_doc requires docType: dora-tutorial, dora-api, love-api, or tic80-api"} -- 187
-			end -- 187
-			value.docType = docType -- 189
-			value.limit = clampInteger(value.limit, 8, 1, AgentConfig.AGENT_LIMITS.searchDoraDocLimitMax) -- 190
-		end -- 190
-		return {success = true, value = value} -- 192
-	end -- 192
-	if tool == "glob_files" then -- 192
-		value.maxEntries = clampInteger(value.maxEntries, AgentConfig.AGENT_LIMITS.listFilesMaxEntriesDefault, 1) -- 195
-		return {success = true, value = value} -- 196
-	end -- 196
-	if tool == "build" then -- 196
-		local hasPaths = value.paths ~= nil -- 199
-		local hasPath = value.path ~= nil -- 200
-		if not hasPaths and not hasPath then -- 200
-			return {success = false, message = "build requires paths or path"} -- 201
-		end -- 201
-		local paths = {} -- 202
-		if hasPath then -- 202
-			local path = type(value.path) == "string" and __TS__StringTrim(value.path) or "" -- 204
-			if path == "" then -- 204
-				return {success = false, message = "build path must be non-empty"} -- 205
-			end -- 205
-			paths[#paths + 1] = path -- 206
-		end -- 206
-		if hasPaths then -- 206
-			if not __TS__ArrayIsArray(value.paths) then -- 206
-				return {success = false, message = "build paths must be a non-empty array"} -- 209
-			end -- 209
-			local arrayPaths = __TS__ArrayMap( -- 210
-				value.paths, -- 210
-				function(____, item) return type(item) == "string" and __TS__StringTrim(item) or "" end -- 210
-			) -- 210
-			if #arrayPaths < 1 or __TS__ArraySome( -- 210
-				arrayPaths, -- 211
-				function(____, path) return path == "" end -- 211
-			) then -- 211
-				return {success = false, message = "build paths must contain non-empty paths"} -- 212
-			end -- 212
-			do -- 212
-				local i = 0 -- 214
-				while i < #arrayPaths do -- 214
-					paths[#paths + 1] = arrayPaths[i + 1] -- 214
-					i = i + 1 -- 214
-				end -- 214
-			end -- 214
-		end -- 214
-		value.path = nil -- 216
-		value.paths = paths -- 217
-		return {success = true, value = value} -- 218
-	end -- 218
-	if tool == "fetch_url" then -- 218
-		local url = type(value.url) == "string" and __TS__StringTrim(value.url) or "" -- 221
-		local target = type(value.target) == "string" and __TS__StringTrim(value.target) or "" -- 222
-		if url == "" then -- 222
-			return {success = false, message = "fetch_url requires url"} -- 223
-		end -- 223
-		if target == "" then -- 223
-			return {success = false, message = "fetch_url requires target"} -- 224
+		if value.delete == true then -- 146
+			if __TS__ArrayIsArray(value.edits) then -- 146
+				return {success = false, message = "edit_file delete cannot be combined with edits; call delete separately"} -- 151
+			end -- 151
+			if value.old_str ~= nil or value.new_str ~= nil then -- 151
+				return {success = false, message = "edit_file delete cannot be combined with old_str/new_str"} -- 152
+			end -- 152
+			local target = getDecisionPath(value) -- 153
+			if target == "" then -- 153
+				return {success = false, message = "edit_file delete requires path"} -- 154
+			end -- 154
+			value.path = target -- 155
+			value.target_file = nil -- 156
+			return {success = true, value = value} -- 157
+		end -- 157
+		local hasBatch = __TS__ArrayIsArray(value.edits) -- 159
+		local hasLegacyPayload = value.old_str ~= nil or value.new_str ~= nil -- 160
+		if hasBatch and hasLegacyPayload or not hasBatch and not hasLegacyPayload then -- 160
+			return {success = false, message = "edit_file requires path + old_str + new_str, edits, or path + edits; do not mix edits with top-level old_str/new_str"} -- 162
+		end -- 162
+		local edits = ____exports.getAgentFileEditInputs(value) -- 164
+		if #edits < 1 then -- 164
+			return {success = false, message = "edit_file edits must not be empty"} -- 166
+		end -- 166
+		if not hasBatch then -- 166
+			if edits[1].path == "" then -- 166
+				return {success = false, message = "edit_file requires path"} -- 169
+			end -- 169
+			if edits[1].oldStr == edits[1].newStr then -- 169
+				return {success = false, message = "edit_file requires old_str and new_str to differ"} -- 170
+			end -- 170
+		end -- 170
+		if hasBatch then -- 170
+			value.edits = __TS__ArrayMap( -- 173
+				edits, -- 173
+				function(____, edit) return {path = edit.path, old_str = edit.oldStr, new_str = edit.newStr} end -- 173
+			) -- 173
+		else -- 173
+			value.path = edits[1].path -- 175
+			value.old_str = edits[1].oldStr -- 176
+			value.new_str = edits[1].newStr -- 177
+		end -- 177
+		return {success = true, value = value} -- 179
+	end -- 179
+	if tool == "grep_files" or tool == "search_dora_doc" then -- 179
+		local pattern = type(value.pattern) == "string" and __TS__StringTrim(value.pattern) or "" -- 182
+		if pattern == "" and tool == "search_dora_doc" then -- 182
+			return {success = false, message = tool .. " requires pattern"} -- 183
+		end -- 183
+		local ____temp_5 -- 184
+		if pattern == "" then -- 184
+			____temp_5 = nil -- 184
+		else -- 184
+			____temp_5 = pattern -- 184
+		end -- 184
+		value.pattern = ____temp_5 -- 184
+		if tool == "grep_files" then -- 184
+			value.limit = clampInteger(value.limit, AgentConfig.AGENT_LIMITS.searchFilesLimitDefault, 1) -- 186
+			value.offset = clampInteger(value.offset, 0, 0) -- 187
+			value.maxEntries = clampInteger(value.maxEntries, AgentConfig.AGENT_LIMITS.listFilesMaxEntriesDefault, 1) -- 188
+		else -- 188
+			local docType = type(value.docType) == "string" and value.docType or "dora-api" -- 190
+			if docType ~= "dora-api" and docType ~= "dora-tutorial" and docType ~= "love-api" and docType ~= "tic80-api" then -- 190
+				return {success = false, message = "search_dora_doc requires docType: dora-tutorial, dora-api, love-api, or tic80-api"} -- 192
+			end -- 192
+			value.docType = docType -- 194
+			value.limit = clampInteger(value.limit, 8, 1, AgentConfig.AGENT_LIMITS.searchDoraDocLimitMax) -- 195
+		end -- 195
+		return {success = true, value = value} -- 197
+	end -- 197
+	if tool == "build" then -- 197
+		local hasPaths = value.paths ~= nil -- 200
+		local hasPath = value.path ~= nil -- 201
+		if not hasPaths and not hasPath then -- 201
+			return {success = false, message = "build requires paths or path"} -- 202
+		end -- 202
+		local paths = {} -- 203
+		if hasPath then -- 203
+			local path = type(value.path) == "string" and __TS__StringTrim(value.path) or "" -- 205
+			if path == "" then -- 205
+				return {success = false, message = "build path must be non-empty"} -- 206
+			end -- 206
+			paths[#paths + 1] = path -- 207
+		end -- 207
+		if hasPaths then -- 207
+			if not __TS__ArrayIsArray(value.paths) then -- 207
+				return {success = false, message = "build paths must be a non-empty array"} -- 210
+			end -- 210
+			local arrayPaths = __TS__ArrayMap( -- 211
+				value.paths, -- 211
+				function(____, item) return type(item) == "string" and __TS__StringTrim(item) or "" end -- 211
+			) -- 211
+			if #arrayPaths < 1 or __TS__ArraySome( -- 211
+				arrayPaths, -- 212
+				function(____, path) return path == "" end -- 212
+			) then -- 212
+				return {success = false, message = "build paths must contain non-empty paths"} -- 213
+			end -- 213
+			do -- 213
+				local i = 0 -- 215
+				while i < #arrayPaths do -- 215
+					paths[#paths + 1] = arrayPaths[i + 1] -- 215
+					i = i + 1 -- 215
+				end -- 215
+			end -- 215
+		end -- 215
+		value.path = nil -- 217
+		value.paths = paths -- 218
+		return {success = true, value = value} -- 219
+	end -- 219
+	if tool == "fetch_url" then -- 219
+		local url = type(value.url) == "string" and __TS__StringTrim(value.url) or "" -- 222
+		local target = type(value.target) == "string" and __TS__StringTrim(value.target) or "" -- 223
+		if url == "" then -- 223
+			return {success = false, message = "fetch_url requires url"} -- 224
 		end -- 224
-		value.url = url -- 225
-		value.target = target -- 226
-		return {success = true, value = value} -- 227
-	end -- 227
-	if tool == "analyze_image" then -- 227
-		local function imageExt(path) -- 230
-			local ext = string.lower(Path:getExt(path)) -- 231
-			return ext == "png" or ext == "jpg" or ext == "jpeg" -- 232
-		end -- 230
-		if not __TS__ArrayIsArray(value.paths) or #value.paths < 1 or #value.paths > 3 or __TS__ArraySome( -- 230
-			value.paths, -- 234
-			function(____, item) return type(item) ~= "string" or __TS__StringTrim(item) == "" or not isValidWorkspacePath(__TS__StringTrim(item)) or not imageExt(__TS__StringTrim(item)) end -- 234
-		) then -- 234
-			return {success = false, message = "analyze_image requires 1–3 project-relative PNG/JPEG image paths"} -- 235
-		end -- 235
-		value.paths = __TS__ArrayMap( -- 237
-			value.paths, -- 237
-			function(____, item) return __TS__StringTrim(item) end -- 237
-		) -- 237
-		for ____, name in ipairs({"question", "criteria", "context"}) do -- 238
-			do -- 238
-				local text = value[name] -- 239
-				if (name == "criteria" or name == "context") and text == nil then -- 239
-					goto __continue76 -- 240
-				end -- 240
-				if type(text) ~= "string" or name == "question" and __TS__StringTrim(text) == "" then -- 240
-					return {success = false, message = name .. " must be valid text"} -- 241
+		if target == "" then -- 224
+			return {success = false, message = "fetch_url requires target"} -- 225
+		end -- 225
+		value.url = url -- 226
+		value.target = target -- 227
+		return {success = true, value = value} -- 228
+	end -- 228
+	if tool == "analyze_image" then -- 228
+		local function imageExt(path) -- 231
+			local ext = string.lower(Path:getExt(path)) -- 232
+			return ext == "png" or ext == "jpg" or ext == "jpeg" -- 233
+		end -- 231
+		if not __TS__ArrayIsArray(value.paths) or #value.paths < 1 or #value.paths > 3 or __TS__ArraySome( -- 231
+			value.paths, -- 235
+			function(____, item) return type(item) ~= "string" or __TS__StringTrim(item) == "" or not isValidWorkspacePath(__TS__StringTrim(item)) or not imageExt(__TS__StringTrim(item)) end -- 235
+		) then -- 235
+			return {success = false, message = "analyze_image requires 1–3 project-relative PNG/JPEG image paths"} -- 236
+		end -- 236
+		value.paths = __TS__ArrayMap( -- 238
+			value.paths, -- 238
+			function(____, item) return __TS__StringTrim(item) end -- 238
+		) -- 238
+		for ____, name in ipairs({"question", "criteria", "context"}) do -- 239
+			do -- 239
+				local text = value[name] -- 240
+				if (name == "criteria" or name == "context") and text == nil then -- 240
+					goto __continue77 -- 241
 				end -- 241
-				local length = utf8.len(text) -- 242
-				if length == nil or length > 4000 then -- 242
-					return {success = false, message = name .. " must contain at most 4000 Unicode characters"} -- 243
-				end -- 243
-			end -- 243
-			::__continue76:: -- 243
-		end -- 243
-		return {success = true, value = value} -- 245
-	end -- 245
-	if tool == "execute_command" then -- 245
-		local mode = type(value.mode) == "string" and __TS__StringTrim(value.mode) or "" -- 248
-		if mode ~= "lua" and mode ~= "git" then -- 248
-			return {success = false, message = "execute_command requires mode: lua or git"} -- 249
-		end -- 249
-		value.mode = mode -- 250
-		if mode == "lua" then -- 250
-			local code = type(value.code) == "string" and value.code or "" -- 252
-			if __TS__StringTrim(code) == "" then -- 252
-				return {success = false, message = "execute_command lua mode requires code"} -- 253
-			end -- 253
-			value.code = code -- 254
-		else -- 254
-			local command = type(value.command) == "string" and __TS__StringTrim(value.command) or "" -- 256
-			if command == "" then -- 256
-				return {success = false, message = "execute_command git mode requires command"} -- 257
-			end -- 257
-			value.command = command -- 258
-			if type(value.cwd) == "string" then -- 258
-				value.cwd = __TS__StringTrim(value.cwd) -- 259
-			end -- 259
-		end -- 259
-		value.timeoutSeconds = clampInteger(value.timeoutSeconds, mode == "lua" and 30 or 600, 1, mode == "lua" and 600 or 1800) -- 261
-		return {success = true, value = value} -- 262
-	end -- 262
-	if tool == "list_sub_agents" then -- 262
-		if type(value.status) == "string" and __TS__StringTrim(value.status) ~= "" then -- 262
-			value.status = __TS__StringTrim(value.status) -- 265
-		end -- 265
-		value.limit = clampInteger(value.limit, 5, 1) -- 266
-		value.offset = clampInteger(value.offset, 0, 0) -- 267
-		if type(value.query) == "string" then -- 267
-			value.query = __TS__StringTrim(value.query) -- 268
-		end -- 268
-		return {success = true, value = value} -- 269
-	end -- 269
-	if tool == "spawn_sub_agent" then -- 269
-		local prompt = type(value.prompt) == "string" and __TS__StringTrim(value.prompt) or "" -- 272
-		local title = type(value.title) == "string" and __TS__StringTrim(value.title) or "" -- 273
-		if prompt == "" then -- 273
-			return {success = false, message = "spawn_sub_agent requires prompt"} -- 274
-		end -- 274
-		if title == "" then -- 274
-			return {success = false, message = "spawn_sub_agent requires title"} -- 275
-		end -- 275
-		value.prompt = prompt -- 276
-		value.title = title -- 277
-		if type(value.expectedOutput) == "string" then -- 277
-			value.expectedOutput = __TS__StringTrim(value.expectedOutput) -- 278
-		end -- 278
-		if __TS__ArrayIsArray(value.filesHint) then -- 278
-			value.filesHint = __TS__ArrayMap( -- 280
-				__TS__ArrayFilter( -- 280
-					value.filesHint, -- 280
-					function(____, item) return type(item) == "string" end -- 280
-				), -- 280
-				function(____, item) return AgentUtils.sanitizeUTF8(item) end -- 280
-			) -- 280
-		end -- 280
-		return {success = true, value = value} -- 282
-	end -- 282
-	return {success = true, value = value} -- 284
+				if type(text) ~= "string" or name == "question" and __TS__StringTrim(text) == "" then -- 241
+					return {success = false, message = name .. " must be valid text"} -- 242
+				end -- 242
+				local length = utf8.len(text) -- 243
+				if length == nil or length > 4000 then -- 243
+					return {success = false, message = name .. " must contain at most 4000 Unicode characters"} -- 244
+				end -- 244
+			end -- 244
+			::__continue77:: -- 244
+		end -- 244
+		return {success = true, value = value} -- 246
+	end -- 246
+	if tool == "execute_command" then -- 246
+		local mode = type(value.mode) == "string" and __TS__StringTrim(value.mode) or "" -- 249
+		if mode ~= "lua" and mode ~= "git" then -- 249
+			return {success = false, message = "execute_command requires mode: lua or git"} -- 250
+		end -- 250
+		value.mode = mode -- 251
+		if mode == "lua" then -- 251
+			local code = type(value.code) == "string" and value.code or "" -- 253
+			if __TS__StringTrim(code) == "" then -- 253
+				return {success = false, message = "execute_command lua mode requires code"} -- 254
+			end -- 254
+			value.code = code -- 255
+		else -- 255
+			local command = type(value.command) == "string" and __TS__StringTrim(value.command) or "" -- 257
+			if command == "" then -- 257
+				return {success = false, message = "execute_command git mode requires command"} -- 258
+			end -- 258
+			value.command = command -- 259
+			if type(value.cwd) == "string" then -- 259
+				value.cwd = __TS__StringTrim(value.cwd) -- 260
+			end -- 260
+		end -- 260
+		value.timeoutSeconds = clampInteger(value.timeoutSeconds, mode == "lua" and 30 or 600, 1, mode == "lua" and 600 or 1800) -- 262
+		return {success = true, value = value} -- 263
+	end -- 263
+	if tool == "spawn_agent" then -- 263
+		local prompt = type(value.prompt) == "string" and __TS__StringTrim(value.prompt) or "" -- 266
+		if prompt ~= "" then -- 266
+			if value.status ~= nil or value.limit ~= nil or value.offset ~= nil or value.query ~= nil then -- 266
+				return {success = false, message = "spawn_agent spawn form cannot combine the list filters (status/limit/offset/query)"} -- 270
+			end -- 270
+			local title = type(value.title) == "string" and __TS__StringTrim(value.title) or "" -- 272
+			if title == "" then -- 272
+				return {success = false, message = "spawn_agent spawn form requires title"} -- 273
+			end -- 273
+			value.prompt = prompt -- 274
+			value.title = title -- 275
+			if type(value.expectedOutput) == "string" then -- 275
+				value.expectedOutput = __TS__StringTrim(value.expectedOutput) -- 276
+			end -- 276
+			if __TS__ArrayIsArray(value.filesHint) then -- 276
+				value.filesHint = __TS__ArrayMap( -- 278
+					__TS__ArrayFilter( -- 278
+						value.filesHint, -- 278
+						function(____, item) return type(item) == "string" end -- 278
+					), -- 278
+					function(____, item) return AgentUtils.sanitizeUTF8(item) end -- 278
+				) -- 278
+			end -- 278
+		else -- 278
+			if value.title ~= nil or value.expectedOutput ~= nil or value.filesHint ~= nil then -- 278
+				return {success = false, message = "spawn_agent list form cannot carry spawn fields (title/expectedOutput/filesHint)"} -- 283
+			end -- 283
+			value.prompt = nil -- 285
+			value.title = nil -- 286
+			if type(value.status) == "string" and __TS__StringTrim(value.status) ~= "" then -- 286
+				value.status = __TS__StringTrim(value.status) -- 287
+			end -- 287
+			value.limit = clampInteger(value.limit, 5, 1) -- 288
+			value.offset = clampInteger(value.offset, 0, 0) -- 289
+			if type(value.query) == "string" then -- 289
+				value.query = __TS__StringTrim(value.query) -- 290
+			end -- 290
+		end -- 290
+		return {success = true, value = value} -- 292
+	end -- 292
+	return {success = true, value = value} -- 294
 end -- 91
-____exports.AGENT_TOOL_VALIDATORS = { -- 287
-	read_file = function(value) return ____exports.validateAgentToolInput("read_file", value) end, -- 288
-	edit_file = function(value) return ____exports.validateAgentToolInput("edit_file", value) end, -- 289
-	delete_file = function(value) return ____exports.validateAgentToolInput("delete_file", value) end, -- 290
-	grep_files = function(value) return ____exports.validateAgentToolInput("grep_files", value) end, -- 291
-	search_dora_doc = function(value) return ____exports.validateAgentToolInput("search_dora_doc", value) end, -- 292
-	glob_files = function(value) return ____exports.validateAgentToolInput("glob_files", value) end, -- 293
-	build = function(value) return ____exports.validateAgentToolInput("build", value) end, -- 294
-	fetch_url = function(value) return ____exports.validateAgentToolInput("fetch_url", value) end, -- 295
-	analyze_image = function(value) return ____exports.validateAgentToolInput("analyze_image", value) end, -- 296
-	execute_command = function(value) return ____exports.validateAgentToolInput("execute_command", value) end, -- 297
-	list_sub_agents = function(value) return ____exports.validateAgentToolInput("list_sub_agents", value) end, -- 298
-	spawn_sub_agent = function(value) return ____exports.validateAgentToolInput("spawn_sub_agent", value) end, -- 299
-	ask_user = function(value) return ____exports.validateAgentToolInput("ask_user", value) end, -- 300
-	finish = function(value) return ____exports.validateAgentToolInput("finish", value) end -- 301
-} -- 301
-return ____exports -- 301
+____exports.AGENT_TOOL_VALIDATORS = { -- 297
+	read_file = function(value) return ____exports.validateAgentToolInput("read_file", value) end, -- 298
+	edit_file = function(value) return ____exports.validateAgentToolInput("edit_file", value) end, -- 299
+	grep_files = function(value) return ____exports.validateAgentToolInput("grep_files", value) end, -- 300
+	search_dora_doc = function(value) return ____exports.validateAgentToolInput("search_dora_doc", value) end, -- 301
+	build = function(value) return ____exports.validateAgentToolInput("build", value) end, -- 302
+	fetch_url = function(value) return ____exports.validateAgentToolInput("fetch_url", value) end, -- 303
+	analyze_image = function(value) return ____exports.validateAgentToolInput("analyze_image", value) end, -- 304
+	execute_command = function(value) return ____exports.validateAgentToolInput("execute_command", value) end, -- 305
+	spawn_agent = function(value) return ____exports.validateAgentToolInput("spawn_agent", value) end, -- 306
+	ask_user = function(value) return ____exports.validateAgentToolInput("ask_user", value) end, -- 307
+	finish = function(value) return ____exports.validateAgentToolInput("finish", value) end -- 308
+} -- 308
+return ____exports -- 308

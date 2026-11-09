@@ -496,7 +496,7 @@ local function projectToolResultContentForLLM(tool, content) -- 449
 		return truncateHistoryText(content, AgentConfig.AGENT_LIMITS.llmHistoryToolResultMaxChars, tool .. " result") -- 452
 	end -- 452
 	local projected = decoded -- 458
-	if tool == "edit_file" or tool == "delete_file" then -- 458
+	if tool == "edit_file" then -- 458
 		projected = projectEditResultForLLM(decoded) -- 460
 	elseif tool == "build" then -- 460
 		projected = projectBuildResultForLLM(decoded) -- 462

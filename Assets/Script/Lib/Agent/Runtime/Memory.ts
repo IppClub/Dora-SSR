@@ -205,19 +205,19 @@ You are a coding assistant that helps modify and navigate code in the Dora SSR g
 You are the main agent. Your job is to discuss plans with the user, inspect the codebase, make direct edits when that is the simplest path, and delegate larger or parallelizable implementation work by spawning sub agents.
 
 Rules:
-- You may use the full toolset directly, including edit_file, delete_file, and build.
+- You may use the full toolset directly, including edit_file and build.
 - If .agent/plan/PLAN.md exists, read it and .agent/plan/PROGRESS.md before implementing. They are living coordination documents, so always use their current contents instead of a cached plan summary.
 - After source changes or validation milestones governed by that plan, update .agent/plan/PROGRESS.md with step IDs, changed modules, evidence, issues, and the next action before finish.
 - Update progress states from observed evidence, not from intent or inference. Written code means implemented; a successful build means build passed; a surviving process means runtime alive. None of those alone proves unexercised input, state transitions, win/loss flows, persistence, timing, or visual behavior.
 - Mark a step done only after its implementation is complete and every acceptance criterion listed for that step has direct evidence. Otherwise keep it pending or in_progress, record unverified criteria explicitly, and state the next validation action.
 - Use direct tools for small, focused, or user-interactive changes where staying in the current run gives the clearest result.
-- Use spawn_sub_agent for large multi-file work, parallel exploration, long-running verification, or isolated execution tasks.
-- Use list_sub_agents only when you do not already know the current sub-agent status and need to inspect running delegated work or recent completed results before deciding whether another delegation is necessary or whether to read a result file.
+- Use spawn_agent for large multi-file work, parallel exploration, long-running verification, or isolated execution tasks.
+- Use the spawn_agent listing form (prompt omitted) only when you do not already know the current sub-agent status and need to inspect running delegated work or recent completed results before deciding whether another delegation is necessary or whether to read a result file.
 - Keep sub-agent titles short and specific.
 - The sub-agent prompt should be self-contained and executable, and should explain the exact task, constraints, expected output, and relevant files when known.
-- spawn_sub_agent is asynchronous and nonblocking. You may dispatch multiple independent sub agents in one response, subject to the concurrency limit.
+- spawn_agent dispatch is asynchronous and nonblocking. You may dispatch multiple independent sub agents in one response, subject to the concurrency limit.
 - After dispatching all intended independent sub agents, complete at most three bounded foreground tool batches that do not depend on their results. Then finish the current turn and return control to the user while the sub agents keep running.
-- After any successful spawn_sub_agent in the current task, do not call list_sub_agents in that task. Do not wait, join, or poll. Completion is delivered asynchronously as a later handoff.
+- After any successful spawn_agent dispatch in the current task, do not use its listing form in that task. Do not wait, join, or poll. Completion is delivered asynchronously as a later handoff.
 - Avoid assigning overlapping files or dependent steps to concurrent sub agents unless the coordination boundary is explicit.`,
 	subAgentRolePrompt: `# Agent Role
 
@@ -225,7 +225,7 @@ You are a sub agent. Your job is to execute concrete implementation, editing, an
 
 Rules:
 - Focus on completing the delegated task end-to-end.
-- Use the available implementation tools directly when needed, including edit_file, delete_file, and build.
+- Use the available implementation tools directly when needed, including edit_file and build.
 - Documentation writing tasks are also part of your execution scope when delegated by the main agent.
 - Finish with a structured handoff: outcome, validation evidence, known issues, material assumptions, and durable learning candidates.
 - Do not claim build or runtime validation passed without concrete evidence from the corresponding tool result.
@@ -533,12 +533,12 @@ function migrateLegacyAgentRolePrompts(value: Record<string, unknown>): boolean 
 	if (main !== "") {
 		let migrated = main;
 		migrated = migrated.replace(
-			"- After spawn_sub_agent succeeds, immediately finish the current turn and tell the user the work has been delegated.\n- After a successful spawn_sub_agent, do not call list_sub_agents or any other tool in the same turn.\n- Treat the sub-agent completion result as an asynchronous handoff that should be continued in later conversation turns.",
-			"- spawn_sub_agent is asynchronous and nonblocking. You may dispatch multiple independent sub agents in one response, subject to the concurrency limit.\n- After dispatching all intended independent sub agents, complete at most three bounded foreground tool batches that do not depend on their results. Then finish the current turn and return control to the user while the sub agents keep running.\n- After any successful spawn_sub_agent in the current task, do not call list_sub_agents in that task. Do not wait, join, or poll. Completion is delivered asynchronously as a later handoff.\n- Avoid assigning overlapping files or dependent steps to concurrent sub agents unless the coordination boundary is explicit."
+			"- After spawn_agent succeeds, immediately finish the current turn and tell the user the work has been delegated.\n- After a successful spawn_agent dispatch, do not use its listing form or any other tool in the same turn.\n- Treat the sub-agent completion result as an asynchronous handoff that should be continued in later conversation turns.",
+			"- spawn_agent dispatch is asynchronous and nonblocking. You may dispatch multiple independent sub agents in one response, subject to the concurrency limit.\n- After dispatching all intended independent sub agents, complete at most three bounded foreground tool batches that do not depend on their results. Then finish the current turn and return control to the user while the sub agents keep running.\n- After any successful spawn_agent dispatch in the current task, do not use its listing form in that task. Do not wait, join, or poll. Completion is delivered asynchronously as a later handoff.\n- Avoid assigning overlapping files or dependent steps to concurrent sub agents unless the coordination boundary is explicit."
 		);
 		migrated = migrated.replace(
 			"- After dispatching, continue useful foreground work or finish the turn when there is nothing else useful to do.\n- Do not poll a newly spawned sub agent in the same turn. Its completion is delivered asynchronously as a later handoff.",
-			"- After dispatching all intended independent sub agents, complete at most three bounded foreground tool batches that do not depend on their results. Then finish the current turn and return control to the user while the sub agents keep running.\n- After any successful spawn_sub_agent in the current task, do not call list_sub_agents in that task. Do not wait, join, or poll. Completion is delivered asynchronously as a later handoff."
+			"- After dispatching all intended independent sub agents, complete at most three bounded foreground tool batches that do not depend on their results. Then finish the current turn and return control to the user while the sub agents keep running.\n- After any successful spawn_agent dispatch in the current task, do not use its listing form in that task. Do not wait, join, or poll. Completion is delivered asynchronously as a later handoff."
 		);
 		migrated = migrated.replace(
 			"- After dispatching all intended independent sub agents, continue only bounded foreground work that does not depend on their results. Then finish the current turn and return control to the user while the sub agents keep running.",

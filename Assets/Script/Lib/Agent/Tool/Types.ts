@@ -9,16 +9,13 @@ export type AgentWorkMode = "code" | "plan";
 export type AgentToolName =
 	| "read_file"
 	| "edit_file"
-	| "delete_file"
 	| "grep_files"
 	| "search_dora_doc"
-	| "glob_files"
 	| "build"
 	| "fetch_url"
 	| "execute_command"
 	| "analyze_image"
-	| "list_sub_agents"
-	| "spawn_sub_agent"
+	| "spawn_agent"
 	| "ask_user"
 	| "finish";
 
@@ -182,7 +179,7 @@ export interface AgentToolWorkflowState {
 	freshProjectBuildPending?: boolean;
 	/** The only short code file found when freshProjectBuildPending was detected. */
 	freshProjectCodeFile?: string;
-	/** A successful spawn makes list_sub_agents a discouraged polling path for this task. */
+	/** A successful spawn makes the spawn_agent list form a discouraged polling path for this task. */
 	hasSpawnedSubAgentThisTask?: boolean;
 	/** Number of foreground tool batches completed after the first successful spawn. */
 	delegatedForegroundBatches?: number;

@@ -68,11 +68,22 @@ const readFile: AgentToolHandler = async (context, input) => {
 };
 
 const grepFiles: AgentToolHandler = async (context, input) => {
+	const pattern = typeof input.pattern === "string" ? input.pattern.trim() : "";
+	if (pattern === "") {
+		// Enumeration mode (merged glob_files): no content pattern, list by globs/path.
+		const listed = Tools.listFiles({
+			workDir: context.workingDir,
+			path: (input.path as string) ?? "",
+			globs: input.globs as string[] | undefined,
+			maxEntries: math.max(1, math.floor(Number(input.maxEntries ?? AgentConfig.AGENT_LIMITS.listFilesMaxEntriesDefault))), preferSourceVariants: false,
+		});
+		return { output: listed as unknown as Record<string, unknown> };
+	}
 	const output = await Tools.searchFiles({
 		workDir: context.workingDir,
 		path: (input.path as string) ?? "",
 		docLanguage: context.useChineseResponse ? "zh" : "en",
-		pattern: (input.pattern as string) ?? "",
+		pattern,
 		globs: input.globs as string[] | undefined,
 		useRegex: input.useRegex as boolean | undefined,
 		caseSensitive: input.caseSensitive as boolean | undefined,
@@ -81,16 +92,6 @@ const grepFiles: AgentToolHandler = async (context, input) => {
 		limit: math.max(1, math.floor(Number(input.limit ?? AgentConfig.AGENT_LIMITS.searchFilesLimitDefault))),
 		offset: math.max(0, math.floor(Number(input.offset ?? 0))),
 		groupByFile: input.groupByFile === true,
-	});
-	return { output: output as unknown as Record<string, unknown> };
-};
-
-const globFiles: AgentToolHandler = async (context, input) => {
-	const output = Tools.listFiles({
-		workDir: context.workingDir,
-		path: (input.path as string) ?? "",
-		globs: input.globs as string[] | undefined,
-		maxEntries: math.max(1, math.floor(Number(input.maxEntries ?? AgentConfig.AGENT_LIMITS.listFilesMaxEntriesDefault))), preferSourceVariants: false,
 	});
 	return { output: output as unknown as Record<string, unknown> };
 };
@@ -288,6 +289,41 @@ interface BatchEditOperationResult {
 }
 
 const editFile: AgentToolHandler = async (context, input) => {
+	if (input.delete === true) {
+		// Unified write tool: explicit single-file delete form (merged delete_file).
+		const targetFile = typeof input.path === "string" ? input.path : "";
+		if (targetFile.trim() === "") return { output: { success: false, message: "delete requires path" } };
+		const normalizedTargetFile = AgentRuntimePolicy.normalizeAgentPath(targetFile);
+		const isInternalDocumentEdit = AgentRuntimePolicy.isAgentInternalDocumentPath(normalizedTargetFile);
+		const result = Tools.deleteFile(context.taskId, context.workingDir, targetFile, {
+			summary: `edit_file delete: ${targetFile}`,
+			toolName: "edit_file",
+		});
+		if (!result.success) return { output: result as unknown as Record<string, unknown> };
+		if (!isInternalDocumentEdit) {
+			context.workflow.unbuiltEdits = true;
+			context.workflow.lastBuildSucceeded = false;
+			if (context.workflow.failedTestNeedsBuild === true) context.workflow.failedTestHasSourceEdit = true;
+			const editedPaths = context.workflow.editedPathsSinceBuild ?? [];
+			if (editedPaths.indexOf(normalizedTargetFile) < 0) editedPaths.push(normalizedTargetFile);
+			context.workflow.editedPathsSinceBuild = editedPaths;
+			context.workflow.editsSinceBuild = (context.workflow.editsSinceBuild ?? 0) + 1;
+		}
+		return {
+			output: {
+				success: true,
+				changed: true,
+				mode: "delete",
+				checkpointed: result.checkpointed,
+				reversible: result.reversible,
+				binary: result.binary,
+				checkpointId: result.checkpointed ? result.checkpointId : undefined,
+				checkpointSeq: result.checkpointed ? result.checkpointSeq : undefined,
+				message: result.checkpointed ? undefined : result.message,
+				files: [{ path: targetFile, op: "delete" as const }],
+			},
+		};
+	}
 	const operations = getAgentFileEditInputs(input);
 	const isBatch = Array.isArray(input.edits);
 	if (operations.length === 0) return { output: { success: false, message: "missing edit operations" } };
@@ -474,41 +510,6 @@ const editFile: AgentToolHandler = async (context, input) => {
 	return { output };
 };
 
-const deleteFile: AgentToolHandler = async (context, input) => {
-	const targetFile = typeof input.target_file === "string" ? input.target_file : "";
-	if (targetFile.trim() === "") return { output: { success: false, message: "missing target_file" } };
-	const normalizedTargetFile = AgentRuntimePolicy.normalizeAgentPath(targetFile);
-	const isInternalDocumentEdit = AgentRuntimePolicy.isAgentInternalDocumentPath(normalizedTargetFile);
-	const result = Tools.deleteFile(context.taskId, context.workingDir, targetFile, {
-		summary: `delete_file: ${targetFile}`,
-		toolName: "delete_file",
-	});
-	if (!result.success) return { output: result as unknown as Record<string, unknown> };
-	if (!isInternalDocumentEdit) {
-		context.workflow.unbuiltEdits = true;
-		context.workflow.lastBuildSucceeded = false;
-		if (context.workflow.failedTestNeedsBuild === true) context.workflow.failedTestHasSourceEdit = true;
-		const editedPaths = context.workflow.editedPathsSinceBuild ?? [];
-		if (editedPaths.indexOf(normalizedTargetFile) < 0) editedPaths.push(normalizedTargetFile);
-		context.workflow.editedPathsSinceBuild = editedPaths;
-		context.workflow.editsSinceBuild = (context.workflow.editsSinceBuild ?? 0) + 1;
-	}
-	return {
-		output: {
-			success: true,
-			changed: true,
-			mode: "delete",
-			checkpointed: result.checkpointed,
-			reversible: result.reversible,
-			binary: result.binary,
-			checkpointId: result.checkpointed ? result.checkpointId : undefined,
-			checkpointSeq: result.checkpointed ? result.checkpointSeq : undefined,
-			message: result.checkpointed ? undefined : result.message,
-			files: [{ path: targetFile, op: "delete" as const }],
-		},
-	};
-};
-
 const askUser: AgentToolHandler = async (context, input) => {
 	if (context.services.publishQuestionnaire === undefined) {
 		return { output: { success: false, message: "ask_user is not available in this runtime" } };
@@ -532,12 +533,35 @@ const askUser: AgentToolHandler = async (context, input) => {
 	};
 };
 
-const spawnSubAgent: AgentToolHandler = async (context, input) => {
+const spawnAgent: AgentToolHandler = async (context, input) => {
+	const prompt = typeof input.prompt === "string" ? input.prompt.trim() : "";
+	if (prompt === "") {
+		// List form (merged list_sub_agents).
+		if (context.workflow.hasSpawnedSubAgentThisTask === true) {
+			return { output: { success: false, message: "Sub-agent results arrive asynchronously as handoffs; listing is rejected for the rest of this task after a successful spawn. Finish this turn instead." } };
+		}
+		if (context.services.listSubAgents === undefined) {
+			return { output: { success: false, message: "spawn_agent listing is not available in this runtime" } };
+		}
+		if (context.sessionId === undefined || context.sessionId <= 0) {
+			return { output: { success: false, message: "spawn_agent listing requires a current session" } };
+		}
+		const result = await context.services.listSubAgents({
+			sessionId: context.sessionId,
+			projectRoot: context.workingDir,
+			status: typeof input.status === "string" ? input.status : undefined,
+			limit: typeof input.limit === "number" ? input.limit : undefined,
+			offset: typeof input.offset === "number" ? input.offset : undefined,
+			query: typeof input.query === "string" ? input.query : undefined,
+		});
+		return { output: result as unknown as Record<string, unknown> };
+	}
+	// Spawn form (merged spawn_sub_agent).
 	if (context.services.spawnSubAgent === undefined) {
-		return { output: { success: false, message: "spawn_sub_agent is not available in this runtime" } };
+		return { output: { success: false, message: "spawn_agent dispatch is not available in this runtime" } };
 	}
 	if (context.sessionId === undefined || context.sessionId <= 0) {
-		return { output: { success: false, message: "spawn_sub_agent requires a parent session" } };
+		return { output: { success: false, message: "spawn_agent dispatch requires a parent session" } };
 	}
 	const filesHint = Array.isArray(input.filesHint)
 		? (input.filesHint as unknown[]).filter(item => typeof item === "string") as string[]
@@ -546,7 +570,7 @@ const spawnSubAgent: AgentToolHandler = async (context, input) => {
 		parentSessionId: context.sessionId,
 		projectRoot: context.workingDir,
 		title: typeof input.title === "string" ? input.title : "Sub",
-		prompt: typeof input.prompt === "string" ? input.prompt : "",
+		prompt,
 		expectedOutput: typeof input.expectedOutput === "string" ? input.expectedOutput : undefined,
 		filesHint,
 		disabledAgentTools: context.disabledAgentTools,
@@ -559,28 +583,10 @@ const spawnSubAgent: AgentToolHandler = async (context, input) => {
 			sessionId: result.sessionId,
 			taskId: result.taskId,
 			title: result.title,
-			hint: "Dispatch any other intended independent sub-agents, do only bounded foreground work that does not depend on them, then finish this turn. Do not call list_sub_agents; results arrive as asynchronous handoffs.",
+			hint: "Dispatch any other intended independent sub-agents, do only bounded foreground work that does not depend on them, then finish this turn. Do not use the listing form in this task; results arrive as asynchronous handoffs.",
 		},
 		control: { spawnedSubAgent: true },
 	};
-};
-
-const listSubAgents: AgentToolHandler = async (context, input) => {
-	if (context.services.listSubAgents === undefined) {
-		return { output: { success: false, message: "list_sub_agents is not available in this runtime" } };
-	}
-	if (context.sessionId === undefined || context.sessionId <= 0) {
-		return { output: { success: false, message: "list_sub_agents requires a current session" } };
-	}
-	const result = await context.services.listSubAgents({
-		sessionId: context.sessionId,
-		projectRoot: context.workingDir,
-		status: typeof input.status === "string" ? input.status : undefined,
-		limit: typeof input.limit === "number" ? input.limit : undefined,
-		offset: typeof input.offset === "number" ? input.offset : undefined,
-		query: typeof input.query === "string" ? input.query : undefined,
-	});
-	return { output: result as unknown as Record<string, unknown> };
 };
 
 const finish: AgentToolHandler = async (_context, input) => {
@@ -616,16 +622,13 @@ const analyzeImageHandler: AgentToolHandler = async (context, input) => {
 export const AGENT_TOOL_HANDLERS: Partial<Record<AgentToolName, AgentToolHandler>> = {
 	read_file: readFile,
 	grep_files: grepFiles,
-	glob_files: globFiles,
 	search_dora_doc: searchDoraDoc,
 	build,
 	fetch_url: fetchUrl,
 	execute_command: executeCommand,
 	analyze_image: analyzeImageHandler,
 	edit_file: editFile,
-	delete_file: deleteFile,
 	ask_user: askUser,
-	spawn_sub_agent: spawnSubAgent,
-	list_sub_agents: listSubAgents,
+	spawn_agent: spawnAgent,
 	finish,
 };

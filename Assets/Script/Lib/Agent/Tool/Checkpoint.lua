@@ -540,12 +540,12 @@ function ____exports.applyFileChanges(taskId, workDir, changes, options) -- 556
 				return {success = false, message = "invalid path: " .. change.path} -- 592
 			end -- 592
 			if change.op == "delete" and Content:exist(fullPath) and Content:isdir(fullPath) then -- 592
-				return {success = false, message = "delete_file only supports files, not directories: " .. change.path} -- 595
+				return {success = false, message = "edit_file delete only supports files, not directories: " .. change.path} -- 595
 			end -- 595
 			if Content:exist(fullPath) and not Content:isdir(fullPath) then -- 595
 				local ____, isBinary = Content:getAttr(fullPath) -- 598
 				if isBinary == true then -- 598
-					return {success = false, message = change.op == "delete" and "binary file deletion must use delete_file: " .. change.path or "binary files cannot be edited with text checkpoints: " .. change.path} -- 600
+					return {success = false, message = change.op == "delete" and "binary file deletion must use the edit_file delete form: " .. change.path or "binary files cannot be edited with text checkpoints: " .. change.path} -- 600
 				end -- 600
 			end -- 600
 			local before = getFileState(fullPath) -- 608
@@ -679,7 +679,7 @@ function ____exports.deleteFile(taskId, workDir, targetFile, options) -- 698
 		return {success = false, message = "invalid path: " .. targetFile} -- 712
 	end -- 712
 	if Content:exist(fullPath) and Content:isdir(fullPath) then -- 712
-		return {success = false, message = "delete_file only supports files, not directories: " .. targetFile} -- 715
+		return {success = false, message = "edit_file delete only supports files, not directories: " .. targetFile} -- 715
 	end -- 715
 	local isBinary = false -- 718
 	if Content:exist(fullPath) then -- 718
