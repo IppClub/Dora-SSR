@@ -10,7 +10,7 @@ import * as Tools from 'Agent/Tools';
 import { MemoryCompressor } from 'Agent/Runtime/Memory';
 import type { AgentPromptPack, AgentConversationMessage } from 'Agent/Runtime/Memory';
 import * as AgentToolRegistry from 'Agent/Tool/Registry';
-import type { AgentDecisionMode, AgentRole, AgentToolName, AgentWorkMode } from 'Agent/Tool/Registry';
+import type { AgentRole, AgentToolName, AgentWorkMode } from 'Agent/Tool/Registry';
 import * as AgentSkills from 'Agent/Runtime/Skills';
 import * as AgentConfig from 'Agent/Config/Defaults';
 import * as AgentRuntimePolicy from 'Agent/Runtime/Policy';
@@ -43,8 +43,6 @@ import {
 	sanitizeMessagesForLLMInput,
 } from 'Agent/Runtime/HistoryProjection';
 import {
-	parseXMLToolCallObjectFromText,
-	parseDecisionObject,
 	parseDecisionToolCall,
 	parseToolCallArguments,
 	getDecisionPath,
@@ -54,8 +52,6 @@ import {
 	isDecisionLoopContinue,
 	isDecisionPlainTextCompletion,
 	classifyToolCallingTurnWithoutCalls,
-	parseMainXMLCompletion,
-	preservesXMLRepairTool,
 } from 'Agent/Runtime/DecisionParsing';
 import type {
 	DecisionSuccess,
@@ -119,7 +115,6 @@ export interface CodingAgentRunOptions {
 	useChineseResponse?: boolean;
 	taskId?: number;
 	maxSteps?: number;
-	decisionMode?: "tool_calling" | "xml";
 	workMode?: AgentWorkMode;
 	llmMaxTry?: number;
 	llmOptions?: Record<string, unknown>;
@@ -193,7 +188,7 @@ export interface CodingAgentRunOptions {
 }
 
 type AgentPromptCommand = "compact" | "clear";
-export type { AgentDecisionMode, AgentRole, AgentToolName, AgentWorkMode };
+export type { AgentRole, AgentToolName, AgentWorkMode };
 
 export type AgentStepToolName = AgentToolName | "compress_memory";
 
@@ -428,7 +423,6 @@ interface AgentShared {
 	userQuery: string;
 	workingDir: string;
 	useChineseResponse: boolean;
-	decisionMode: AgentDecisionMode;
 	workMode: AgentWorkMode;
 	llmOptions: Record<string, unknown>;
 	llmConfig: LLMConfig;
@@ -762,38 +756,6 @@ export function getDecisionDisabledAgentTools(shared: AgentShared): AgentToolNam
 	return shared.disabledAgentTools.slice();
 }
 
-function getDecisionToolDefinitions(shared: AgentShared): string {
-	const params = { SEARCH_DORA_DOC_LIMIT_MAX: tostring(AgentConfig.AGENT_LIMITS.searchDoraDocLimitMax) };
-	const usesDefaultToolPrompts = shared.promptPack.toolDefinitionsDetailed === AgentToolRegistry.AGENT_TOOL_DEFINITIONS_DETAILED
-		&& shared.promptPack.mainAgentToolDefinitionsDetailed === AgentToolRegistry.MAIN_AGENT_TOOL_DEFINITIONS_DETAILED
-		&& shared.promptPack.xmlToolDefinitionsDetailed === AgentToolRegistry.XML_TOOL_DEFINITIONS_DETAILED;
-	const base = shared.promptPack.toolDefinitionsDetailed;
-	const mainAgentTools = shared.role === "main" ?
-		shared.promptPack.mainAgentToolDefinitionsDetailed : "";
-	if (usesDefaultToolPrompts) {
-		const definitions = AgentToolRegistry.buildRoleToolDefinitionsDetailed(shared.role, {
-			includeFinish: true,
-			includeXmlRules: true,
-			context: { searchDoraDocLimitMax: AgentConfig.AGENT_LIMITS.searchDoraDocLimitMax },
-			disabledAgentTools: getDecisionDisabledAgentTools(shared),
-			workMode: shared.workMode,
-		});
-		return replacePromptVars(definitions, params);
-	}
-	const withRole = replacePromptVars(
-		`${base}${mainAgentTools}`,
-		params
-	);
-	if (shared?.decisionMode !== "xml") {
-		return withRole;
-	}
-	const xmlToolDefinitionsDetailed = shared.promptPack.xmlToolDefinitionsDetailed;
-	return replacePromptVars(
-		`${withRole}${xmlToolDefinitionsDetailed}`,
-		params
-	);
-}
-
 function getDecisionToolSchemaText(shared: AgentShared): string {
 	const [toolsText] = AgentUtils.safeJsonEncode(AgentToolRegistry.buildDecisionToolSchema(shared.role, AgentConfig.AGENT_LIMITS.searchDoraDocLimitMax, {
 		disabledAgentTools: getDecisionDisabledAgentTools(shared),
@@ -930,7 +892,7 @@ async function maybeCompressHistory(
 	const maxRounds = memory.compressor.getMaxCompressionRounds();
 	let changed = false;
 	for (let round = 0; round < maxRounds; round++) {
-		const systemPrompt = buildAgentSystemPrompt(shared, shared.decisionMode === "xml");
+		const systemPrompt = buildAgentSystemPrompt(shared);
 		const normalizedActiveMessages = sanitizeMessagesForLLMInput(getActiveConversationMessages(shared));
 		const decisionActiveMessages = projectMessagesForLLMContext(normalizedActiveMessages);
 		const activeMessages = projectMessagesForCompression(normalizedActiveMessages);
@@ -942,34 +904,29 @@ async function maybeCompressHistory(
 				shared.lastConsolidatedIndex
 			)
 		);
-		// In tool_calling mode, tool descriptions come from the tools API schema, not from
-		// the XML-only detailed prompt. Pass the schema text only for token accounting.
-		const toolDefinitions = shared.decisionMode === "tool_calling"
-			? getDecisionToolSchemaText(shared)
-			: "";
+		// Tool descriptions come from the tools API schema. Pass the schema text
+		// only for token accounting.
+		const toolDefinitions = getDecisionToolSchemaText(shared);
 		const triggerMessages = buildDecisionMessages(
 			shared,
 			undefined,
 			1,
 			undefined,
-			shared.decisionMode,
 			false,
 			includePendingUserPrompt ? pendingUserPrompt : ""
 		);
-		const triggerOptions = shared.decisionMode === "tool_calling"
-			? {
-				...shared.llmOptions,
-				...(shared.llmConfig.model.toLowerCase().includes("glm-5.2")
-					&& (typeof shared.llmOptions.reasoning_effort !== "string"
-						|| shared.llmOptions.reasoning_effort.trim() === "")
-					? { reasoning_effort: "minimal" }
-					: {}),
-				tools: AgentToolRegistry.buildDecisionToolSchema(shared.role, AgentConfig.AGENT_LIMITS.searchDoraDocLimitMax, {
-					disabledAgentTools: getDecisionDisabledAgentTools(shared),
-					workMode: shared.workMode,
-				}),
-			}
-			: shared.llmOptions;
+		const triggerOptions = {
+			...shared.llmOptions,
+			...(shared.llmConfig.model.toLowerCase().includes("glm-5.2")
+				&& (typeof shared.llmOptions.reasoning_effort !== "string"
+					|| shared.llmOptions.reasoning_effort.trim() === "")
+				? { reasoning_effort: "minimal" }
+				: {}),
+			tools: AgentToolRegistry.buildDecisionToolSchema(shared.role, AgentConfig.AGENT_LIMITS.searchDoraDocLimitMax, {
+				disabledAgentTools: getDecisionDisabledAgentTools(shared),
+				workMode: shared.workMode,
+			}),
+		};
 		const fitted = AgentUtils.fitMessagesToContext(triggerMessages, triggerOptions, shared.llmConfig);
 		// Trigger at 100% of the exact effective input budget used by the normal
 		// request path. The compression payload below remains independently projected.
@@ -1007,7 +964,7 @@ async function maybeCompressHistory(
 			activeMessages,
 			shared.llmOptions,
 			shared.llmMaxTry,
-			shared.decisionMode,
+			"tool_calling",
 			{
 				stopToken: shared.stopToken,
 				onInput: (phase, messages, options) => {
@@ -1121,7 +1078,7 @@ async function compactActiveHistory(shared: AgentShared, repeatedOutput = false)
 			activeMessages,
 			shared.llmOptions,
 			shared.llmMaxTry,
-			shared.decisionMode,
+			"tool_calling",
 			{
 				stopToken: shared.stopToken,
 				onInput: (phase, messages, options) => {
@@ -1443,72 +1400,6 @@ function appendAssistantToolCallsMessage(
 }
 
 
-type LLMResult = {
-	success: true;
-	text: string;
-	reasoningContent?: string
-} | {
-	success: false;
-	message: string;
-	text?: string
-};
-
-async function llm(
-	shared: AgentShared,
-	messages: Message[],
-	phase: "decision_xml" | "decision_xml_repair" = "decision_xml"
-): Promise<LLMResult> {
-	const stepId = shared.step + 1;
-	emitLLMContextMetrics(shared, stepId, phase, messages, shared.llmOptions);
-	saveStepLLMDebugInput(shared, stepId, phase, messages, shared.llmOptions);
-	let lastStreamReasoning = "";
-	const res = await AgentUtils.callLLMStreamAggregated(
-		messages,
-		shared.llmOptions,
-		shared.stopToken,
-		shared.llmConfig,
-		(response) => {
-			const streamMessage = response.choices?.[0]?.message;
-			const nextContent = typeof streamMessage?.content === "string"
-				? AgentUtils.sanitizeUTF8(streamMessage.content)
-				: "";
-			if (nextContent === "") return;
-			if (nextContent === lastStreamReasoning) return;
-			lastStreamReasoning = nextContent;
-			emitAssistantMessageUpdated(shared, "", nextContent);
-		}
-	);
-	if (res.success) {
-		const usage = res.tokenUsage;
-		recordLLMTokenUsage(shared, stepId, phase, usage);
-		const message = res.response.choices?.[0]?.message;
-		const text = message?.content;
-		const reasoningContent = typeof message?.reasoning_content === "string"
-			? AgentUtils.sanitizeUTF8(message.reasoning_content)
-			: undefined;
-		if (text) {
-			saveStepLLMDebugOutput(shared, stepId, phase, text, { success: true, usage });
-			const intercepted = await interceptRepeatedOutput(shared, { content: text, reasoning_content: reasoningContent });
-			if (intercepted) return { success: false, message: intercepted.message };
-			const parsed = tryParseAndValidateDecision(text, shared);
-			if (parsed.success) {
-				const reason = parsed.reason ?? "";
-				emitAssistantMessageUpdated(shared, "", reason !== "" ? reason : undefined);
-			}
-			return { success: true, text, reasoningContent };
-		} else {
-			saveStepLLMDebugOutput(shared, stepId, phase, "empty LLM response", { success: false, usage });
-			return { success: false, message: "empty LLM response" };
-		}
-	} else {
-		const usage = res.tokenUsage;
-		recordLLMTokenUsage(shared, stepId, phase, usage);
-		saveStepLLMDebugOutput(shared, stepId, phase, res.raw ?? res.message, { success: false, usage });
-		return { success: false, message: res.message };
-	}
-}
-
-
 
 function parseAndValidateToolCallDecision(
 	shared: AgentShared,
@@ -1584,7 +1475,7 @@ function validateDecisionForShared(
 }
 
 
-function buildAgentSystemPrompt(shared: AgentShared, includeToolDefinitions = false): string {
+function buildAgentSystemPrompt(shared: AgentShared): string {
 	const rolePrompt = shared.workMode === "plan"
 		? shared.promptPack.planAgentRolePrompt
 		: (shared.role === "main" ? shared.promptPack.mainAgentRolePrompt : shared.promptPack.subAgentRolePrompt);
@@ -1607,9 +1498,7 @@ function buildAgentSystemPrompt(shared: AgentShared, includeToolDefinitions = fa
 			].join("\n\n"));
 		}
 	}
-	if (shared.decisionMode === "tool_calling") {
-		sections.push(shared.promptPack.functionCallingPrompt);
-	}
+	sections.push(shared.promptPack.functionCallingPrompt);
 	const memoryBudget = shared.memory.compressor.getMemoryContextBudget();
 	const memoryContext = shared.memory.compressor.getStorage().getRelevantMemoryContext(shared.userQuery, memoryBudget);
 	if (memoryContext !== "") {
@@ -1618,12 +1507,6 @@ function buildAgentSystemPrompt(shared: AgentShared, includeToolDefinitions = fa
 	const skillsSection = buildSkillsSection(shared);
 	if (skillsSection !== "") {
 		sections.push(skillsSection);
-	}
-	if (includeToolDefinitions) {
-		sections.push("### Available Tools\n\n" + getDecisionToolDefinitions(shared));
-		if (shared.decisionMode === "xml") {
-			sections.push(buildXmlDecisionInstruction(shared));
-		}
 	}
 	return sections.join("\n\n");
 }
@@ -1662,11 +1545,10 @@ function buildDecisionMessages(
 	lastError?: string,
 	attempt = 1,
 	lastRaw?: string,
-	decisionMode: AgentDecisionMode = shared.decisionMode,
 	consumeResumeCheckpoint = true,
 	pendingUserPrompt = ""
 ): Message[] {
-	const systemPrompt = buildAgentSystemPrompt(shared, decisionMode === "xml");
+	const systemPrompt = buildAgentSystemPrompt(shared);
 	const tailSections: string[] = [];
 	if (shared.resumeCheckpointPending === true) {
 		// A carried user message from an in-progress task is the original
@@ -1697,16 +1579,8 @@ function buildDecisionMessages(
 		tailSections.push(getFinalDecisionTurnPrompt(shared));
 	}
 	if (lastError && lastError !== "") {
-		let retryHeader = decisionMode === "xml"
-			? `Previous response was invalid (${lastError}). Return exactly one valid XML tool_call block only.`
-			: replacePromptVars(shared.promptPack.toolCallingRetryPrompt, { LAST_ERROR: lastError });
-		if (decisionMode === "xml") {
-			retryHeader += "\nThe response must start with <tool_call> and end with </tool_call>. Do not use any other root tag. Do not return partial child tags.";
-		}
-		if (decisionMode === "xml" && lastRaw && lastRaw.trim() !== "") {
-			retryHeader += "\nIf the rejected output said you would inspect, read, search, build, edit, or continue working, convert that intent into the corresponding XML tool call. Do not use finish for intended future work.";
-		}
-		if (decisionMode === "tool_calling" && lastError.indexOf("truncated by max tokens") >= 0) {
+		let retryHeader = replacePromptVars(shared.promptPack.toolCallingRetryPrompt, { LAST_ERROR: lastError });
+		if (lastError.indexOf("truncated by max tokens") >= 0) {
 			retryHeader += "\nThe previous response exceeded the output limit and no recoverable edit result was available. Do not repeat the same payload. Immediately emit one complete tool call with bounded arguments and minimal reasoning.";
 		}
 		messages.push({
@@ -1725,101 +1599,6 @@ function buildDecisionMessages(
 		});
 	}
 	return messages;
-}
-
-function buildXmlDecisionInstruction(shared: AgentShared, feedback?: string): string {
-	return `${shared.promptPack.xmlDecisionFormatPrompt}${feedback ?? ""}`;
-}
-
-function buildXmlRepairMessages(
-	shared: AgentShared,
-	originalRaw: string,
-	originalReasoning: string | undefined,
-	candidateRaw: string,
-	candidateReasoning: string | undefined,
-	lastError: string,
-	attempt: number
-): Message[] {
-	const hasOriginalReasoning = originalReasoning !== undefined && originalReasoning.trim() !== "";
-	const originalReasoningSection = hasOriginalReasoning
-		? `### Original Reasoning
-\`\`\`
-${truncateText(originalReasoning as string, 4000)}
-\`\`\`
-
-`
-		: "";
-	const hasCandidate = candidateRaw.trim() !== "";
-	const hasCandidateReasoning = candidateReasoning !== undefined && candidateReasoning.trim() !== "";
-	const candidateReasoningSection = hasCandidateReasoning
-		? `### Current Candidate Reasoning
-\`\`\`
-${truncateText(candidateReasoning as string, 4000)}
-\`\`\`
-
-`
-		: "";
-	const candidateSection = hasCandidate
-		? `### Current Candidate To Repair
-\`\`\`
-${truncateText(candidateRaw, 4000)}
-\`\`\`
-
-${candidateReasoningSection}`
-		: "";
-	const toolRepairReference = AgentToolRegistry.buildRoleToolDefinitionsDetailed(shared.role, {
-		includeFinish: true,
-		includeXmlRules: true,
-		context: { searchDoraDocLimitMax: AgentConfig.AGENT_LIMITS.searchDoraDocLimitMax },
-		disabledAgentTools: getDecisionDisabledAgentTools(shared),
-		workMode: shared.workMode,
-	});
-	const systemPrompt = replacePromptVars(shared.promptPack.xmlDecisionSystemRepairPrompt, {
-		TOOL_REPAIR_REFERENCE: toolRepairReference,
-	});
-	const repairPrompt = replacePromptVars(shared.promptPack.xmlDecisionRepairPrompt, {
-		ORIGINAL_RAW: truncateText(originalRaw, 4000),
-		ORIGINAL_REASONING_SECTION: originalReasoningSection,
-		CANDIDATE_SECTION: candidateSection,
-		LAST_ERROR: lastError,
-		ATTEMPT: tostring(attempt),
-	});
-	return [
-		{
-			role: "system",
-			content: systemPrompt,
-		},
-		{
-			role: "user",
-			content: repairPrompt,
-		},
-	];
-}
-
-function tryParseAndValidateDecision(rawText: string, shared: AgentShared): DecisionSuccess | DecisionFailure {
-	const parsed = parseXMLToolCallObjectFromText(rawText);
-	if (!parsed.success) {
-		return { success: false, message: parsed.message, raw: rawText };
-	}
-	const decision = parseDecisionObject(parsed.obj);
-	if (!decision.success) {
-		return { success: false, message: decision.message, raw: rawText };
-	}
-	const completionValidation = validateCompletionForRole(shared.role, decision.tool, decision.params);
-	if (!completionValidation.success) {
-		return { success: false, message: completionValidation.message, raw: rawText };
-	}
-	const validation = validateDecision(decision.tool, decision.params);
-	if (!validation.success) {
-		return { success: false, message: validation.message, raw: rawText };
-	}
-	const sharedValidation = validateDecisionForShared(shared, decision.tool, validation.params, true);
-	if (!sharedValidation.success) {
-		return { success: false, message: sharedValidation.message, raw: rawText };
-	}
-	decision.params = validation.params;
-	decision.toolCallId = ensureToolCallId(decision.toolCallId);
-	return decision;
 }
 
 class MainDecisionAgent extends Node<AgentShared> {
@@ -2026,116 +1805,6 @@ class MainDecisionAgent extends Node<AgentShared> {
 		};
 	}
 
-	private async repairDecisionXml(
-		shared: AgentShared,
-		originalRaw: string,
-		originalReasoning: string | undefined,
-		initialError: string
-	): Promise<DecisionSuccess | DecisionFailure> {
-		AgentUtils.Log("Info", `[CodingAgent] xml repair flow start step=${shared.step + 1} error=${initialError}`);
-		let lastError = initialError;
-		let candidateRaw = "";
-		let candidateReasoning: string | undefined = undefined;
-		for (let attempt = 0; attempt < shared.llmMaxTry; attempt++) {
-			AgentUtils.Log("Info", `[CodingAgent] xml repair attempt=${attempt + 1}`);
-			const messages = buildXmlRepairMessages(
-				shared,
-				originalRaw,
-				originalReasoning,
-				candidateRaw,
-				candidateReasoning,
-				lastError,
-				attempt + 1
-			);
-			const llmRes = await llm(shared, messages, "decision_xml_repair");
-			if (shared.stopToken.stopped) {
-				return { success: false, message: getCancelledReason(shared) };
-			}
-			if (shared.repeatRecoveryRetry) return { success: false, message: "Repeated output recovery", requestFailed: true };
-			if (!llmRes.success) {
-				return { success: false, message: llmRes.message, raw: llmRes.text ?? "", requestFailed: true };
-			}
-			candidateRaw = llmRes.text;
-			candidateReasoning = llmRes.reasoningContent;
-			if (!preservesXMLRepairTool(originalRaw, candidateRaw)) {
-				return {success: false, message: "XML repair cannot replace the requested tool with another tool", raw: candidateRaw};
-			}
-			const decision = tryParseAndValidateDecision(candidateRaw, shared);
-			if (decision.success) {
-				decision.reasoningContent = llmRes.reasoningContent;
-				AgentUtils.Log("Info", `[CodingAgent] xml repair succeeded tool=${decision.tool}`);
-				return decision;
-			}
-			lastError = decision.message;
-			AgentUtils.Log("Error", `[CodingAgent] xml repair candidate invalid: ${lastError}`);
-		}
-		AgentUtils.Log("Error", `[CodingAgent] xml repair exhausted retries: ${lastError}`);
-		return {
-			success: false,
-			message: `cannot repair invalid decision xml: ${lastError}`,
-			raw: candidateRaw,
-		};
-	}
-
-	private async callDecisionByXml(
-		shared: AgentShared,
-		lastError?: string,
-		attempt = 1,
-		lastRaw?: string
-	): Promise<DecisionResult | DecisionFailure> {
-		const messages: Message[] = buildDecisionMessages(
-			shared,
-			lastError,
-			attempt,
-			lastRaw,
-			"xml"
-		);
-		const llmRes = await llm(shared, messages, "decision_xml");
-		if (shared.stopToken.stopped) {
-			return { success: false, message: getCancelledReason(shared) };
-		}
-		if (!llmRes.success) {
-			return {
-				success: false,
-				message: llmRes.message,
-				raw: llmRes.text ?? "",
-				requestFailed: true,
-			};
-		}
-		const xmlCompletion = parseMainXMLCompletion(shared.role, llmRes.text);
-		if (xmlCompletion) {
-			const blocker = getAuthoredCompletionBlocker(shared.workflow);
-			if (blocker !== undefined) {
-				return { success: false, message: blocker, raw: xmlCompletion.content };
-			}
-			return {...xmlCompletion, reasoningContent: llmRes.reasoningContent};
-		}
-		if (llmRes.text.indexOf("<tool_call") < 0) {
-			const terminalDecision = classifyToolCallingTurnWithoutCalls(
-				shared.role,
-				"stop",
-				llmRes.text,
-				llmRes.reasoningContent
-			);
-			if (terminalDecision) {
-				if (terminalDecision.success && isDecisionPlainTextCompletion(terminalDecision)) {
-					const blocker = getAuthoredCompletionBlocker(shared.workflow);
-					if (blocker !== undefined) {
-						return { success: false, message: blocker, raw: terminalDecision.content };
-					}
-					AgentUtils.Log("Info", `[CodingAgent] ${shared.role} agent completed with plain text in XML mode`);
-				}
-				return terminalDecision;
-			}
-		}
-		const decision = tryParseAndValidateDecision(llmRes.text, shared);
-		if (decision.success) {
-			decision.reasoningContent = llmRes.reasoningContent;
-			return decision;
-		}
-		return this.repairDecisionXml(shared, llmRes.text, llmRes.reasoningContent, decision.message);
-	}
-
 	async exec(input: { shared: AgentShared }): Promise<DecisionResult | DecisionFailure> {
 		const shared = input.shared;
 		if (shared.stopToken.stopped) {
@@ -2146,71 +1815,14 @@ class MainDecisionAgent extends Node<AgentShared> {
 			return { success: false, message: getMaxStepsReachedReason(shared) };
 		}
 
-		if (shared.decisionMode === "tool_calling") {
-			AgentUtils.Log("Info", `[CodingAgent] decision mode=tool_calling step=${shared.step + 1} messages=${getUnconsolidatedMessages(shared).length}`);
-			let lastError = "tool calling validation failed";
-			let lastRaw = "";
-			let shouldFallbackToXml = false;
-			for (let attempt = 0; attempt < shared.llmMaxTry; attempt++) {
-				AgentUtils.Log("Info", `[CodingAgent] tool-calling attempt=${attempt + 1}`);
-				const decision = await this.callDecisionByToolCalling(
-					shared,
-					attempt > 0 ? lastError : undefined,
-					attempt + 1,
-					lastRaw
-				);
-				if (shared.stopToken.stopped) {
-					return { success: false, message: getCancelledReason(shared) };
-				}
-				if (decision.success) {
-					return decision;
-				}
-				if (decision.requestFailed) return decision;
-				lastError = decision.message;
-				lastRaw = decision.raw ?? "";
-				AgentUtils.Log("Error", `[CodingAgent] tool-calling attempt failed: ${lastError}`);
-				if (lastError === "missing tool call") {
-					shouldFallbackToXml = true;
-					break;
-				}
-			}
-			if (shouldFallbackToXml) {
-				AgentUtils.Log("Warn", `[CodingAgent] tool-calling returned no tool calls; falling back to XML decision format`);
-				lastError = "tool-calling returned no tool calls. Return exactly one valid XML tool_call block.";
-				for (let attempt = 0; attempt < shared.llmMaxTry; attempt++) {
-					AgentUtils.Log("Info", `[CodingAgent] xml fallback attempt=${attempt + 1}`);
-					const decision = await this.callDecisionByXml(
-						shared,
-						attempt > 0 ? lastError : "tool-calling returned no tool calls. Use XML decision format instead.",
-						attempt + 1,
-						lastRaw
-					);
-					if (shared.stopToken.stopped) {
-						return { success: false, message: getCancelledReason(shared) };
-					}
-					if (decision.success) {
-						return decision;
-					}
-					if (decision.requestFailed) return decision;
-					lastError = decision.message;
-					lastRaw = decision.raw ?? "";
-					AgentUtils.Log("Error", `[CodingAgent] xml fallback attempt failed: ${lastError}`);
-				}
-				AgentUtils.Log("Error", `[CodingAgent] xml fallback exhausted retries: ${lastError}`);
-				return { success: false, message: `cannot produce valid XML decision after tool-calling fallback: ${lastError}; last_output=${truncateText(lastRaw, 400)}` };
-			}
-			AgentUtils.Log("Error", `[CodingAgent] tool-calling exhausted retries: ${lastError}`);
-			return { success: false, message: `cannot produce valid tool call: ${lastError}; last_output=${truncateText(lastRaw, 400)}` };
-		}
-
-		let lastError = "xml validation failed";
+		AgentUtils.Log("Info", `[CodingAgent] decision mode=tool_calling step=${shared.step + 1} messages=${getUnconsolidatedMessages(shared).length}`);
+		let lastError = "tool calling validation failed";
 		let lastRaw = "";
 		for (let attempt = 0; attempt < shared.llmMaxTry; attempt++) {
-			const decision = await this.callDecisionByXml(
+			AgentUtils.Log("Info", `[CodingAgent] tool-calling attempt=${attempt + 1}`);
+			const decision = await this.callDecisionByToolCalling(
 				shared,
-				attempt > 0
-					? `Previous request failed before producing repairable output (${lastError}).`
-					: undefined,
+				attempt > 0 ? lastError : undefined,
 				attempt + 1,
 				lastRaw
 			);
@@ -2223,8 +1835,10 @@ class MainDecisionAgent extends Node<AgentShared> {
 			if (decision.requestFailed) return decision;
 			lastError = decision.message;
 			lastRaw = decision.raw ?? "";
+			AgentUtils.Log("Error", `[CodingAgent] tool-calling attempt failed: ${lastError}`);
 		}
-		return { success: false, message: `cannot produce valid decision xml: ${lastError}; last_output=${truncateText(lastRaw, 400)}` };
+		AgentUtils.Log("Error", `[CodingAgent] tool-calling exhausted retries: ${lastError}`);
+		return { success: false, message: `cannot produce valid tool call: ${lastError}; last_output=${truncateText(lastRaw, 400)}` };
 	}
 
 	async post(shared: AgentShared, _prepRes: unknown, execRes: unknown): Promise<string | undefined> {
@@ -2915,9 +2529,6 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 		workingDir: options.workDir,
 		useChineseResponse: options.useChineseResponse === true,
 		workMode: options.workMode ?? "code",
-		decisionMode: options.decisionMode
-			? options.decisionMode
-			: (llmConfig.supportsFunctionCalling ? "tool_calling" : "xml"),
 		llmOptions: buildLLMOptions(llmConfig, options.llmOptions),
 		llmConfig,
 		onEvent: options.onEvent,

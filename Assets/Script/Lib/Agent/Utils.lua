@@ -65,34 +65,34 @@ function ____exports.sanitizeUTF8(text) -- 352
 	end -- 366
 	return output -- 368
 end -- 352
-function normalizeReasoningEffort(value) -- 1211
-	if type(value) ~= "string" then -- 1211
-		return nil -- 1212
-	end -- 1212
-	local normalized = __TS__StringTrim(____exports.sanitizeUTF8(value)) -- 1213
-	return normalized ~= "" and normalized or nil -- 1214
-end -- 1214
-function ____exports.applyCustomLLMOptions(options, customOptions) -- 1225
-	if not customOptions then -- 1225
-		return options -- 1229
-	end -- 1229
-	local merged = __TS__ObjectAssign({}, options) -- 1230
-	for key in pairs(customOptions) do -- 1231
-		do -- 1231
-			if key == "auxiliaryOptions" then -- 1231
-				goto __continue264 -- 1234
+function normalizeReasoningEffort(value) -- 1206
+	if type(value) ~= "string" then -- 1206
+		return nil -- 1207
+	end -- 1207
+	local normalized = __TS__StringTrim(____exports.sanitizeUTF8(value)) -- 1208
+	return normalized ~= "" and normalized or nil -- 1209
+end -- 1209
+function ____exports.applyCustomLLMOptions(options, customOptions) -- 1220
+	if not customOptions then -- 1220
+		return options -- 1224
+	end -- 1224
+	local merged = __TS__ObjectAssign({}, options) -- 1225
+	for key in pairs(customOptions) do -- 1226
+		do -- 1226
+			if key == "auxiliaryOptions" then -- 1226
+				goto __continue263 -- 1229
+			end -- 1229
+			local value = customOptions[key] -- 1230
+			if value == json.null then -- 1230
+				__TS__Delete(merged, key) -- 1232
+			else -- 1232
+				merged[key] = value -- 1234
 			end -- 1234
-			local value = customOptions[key] -- 1235
-			if value == json.null then -- 1235
-				__TS__Delete(merged, key) -- 1237
-			else -- 1237
-				merged[key] = value -- 1239
-			end -- 1239
-		end -- 1239
-		::__continue264:: -- 1239
-	end -- 1239
-	return merged -- 1242
-end -- 1225
+		end -- 1234
+		::__continue263:: -- 1234
+	end -- 1234
+	return merged -- 1237
+end -- 1220
 local LOG_LEVEL = App.debugging and 3 or 2 -- 6
 function ____exports.setLogLevel(level) -- 7
 	LOG_LEVEL = level -- 8
@@ -1316,773 +1316,769 @@ function ____exports.extractLLMTokenUsage(response) -- 1103
 		reasoningOutputTokens = type(____opt_18 and ____opt_18.reasoning_tokens) == "number" and usage.completion_tokens_details.reasoning_tokens or nil -- 1128
 	} -- 1128
 end -- 1103
-function ____exports.validateAgentLLMConfig(config) -- 1173
-	local ____opt_25 = config.customOptions -- 1173
-	local auxiliaryOptions = ____opt_25 and ____opt_25.auxiliaryOptions -- 1174
-	if isPlainRecord(auxiliaryOptions) then -- 1174
-		return {success = true} -- 1178
-	end -- 1178
-	return {success = false, message = "LLM 配置的 customOptions 必须包含 auxiliaryOptions 对象（可以为空），请检查 LLM 配置"} -- 1180
-end -- 1173
-local function normalizeContextWindow(value) -- 1186
-	if type(value) == "number" and value > 0 then -- 1186
-		return math.floor(value) -- 1188
-	end -- 1188
-	return 64000 -- 1190
-end -- 1186
-local function normalizeSupportsFunctionCalling(value) -- 1193
-	return value == nil or value ~= 0 -- 1194
-end -- 1193
-local function normalizeLLMTemperature(value) -- 1197
-	if type(value) == "number" then -- 1197
-		return math.max( -- 1199
-			0, -- 1199
-			math.min(2, value) -- 1199
-		) -- 1199
-	end -- 1199
-	return 0.1 -- 1201
-end -- 1197
-local function normalizeLLMMaxTokens(value) -- 1204
-	if type(value) == "number" then -- 1204
-		return math.max( -- 1206
-			1, -- 1206
-			math.floor(value) -- 1206
-		) -- 1206
-	end -- 1206
-	return AgentConfig.AGENT_DEFAULTS.llmMaxTokens -- 1208
-end -- 1204
-local function normalizeLLMCustomOptions(value) -- 1217
-	if type(value) ~= "string" then -- 1217
-		return nil -- 1218
-	end -- 1218
-	local text = __TS__StringTrim(____exports.sanitizeUTF8(value)) -- 1219
-	if text == "" then -- 1219
-		return nil -- 1220
-	end -- 1220
-	local decoded = ____exports.safeJsonDecode(text) -- 1221
-	return isPlainRecord(decoded) and decoded or nil -- 1222
-end -- 1217
-local function getLLMConfigRecords() -- 1245
-	upgradeLLMConfig() -- 1246
-	local rows = DB:query("select * from LLMConfig", true) -- 1247
-	local records = {} -- 1248
-	if rows and #rows > 1 then -- 1248
-		do -- 1248
-			local i = 1 -- 1250
-			while i < #rows do -- 1250
-				local record = {} -- 1251
-				do -- 1251
-					local c = 0 -- 1252
-					while c < #rows[i + 1] do -- 1252
-						record[rows[1][c + 1]] = rows[i + 1][c + 1] -- 1253
-						c = c + 1 -- 1252
-					end -- 1252
-				end -- 1252
-				records[#records + 1] = record -- 1255
-				i = i + 1 -- 1250
-			end -- 1250
-		end -- 1250
-	end -- 1250
-	return records -- 1258
-end -- 1245
-function ____exports.getLLMConfigSummaries() -- 1268
-	return __TS__ArrayFlatMap( -- 1269
-		getLLMConfigRecords(), -- 1269
-		function(____, record) -- 1269
-			local id = record.id -- 1270
-			local name = record.name -- 1271
-			local model = record.model -- 1272
-			if type(id) ~= "number" or type(name) ~= "string" or type(model) ~= "string" then -- 1272
-				return {} -- 1273
-			end -- 1273
-			return {{id = id, name = name, model = model, active = record.active ~= 0}} -- 1274
-		end -- 1269
-	) -- 1269
-end -- 1268
-local function parseLLMConfig(config) -- 1278
-	if not config then -- 1278
-		return {success = false, message = "LLM config not found"} -- 1280
-	end -- 1280
-	local ____config_27 = config -- 1282
-	local id = ____config_27.id -- 1282
-	local url = ____config_27.url -- 1282
-	local model = ____config_27.model -- 1282
-	local api_key = ____config_27.api_key -- 1282
-	if type(id) ~= "number" or type(url) ~= "string" or type(model) ~= "string" or type(api_key) ~= "string" then -- 1282
-		return {success = false, message = "got invalid LLM config"} -- 1284
-	end -- 1284
-	return { -- 1286
-		success = true, -- 1287
-		id = id, -- 1288
-		config = { -- 1289
-			url = url, -- 1290
-			model = model, -- 1291
-			apiKey = api_key, -- 1292
-			contextWindow = normalizeContextWindow(config.context_window), -- 1293
-			temperature = normalizeLLMTemperature(config.temperature), -- 1294
-			maxTokens = normalizeLLMMaxTokens(config.max_tokens), -- 1295
-			reasoningEffort = normalizeReasoningEffort(config.reasoning_effort), -- 1296
-			customOptions = normalizeLLMCustomOptions(config.custom_options), -- 1297
-			supportsFunctionCalling = normalizeSupportsFunctionCalling(config.supports_function_calling) -- 1298
-		} -- 1298
-	} -- 1298
-end -- 1278
-function ____exports.getLLMConfig(configId) -- 1303
-	local normalizedId = type(configId) == "number" and math.floor(configId) or tonumber(configId) -- 1304
-	if normalizedId == nil or normalizedId <= 0 then -- 1304
-		return {success = false, message = "LLM config is not selected"} -- 1306
-	end -- 1306
-	return parseLLMConfig(__TS__ArrayFind( -- 1308
-		getLLMConfigRecords(), -- 1308
-		function(____, record) return record.id == normalizedId end -- 1308
-	)) -- 1308
-end -- 1303
-function ____exports.getActiveLLMConfig() -- 1311
-	local records = getLLMConfigRecords() -- 1312
-	local config = __TS__ArrayFind( -- 1313
-		records, -- 1313
-		function(____, r) return r.active ~= 0 end -- 1313
-	) -- 1313
-	if not config then -- 1313
-		return {success = false, message = "no active LLM config"} -- 1315
-	end -- 1315
-	return parseLLMConfig(config) -- 1317
-end -- 1311
-____exports.callLLMStream = function(messages, options, event, llmConfig) -- 1320
-	local callEvent -- 1326
-	if event.id ~= nil then -- 1326
-		local id = event.id -- 1328
-		callEvent = { -- 1329
-			id = nil, -- 1330
-			onData = function(data) -- 1331
-				emit("AppWS", "Send", {name = "LLMContent", id = id, data = data}) -- 1332
-				return event.stopToken.stopped -- 1333
-			end, -- 1331
-			onCancel = function(reason) -- 1335
-				emit("AppWS", "Send", {name = "LLMCancel", id = id, reason = reason}) -- 1336
-			end, -- 1335
-			onDone = function() -- 1338
-				emit("AppWS", "Send", {name = "LLMDone", id = id}) -- 1339
-			end -- 1338
-		} -- 1338
-	else -- 1338
-		callEvent = event -- 1343
-	end -- 1343
-	local ____callEvent_28 = callEvent -- 1345
-	local onData = ____callEvent_28.onData -- 1345
-	local onDone = ____callEvent_28.onDone -- 1345
-	local ____callEvent_29 = callEvent -- 1346
-	local onCancel = ____callEvent_29.onCancel -- 1346
-	local config = llmConfig or (function() -- 1347
-		local configRes = ____exports.getActiveLLMConfig() -- 1348
-		if not configRes.success then -- 1348
-			if onCancel then -- 1348
-				onCancel(configRes.message) -- 1350
-			end -- 1350
-			return nil -- 1351
-		end -- 1351
-		return configRes.config -- 1353
-	end)() -- 1347
-	if not config then -- 1347
-		return {success = false, message = "no active LLM config"} -- 1356
-	end -- 1356
-	local url = config.url -- 1356
-	local model = config.model -- 1356
-	local apiKey = config.apiKey -- 1356
-	local fitted = ____exports.fitMessagesToContext(messages, options, config) -- 1359
-	if fitted.trimmed then -- 1359
-		____exports.Log( -- 1361
-			"Warn", -- 1361
-			(((("[Agent.Utils] callLLMStream trimmed input tokens=" .. tostring(fitted.originalTokens)) .. " budget=") .. tostring(fitted.budgetTokens)) .. " fitted=") .. tostring(fitted.fittedTokens) -- 1361
-		) -- 1361
-	end -- 1361
-	local stopLLM = false -- 1363
-	local streamStopToken = event.stopToken ~= nil and event.stopToken and event.stopToken or ({stopped = false}) -- 1364
-	local parser = createScheduledSSEJSONParser( -- 1367
-		{onJSON = function(obj) -- 1367
-			local result = onData(obj) -- 1369
-			if result then -- 1369
-				stopLLM = true -- 1371
-				streamStopToken.stopped = true -- 1372
-				streamStopToken.reason = "LLM Stopped" -- 1373
-			end -- 1373
-		end}, -- 1368
-		function() return streamStopToken.stopped end -- 1376
-	); -- 1376
-	(function() -- 1377
-		return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 1377
-			local ____try = __TS__AsyncAwaiter(function() -- 1377
-				local result = __TS__Await(postLLM( -- 1379
-					fitted.messages, -- 1379
-					url, -- 1379
-					apiKey, -- 1379
-					model, -- 1379
-					options, -- 1379
-					true, -- 1379
-					config.customOptions, -- 1379
-					function(data) -- 1379
-						if stopLLM then -- 1379
-							if onCancel then -- 1379
-								onCancel("LLM Stopped") -- 1382
-								onCancel = nil -- 1383
-							end -- 1383
-							return true -- 1385
-						end -- 1385
-						parser.append(data) -- 1387
-						return false -- 1388
-					end, -- 1379
-					streamStopToken, -- 1389
-					config.studioGateway -- 1389
-				)) -- 1389
-				__TS__Await(parser.finish()) -- 1390
-				if onDone then -- 1390
-					onDone(result) -- 1392
-				end -- 1392
-			end) -- 1392
-			____try = ____try.catch( -- 1392
-				____try, -- 1392
-				function(____, e) -- 1392
-					return __TS__AsyncAwaiter(function() -- 1392
-						parser.cancel() -- 1395
-						stopLLM = true -- 1396
-						if onCancel then -- 1396
-							onCancel(tostring(e)) -- 1398
-							onCancel = nil -- 1399
-						end -- 1399
-					end) -- 1399
-				end -- 1399
-			) -- 1399
-			__TS__Await(____try) -- 1378
-		end) -- 1378
-	end)() -- 1377
-	return {success = true} -- 1403
-end -- 1320
-local function mergeStreamToolCall(target, delta) -- 1406
-	if type(delta.id) == "string" and delta.id ~= "" then -- 1406
-		target.id = delta.id -- 1408
-	end -- 1408
-	if type(delta.type) == "string" and delta.type ~= "" then -- 1408
-		target.type = delta.type -- 1411
-	end -- 1411
-	if delta["function"] then -- 1411
-		if target["function"] == nil then -- 1411
-			target["function"] = {} -- 1414
-		end -- 1414
-		if type(delta["function"].name) == "string" and delta["function"].name ~= "" then -- 1414
-			target["function"].name = (target["function"].name or "") .. delta["function"].name -- 1416
-		end -- 1416
-		if type(delta["function"].arguments) == "string" and delta["function"].arguments ~= "" then -- 1416
-			target["function"].arguments = (target["function"].arguments or "") .. delta["function"].arguments -- 1419
-		end -- 1419
+function ____exports.validateAgentLLMConfig(config) -- 1172
+	local ____opt_25 = config.customOptions -- 1172
+	local auxiliaryOptions = ____opt_25 and ____opt_25.auxiliaryOptions -- 1173
+	if isPlainRecord(auxiliaryOptions) then -- 1173
+		return {success = true} -- 1177
+	end -- 1177
+	return {success = false, message = "LLM 配置的 customOptions 必须包含 auxiliaryOptions 对象（可以为空），请检查 LLM 配置"} -- 1179
+end -- 1172
+local function normalizeContextWindow(value) -- 1185
+	if type(value) == "number" and value > 0 then -- 1185
+		return math.floor(value) -- 1187
+	end -- 1187
+	return 64000 -- 1189
+end -- 1185
+local function normalizeLLMTemperature(value) -- 1192
+	if type(value) == "number" then -- 1192
+		return math.max( -- 1194
+			0, -- 1194
+			math.min(2, value) -- 1194
+		) -- 1194
+	end -- 1194
+	return 0.1 -- 1196
+end -- 1192
+local function normalizeLLMMaxTokens(value) -- 1199
+	if type(value) == "number" then -- 1199
+		return math.max( -- 1201
+			1, -- 1201
+			math.floor(value) -- 1201
+		) -- 1201
+	end -- 1201
+	return AgentConfig.AGENT_DEFAULTS.llmMaxTokens -- 1203
+end -- 1199
+local function normalizeLLMCustomOptions(value) -- 1212
+	if type(value) ~= "string" then -- 1212
+		return nil -- 1213
+	end -- 1213
+	local text = __TS__StringTrim(____exports.sanitizeUTF8(value)) -- 1214
+	if text == "" then -- 1214
+		return nil -- 1215
+	end -- 1215
+	local decoded = ____exports.safeJsonDecode(text) -- 1216
+	return isPlainRecord(decoded) and decoded or nil -- 1217
+end -- 1212
+local function getLLMConfigRecords() -- 1240
+	upgradeLLMConfig() -- 1241
+	local rows = DB:query("select * from LLMConfig", true) -- 1242
+	local records = {} -- 1243
+	if rows and #rows > 1 then -- 1243
+		do -- 1243
+			local i = 1 -- 1245
+			while i < #rows do -- 1245
+				local record = {} -- 1246
+				do -- 1246
+					local c = 0 -- 1247
+					while c < #rows[i + 1] do -- 1247
+						record[rows[1][c + 1]] = rows[i + 1][c + 1] -- 1248
+						c = c + 1 -- 1247
+					end -- 1247
+				end -- 1247
+				records[#records + 1] = record -- 1250
+				i = i + 1 -- 1245
+			end -- 1245
+		end -- 1245
+	end -- 1245
+	return records -- 1253
+end -- 1240
+function ____exports.getLLMConfigSummaries() -- 1263
+	return __TS__ArrayFlatMap( -- 1264
+		getLLMConfigRecords(), -- 1264
+		function(____, record) -- 1264
+			local id = record.id -- 1265
+			local name = record.name -- 1266
+			local model = record.model -- 1267
+			if type(id) ~= "number" or type(name) ~= "string" or type(model) ~= "string" then -- 1267
+				return {} -- 1268
+			end -- 1268
+			return {{id = id, name = name, model = model, active = record.active ~= 0}} -- 1269
+		end -- 1264
+	) -- 1264
+end -- 1263
+local function parseLLMConfig(config) -- 1273
+	if not config then -- 1273
+		return {success = false, message = "LLM config not found"} -- 1275
+	end -- 1275
+	local ____config_27 = config -- 1277
+	local id = ____config_27.id -- 1277
+	local url = ____config_27.url -- 1277
+	local model = ____config_27.model -- 1277
+	local api_key = ____config_27.api_key -- 1277
+	if type(id) ~= "number" or type(url) ~= "string" or type(model) ~= "string" or type(api_key) ~= "string" then -- 1277
+		return {success = false, message = "got invalid LLM config"} -- 1279
+	end -- 1279
+	return { -- 1281
+		success = true, -- 1282
+		id = id, -- 1283
+		config = { -- 1284
+			url = url, -- 1285
+			model = model, -- 1286
+			apiKey = api_key, -- 1287
+			contextWindow = normalizeContextWindow(config.context_window), -- 1288
+			temperature = normalizeLLMTemperature(config.temperature), -- 1289
+			maxTokens = normalizeLLMMaxTokens(config.max_tokens), -- 1290
+			reasoningEffort = normalizeReasoningEffort(config.reasoning_effort), -- 1291
+			customOptions = normalizeLLMCustomOptions(config.custom_options) -- 1292
+		} -- 1292
+	} -- 1292
+end -- 1273
+function ____exports.getLLMConfig(configId) -- 1297
+	local normalizedId = type(configId) == "number" and math.floor(configId) or tonumber(configId) -- 1298
+	if normalizedId == nil or normalizedId <= 0 then -- 1298
+		return {success = false, message = "LLM config is not selected"} -- 1300
+	end -- 1300
+	return parseLLMConfig(__TS__ArrayFind( -- 1302
+		getLLMConfigRecords(), -- 1302
+		function(____, record) return record.id == normalizedId end -- 1302
+	)) -- 1302
+end -- 1297
+function ____exports.getActiveLLMConfig() -- 1305
+	local records = getLLMConfigRecords() -- 1306
+	local config = __TS__ArrayFind( -- 1307
+		records, -- 1307
+		function(____, r) return r.active ~= 0 end -- 1307
+	) -- 1307
+	if not config then -- 1307
+		return {success = false, message = "no active LLM config"} -- 1309
+	end -- 1309
+	return parseLLMConfig(config) -- 1311
+end -- 1305
+____exports.callLLMStream = function(messages, options, event, llmConfig) -- 1314
+	local callEvent -- 1320
+	if event.id ~= nil then -- 1320
+		local id = event.id -- 1322
+		callEvent = { -- 1323
+			id = nil, -- 1324
+			onData = function(data) -- 1325
+				emit("AppWS", "Send", {name = "LLMContent", id = id, data = data}) -- 1326
+				return event.stopToken.stopped -- 1327
+			end, -- 1325
+			onCancel = function(reason) -- 1329
+				emit("AppWS", "Send", {name = "LLMCancel", id = id, reason = reason}) -- 1330
+			end, -- 1329
+			onDone = function() -- 1332
+				emit("AppWS", "Send", {name = "LLMDone", id = id}) -- 1333
+			end -- 1332
+		} -- 1332
+	else -- 1332
+		callEvent = event -- 1337
+	end -- 1337
+	local ____callEvent_28 = callEvent -- 1339
+	local onData = ____callEvent_28.onData -- 1339
+	local onDone = ____callEvent_28.onDone -- 1339
+	local ____callEvent_29 = callEvent -- 1340
+	local onCancel = ____callEvent_29.onCancel -- 1340
+	local config = llmConfig or (function() -- 1341
+		local configRes = ____exports.getActiveLLMConfig() -- 1342
+		if not configRes.success then -- 1342
+			if onCancel then -- 1342
+				onCancel(configRes.message) -- 1344
+			end -- 1344
+			return nil -- 1345
+		end -- 1345
+		return configRes.config -- 1347
+	end)() -- 1341
+	if not config then -- 1341
+		return {success = false, message = "no active LLM config"} -- 1350
+	end -- 1350
+	local url = config.url -- 1350
+	local model = config.model -- 1350
+	local apiKey = config.apiKey -- 1350
+	local fitted = ____exports.fitMessagesToContext(messages, options, config) -- 1353
+	if fitted.trimmed then -- 1353
+		____exports.Log( -- 1355
+			"Warn", -- 1355
+			(((("[Agent.Utils] callLLMStream trimmed input tokens=" .. tostring(fitted.originalTokens)) .. " budget=") .. tostring(fitted.budgetTokens)) .. " fitted=") .. tostring(fitted.fittedTokens) -- 1355
+		) -- 1355
+	end -- 1355
+	local stopLLM = false -- 1357
+	local streamStopToken = event.stopToken ~= nil and event.stopToken and event.stopToken or ({stopped = false}) -- 1358
+	local parser = createScheduledSSEJSONParser( -- 1361
+		{onJSON = function(obj) -- 1361
+			local result = onData(obj) -- 1363
+			if result then -- 1363
+				stopLLM = true -- 1365
+				streamStopToken.stopped = true -- 1366
+				streamStopToken.reason = "LLM Stopped" -- 1367
+			end -- 1367
+		end}, -- 1362
+		function() return streamStopToken.stopped end -- 1370
+	); -- 1370
+	(function() -- 1371
+		return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 1371
+			local ____try = __TS__AsyncAwaiter(function() -- 1371
+				local result = __TS__Await(postLLM( -- 1373
+					fitted.messages, -- 1373
+					url, -- 1373
+					apiKey, -- 1373
+					model, -- 1373
+					options, -- 1373
+					true, -- 1373
+					config.customOptions, -- 1373
+					function(data) -- 1373
+						if stopLLM then -- 1373
+							if onCancel then -- 1373
+								onCancel("LLM Stopped") -- 1376
+								onCancel = nil -- 1377
+							end -- 1377
+							return true -- 1379
+						end -- 1379
+						parser.append(data) -- 1381
+						return false -- 1382
+					end, -- 1373
+					streamStopToken, -- 1383
+					config.studioGateway -- 1383
+				)) -- 1383
+				__TS__Await(parser.finish()) -- 1384
+				if onDone then -- 1384
+					onDone(result) -- 1386
+				end -- 1386
+			end) -- 1386
+			____try = ____try.catch( -- 1386
+				____try, -- 1386
+				function(____, e) -- 1386
+					return __TS__AsyncAwaiter(function() -- 1386
+						parser.cancel() -- 1389
+						stopLLM = true -- 1390
+						if onCancel then -- 1390
+							onCancel(tostring(e)) -- 1392
+							onCancel = nil -- 1393
+						end -- 1393
+					end) -- 1393
+				end -- 1393
+			) -- 1393
+			__TS__Await(____try) -- 1372
+		end) -- 1372
+	end)() -- 1371
+	return {success = true} -- 1397
+end -- 1314
+local function mergeStreamToolCall(target, delta) -- 1400
+	if type(delta.id) == "string" and delta.id ~= "" then -- 1400
+		target.id = delta.id -- 1402
+	end -- 1402
+	if type(delta.type) == "string" and delta.type ~= "" then -- 1402
+		target.type = delta.type -- 1405
+	end -- 1405
+	if delta["function"] then -- 1405
+		if target["function"] == nil then -- 1405
+			target["function"] = {} -- 1408
+		end -- 1408
+		if type(delta["function"].name) == "string" and delta["function"].name ~= "" then -- 1408
+			target["function"].name = (target["function"].name or "") .. delta["function"].name -- 1410
+		end -- 1410
+		if type(delta["function"].arguments) == "string" and delta["function"].arguments ~= "" then -- 1410
+			target["function"].arguments = (target["function"].arguments or "") .. delta["function"].arguments -- 1413
+		end -- 1413
+	end -- 1413
+end -- 1400
+local function isToolCallComplete(tc) -- 1418
+	if type(tc.id) ~= "string" or tc.id == "" then -- 1418
+		return false -- 1419
 	end -- 1419
-end -- 1406
-local function isToolCallComplete(tc) -- 1424
-	if type(tc.id) ~= "string" or tc.id == "" then -- 1424
-		return false -- 1425
-	end -- 1425
-	if not tc["function"] or type(tc["function"].name) ~= "string" or tc["function"].name == "" then -- 1425
-		return false -- 1426
-	end -- 1426
-	if type(tc["function"].arguments) ~= "string" or tc["function"].arguments == "" then -- 1426
-		return false -- 1427
-	end -- 1427
-	local args = tc["function"].arguments -- 1428
-	if __TS__StringCharCodeAt(args, #args - 1) ~= 125 then -- 1428
-		return false -- 1429
-	end -- 1429
-	local decoded = ____exports.safeJsonDecode(args) -- 1430
-	return decoded ~= nil -- 1431
-end -- 1424
-local function mergeStreamChoice(acc, choice, onToolCallReady, emittedToolCallIds) -- 1434
-	local delta = choice.delta or ({}) -- 1435
-	local fullMessage = choice.message or ({}) -- 1436
-	local message = acc.message -- 1437
-	local role = type(delta.role) == "string" and delta.role ~= "" and delta.role or (type(fullMessage.role) == "string" and fullMessage.role or nil) -- 1438
-	if type(role) == "string" and role ~= "" then -- 1438
-		message.role = role -- 1442
+	if not tc["function"] or type(tc["function"].name) ~= "string" or tc["function"].name == "" then -- 1419
+		return false -- 1420
+	end -- 1420
+	if type(tc["function"].arguments) ~= "string" or tc["function"].arguments == "" then -- 1420
+		return false -- 1421
+	end -- 1421
+	local args = tc["function"].arguments -- 1422
+	if __TS__StringCharCodeAt(args, #args - 1) ~= 125 then -- 1422
+		return false -- 1423
+	end -- 1423
+	local decoded = ____exports.safeJsonDecode(args) -- 1424
+	return decoded ~= nil -- 1425
+end -- 1418
+local function mergeStreamChoice(acc, choice, onToolCallReady, emittedToolCallIds) -- 1428
+	local delta = choice.delta or ({}) -- 1429
+	local fullMessage = choice.message or ({}) -- 1430
+	local message = acc.message -- 1431
+	local role = type(delta.role) == "string" and delta.role ~= "" and delta.role or (type(fullMessage.role) == "string" and fullMessage.role or nil) -- 1432
+	if type(role) == "string" and role ~= "" then -- 1432
+		message.role = role -- 1436
+	end -- 1436
+	local content = type(delta.content) == "string" and delta.content ~= "" and delta.content or (type(fullMessage.content) == "string" and fullMessage.content or nil) -- 1438
+	if type(content) == "string" and content ~= "" then -- 1438
+		message.content = (message.content or "") .. content -- 1442
 	end -- 1442
-	local content = type(delta.content) == "string" and delta.content ~= "" and delta.content or (type(fullMessage.content) == "string" and fullMessage.content or nil) -- 1444
-	if type(content) == "string" and content ~= "" then -- 1444
-		message.content = (message.content or "") .. content -- 1448
+	local reasoningContent = type(delta.reasoning_content) == "string" and delta.reasoning_content ~= "" and delta.reasoning_content or (type(fullMessage.reasoning_content) == "string" and fullMessage.reasoning_content or nil) -- 1444
+	if type(reasoningContent) == "string" and reasoningContent ~= "" then -- 1444
+		message.reasoning_content = (message.reasoning_content or "") .. reasoningContent -- 1448
 	end -- 1448
-	local reasoningContent = type(delta.reasoning_content) == "string" and delta.reasoning_content ~= "" and delta.reasoning_content or (type(fullMessage.reasoning_content) == "string" and fullMessage.reasoning_content or nil) -- 1450
-	if type(reasoningContent) == "string" and reasoningContent ~= "" then -- 1450
-		message.reasoning_content = (message.reasoning_content or "") .. reasoningContent -- 1454
-	end -- 1454
-	local toolCalls = delta.tool_calls and #delta.tool_calls > 0 and delta.tool_calls or (fullMessage.tool_calls or ({})) -- 1456
-	if #toolCalls > 0 then -- 1456
-		if message.tool_calls == nil then -- 1456
-			message.tool_calls = {} -- 1460
-		end -- 1460
-		do -- 1460
-			local i = 0 -- 1461
-			while i < #toolCalls do -- 1461
-				local item = toolCalls[i + 1] -- 1462
-				local index = type(item.index) == "number" and item.index >= 0 and math.floor(item.index) or i -- 1463
-				local ____message_tool_calls_30, ____temp_31 = message.tool_calls, index + 1 -- 1463
-				if ____message_tool_calls_30[____temp_31] == nil then -- 1463
-					____message_tool_calls_30[____temp_31] = {} -- 1466
+	local toolCalls = delta.tool_calls and #delta.tool_calls > 0 and delta.tool_calls or (fullMessage.tool_calls or ({})) -- 1450
+	if #toolCalls > 0 then -- 1450
+		if message.tool_calls == nil then -- 1450
+			message.tool_calls = {} -- 1454
+		end -- 1454
+		do -- 1454
+			local i = 0 -- 1455
+			while i < #toolCalls do -- 1455
+				local item = toolCalls[i + 1] -- 1456
+				local index = type(item.index) == "number" and item.index >= 0 and math.floor(item.index) or i -- 1457
+				local ____message_tool_calls_30, ____temp_31 = message.tool_calls, index + 1 -- 1457
+				if ____message_tool_calls_30[____temp_31] == nil then -- 1457
+					____message_tool_calls_30[____temp_31] = {} -- 1460
+				end -- 1460
+				mergeStreamToolCall(message.tool_calls[index + 1], item) -- 1461
+				if onToolCallReady and emittedToolCallIds then -- 1461
+					local tc = message.tool_calls[index + 1] -- 1463
+					if isToolCallComplete(tc) and not emittedToolCallIds[tc.id] then -- 1463
+						emittedToolCallIds[tc.id] = true -- 1465
+						onToolCallReady(tc) -- 1466
+					end -- 1466
 				end -- 1466
-				mergeStreamToolCall(message.tool_calls[index + 1], item) -- 1467
-				if onToolCallReady and emittedToolCallIds then -- 1467
-					local tc = message.tool_calls[index + 1] -- 1469
-					if isToolCallComplete(tc) and not emittedToolCallIds[tc.id] then -- 1469
-						emittedToolCallIds[tc.id] = true -- 1471
-						onToolCallReady(tc) -- 1472
-					end -- 1472
-				end -- 1472
-				i = i + 1 -- 1461
-			end -- 1461
-		end -- 1461
-	end -- 1461
-	if type(choice.finish_reason) == "string" and choice.finish_reason ~= "" then -- 1461
-		acc.finish_reason = choice.finish_reason -- 1478
-	end -- 1478
-end -- 1434
-local function buildStreamResponse(states, model, id, created, object, providerError, usage) -- 1482
-	local indexes = __TS__ArraySort( -- 1491
-		__TS__ArrayFilter( -- 1491
-			__TS__ArrayMap( -- 1491
-				__TS__ObjectKeys(states), -- 1491
-				function(____, key) return __TS__Number(key) end -- 1492
-			), -- 1492
-			function(____, index) return __TS__NumberIsFinite(index) end -- 1493
-		), -- 1493
-		function(____, a, b) return a - b end -- 1494
-	) -- 1494
-	return { -- 1495
-		id = id, -- 1496
-		created = created, -- 1497
-		object = object, -- 1498
-		model = model, -- 1499
-		choices = __TS__ArrayMap( -- 1500
-			indexes, -- 1500
-			function(____, index) -- 1500
-				local state = states[index] -- 1501
-				return {index = index, message = {role = state.message.role or "assistant", content = state.message.content, reasoning_content = state.message.reasoning_content, tool_calls = state.message.tool_calls}, finish_reason = state.finish_reason} -- 1502
-			end -- 1500
-		), -- 1500
-		usage = usage, -- 1513
-		error = providerError -- 1514
-	} -- 1514
-end -- 1482
-function ____exports.callLLMStreamAggregated(messages, options, stopTokenOrConfig, llmConfig, onChunk, onToolCallReady) -- 1518
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 1518
-		local stopToken = stopTokenOrConfig and stopTokenOrConfig.stopped ~= nil and stopTokenOrConfig or nil -- 1529
-		local config = stopTokenOrConfig and stopTokenOrConfig.url ~= nil and stopTokenOrConfig or llmConfig -- 1530
-		local resolvedConfig = config or (function() -- 1533
-			local configRes = ____exports.getActiveLLMConfig() -- 1534
-			if not configRes.success then -- 1534
-				____exports.Log("Error", "[Agent.Utils] callLLMStreamAggregated config error: " .. configRes.message) -- 1536
-				return nil -- 1537
-			end -- 1537
-			return configRes.config -- 1539
-		end)() -- 1533
-		if not resolvedConfig then -- 1533
-			return ____awaiter_resolve(nil, {success = false, message = "no active LLM config"}) -- 1533
-		end -- 1533
-		local url = resolvedConfig.url -- 1533
-		local model = resolvedConfig.model -- 1533
-		local apiKey = resolvedConfig.apiKey -- 1533
-		local fitted = ____exports.fitMessagesToContext(messages, options, resolvedConfig) -- 1545
-		local toolCount = __TS__ArrayIsArray(options.tools) and #options.tools or 0 -- 1546
-		local toolChoice = type(options.tool_choice) == "string" and options.tool_choice or (options.tool_choice ~= nil and "object" or "unset") -- 1547
-		local ____model_36 = model -- 1550
-		local ____url_37 = url -- 1550
-		local ____temp_38 = #messages -- 1550
-		local ____tostring_33 = tostring -- 1550
-		local ____options_max_tokens_32 = options.max_tokens -- 1550
-		if ____options_max_tokens_32 == nil then -- 1550
-			____options_max_tokens_32 = "unset" -- 1550
-		end -- 1550
-		local ____tostring_33_result_39 = ____tostring_33(____options_max_tokens_32) -- 1550
-		local ____tostring_35 = tostring -- 1550
-		local ____options_temperature_34 = options.temperature -- 1550
-		if ____options_temperature_34 == nil then -- 1550
-			____options_temperature_34 = "unset" -- 1550
-		end -- 1550
-		____exports.Log( -- 1550
-			"Info", -- 1550
-			((((((((((((("[Agent.Utils] callLLMStreamAggregated request model=" .. ____model_36) .. " url=") .. ____url_37) .. " messages=") .. tostring(____temp_38)) .. " tools=") .. tostring(toolCount)) .. " tool_choice=") .. toolChoice) .. " max_tokens=") .. ____tostring_33_result_39) .. " temperature=") .. ____tostring_35(____options_temperature_34)) .. (fitted.trimmed and ((((" trimmed_tokens=" .. tostring(fitted.originalTokens)) .. "->") .. tostring(fitted.fittedTokens)) .. "/") .. tostring(fitted.budgetTokens) or "") -- 1550
-		) -- 1550
-		if stopToken and stopToken.stopped then -- 1550
-			local reason = stopToken.reason or "request cancelled" -- 1552
-			____exports.Log("Info", "[Agent.Utils] callLLMStreamAggregated cancelled before request: " .. reason) -- 1553
-			return ____awaiter_resolve(nil, {success = false, message = reason}) -- 1553
-		end -- 1553
-		local ____hasReturned, ____returnValue -- 1553
-		local ____try = __TS__AsyncAwaiter(function() -- 1553
-			local states = {} -- 1557
-			local emittedToolCallIds = {} -- 1558
-			local responseId = nil -- 1559
-			local responseCreated = nil -- 1560
-			local responseObject = nil -- 1561
-			local providerError -- 1562
-			local responseUsage -- 1563
-			local httpChunkCount = 0 -- 1564
-			local rawStreamBytes = 0 -- 1565
-			local rawStreamPreview = "" -- 1566
-			local sseJSONChunkCount = 0 -- 1567
-			local choiceJSONChunkCount = 0 -- 1568
-			local emptyChoicesChunkCount = 0 -- 1569
-			local missingChoicesChunkCount = 0 -- 1570
-			local parseErrorCount = 0 -- 1571
-			local doneChunkSeen = false -- 1572
-			local lastJSONPreview = "" -- 1573
-			local parser = createScheduledSSEJSONParser( -- 1574
-				{ -- 1574
-					onJSON = function(obj, raw) -- 1575
-						sseJSONChunkCount = sseJSONChunkCount + 1 -- 1576
-						lastJSONPreview = previewText(raw, 500) -- 1577
-						if not obj or type(obj) ~= "table" then -- 1577
+				i = i + 1 -- 1455
+			end -- 1455
+		end -- 1455
+	end -- 1455
+	if type(choice.finish_reason) == "string" and choice.finish_reason ~= "" then -- 1455
+		acc.finish_reason = choice.finish_reason -- 1472
+	end -- 1472
+end -- 1428
+local function buildStreamResponse(states, model, id, created, object, providerError, usage) -- 1476
+	local indexes = __TS__ArraySort( -- 1485
+		__TS__ArrayFilter( -- 1485
+			__TS__ArrayMap( -- 1485
+				__TS__ObjectKeys(states), -- 1485
+				function(____, key) return __TS__Number(key) end -- 1486
+			), -- 1486
+			function(____, index) return __TS__NumberIsFinite(index) end -- 1487
+		), -- 1487
+		function(____, a, b) return a - b end -- 1488
+	) -- 1488
+	return { -- 1489
+		id = id, -- 1490
+		created = created, -- 1491
+		object = object, -- 1492
+		model = model, -- 1493
+		choices = __TS__ArrayMap( -- 1494
+			indexes, -- 1494
+			function(____, index) -- 1494
+				local state = states[index] -- 1495
+				return {index = index, message = {role = state.message.role or "assistant", content = state.message.content, reasoning_content = state.message.reasoning_content, tool_calls = state.message.tool_calls}, finish_reason = state.finish_reason} -- 1496
+			end -- 1494
+		), -- 1494
+		usage = usage, -- 1507
+		error = providerError -- 1508
+	} -- 1508
+end -- 1476
+function ____exports.callLLMStreamAggregated(messages, options, stopTokenOrConfig, llmConfig, onChunk, onToolCallReady) -- 1512
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 1512
+		local stopToken = stopTokenOrConfig and stopTokenOrConfig.stopped ~= nil and stopTokenOrConfig or nil -- 1523
+		local config = stopTokenOrConfig and stopTokenOrConfig.url ~= nil and stopTokenOrConfig or llmConfig -- 1524
+		local resolvedConfig = config or (function() -- 1527
+			local configRes = ____exports.getActiveLLMConfig() -- 1528
+			if not configRes.success then -- 1528
+				____exports.Log("Error", "[Agent.Utils] callLLMStreamAggregated config error: " .. configRes.message) -- 1530
+				return nil -- 1531
+			end -- 1531
+			return configRes.config -- 1533
+		end)() -- 1527
+		if not resolvedConfig then -- 1527
+			return ____awaiter_resolve(nil, {success = false, message = "no active LLM config"}) -- 1527
+		end -- 1527
+		local url = resolvedConfig.url -- 1527
+		local model = resolvedConfig.model -- 1527
+		local apiKey = resolvedConfig.apiKey -- 1527
+		local fitted = ____exports.fitMessagesToContext(messages, options, resolvedConfig) -- 1539
+		local toolCount = __TS__ArrayIsArray(options.tools) and #options.tools or 0 -- 1540
+		local toolChoice = type(options.tool_choice) == "string" and options.tool_choice or (options.tool_choice ~= nil and "object" or "unset") -- 1541
+		local ____model_36 = model -- 1544
+		local ____url_37 = url -- 1544
+		local ____temp_38 = #messages -- 1544
+		local ____tostring_33 = tostring -- 1544
+		local ____options_max_tokens_32 = options.max_tokens -- 1544
+		if ____options_max_tokens_32 == nil then -- 1544
+			____options_max_tokens_32 = "unset" -- 1544
+		end -- 1544
+		local ____tostring_33_result_39 = ____tostring_33(____options_max_tokens_32) -- 1544
+		local ____tostring_35 = tostring -- 1544
+		local ____options_temperature_34 = options.temperature -- 1544
+		if ____options_temperature_34 == nil then -- 1544
+			____options_temperature_34 = "unset" -- 1544
+		end -- 1544
+		____exports.Log( -- 1544
+			"Info", -- 1544
+			((((((((((((("[Agent.Utils] callLLMStreamAggregated request model=" .. ____model_36) .. " url=") .. ____url_37) .. " messages=") .. tostring(____temp_38)) .. " tools=") .. tostring(toolCount)) .. " tool_choice=") .. toolChoice) .. " max_tokens=") .. ____tostring_33_result_39) .. " temperature=") .. ____tostring_35(____options_temperature_34)) .. (fitted.trimmed and ((((" trimmed_tokens=" .. tostring(fitted.originalTokens)) .. "->") .. tostring(fitted.fittedTokens)) .. "/") .. tostring(fitted.budgetTokens) or "") -- 1544
+		) -- 1544
+		if stopToken and stopToken.stopped then -- 1544
+			local reason = stopToken.reason or "request cancelled" -- 1546
+			____exports.Log("Info", "[Agent.Utils] callLLMStreamAggregated cancelled before request: " .. reason) -- 1547
+			return ____awaiter_resolve(nil, {success = false, message = reason}) -- 1547
+		end -- 1547
+		local ____hasReturned, ____returnValue -- 1547
+		local ____try = __TS__AsyncAwaiter(function() -- 1547
+			local states = {} -- 1551
+			local emittedToolCallIds = {} -- 1552
+			local responseId = nil -- 1553
+			local responseCreated = nil -- 1554
+			local responseObject = nil -- 1555
+			local providerError -- 1556
+			local responseUsage -- 1557
+			local httpChunkCount = 0 -- 1558
+			local rawStreamBytes = 0 -- 1559
+			local rawStreamPreview = "" -- 1560
+			local sseJSONChunkCount = 0 -- 1561
+			local choiceJSONChunkCount = 0 -- 1562
+			local emptyChoicesChunkCount = 0 -- 1563
+			local missingChoicesChunkCount = 0 -- 1564
+			local parseErrorCount = 0 -- 1565
+			local doneChunkSeen = false -- 1566
+			local lastJSONPreview = "" -- 1567
+			local parser = createScheduledSSEJSONParser( -- 1568
+				{ -- 1568
+					onJSON = function(obj, raw) -- 1569
+						sseJSONChunkCount = sseJSONChunkCount + 1 -- 1570
+						lastJSONPreview = previewText(raw, 500) -- 1571
+						if not obj or type(obj) ~= "table" then -- 1571
+							return -- 1573
+						end -- 1573
+						local chunk = obj -- 1575
+						if chunk.error then -- 1575
+							providerError = chunk.error -- 1577
+							____exports.Log( -- 1578
+								"Warn", -- 1578
+								"[Agent.Utils] callLLMStreamAggregated provider error chunk: " .. previewText(raw, 300) -- 1578
+							) -- 1578
 							return -- 1579
 						end -- 1579
-						local chunk = obj -- 1581
-						if chunk.error then -- 1581
-							providerError = chunk.error -- 1583
-							____exports.Log( -- 1584
-								"Warn", -- 1584
-								"[Agent.Utils] callLLMStreamAggregated provider error chunk: " .. previewText(raw, 300) -- 1584
-							) -- 1584
-							return -- 1585
+						responseId = type(chunk.id) == "string" and chunk.id or responseId -- 1581
+						responseCreated = type(chunk.created) == "number" and chunk.created or responseCreated -- 1582
+						responseObject = type(chunk.object) == "string" and chunk.object or responseObject -- 1583
+						if chunk.usage and type(chunk.usage) == "table" then -- 1583
+							responseUsage = chunk.usage -- 1585
 						end -- 1585
-						responseId = type(chunk.id) == "string" and chunk.id or responseId -- 1587
-						responseCreated = type(chunk.created) == "number" and chunk.created or responseCreated -- 1588
-						responseObject = type(chunk.object) == "string" and chunk.object or responseObject -- 1589
-						if chunk.usage and type(chunk.usage) == "table" then -- 1589
-							responseUsage = chunk.usage -- 1591
-						end -- 1591
-						local choices = __TS__ArrayIsArray(chunk.choices) and chunk.choices or ({}) -- 1593
-						if not __TS__ArrayIsArray(chunk.choices) then -- 1593
-							missingChoicesChunkCount = missingChoicesChunkCount + 1 -- 1595
-							if missingChoicesChunkCount <= LLM_STREAM_CHUNK_DEBUG_LOG_LIMIT then -- 1595
-								____exports.Log( -- 1597
-									"Warn", -- 1597
-									"[Agent.Utils] callLLMStreamAggregated chunk missing choices raw=" .. previewText(raw, 300) -- 1597
-								) -- 1597
-							end -- 1597
-						elseif #choices == 0 then -- 1597
-							emptyChoicesChunkCount = emptyChoicesChunkCount + 1 -- 1600
-							if emptyChoicesChunkCount <= LLM_STREAM_CHUNK_DEBUG_LOG_LIMIT then -- 1600
-								____exports.Log( -- 1602
-									"Warn", -- 1602
-									"[Agent.Utils] callLLMStreamAggregated chunk empty choices raw=" .. previewText(raw, 300) -- 1602
-								) -- 1602
-							end -- 1602
-						else -- 1602
-							choiceJSONChunkCount = choiceJSONChunkCount + 1 -- 1605
-						end -- 1605
-						do -- 1605
-							local i = 0 -- 1607
-							while i < #choices do -- 1607
-								local choice = choices[i + 1] -- 1608
-								local index = type(choice.index) == "number" and choice.index or i -- 1609
-								if states[index] == nil then -- 1609
-									states[index] = {index = index, message = {role = "assistant"}} -- 1610
-								end -- 1610
-								mergeStreamChoice(states[index], choice, onToolCallReady, emittedToolCallIds) -- 1614
-								i = i + 1 -- 1607
-							end -- 1607
-						end -- 1607
-						if onChunk ~= nil then -- 1607
-							onChunk( -- 1616
-								buildStreamResponse( -- 1617
-									states, -- 1617
-									model, -- 1617
-									responseId, -- 1617
-									responseCreated, -- 1617
-									responseObject, -- 1617
-									providerError, -- 1617
-									responseUsage -- 1617
-								), -- 1617
-								{ -- 1618
-									id = chunk.id or "", -- 1619
-									created = chunk.created or 0, -- 1620
-									object = chunk.object or "", -- 1621
-									model = chunk.model or model, -- 1622
-									choices = choices -- 1623
-								} -- 1623
-							) -- 1623
-						end -- 1623
-					end, -- 1575
-					onDone = function() -- 1627
-						doneChunkSeen = true -- 1628
-					end, -- 1627
-					onError = function(err, context) -- 1630
-						parseErrorCount = parseErrorCount + 1 -- 1631
-						____exports.Log( -- 1632
-							"Warn", -- 1632
-							(("[Agent.Utils] callLLMStreamAggregated parse error: " .. tostring(err)) .. " raw=") .. previewText(context and context.raw or "", 300) -- 1632
-						) -- 1632
-					end -- 1630
-				}, -- 1630
-				function() return (stopToken and stopToken.stopped) == true end -- 1634
-			) -- 1634
-			local ____try = __TS__AsyncAwaiter(function() -- 1634
-				__TS__Await(postLLM( -- 1636
-					fitted.messages, -- 1636
-					url, -- 1636
-					apiKey, -- 1636
-					model, -- 1636
-					options, -- 1636
-					true, -- 1636
-					resolvedConfig.customOptions, -- 1636
-					function(data) -- 1636
-						if stopToken and stopToken.stopped then -- 1636
-							return true -- 1637
-						end -- 1637
-						httpChunkCount = httpChunkCount + 1 -- 1638
-						rawStreamBytes = rawStreamBytes + #data -- 1639
-						if #rawStreamPreview < LLM_STREAM_RAW_DEBUG_MAX then -- 1639
-							rawStreamPreview = rawStreamPreview .. __TS__StringSlice(data, 0, LLM_STREAM_RAW_DEBUG_MAX - #rawStreamPreview) -- 1641
-						end -- 1641
-						parser.append(data) -- 1643
-						return false -- 1644
-					end, -- 1636
-					stopToken, -- 1645
-					resolvedConfig.studioGateway -- 1645
-				)) -- 1645
-				__TS__Await(parser.finish()) -- 1646
-			end) -- 1646
-			____try = ____try.catch( -- 1646
-				____try, -- 1646
-				function(____, e) -- 1646
-					return __TS__AsyncAwaiter(function() -- 1646
-						parser.cancel() -- 1648
-						error(e, 0) -- 1649
-					end) -- 1649
-				end -- 1649
-			) -- 1649
-			__TS__Await(____try) -- 1635
-			if sseJSONChunkCount == 0 and __TS__StringTrim(rawStreamPreview) ~= "" then -- 1635
-				local rawResponse = ____exports.safeJsonDecode(normalizeLLMJSONResponse(rawStreamPreview)) -- 1652
-				if rawResponse and type(rawResponse) == "table" then -- 1652
-					local rawResponseObj = rawResponse -- 1654
-					if rawResponseObj.error then -- 1654
-						providerError = rawResponseObj.error -- 1656
-						lastJSONPreview = previewText( -- 1657
-							normalizeLLMJSONResponse(rawStreamPreview), -- 1657
-							500 -- 1657
-						) -- 1657
-						____exports.Log( -- 1658
-							"Warn", -- 1658
-							"[Agent.Utils] callLLMStreamAggregated non-SSE provider error raw=" .. previewText(rawStreamPreview, 500) -- 1658
-						) -- 1658
-					end -- 1658
-					if rawResponseObj.usage and type(rawResponseObj.usage) == "table" then -- 1658
-						responseUsage = rawResponseObj.usage -- 1661
-					end -- 1661
-				end -- 1661
-			end -- 1661
-			local response = buildStreamResponse( -- 1665
-				states, -- 1665
-				model, -- 1665
-				responseId, -- 1665
-				responseCreated, -- 1665
-				responseObject, -- 1665
-				providerError, -- 1665
-				responseUsage -- 1665
-			) -- 1665
-			local tokenUsage = ____exports.extractLLMTokenUsage(response) -- 1666
-			local choiceCount = response.choices and #response.choices or 0 -- 1667
-			local streamStats = (((((((((((((("http_chunks=" .. tostring(httpChunkCount)) .. " raw_bytes=") .. tostring(rawStreamBytes)) .. " sse_json_chunks=") .. tostring(sseJSONChunkCount)) .. " choice_chunks=") .. tostring(choiceJSONChunkCount)) .. " empty_choice_chunks=") .. tostring(emptyChoicesChunkCount)) .. " missing_choice_chunks=") .. tostring(missingChoicesChunkCount)) .. " parse_errors=") .. tostring(parseErrorCount)) .. " done=") .. (doneChunkSeen and "true" or "false") -- 1668
-			____exports.Log( -- 1669
-				"Info", -- 1669
-				(("[Agent.Utils] callLLMStreamAggregated decoded response choices=" .. tostring(choiceCount)) .. " ") .. streamStats -- 1669
-			) -- 1669
-			if not doneChunkSeen then -- 1669
-				local rawPreview = previewText( -- 1671
-					____exports.sanitizeUTF8(rawStreamPreview), -- 1671
-					1200 -- 1671
-				) -- 1671
-				local lastJSON = lastJSONPreview ~= "" and " last_json=" .. lastJSONPreview or "" -- 1672
-				local message = ((("stream incomplete: missing [DONE]; " .. streamStats) .. "; raw=") .. rawPreview) .. lastJSON -- 1673
-				____exports.Log("Error", ((("[Agent.Utils] callLLMStreamAggregated incomplete stream " .. streamStats) .. " raw_preview=") .. rawPreview) .. lastJSON) -- 1674
-				____hasReturned = true -- 1675
-				____returnValue = { -- 1675
-					success = false, -- 1676
-					message = message, -- 1677
-					raw = rawStreamPreview, -- 1678
-					response = response, -- 1679
-					tokenUsage = tokenUsage -- 1680
-				} -- 1680
-				return -- 1675
-			end -- 1675
-			if not response.choices or #response.choices == 0 then -- 1675
-				local providerMessage = providerError and providerError.message or "" -- 1684
-				local providerType = providerError and providerError.type or "" -- 1685
-				local providerCode = providerError and (type(providerError.code) == "string" or type(providerError.code) == "number") and tostring(providerError.code) or "" -- 1686
-				local details = table.concat( -- 1689
-					__TS__ArrayFilter( -- 1689
-						{providerType, providerCode}, -- 1689
-						function(____, part) return part ~= "" end -- 1689
-					), -- 1689
-					"/" -- 1689
-				) -- 1689
-				local rawPreview = previewText( -- 1690
-					____exports.sanitizeUTF8(rawStreamPreview), -- 1690
-					1200 -- 1690
-				) -- 1690
-				local lastJSON = lastJSONPreview ~= "" and " last_json=" .. lastJSONPreview or "" -- 1691
-				local message = providerMessage ~= "" and (((((("LLM returned no choices: " .. providerMessage) .. (details ~= "" and (" (" .. details) .. ")" or "")) .. "; ") .. streamStats) .. "; raw=") .. rawPreview) .. lastJSON or ((("LLM returned no choices; " .. streamStats) .. "; raw=") .. rawPreview) .. lastJSON -- 1692
-				____exports.Log("Error", ((("[Agent.Utils] callLLMStreamAggregated empty choices " .. streamStats) .. " raw_preview=") .. rawPreview) .. lastJSON) -- 1695
-				____hasReturned = true -- 1696
-				____returnValue = {success = false, message = message, raw = rawStreamPreview, tokenUsage = tokenUsage} -- 1696
-				return -- 1696
-			end -- 1696
-			____hasReturned = true -- 1703
-			____returnValue = {success = true, response = response, tokenUsage = tokenUsage} -- 1703
-			return -- 1703
-		end) -- 1703
-		____try = ____try.catch( -- 1703
-			____try, -- 1703
-			function(____, e) -- 1703
-				return __TS__AsyncAwaiter(function() -- 1703
-					if stopToken and stopToken.stopped then -- 1703
-						local reason = stopToken.reason or "request cancelled" -- 1710
-						____exports.Log("Info", "[Agent.Utils] callLLMStreamAggregated cancelled during request: " .. reason) -- 1711
-						____hasReturned = true -- 1712
-						____returnValue = {success = false, message = reason} -- 1712
-						return -- 1712
-					end -- 1712
-					____exports.Log( -- 1714
-						"Error", -- 1714
-						"[Agent.Utils] callLLMStreamAggregated exception: " .. tostring(e) -- 1714
-					) -- 1714
-					____hasReturned = true -- 1715
-					____returnValue = { -- 1715
-						success = false, -- 1715
-						message = tostring(e) -- 1715
-					} -- 1715
-					return -- 1715
-				end) -- 1715
-			end -- 1715
-		) -- 1715
-		__TS__Await(____try) -- 1556
-		if ____hasReturned then -- 1556
-			return ____awaiter_resolve(nil, ____returnValue) -- 1556
-		end -- 1556
-	end) -- 1556
-end -- 1518
-function ____exports.callLLM(messages, options, stopTokenOrConfig, llmConfig) -- 1719
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 1719
-		local stopToken = stopTokenOrConfig and stopTokenOrConfig.stopped ~= nil and stopTokenOrConfig or nil -- 1725
-		local config = stopTokenOrConfig and stopTokenOrConfig.url ~= nil and stopTokenOrConfig or llmConfig -- 1726
-		local resolvedConfig = config or (function() -- 1729
-			local configRes = ____exports.getActiveLLMConfig() -- 1730
-			if not configRes.success then -- 1730
-				____exports.Log("Error", "[Agent.Utils] callLLMOnce config error: " .. configRes.message) -- 1732
-				return nil -- 1733
-			end -- 1733
-			return configRes.config -- 1735
-		end)() -- 1729
-		if not resolvedConfig then -- 1729
-			return ____awaiter_resolve(nil, {success = false, message = "no active LLM config"}) -- 1729
-		end -- 1729
-		local url = resolvedConfig.url -- 1729
-		local model = resolvedConfig.model -- 1729
-		local apiKey = resolvedConfig.apiKey -- 1729
-		local fitted = ____exports.fitMessagesToContext(messages, options, resolvedConfig) -- 1741
-		____exports.Log( -- 1742
-			"Info", -- 1742
-			((((("[Agent.Utils] callLLMOnce request model=" .. model) .. " url=") .. url) .. " messages=") .. tostring(#messages)) .. (fitted.trimmed and ((((" trimmed_tokens=" .. tostring(fitted.originalTokens)) .. "->") .. tostring(fitted.fittedTokens)) .. "/") .. tostring(fitted.budgetTokens) or "") -- 1742
-		) -- 1742
-		if stopToken and stopToken.stopped then -- 1742
-			local reason = stopToken.reason or "request cancelled" -- 1744
-			____exports.Log("Info", "[Agent.Utils] callLLMOnce cancelled before request: " .. reason) -- 1745
-			return ____awaiter_resolve(nil, {success = false, message = reason}) -- 1745
-		end -- 1745
-		local ____hasReturned, ____returnValue -- 1745
-		local ____try = __TS__AsyncAwaiter(function() -- 1745
-			local raw = ____exports.sanitizeUTF8(__TS__Await(postLLM( -- 1749
-				fitted.messages, -- 1749
-				url, -- 1749
-				apiKey, -- 1749
-				model, -- 1749
-				options, -- 1749
-				false, -- 1749
-				resolvedConfig.customOptions, -- 1749
-				nil, -- 1749
-				stopToken, -- 1749
-				resolvedConfig.studioGateway -- 1749
-			))) -- 1749
-			local normalizedRaw = normalizeLLMJSONResponse(raw) -- 1750
-			____exports.Log( -- 1751
-				"Info", -- 1751
-				("[Agent.Utils] callLLMOnce raw response length=" .. tostring(#raw)) .. (#normalizedRaw ~= #raw and " normalized=" .. tostring(#normalizedRaw) or "") -- 1751
-			) -- 1751
-			local response, err = ____exports.safeJsonDecode(normalizedRaw) -- 1752
-			if err ~= nil or response == nil or type(response) ~= "table" then -- 1752
-				local rawPreview = previewText(raw) -- 1754
-				____exports.Log( -- 1755
-					"Error", -- 1755
-					(("[Agent.Utils] callLLMOnce invalid JSON: " .. tostring(err)) .. " raw_preview=") .. rawPreview -- 1755
-				) -- 1755
-				____hasReturned = true -- 1756
-				____returnValue = { -- 1756
-					success = false, -- 1757
-					message = (("invalid LLM response JSON: " .. tostring(err)) .. "; raw=") .. rawPreview, -- 1758
-					raw = raw -- 1759
-				} -- 1759
-				return -- 1756
-			end -- 1756
-			local responseObj = response -- 1762
-			local choiceCount = responseObj.choices and #responseObj.choices or 0 -- 1763
-			____exports.Log( -- 1764
-				"Info", -- 1764
-				"[Agent.Utils] callLLMOnce decoded response choices=" .. tostring(choiceCount) -- 1764
-			) -- 1764
-			if not responseObj.choices or #responseObj.choices == 0 then -- 1764
-				local providerError = responseObj.error -- 1766
-				local providerMessage = providerError and type(providerError.message) == "string" and providerError.message or "" -- 1767
-				local providerType = providerError and type(providerError.type) == "string" and providerError.type or "" -- 1770
-				local providerCode = providerError and (type(providerError.code) == "string" or type(providerError.code) == "number") and tostring(providerError.code) or "" -- 1773
-				local details = table.concat( -- 1776
-					__TS__ArrayFilter( -- 1776
-						{providerType, providerCode}, -- 1776
-						function(____, part) return part ~= "" end -- 1776
-					), -- 1776
-					"/" -- 1776
-				) -- 1776
-				local rawPreview = previewText(raw, 400) -- 1777
-				local message = providerMessage ~= "" and ("LLM returned no choices: " .. providerMessage) .. (details ~= "" and (" (" .. details) .. ")" or "") or "LLM returned no choices; raw=" .. rawPreview -- 1778
-				____exports.Log("Error", "[Agent.Utils] callLLMOnce empty choices raw_preview=" .. rawPreview) -- 1781
-				____hasReturned = true -- 1782
-				____returnValue = {success = false, message = message, raw = raw} -- 1782
-				return -- 1782
-			end -- 1782
-			____hasReturned = true -- 1788
-			____returnValue = {success = true, response = responseObj} -- 1788
-			return -- 1788
-		end) -- 1788
-		____try = ____try.catch( -- 1788
-			____try, -- 1788
-			function(____, e) -- 1788
-				return __TS__AsyncAwaiter(function() -- 1788
-					if stopToken and stopToken.stopped then -- 1788
-						local reason = stopToken.reason or "request cancelled" -- 1794
-						____exports.Log("Info", "[Agent.Utils] callLLMOnce cancelled during request: " .. reason) -- 1795
-						____hasReturned = true -- 1796
-						____returnValue = {success = false, message = reason} -- 1796
-						return -- 1796
-					end -- 1796
-					____exports.Log( -- 1798
-						"Error", -- 1798
-						"[Agent.Utils] callLLMOnce exception: " .. tostring(e) -- 1798
-					) -- 1798
-					____hasReturned = true -- 1799
-					____returnValue = { -- 1799
-						success = false, -- 1799
-						message = tostring(e) -- 1799
-					} -- 1799
-					return -- 1799
-				end) -- 1799
-			end -- 1799
-		) -- 1799
-		__TS__Await(____try) -- 1748
-		if ____hasReturned then -- 1748
-			return ____awaiter_resolve(nil, ____returnValue) -- 1748
-		end -- 1748
-	end) -- 1748
-end -- 1719
-return ____exports -- 1719
+						local choices = __TS__ArrayIsArray(chunk.choices) and chunk.choices or ({}) -- 1587
+						if not __TS__ArrayIsArray(chunk.choices) then -- 1587
+							missingChoicesChunkCount = missingChoicesChunkCount + 1 -- 1589
+							if missingChoicesChunkCount <= LLM_STREAM_CHUNK_DEBUG_LOG_LIMIT then -- 1589
+								____exports.Log( -- 1591
+									"Warn", -- 1591
+									"[Agent.Utils] callLLMStreamAggregated chunk missing choices raw=" .. previewText(raw, 300) -- 1591
+								) -- 1591
+							end -- 1591
+						elseif #choices == 0 then -- 1591
+							emptyChoicesChunkCount = emptyChoicesChunkCount + 1 -- 1594
+							if emptyChoicesChunkCount <= LLM_STREAM_CHUNK_DEBUG_LOG_LIMIT then -- 1594
+								____exports.Log( -- 1596
+									"Warn", -- 1596
+									"[Agent.Utils] callLLMStreamAggregated chunk empty choices raw=" .. previewText(raw, 300) -- 1596
+								) -- 1596
+							end -- 1596
+						else -- 1596
+							choiceJSONChunkCount = choiceJSONChunkCount + 1 -- 1599
+						end -- 1599
+						do -- 1599
+							local i = 0 -- 1601
+							while i < #choices do -- 1601
+								local choice = choices[i + 1] -- 1602
+								local index = type(choice.index) == "number" and choice.index or i -- 1603
+								if states[index] == nil then -- 1603
+									states[index] = {index = index, message = {role = "assistant"}} -- 1604
+								end -- 1604
+								mergeStreamChoice(states[index], choice, onToolCallReady, emittedToolCallIds) -- 1608
+								i = i + 1 -- 1601
+							end -- 1601
+						end -- 1601
+						if onChunk ~= nil then -- 1601
+							onChunk( -- 1610
+								buildStreamResponse( -- 1611
+									states, -- 1611
+									model, -- 1611
+									responseId, -- 1611
+									responseCreated, -- 1611
+									responseObject, -- 1611
+									providerError, -- 1611
+									responseUsage -- 1611
+								), -- 1611
+								{ -- 1612
+									id = chunk.id or "", -- 1613
+									created = chunk.created or 0, -- 1614
+									object = chunk.object or "", -- 1615
+									model = chunk.model or model, -- 1616
+									choices = choices -- 1617
+								} -- 1617
+							) -- 1617
+						end -- 1617
+					end, -- 1569
+					onDone = function() -- 1621
+						doneChunkSeen = true -- 1622
+					end, -- 1621
+					onError = function(err, context) -- 1624
+						parseErrorCount = parseErrorCount + 1 -- 1625
+						____exports.Log( -- 1626
+							"Warn", -- 1626
+							(("[Agent.Utils] callLLMStreamAggregated parse error: " .. tostring(err)) .. " raw=") .. previewText(context and context.raw or "", 300) -- 1626
+						) -- 1626
+					end -- 1624
+				}, -- 1624
+				function() return (stopToken and stopToken.stopped) == true end -- 1628
+			) -- 1628
+			local ____try = __TS__AsyncAwaiter(function() -- 1628
+				__TS__Await(postLLM( -- 1630
+					fitted.messages, -- 1630
+					url, -- 1630
+					apiKey, -- 1630
+					model, -- 1630
+					options, -- 1630
+					true, -- 1630
+					resolvedConfig.customOptions, -- 1630
+					function(data) -- 1630
+						if stopToken and stopToken.stopped then -- 1630
+							return true -- 1631
+						end -- 1631
+						httpChunkCount = httpChunkCount + 1 -- 1632
+						rawStreamBytes = rawStreamBytes + #data -- 1633
+						if #rawStreamPreview < LLM_STREAM_RAW_DEBUG_MAX then -- 1633
+							rawStreamPreview = rawStreamPreview .. __TS__StringSlice(data, 0, LLM_STREAM_RAW_DEBUG_MAX - #rawStreamPreview) -- 1635
+						end -- 1635
+						parser.append(data) -- 1637
+						return false -- 1638
+					end, -- 1630
+					stopToken, -- 1639
+					resolvedConfig.studioGateway -- 1639
+				)) -- 1639
+				__TS__Await(parser.finish()) -- 1640
+			end) -- 1640
+			____try = ____try.catch( -- 1640
+				____try, -- 1640
+				function(____, e) -- 1640
+					return __TS__AsyncAwaiter(function() -- 1640
+						parser.cancel() -- 1642
+						error(e, 0) -- 1643
+					end) -- 1643
+				end -- 1643
+			) -- 1643
+			__TS__Await(____try) -- 1629
+			if sseJSONChunkCount == 0 and __TS__StringTrim(rawStreamPreview) ~= "" then -- 1629
+				local rawResponse = ____exports.safeJsonDecode(normalizeLLMJSONResponse(rawStreamPreview)) -- 1646
+				if rawResponse and type(rawResponse) == "table" then -- 1646
+					local rawResponseObj = rawResponse -- 1648
+					if rawResponseObj.error then -- 1648
+						providerError = rawResponseObj.error -- 1650
+						lastJSONPreview = previewText( -- 1651
+							normalizeLLMJSONResponse(rawStreamPreview), -- 1651
+							500 -- 1651
+						) -- 1651
+						____exports.Log( -- 1652
+							"Warn", -- 1652
+							"[Agent.Utils] callLLMStreamAggregated non-SSE provider error raw=" .. previewText(rawStreamPreview, 500) -- 1652
+						) -- 1652
+					end -- 1652
+					if rawResponseObj.usage and type(rawResponseObj.usage) == "table" then -- 1652
+						responseUsage = rawResponseObj.usage -- 1655
+					end -- 1655
+				end -- 1655
+			end -- 1655
+			local response = buildStreamResponse( -- 1659
+				states, -- 1659
+				model, -- 1659
+				responseId, -- 1659
+				responseCreated, -- 1659
+				responseObject, -- 1659
+				providerError, -- 1659
+				responseUsage -- 1659
+			) -- 1659
+			local tokenUsage = ____exports.extractLLMTokenUsage(response) -- 1660
+			local choiceCount = response.choices and #response.choices or 0 -- 1661
+			local streamStats = (((((((((((((("http_chunks=" .. tostring(httpChunkCount)) .. " raw_bytes=") .. tostring(rawStreamBytes)) .. " sse_json_chunks=") .. tostring(sseJSONChunkCount)) .. " choice_chunks=") .. tostring(choiceJSONChunkCount)) .. " empty_choice_chunks=") .. tostring(emptyChoicesChunkCount)) .. " missing_choice_chunks=") .. tostring(missingChoicesChunkCount)) .. " parse_errors=") .. tostring(parseErrorCount)) .. " done=") .. (doneChunkSeen and "true" or "false") -- 1662
+			____exports.Log( -- 1663
+				"Info", -- 1663
+				(("[Agent.Utils] callLLMStreamAggregated decoded response choices=" .. tostring(choiceCount)) .. " ") .. streamStats -- 1663
+			) -- 1663
+			if not doneChunkSeen then -- 1663
+				local rawPreview = previewText( -- 1665
+					____exports.sanitizeUTF8(rawStreamPreview), -- 1665
+					1200 -- 1665
+				) -- 1665
+				local lastJSON = lastJSONPreview ~= "" and " last_json=" .. lastJSONPreview or "" -- 1666
+				local message = ((("stream incomplete: missing [DONE]; " .. streamStats) .. "; raw=") .. rawPreview) .. lastJSON -- 1667
+				____exports.Log("Error", ((("[Agent.Utils] callLLMStreamAggregated incomplete stream " .. streamStats) .. " raw_preview=") .. rawPreview) .. lastJSON) -- 1668
+				____hasReturned = true -- 1669
+				____returnValue = { -- 1669
+					success = false, -- 1670
+					message = message, -- 1671
+					raw = rawStreamPreview, -- 1672
+					response = response, -- 1673
+					tokenUsage = tokenUsage -- 1674
+				} -- 1674
+				return -- 1669
+			end -- 1669
+			if not response.choices or #response.choices == 0 then -- 1669
+				local providerMessage = providerError and providerError.message or "" -- 1678
+				local providerType = providerError and providerError.type or "" -- 1679
+				local providerCode = providerError and (type(providerError.code) == "string" or type(providerError.code) == "number") and tostring(providerError.code) or "" -- 1680
+				local details = table.concat( -- 1683
+					__TS__ArrayFilter( -- 1683
+						{providerType, providerCode}, -- 1683
+						function(____, part) return part ~= "" end -- 1683
+					), -- 1683
+					"/" -- 1683
+				) -- 1683
+				local rawPreview = previewText( -- 1684
+					____exports.sanitizeUTF8(rawStreamPreview), -- 1684
+					1200 -- 1684
+				) -- 1684
+				local lastJSON = lastJSONPreview ~= "" and " last_json=" .. lastJSONPreview or "" -- 1685
+				local message = providerMessage ~= "" and (((((("LLM returned no choices: " .. providerMessage) .. (details ~= "" and (" (" .. details) .. ")" or "")) .. "; ") .. streamStats) .. "; raw=") .. rawPreview) .. lastJSON or ((("LLM returned no choices; " .. streamStats) .. "; raw=") .. rawPreview) .. lastJSON -- 1686
+				____exports.Log("Error", ((("[Agent.Utils] callLLMStreamAggregated empty choices " .. streamStats) .. " raw_preview=") .. rawPreview) .. lastJSON) -- 1689
+				____hasReturned = true -- 1690
+				____returnValue = {success = false, message = message, raw = rawStreamPreview, tokenUsage = tokenUsage} -- 1690
+				return -- 1690
+			end -- 1690
+			____hasReturned = true -- 1697
+			____returnValue = {success = true, response = response, tokenUsage = tokenUsage} -- 1697
+			return -- 1697
+		end) -- 1697
+		____try = ____try.catch( -- 1697
+			____try, -- 1697
+			function(____, e) -- 1697
+				return __TS__AsyncAwaiter(function() -- 1697
+					if stopToken and stopToken.stopped then -- 1697
+						local reason = stopToken.reason or "request cancelled" -- 1704
+						____exports.Log("Info", "[Agent.Utils] callLLMStreamAggregated cancelled during request: " .. reason) -- 1705
+						____hasReturned = true -- 1706
+						____returnValue = {success = false, message = reason} -- 1706
+						return -- 1706
+					end -- 1706
+					____exports.Log( -- 1708
+						"Error", -- 1708
+						"[Agent.Utils] callLLMStreamAggregated exception: " .. tostring(e) -- 1708
+					) -- 1708
+					____hasReturned = true -- 1709
+					____returnValue = { -- 1709
+						success = false, -- 1709
+						message = tostring(e) -- 1709
+					} -- 1709
+					return -- 1709
+				end) -- 1709
+			end -- 1709
+		) -- 1709
+		__TS__Await(____try) -- 1550
+		if ____hasReturned then -- 1550
+			return ____awaiter_resolve(nil, ____returnValue) -- 1550
+		end -- 1550
+	end) -- 1550
+end -- 1512
+function ____exports.callLLM(messages, options, stopTokenOrConfig, llmConfig) -- 1713
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 1713
+		local stopToken = stopTokenOrConfig and stopTokenOrConfig.stopped ~= nil and stopTokenOrConfig or nil -- 1719
+		local config = stopTokenOrConfig and stopTokenOrConfig.url ~= nil and stopTokenOrConfig or llmConfig -- 1720
+		local resolvedConfig = config or (function() -- 1723
+			local configRes = ____exports.getActiveLLMConfig() -- 1724
+			if not configRes.success then -- 1724
+				____exports.Log("Error", "[Agent.Utils] callLLMOnce config error: " .. configRes.message) -- 1726
+				return nil -- 1727
+			end -- 1727
+			return configRes.config -- 1729
+		end)() -- 1723
+		if not resolvedConfig then -- 1723
+			return ____awaiter_resolve(nil, {success = false, message = "no active LLM config"}) -- 1723
+		end -- 1723
+		local url = resolvedConfig.url -- 1723
+		local model = resolvedConfig.model -- 1723
+		local apiKey = resolvedConfig.apiKey -- 1723
+		local fitted = ____exports.fitMessagesToContext(messages, options, resolvedConfig) -- 1735
+		____exports.Log( -- 1736
+			"Info", -- 1736
+			((((("[Agent.Utils] callLLMOnce request model=" .. model) .. " url=") .. url) .. " messages=") .. tostring(#messages)) .. (fitted.trimmed and ((((" trimmed_tokens=" .. tostring(fitted.originalTokens)) .. "->") .. tostring(fitted.fittedTokens)) .. "/") .. tostring(fitted.budgetTokens) or "") -- 1736
+		) -- 1736
+		if stopToken and stopToken.stopped then -- 1736
+			local reason = stopToken.reason or "request cancelled" -- 1738
+			____exports.Log("Info", "[Agent.Utils] callLLMOnce cancelled before request: " .. reason) -- 1739
+			return ____awaiter_resolve(nil, {success = false, message = reason}) -- 1739
+		end -- 1739
+		local ____hasReturned, ____returnValue -- 1739
+		local ____try = __TS__AsyncAwaiter(function() -- 1739
+			local raw = ____exports.sanitizeUTF8(__TS__Await(postLLM( -- 1743
+				fitted.messages, -- 1743
+				url, -- 1743
+				apiKey, -- 1743
+				model, -- 1743
+				options, -- 1743
+				false, -- 1743
+				resolvedConfig.customOptions, -- 1743
+				nil, -- 1743
+				stopToken, -- 1743
+				resolvedConfig.studioGateway -- 1743
+			))) -- 1743
+			local normalizedRaw = normalizeLLMJSONResponse(raw) -- 1744
+			____exports.Log( -- 1745
+				"Info", -- 1745
+				("[Agent.Utils] callLLMOnce raw response length=" .. tostring(#raw)) .. (#normalizedRaw ~= #raw and " normalized=" .. tostring(#normalizedRaw) or "") -- 1745
+			) -- 1745
+			local response, err = ____exports.safeJsonDecode(normalizedRaw) -- 1746
+			if err ~= nil or response == nil or type(response) ~= "table" then -- 1746
+				local rawPreview = previewText(raw) -- 1748
+				____exports.Log( -- 1749
+					"Error", -- 1749
+					(("[Agent.Utils] callLLMOnce invalid JSON: " .. tostring(err)) .. " raw_preview=") .. rawPreview -- 1749
+				) -- 1749
+				____hasReturned = true -- 1750
+				____returnValue = { -- 1750
+					success = false, -- 1751
+					message = (("invalid LLM response JSON: " .. tostring(err)) .. "; raw=") .. rawPreview, -- 1752
+					raw = raw -- 1753
+				} -- 1753
+				return -- 1750
+			end -- 1750
+			local responseObj = response -- 1756
+			local choiceCount = responseObj.choices and #responseObj.choices or 0 -- 1757
+			____exports.Log( -- 1758
+				"Info", -- 1758
+				"[Agent.Utils] callLLMOnce decoded response choices=" .. tostring(choiceCount) -- 1758
+			) -- 1758
+			if not responseObj.choices or #responseObj.choices == 0 then -- 1758
+				local providerError = responseObj.error -- 1760
+				local providerMessage = providerError and type(providerError.message) == "string" and providerError.message or "" -- 1761
+				local providerType = providerError and type(providerError.type) == "string" and providerError.type or "" -- 1764
+				local providerCode = providerError and (type(providerError.code) == "string" or type(providerError.code) == "number") and tostring(providerError.code) or "" -- 1767
+				local details = table.concat( -- 1770
+					__TS__ArrayFilter( -- 1770
+						{providerType, providerCode}, -- 1770
+						function(____, part) return part ~= "" end -- 1770
+					), -- 1770
+					"/" -- 1770
+				) -- 1770
+				local rawPreview = previewText(raw, 400) -- 1771
+				local message = providerMessage ~= "" and ("LLM returned no choices: " .. providerMessage) .. (details ~= "" and (" (" .. details) .. ")" or "") or "LLM returned no choices; raw=" .. rawPreview -- 1772
+				____exports.Log("Error", "[Agent.Utils] callLLMOnce empty choices raw_preview=" .. rawPreview) -- 1775
+				____hasReturned = true -- 1776
+				____returnValue = {success = false, message = message, raw = raw} -- 1776
+				return -- 1776
+			end -- 1776
+			____hasReturned = true -- 1782
+			____returnValue = {success = true, response = responseObj} -- 1782
+			return -- 1782
+		end) -- 1782
+		____try = ____try.catch( -- 1782
+			____try, -- 1782
+			function(____, e) -- 1782
+				return __TS__AsyncAwaiter(function() -- 1782
+					if stopToken and stopToken.stopped then -- 1782
+						local reason = stopToken.reason or "request cancelled" -- 1788
+						____exports.Log("Info", "[Agent.Utils] callLLMOnce cancelled during request: " .. reason) -- 1789
+						____hasReturned = true -- 1790
+						____returnValue = {success = false, message = reason} -- 1790
+						return -- 1790
+					end -- 1790
+					____exports.Log( -- 1792
+						"Error", -- 1792
+						"[Agent.Utils] callLLMOnce exception: " .. tostring(e) -- 1792
+					) -- 1792
+					____hasReturned = true -- 1793
+					____returnValue = { -- 1793
+						success = false, -- 1793
+						message = tostring(e) -- 1793
+					} -- 1793
+					return -- 1793
+				end) -- 1793
+			end -- 1793
+		) -- 1793
+		__TS__Await(____try) -- 1742
+		if ____hasReturned then -- 1742
+			return ____awaiter_resolve(nil, ____returnValue) -- 1742
+		end -- 1742
+	end) -- 1742
+end -- 1713
+return ____exports -- 1713

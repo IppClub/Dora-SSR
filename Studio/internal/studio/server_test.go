@@ -21,9 +21,20 @@ import (
 
 const testOrigin = "https://studio.test"
 
+func TestModelProfilesOmitLegacyDecisionMode(t *testing.T) {
+	for _, provider := range []string{"deepseek", "zai", "openai", "xywhsoft"} {
+		config, _ := profile(provider)
+		if _, exists := config["supportsFunctionCalling"]; exists {
+			t.Fatalf("%s profile still exposes the removed XML decision switch", provider)
+		}
+	}
+}
+
+// Keep the historical test identifier used by the external backend coverage registry.
+// The regression now verifies that XYWH Soft no longer opts into XML decisions.
 func TestXYWHSoftUsesXMLAgentDecisions(t *testing.T) {
 	config, vision := profile("xywhsoft")
-	if config["contextWindow"] != 128000 || config["maxTokens"] != 8192 || config["supportsFunctionCalling"] != false || vision != nil {
+	if config["contextWindow"] != 128000 || config["maxTokens"] != 8192 || config["supportsFunctionCalling"] != nil || vision != nil {
 		t.Fatalf("unexpected XYWH Soft profile: %#v, vision=%#v", config, vision)
 	}
 }

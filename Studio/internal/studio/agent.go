@@ -603,7 +603,7 @@ func (a *AgentService) waitForAdmission(ctx context.Context, launchID string, in
 }
 
 func profile(provider string) (map[string]any, map[string]any) {
-	base := map[string]any{"contextWindow": 128000, "temperature": 0.1, "maxTokens": 8192, "supportsFunctionCalling": true, "customOptions": map[string]any{"auxiliaryOptions": map[string]any{"max_tokens": 8192, "reasoning_effort": nil, "thinking": map[string]string{"type": "disabled"}}}}
+	base := map[string]any{"contextWindow": 128000, "temperature": 0.1, "maxTokens": 8192, "customOptions": map[string]any{"auxiliaryOptions": map[string]any{"max_tokens": 8192, "reasoning_effort": nil, "thinking": map[string]string{"type": "disabled"}}}}
 	var vision map[string]any
 	switch provider {
 	case "deepseek":
@@ -614,11 +614,6 @@ func profile(provider string) (map[string]any, map[string]any) {
 		vision = map[string]any{"provider": "glm-coding-cn", "model": "glm-5.3-flash"}
 	case "openai":
 		base["customOptions"] = map[string]any{"auxiliaryOptions": map[string]any{"max_tokens": nil, "max_completion_tokens": 8192, "reasoning_effort": "none"}}
-	case "xywhsoft":
-		// ling-3.0-tiny accepts simple forced function calls but repeatedly emits
-		// empty arguments for the Agent's larger tool set. Use the Agent's native
-		// XML decision protocol for this deployed provider instead.
-		base["supportsFunctionCalling"] = false
 	}
 	return base, vision
 }

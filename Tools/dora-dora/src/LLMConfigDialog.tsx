@@ -1,4 +1,4 @@
-import { Box, Button, Checkbox as MuiCheckbox, CircularProgress, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, FormControlLabel, IconButton, InputAdornment, MenuItem, Stack, Tab, Tabs, TextField, Tooltip, Typography } from '@mui/material';
+import { Box, Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, IconButton, InputAdornment, MenuItem, Stack, Tab, Tabs, TextField, Tooltip, Typography } from '@mui/material';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -61,7 +61,6 @@ const emptyForm: LLMConfigFormState = {
 	maxTokens: DEFAULT_MAX_TOKENS,
 	reasoningEffort: '',
 	customOptions: '',
-	supportsFunctionCalling: true,
 };
 
 const inputStyle = {
@@ -435,7 +434,6 @@ const LLMConfigDialog = ({ open, onClose }: LLMConfigDialogProps) => {
 					maxTokens: Number(item.maxTokens) > 0 ? Number(item.maxTokens) : DEFAULT_MAX_TOKENS,
 					reasoningEffort: typeof item.reasoningEffort === 'string' ? item.reasoningEffort : '',
 					customOptions: ensureAuxiliaryOptions(item.customOptions, item),
-					supportsFunctionCalling: item.supportsFunctionCalling === undefined ? true : Boolean(item.supportsFunctionCalling),
 				}));
 				setItems(normalized);
 			} else {
@@ -469,7 +467,6 @@ const LLMConfigDialog = ({ open, onClose }: LLMConfigDialogProps) => {
 			url: template.url,
 			model: template.model,
 			key: '',
-			supportsFunctionCalling: true,
 			contextWindow: template.contextWindow ?? DEFAULT_CONTEXT_WINDOW,
 			temperature: DEFAULT_TEMPERATURE,
 			maxTokens: template.maxTokens ?? DEFAULT_MAX_TOKENS,
@@ -570,7 +567,6 @@ const LLMConfigDialog = ({ open, onClose }: LLMConfigDialogProps) => {
 			maxTokens: Number(item.maxTokens) > 0 ? Number(item.maxTokens) : DEFAULT_MAX_TOKENS,
 			reasoningEffort: typeof item.reasoningEffort === 'string' ? item.reasoningEffort : '',
 			customOptions: ensureAuxiliaryOptions(item.customOptions, item),
-			supportsFunctionCalling: item.supportsFunctionCalling === undefined ? true : Boolean(item.supportsFunctionCalling),
 		});
 		setShowApiKey(false);
 		setFormOpen(true);
@@ -597,7 +593,6 @@ const LLMConfigDialog = ({ open, onClose }: LLMConfigDialogProps) => {
 			maxTokens: Math.floor(normalizeFormNumber(form.maxTokens, DEFAULT_MAX_TOKENS)),
 			reasoningEffort: (form.reasoningEffort ?? '').trim(),
 			customOptions: normalizeCustomOptions(form.customOptions).trim(),
-			supportsFunctionCalling: form.supportsFunctionCalling !== false,
 		};
 		if (!payload.name || !payload.url || !payload.model || !payload.key) {
 			setError(t('llm.validationFailed'));
@@ -629,12 +624,6 @@ const LLMConfigDialog = ({ open, onClose }: LLMConfigDialogProps) => {
 		{ title: t('llm.name'), dataIndex: 'name', key: 'name' },
 		{ title: t('llm.model'), dataIndex: 'model', key: 'model' },
 		{ title: t('llm.contextWindow'), dataIndex: 'contextWindow', key: 'contextWindow', width: 120 },
-		{
-			title: t('llm.functionCalling'),
-			key: 'supportsFunctionCalling',
-			width: 130,
-			render: (_, record) => record.supportsFunctionCalling ? t('llm.supported') : t('llm.unsupported'),
-		},
 		{ title: t('llm.url'), dataIndex: 'url', key: 'url' },
 		{
 			title: t('llm.actions'),
@@ -834,6 +823,7 @@ const LLMConfigDialog = ({ open, onClose }: LLMConfigDialogProps) => {
 				<DialogTitle>{isEditing ? t('llm.editTitle') : t('llm.createTitle')}</DialogTitle>
 				<DialogContent>
 					<Stack spacing={2} sx={{ marginTop: 1 }}>
+						<Typography variant="body2" color="text.secondary">{t('llm.functionCallingRequired')}</Typography>
 						{isEditing ? null : (
 							<TextField
 								select
@@ -924,15 +914,6 @@ const LLMConfigDialog = ({ open, onClose }: LLMConfigDialogProps) => {
 								sx={inputStyle}
 							/>
 						</Stack>
-						<FormControlLabel
-							control={
-								<MuiCheckbox
-									checked={form.supportsFunctionCalling !== false}
-									onChange={(event) => setForm({ ...form, supportsFunctionCalling: event.target.checked })}
-								/>
-							}
-							label={t('llm.functionCalling')}
-						/>
 						<TextField
 							label={t('llm.customOptions')}
 							value={form.customOptions ?? ''}
