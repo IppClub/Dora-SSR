@@ -80,7 +80,7 @@ function ____exports.applyCustomLLMOptions(options, customOptions) -- 1225
 	for key in pairs(customOptions) do -- 1231
 		do -- 1231
 			if key == "auxiliaryOptions" then -- 1231
-				goto __continue266 -- 1234
+				goto __continue264 -- 1234
 			end -- 1234
 			local value = customOptions[key] -- 1235
 			if value == json.null then -- 1235
@@ -89,7 +89,7 @@ function ____exports.applyCustomLLMOptions(options, customOptions) -- 1225
 				merged[key] = value -- 1239
 			end -- 1239
 		end -- 1239
-		::__continue266:: -- 1239
+		::__continue264:: -- 1239
 	end -- 1239
 	return merged -- 1242
 end -- 1225
@@ -1320,11 +1320,9 @@ function ____exports.validateAgentLLMConfig(config) -- 1173
 	local ____opt_25 = config.customOptions -- 1173
 	local auxiliaryOptions = ____opt_25 and ____opt_25.auxiliaryOptions -- 1174
 	if isPlainRecord(auxiliaryOptions) then -- 1174
-		for _key in pairs(auxiliaryOptions) do -- 1176
-			return {success = true} -- 1177
-		end -- 1177
-	end -- 1177
-	return {success = false, message = "LLM 配置的 customOptions 必须包含非空 auxiliaryOptions，请检查 LLM 配置"} -- 1180
+		return {success = true} -- 1178
+	end -- 1178
+	return {success = false, message = "LLM 配置的 customOptions 必须包含 auxiliaryOptions 对象（可以为空），请检查 LLM 配置"} -- 1180
 end -- 1173
 local function normalizeContextWindow(value) -- 1186
 	if type(value) == "number" and value > 0 then -- 1186

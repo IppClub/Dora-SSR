@@ -1173,13 +1173,13 @@ export type LLMConfig = {
 export function validateAgentLLMConfig(config: LLMConfig): { success: true } | { success: false; message: string } {
 	const auxiliaryOptions = config.customOptions?.auxiliaryOptions;
 	if (isPlainRecord(auxiliaryOptions)) {
-		for (const _key in auxiliaryOptions) {
-			return { success: true };
-		}
+		// An empty object keeps the defaults for auxiliary calls.
+		// Provider-specific overrides are optional.
+		return { success: true };
 	}
 	return {
 		success: false,
-		message: "LLM 配置的 customOptions 必须包含非空 auxiliaryOptions，请检查 LLM 配置",
+		message: "LLM 配置的 customOptions 必须包含 auxiliaryOptions 对象（可以为空），请检查 LLM 配置",
 	};
 }
 

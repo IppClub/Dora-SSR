@@ -102,14 +102,13 @@ const parseCustomOptionsObject = (value: string): Record<string, unknown> | unde
 	}
 };
 
-const hasNonEmptyAuxiliaryOptions = (value: string) => {
+const hasAuxiliaryOptions = (value: string) => {
 	const parsed = parseCustomOptionsObject(value);
 	if (!parsed) return false;
 	const auxiliaryOptions = parsed.auxiliaryOptions;
 	return auxiliaryOptions !== null
 		&& typeof auxiliaryOptions === 'object'
-		&& !Array.isArray(auxiliaryOptions)
-		&& Object.keys(auxiliaryOptions).length > 0;
+		&& !Array.isArray(auxiliaryOptions);
 };
 
 // Keep mobileLLMPresets in sync; audit and provider references: Docs/design/llm-provider-templates.md.
@@ -320,7 +319,7 @@ const getDefaultAuxiliaryOptions = (config?: Pick<Service.LLMConfigItem, 'url'>)
 	if (auxiliaryOptions !== null && typeof auxiliaryOptions === 'object' && !Array.isArray(auxiliaryOptions)) {
 		return auxiliaryOptions as Record<string, unknown>;
 	}
-	return { reasoning_effort: "minimal" };
+	return {};
 };
 
 const ensureAuxiliaryOptions = (
@@ -608,7 +607,7 @@ const LLMConfigDialog = ({ open, onClose }: LLMConfigDialogProps) => {
 			setError(t('llm.customOptionsInvalid'));
 			return;
 		}
-		if (!hasNonEmptyAuxiliaryOptions(payload.customOptions)) {
+		if (!hasAuxiliaryOptions(payload.customOptions)) {
 			setError(t('llm.auxiliaryOptionsRequired'));
 			return;
 		}
