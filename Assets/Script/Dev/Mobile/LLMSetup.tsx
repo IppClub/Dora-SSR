@@ -65,7 +65,7 @@ function ensureLLMConfigTable() {
 		name TEXT NOT NULL, url TEXT NOT NULL, model TEXT NOT NULL, api_key TEXT NOT NULL,
 		context_window INTEGER NOT NULL DEFAULT 64000, temperature REAL NOT NULL DEFAULT 0.1,
 		max_tokens INTEGER NOT NULL DEFAULT 64000, reasoning_effort TEXT NOT NULL DEFAULT '',
-		custom_options TEXT NOT NULL DEFAULT '',
+		custom_options TEXT NOT NULL DEFAULT '', supports_function_calling INTEGER NOT NULL DEFAULT 1,
 		active INTEGER NOT NULL DEFAULT 1, created_at INTEGER, updated_at INTEGER
 	)`);
 	upgradeLLMConfig();

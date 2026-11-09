@@ -217,7 +217,7 @@ local function trim(value) -- 59
 end -- 59
 local activeSetup -- 60
 local function ensureLLMConfigTable() -- 62
-	DB:exec("CREATE TABLE IF NOT EXISTS LLMConfig(\n\t\tid INTEGER PRIMARY KEY AUTOINCREMENT,\n\t\tname TEXT NOT NULL, url TEXT NOT NULL, model TEXT NOT NULL, api_key TEXT NOT NULL,\n\t\tcontext_window INTEGER NOT NULL DEFAULT 64000, temperature REAL NOT NULL DEFAULT 0.1,\n\t\tmax_tokens INTEGER NOT NULL DEFAULT 64000, reasoning_effort TEXT NOT NULL DEFAULT '',\n\t\tcustom_options TEXT NOT NULL DEFAULT '',\n\t\tactive INTEGER NOT NULL DEFAULT 1, created_at INTEGER, updated_at INTEGER\n\t)") -- 63
+	DB:exec("CREATE TABLE IF NOT EXISTS LLMConfig(\n\t\tid INTEGER PRIMARY KEY AUTOINCREMENT,\n\t\tname TEXT NOT NULL, url TEXT NOT NULL, model TEXT NOT NULL, api_key TEXT NOT NULL,\n\t\tcontext_window INTEGER NOT NULL DEFAULT 64000, temperature REAL NOT NULL DEFAULT 0.1,\n\t\tmax_tokens INTEGER NOT NULL DEFAULT 64000, reasoning_effort TEXT NOT NULL DEFAULT '',\n\t\tcustom_options TEXT NOT NULL DEFAULT '', supports_function_calling INTEGER NOT NULL DEFAULT 1,\n\t\tactive INTEGER NOT NULL DEFAULT 1, created_at INTEGER, updated_at INTEGER\n\t)") -- 63
 	upgradeLLMConfig() -- 71
 end -- 62
 local function uniqueConfigName(base) -- 74
