@@ -1,1 +1,1 @@
-{ global: dora_godot_get_api; dora_godot_get_gl_api; dora_godot_get_gl_targets_api; dora_godot_get_d3d12_targets_api; dora_godot_get_audio_api; dora_godot_get_output_api; dora_godot_get_ime_api; dora_godot_get_project_api; local: *; };
+{ global: dora_godot_get_api; dora_godot_get_gl_api; dora_godot_get_gl_targets_api; dora_godot_get_d3d12_targets_api; dora_godot_get_audio_api; dora_godot_get_output_api; dora_godot_get_ime_api; dora_godot_get_project_api; dora_godot_get_check_api; dora_godot_get_import_api; local: *; };

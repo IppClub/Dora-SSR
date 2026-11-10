@@ -54,6 +54,7 @@ public:
     // In-process Godot compiler, completed on the Dora logic thread. JSON uses
     // the Web IDE check response schema; false reports a host/capability error.
     static void checkCodeAsync(String project, String file, String content, const std::function<void(bool,std::string)> &callback);
+    static void importAssetAsync(String project, String file, String options, const std::function<void(bool,std::string)> &callback);
     static GodotNode *create(String projectPath, String sceneFile = Slice::Empty, int width = 640, int height = 360, int buffers = 3);
     friend class Object;
 protected:

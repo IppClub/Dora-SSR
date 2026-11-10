@@ -1487,6 +1487,7 @@ class GodotNode : public Sprite
 {
     static std::string getUnsupportedReason();
     static void checkCodeAsync(String project, String file, String content, tolua_function_void callback);
+    static void importAssetAsync(String project, String file, String options, tolua_function_void callback);
     tolua_readonly tolua_property__common String projectPath;
     tolua_readonly tolua_property__common String sceneFile;
     tolua_readonly tolua_property__common String lastError;

@@ -266,6 +266,10 @@ const executeCommand: AgentToolHandler = async (context, input) => {
 		isCancelled: () => context.cancellation.isCancelled(),
 		onProgress: progress => context.emitProgress({ success: false, ...progress }),
 	});
+	if (output.godotImports?.some(batch => batch.importedCount > 0)) {
+		context.workflow.unbuiltEdits = true;
+		context.workflow.editsSinceBuild = (context.workflow.editsSinceBuild ?? 0) + 1;
+	}
 	if (output.success && mode === "lua") {
 		updateDeterministicTestState(context, output.output);
 	}

@@ -8589,6 +8589,8 @@ export namespace GodotNode { export type Type = GodotNode; }
 interface GodotNodeClass {
     /** 使用内置 Godot runtime 检查内存中的脚本或文本资源，不启动外部编辑器、不运行场景。回调返回服务是否可用及 JSON 诊断（或宿主错误）。 */
     checkCodeAsync(project: string, file: string, content: string, callback: (this: void, available: boolean, result: string) => void): void;
+    /** Import one desktop source asset using the bundled runtime. options is JSON; result contains success/status/path/output/message. */
+    importAssetAsync(project: string, file: string, options: string, callback: (this: void, available: boolean, result: string) => void): void;
     /** GPU／后端支持时返回空字符串，否则返回原因。应在渲染器初始化后调用，不会验证运行库。 */
     getUnsupportedReason(this: void): string;
     /**

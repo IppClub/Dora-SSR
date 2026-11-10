@@ -8,6 +8,7 @@ local __TS__AsyncAwaiter = ____lualib.__TS__AsyncAwaiter -- 1
 local __TS__Await = ____lualib.__TS__Await -- 1
 local __TS__StringSplit = ____lualib.__TS__StringSplit -- 1
 local __TS__StringSlice = ____lualib.__TS__StringSlice -- 1
+local __TS__ArraySome = ____lualib.__TS__ArraySome -- 1
 local __TS__ArrayFilter = ____lualib.__TS__ArrayFilter -- 1
 local __TS__ArrayMap = ____lualib.__TS__ArrayMap -- 1
 local __TS__ArrayIndexOf = ____lualib.__TS__ArrayIndexOf -- 1
@@ -412,409 +413,417 @@ local function executeCommand(context, input) -- 255
 			isCancelled = function() return context.cancellation:isCancelled() end, -- 266
 			onProgress = function(____, progress) return context:emitProgress(__TS__ObjectAssign({success = false}, progress)) end -- 267
 		})) -- 267
-		if output.success and mode == "lua" then -- 267
-			updateDeterministicTestState(context, output.output) -- 270
-		end -- 270
-		return ____awaiter_resolve(nil, {output = output}) -- 270
-	end) -- 270
+		local ____opt_39 = output.godotImports -- 267
+		if ____opt_39 and __TS__ArraySome( -- 267
+			output.godotImports, -- 269
+			function(____, batch) return batch.importedCount > 0 end -- 269
+		) then -- 269
+			context.workflow.unbuiltEdits = true -- 270
+			context.workflow.editsSinceBuild = (context.workflow.editsSinceBuild or 0) + 1 -- 271
+		end -- 271
+		if output.success and mode == "lua" then -- 271
+			updateDeterministicTestState(context, output.output) -- 274
+		end -- 274
+		return ____awaiter_resolve(nil, {output = output}) -- 274
+	end) -- 274
 end -- 255
-local function editFile(context, input) -- 292
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 292
-		local operations = getAgentFileEditInputs(input) -- 293
-		local isBatch = __TS__ArrayIsArray(input.edits) -- 294
-		if #operations == 0 then -- 294
-			return ____awaiter_resolve(nil, {output = {success = false, message = "missing edit operations"}}) -- 294
-		end -- 294
-		local staged = {} -- 296
-		local results = {} -- 297
-		local successfulOperations = {} -- 298
-		local function failOperation(index, path, code, message) -- 299
-			results[#results + 1] = { -- 300
-				index = index, -- 300
-				path = path, -- 300
-				success = false, -- 300
-				code = code, -- 300
-				message = message -- 300
-			} -- 300
-		end -- 299
-		do -- 299
-			local i = 0 -- 303
-			while i < #operations do -- 303
-				do -- 303
-					local operation = operations[i + 1] -- 304
-					local path = AgentRuntimePolicy.normalizeAgentPath(operation.path) -- 305
-					if path == "" then -- 305
-						failOperation(i, path, "INVALID_EDIT", "path is required") -- 307
-						goto __continue64 -- 308
-					end -- 308
-					if operation.oldStr == operation.newStr then -- 308
-						failOperation(i, path, "INVALID_EDIT", "old_str and new_str must differ") -- 311
-						goto __continue64 -- 312
-					end -- 312
-					local stagedIndex = -1 -- 314
-					do -- 314
-						local j = 0 -- 315
-						while j < #staged do -- 315
-							if staged[j + 1].path == path then -- 315
-								stagedIndex = j -- 317
-								break -- 318
-							end -- 318
-							j = j + 1 -- 315
-						end -- 315
-					end -- 315
-					if stagedIndex < 0 then -- 315
-						local targetState = Tools.inspectWorkspaceTextTarget(context.workingDir, path) -- 322
-						if not targetState.success then -- 322
-							failOperation(i, path, "INVALID_EDIT_TARGET", targetState.message) -- 324
-							goto __continue64 -- 325
-						end -- 325
-						staged[#staged + 1] = { -- 327
-							path = path, -- 328
-							initialExists = targetState.exists, -- 329
-							exists = targetState.exists, -- 330
-							content = targetState.content, -- 331
-							changed = false -- 332
-						} -- 332
-						stagedIndex = #staged - 1 -- 334
-					end -- 334
-					local target = staged[stagedIndex + 1] -- 336
-					local guardDenial = getAgentFileEditPlanGuardDenial(context, operation) -- 337
-					if guardDenial ~= nil then -- 337
-						failOperation(i, path, guardDenial.code, guardDenial.message) -- 339
-						goto __continue64 -- 340
-					end -- 340
-					local mode = "" -- 342
-					if operation.oldStr == "" then -- 342
-						if target.exists and AgentRuntimePolicy.containsWholeFileDuplicate(target.content, operation.newStr) then -- 342
-							failOperation(i, path, "DUPLICATE_WHOLE_FILE", "rewrite rejected: the complete current file appears more than once in the replacement for " .. path) -- 345
-							goto __continue64 -- 346
-						end -- 346
-						mode = target.exists and "overwrite" or "create" -- 348
-						target.exists = true -- 349
-						target.content = operation.newStr -- 350
-					else -- 350
-						if not target.exists then -- 350
-							failOperation(i, path, "FILE_NOT_FOUND", ("read file failed: " .. path) .. " does not exist; use old_str=\"\" to create it earlier in the batch") -- 353
-							goto __continue64 -- 354
-						end -- 354
-						local normalizedContent = AgentRuntimePolicy.normalizeLineEndings(target.content) -- 356
-						local normalizedOldStr = AgentRuntimePolicy.normalizeLineEndings(operation.oldStr) -- 357
-						local normalizedNewStr = AgentRuntimePolicy.normalizeLineEndings(operation.newStr) -- 358
-						local occurrences = AgentRuntimePolicy.countOccurrences(normalizedContent, normalizedOldStr) -- 359
-						if occurrences == 0 then -- 359
-							local indentTolerant = AgentUtils.findIndentTolerantReplacement(normalizedContent, normalizedOldStr, normalizedNewStr) -- 361
-							if not indentTolerant.success then -- 361
-								failOperation(i, path, "TEXT_NOT_FOUND", indentTolerant.message) -- 363
-								goto __continue64 -- 364
-							end -- 364
-							target.content = indentTolerant.content -- 366
-							mode = "replace_indent_tolerant" -- 367
-						else -- 367
-							if occurrences > 1 then -- 367
-								failOperation( -- 370
-									i, -- 370
-									path, -- 370
-									"AMBIGUOUS_MATCH", -- 370
-									((("old_str appears " .. tostring(occurrences)) .. " times in ") .. path) .. ". Provide more context to identify one target." -- 370
-								) -- 370
-								goto __continue64 -- 371
-							end -- 371
-							target.content = AgentUtils.replaceFirst(normalizedContent, normalizedOldStr, normalizedNewStr) -- 373
-							mode = "replace" -- 374
-						end -- 374
-					end -- 374
-					target.changed = true -- 377
-					results[#results + 1] = {index = i, path = path, success = true, mode = mode} -- 378
-					successfulOperations[#successfulOperations + 1] = operation -- 379
-				end -- 379
-				::__continue64:: -- 379
-				i = i + 1 -- 303
-			end -- 303
+local function editFile(context, input) -- 296
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 296
+		local operations = getAgentFileEditInputs(input) -- 297
+		local isBatch = __TS__ArrayIsArray(input.edits) -- 298
+		if #operations == 0 then -- 298
+			return ____awaiter_resolve(nil, {output = {success = false, message = "missing edit operations"}}) -- 298
+		end -- 298
+		local staged = {} -- 300
+		local results = {} -- 301
+		local successfulOperations = {} -- 302
+		local function failOperation(index, path, code, message) -- 303
+			results[#results + 1] = { -- 304
+				index = index, -- 304
+				path = path, -- 304
+				success = false, -- 304
+				code = code, -- 304
+				message = message -- 304
+			} -- 304
 		end -- 303
-		local changedTargets = __TS__ArrayFilter( -- 382
-			staged, -- 382
-			function(____, item) return item.changed end -- 382
-		) -- 382
-		if #changedTargets == 0 then -- 382
-			local firstFailure = results[1] -- 384
-			return ____awaiter_resolve(nil, {output = isBatch and ({ -- 384
-				success = false, -- 387
-				changed = false, -- 388
-				mode = "batch", -- 389
-				operationCount = #operations, -- 390
-				succeededOperationCount = 0, -- 391
-				failedOperationCount = #results, -- 392
-				results = results, -- 393
-				actualSaved = false -- 394
-			}) or ({success = false, code = firstFailure and firstFailure.code, message = firstFailure and firstFailure.message or "edit failed", actualSaved = false})}) -- 394
-		end -- 394
-		local changes = __TS__ArrayMap( -- 404
-			changedTargets, -- 404
-			function(____, item) return {path = item.path, op = item.initialExists and "write" or "create", content = item.content} end -- 404
-		) -- 404
-		local applyRes = Tools.applyFileChanges( -- 409
-			context.taskId, -- 409
-			context.workingDir, -- 409
-			changes, -- 409
-			{ -- 409
-				summary = isBatch and ((((("batch edit " .. tostring(#successfulOperations)) .. "/") .. tostring(#operations)) .. " operations across ") .. tostring(#changedTargets)) .. " files via edit_file" or ((tostring(results[1].mode) .. " ") .. changedTargets[1].path) .. " via edit_file", -- 410
-				toolName = "edit_file" -- 413
-			} -- 413
-		) -- 413
-		if not applyRes.success then -- 413
-			return ____awaiter_resolve( -- 413
-				nil, -- 413
-				{output = __TS__ObjectAssign({success = false, message = ((isBatch and "batch edit" or "write file") .. " failed: ") .. applyRes.message, actualSaved = false}, isBatch and ({results = results}) or ({}))} -- 416
-			) -- 416
-		end -- 416
-		local files = __TS__ArrayMap( -- 419
-			changes, -- 419
-			function(____, change) return {path = change.path, op = change.op} end -- 419
-		) -- 419
-		local output -- 420
-		if not isBatch then -- 420
-			output = AgentRuntimePolicy.successfulEditResult(context.workingDir, changedTargets[1].path, { -- 422
-				success = true, -- 423
-				changed = true, -- 424
-				mode = results[1].mode, -- 425
-				checkpointId = applyRes.checkpointId, -- 426
-				checkpointSeq = applyRes.checkpointSeq, -- 427
-				files = files -- 428
-			}) -- 428
-		else -- 428
-			local totalCharacters = 0 -- 431
-			local actualSaved = true -- 432
-			for ____, item in ipairs(changedTargets) do -- 433
-				local current = Tools.readFileRaw(context.workingDir, item.path) -- 434
-				if not current.success or current.content ~= item.content then -- 434
-					actualSaved = false -- 435
-				end -- 435
-				if current.success then -- 435
-					totalCharacters = totalCharacters + #current.content -- 436
-				end -- 436
-			end -- 436
-			output = { -- 438
-				success = true, -- 439
-				changed = true, -- 440
-				mode = "batch", -- 441
-				operationCount = #operations, -- 442
-				succeededOperationCount = #successfulOperations, -- 443
-				failedOperationCount = #operations - #successfulOperations, -- 444
-				partial = #successfulOperations < #operations, -- 445
-				fileCount = #changedTargets, -- 446
-				checkpointId = applyRes.checkpointId, -- 447
-				checkpointSeq = applyRes.checkpointSeq, -- 448
-				files = files, -- 449
-				results = results, -- 450
-				actualSaved = actualSaved, -- 451
-				actualSavedCharacters = totalCharacters, -- 452
-				currentFileExists = actualSaved, -- 453
-				currentCharacters = totalCharacters, -- 454
-				currentState = actualSaved and ((((("saved " .. tostring(#successfulOperations)) .. "/") .. tostring(#operations)) .. " operations across ") .. tostring(#changedTargets)) .. " files" or "one or more batch file states could not be verified after commit" -- 455
-			} -- 455
-		end -- 455
-		local authoredOperations = 0 -- 461
-		local editedPaths = context.workflow.editedPathsSinceBuild or ({}) -- 462
-		for ____, operation in ipairs(successfulOperations) do -- 463
-			do -- 463
-				local path = AgentRuntimePolicy.normalizeAgentPath(operation.path) -- 464
-				if AgentRuntimePolicy.isAgentInternalDocumentPath(path) then -- 464
-					goto __continue92 -- 465
-				end -- 465
-				authoredOperations = authoredOperations + 1 -- 466
-				if __TS__ArrayIndexOf(editedPaths, path) < 0 then -- 466
-					editedPaths[#editedPaths + 1] = path -- 467
-				end -- 467
-			end -- 467
-			::__continue92:: -- 467
-		end -- 467
-		if authoredOperations > 0 then -- 467
-			context.workflow.unbuiltEdits = true -- 470
-			context.workflow.lastBuildSucceeded = false -- 471
-			if context.workflow.failedTestNeedsBuild == true then -- 471
-				context.workflow.failedTestHasSourceEdit = true -- 472
-			end -- 472
-			context.workflow.editedPathsSinceBuild = editedPaths -- 473
-			context.workflow.editsSinceBuild = (context.workflow.editsSinceBuild or 0) + authoredOperations -- 474
-		end -- 474
-		return ____awaiter_resolve(nil, {output = output}) -- 474
-	end) -- 474
-end -- 292
-local function deleteFile(context, input) -- 479
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 479
-		local targetFile = type(input.target_file) == "string" and input.target_file or "" -- 480
-		if __TS__StringTrim(targetFile) == "" then -- 480
-			return ____awaiter_resolve(nil, {output = {success = false, message = "missing target_file"}}) -- 480
-		end -- 480
-		local normalizedTargetFile = AgentRuntimePolicy.normalizeAgentPath(targetFile) -- 482
-		local isInternalDocumentEdit = AgentRuntimePolicy.isAgentInternalDocumentPath(normalizedTargetFile) -- 483
-		local result = Tools.deleteFile(context.taskId, context.workingDir, targetFile, {summary = "delete_file: " .. targetFile, toolName = "delete_file"}) -- 484
-		if not result.success then -- 484
-			return ____awaiter_resolve(nil, {output = result}) -- 484
+		do -- 303
+			local i = 0 -- 307
+			while i < #operations do -- 307
+				do -- 307
+					local operation = operations[i + 1] -- 308
+					local path = AgentRuntimePolicy.normalizeAgentPath(operation.path) -- 309
+					if path == "" then -- 309
+						failOperation(i, path, "INVALID_EDIT", "path is required") -- 311
+						goto __continue66 -- 312
+					end -- 312
+					if operation.oldStr == operation.newStr then -- 312
+						failOperation(i, path, "INVALID_EDIT", "old_str and new_str must differ") -- 315
+						goto __continue66 -- 316
+					end -- 316
+					local stagedIndex = -1 -- 318
+					do -- 318
+						local j = 0 -- 319
+						while j < #staged do -- 319
+							if staged[j + 1].path == path then -- 319
+								stagedIndex = j -- 321
+								break -- 322
+							end -- 322
+							j = j + 1 -- 319
+						end -- 319
+					end -- 319
+					if stagedIndex < 0 then -- 319
+						local targetState = Tools.inspectWorkspaceTextTarget(context.workingDir, path) -- 326
+						if not targetState.success then -- 326
+							failOperation(i, path, "INVALID_EDIT_TARGET", targetState.message) -- 328
+							goto __continue66 -- 329
+						end -- 329
+						staged[#staged + 1] = { -- 331
+							path = path, -- 332
+							initialExists = targetState.exists, -- 333
+							exists = targetState.exists, -- 334
+							content = targetState.content, -- 335
+							changed = false -- 336
+						} -- 336
+						stagedIndex = #staged - 1 -- 338
+					end -- 338
+					local target = staged[stagedIndex + 1] -- 340
+					local guardDenial = getAgentFileEditPlanGuardDenial(context, operation) -- 341
+					if guardDenial ~= nil then -- 341
+						failOperation(i, path, guardDenial.code, guardDenial.message) -- 343
+						goto __continue66 -- 344
+					end -- 344
+					local mode = "" -- 346
+					if operation.oldStr == "" then -- 346
+						if target.exists and AgentRuntimePolicy.containsWholeFileDuplicate(target.content, operation.newStr) then -- 346
+							failOperation(i, path, "DUPLICATE_WHOLE_FILE", "rewrite rejected: the complete current file appears more than once in the replacement for " .. path) -- 349
+							goto __continue66 -- 350
+						end -- 350
+						mode = target.exists and "overwrite" or "create" -- 352
+						target.exists = true -- 353
+						target.content = operation.newStr -- 354
+					else -- 354
+						if not target.exists then -- 354
+							failOperation(i, path, "FILE_NOT_FOUND", ("read file failed: " .. path) .. " does not exist; use old_str=\"\" to create it earlier in the batch") -- 357
+							goto __continue66 -- 358
+						end -- 358
+						local normalizedContent = AgentRuntimePolicy.normalizeLineEndings(target.content) -- 360
+						local normalizedOldStr = AgentRuntimePolicy.normalizeLineEndings(operation.oldStr) -- 361
+						local normalizedNewStr = AgentRuntimePolicy.normalizeLineEndings(operation.newStr) -- 362
+						local occurrences = AgentRuntimePolicy.countOccurrences(normalizedContent, normalizedOldStr) -- 363
+						if occurrences == 0 then -- 363
+							local indentTolerant = AgentUtils.findIndentTolerantReplacement(normalizedContent, normalizedOldStr, normalizedNewStr) -- 365
+							if not indentTolerant.success then -- 365
+								failOperation(i, path, "TEXT_NOT_FOUND", indentTolerant.message) -- 367
+								goto __continue66 -- 368
+							end -- 368
+							target.content = indentTolerant.content -- 370
+							mode = "replace_indent_tolerant" -- 371
+						else -- 371
+							if occurrences > 1 then -- 371
+								failOperation( -- 374
+									i, -- 374
+									path, -- 374
+									"AMBIGUOUS_MATCH", -- 374
+									((("old_str appears " .. tostring(occurrences)) .. " times in ") .. path) .. ". Provide more context to identify one target." -- 374
+								) -- 374
+								goto __continue66 -- 375
+							end -- 375
+							target.content = AgentUtils.replaceFirst(normalizedContent, normalizedOldStr, normalizedNewStr) -- 377
+							mode = "replace" -- 378
+						end -- 378
+					end -- 378
+					target.changed = true -- 381
+					results[#results + 1] = {index = i, path = path, success = true, mode = mode} -- 382
+					successfulOperations[#successfulOperations + 1] = operation -- 383
+				end -- 383
+				::__continue66:: -- 383
+				i = i + 1 -- 307
+			end -- 307
+		end -- 307
+		local changedTargets = __TS__ArrayFilter( -- 386
+			staged, -- 386
+			function(____, item) return item.changed end -- 386
+		) -- 386
+		if #changedTargets == 0 then -- 386
+			local firstFailure = results[1] -- 388
+			return ____awaiter_resolve(nil, {output = isBatch and ({ -- 388
+				success = false, -- 391
+				changed = false, -- 392
+				mode = "batch", -- 393
+				operationCount = #operations, -- 394
+				succeededOperationCount = 0, -- 395
+				failedOperationCount = #results, -- 396
+				results = results, -- 397
+				actualSaved = false -- 398
+			}) or ({success = false, code = firstFailure and firstFailure.code, message = firstFailure and firstFailure.message or "edit failed", actualSaved = false})}) -- 398
+		end -- 398
+		local changes = __TS__ArrayMap( -- 408
+			changedTargets, -- 408
+			function(____, item) return {path = item.path, op = item.initialExists and "write" or "create", content = item.content} end -- 408
+		) -- 408
+		local applyRes = Tools.applyFileChanges( -- 413
+			context.taskId, -- 413
+			context.workingDir, -- 413
+			changes, -- 413
+			{ -- 413
+				summary = isBatch and ((((("batch edit " .. tostring(#successfulOperations)) .. "/") .. tostring(#operations)) .. " operations across ") .. tostring(#changedTargets)) .. " files via edit_file" or ((tostring(results[1].mode) .. " ") .. changedTargets[1].path) .. " via edit_file", -- 414
+				toolName = "edit_file" -- 417
+			} -- 417
+		) -- 417
+		if not applyRes.success then -- 417
+			return ____awaiter_resolve( -- 417
+				nil, -- 417
+				{output = __TS__ObjectAssign({success = false, message = ((isBatch and "batch edit" or "write file") .. " failed: ") .. applyRes.message, actualSaved = false}, isBatch and ({results = results}) or ({}))} -- 420
+			) -- 420
+		end -- 420
+		local files = __TS__ArrayMap( -- 423
+			changes, -- 423
+			function(____, change) return {path = change.path, op = change.op} end -- 423
+		) -- 423
+		local output -- 424
+		if not isBatch then -- 424
+			output = AgentRuntimePolicy.successfulEditResult(context.workingDir, changedTargets[1].path, { -- 426
+				success = true, -- 427
+				changed = true, -- 428
+				mode = results[1].mode, -- 429
+				checkpointId = applyRes.checkpointId, -- 430
+				checkpointSeq = applyRes.checkpointSeq, -- 431
+				files = files -- 432
+			}) -- 432
+		else -- 432
+			local totalCharacters = 0 -- 435
+			local actualSaved = true -- 436
+			for ____, item in ipairs(changedTargets) do -- 437
+				local current = Tools.readFileRaw(context.workingDir, item.path) -- 438
+				if not current.success or current.content ~= item.content then -- 438
+					actualSaved = false -- 439
+				end -- 439
+				if current.success then -- 439
+					totalCharacters = totalCharacters + #current.content -- 440
+				end -- 440
+			end -- 440
+			output = { -- 442
+				success = true, -- 443
+				changed = true, -- 444
+				mode = "batch", -- 445
+				operationCount = #operations, -- 446
+				succeededOperationCount = #successfulOperations, -- 447
+				failedOperationCount = #operations - #successfulOperations, -- 448
+				partial = #successfulOperations < #operations, -- 449
+				fileCount = #changedTargets, -- 450
+				checkpointId = applyRes.checkpointId, -- 451
+				checkpointSeq = applyRes.checkpointSeq, -- 452
+				files = files, -- 453
+				results = results, -- 454
+				actualSaved = actualSaved, -- 455
+				actualSavedCharacters = totalCharacters, -- 456
+				currentFileExists = actualSaved, -- 457
+				currentCharacters = totalCharacters, -- 458
+				currentState = actualSaved and ((((("saved " .. tostring(#successfulOperations)) .. "/") .. tostring(#operations)) .. " operations across ") .. tostring(#changedTargets)) .. " files" or "one or more batch file states could not be verified after commit" -- 459
+			} -- 459
+		end -- 459
+		local authoredOperations = 0 -- 465
+		local editedPaths = context.workflow.editedPathsSinceBuild or ({}) -- 466
+		for ____, operation in ipairs(successfulOperations) do -- 467
+			do -- 467
+				local path = AgentRuntimePolicy.normalizeAgentPath(operation.path) -- 468
+				if AgentRuntimePolicy.isAgentInternalDocumentPath(path) then -- 468
+					goto __continue94 -- 469
+				end -- 469
+				authoredOperations = authoredOperations + 1 -- 470
+				if __TS__ArrayIndexOf(editedPaths, path) < 0 then -- 470
+					editedPaths[#editedPaths + 1] = path -- 471
+				end -- 471
+			end -- 471
+			::__continue94:: -- 471
+		end -- 471
+		if authoredOperations > 0 then -- 471
+			context.workflow.unbuiltEdits = true -- 474
+			context.workflow.lastBuildSucceeded = false -- 475
+			if context.workflow.failedTestNeedsBuild == true then -- 475
+				context.workflow.failedTestHasSourceEdit = true -- 476
+			end -- 476
+			context.workflow.editedPathsSinceBuild = editedPaths -- 477
+			context.workflow.editsSinceBuild = (context.workflow.editsSinceBuild or 0) + authoredOperations -- 478
+		end -- 478
+		return ____awaiter_resolve(nil, {output = output}) -- 478
+	end) -- 478
+end -- 296
+local function deleteFile(context, input) -- 483
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 483
+		local targetFile = type(input.target_file) == "string" and input.target_file or "" -- 484
+		if __TS__StringTrim(targetFile) == "" then -- 484
+			return ____awaiter_resolve(nil, {output = {success = false, message = "missing target_file"}}) -- 484
 		end -- 484
-		if not isInternalDocumentEdit then -- 484
-			context.workflow.unbuiltEdits = true -- 490
-			context.workflow.lastBuildSucceeded = false -- 491
-			if context.workflow.failedTestNeedsBuild == true then -- 491
-				context.workflow.failedTestHasSourceEdit = true -- 492
-			end -- 492
-			local editedPaths = context.workflow.editedPathsSinceBuild or ({}) -- 493
-			if __TS__ArrayIndexOf(editedPaths, normalizedTargetFile) < 0 then -- 493
-				editedPaths[#editedPaths + 1] = normalizedTargetFile -- 494
-			end -- 494
-			context.workflow.editedPathsSinceBuild = editedPaths -- 495
-			context.workflow.editsSinceBuild = (context.workflow.editsSinceBuild or 0) + 1 -- 496
-		end -- 496
-		local ____result_checkpointed_44 = result.checkpointed -- 503
-		local ____result_reversible_45 = result.reversible -- 504
-		local ____result_binary_46 = result.binary -- 505
-		local ____temp_47 = result.checkpointed and result.checkpointId or nil -- 506
-		local ____temp_48 = result.checkpointed and result.checkpointSeq or nil -- 507
-		local ____result_checkpointed_43 -- 508
-		if result.checkpointed then -- 508
-			____result_checkpointed_43 = nil -- 508
-		else -- 508
-			____result_checkpointed_43 = result.message -- 508
-		end -- 508
-		return ____awaiter_resolve(nil, {output = { -- 508
-			success = true, -- 500
-			changed = true, -- 501
-			mode = "delete", -- 502
-			checkpointed = ____result_checkpointed_44, -- 503
-			reversible = ____result_reversible_45, -- 504
-			binary = ____result_binary_46, -- 505
-			checkpointId = ____temp_47, -- 506
-			checkpointSeq = ____temp_48, -- 507
-			message = ____result_checkpointed_43, -- 508
-			files = {{path = targetFile, op = "delete"}} -- 509
-		}}) -- 509
-	end) -- 509
-end -- 479
-local function askUser(context, input) -- 514
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 514
-		if context.services.publishQuestionnaire == nil then -- 514
-			return ____awaiter_resolve(nil, {output = {success = false, message = "ask_user is not available in this runtime"}}) -- 514
-		end -- 514
-		if context.sessionId == nil or context.sessionId <= 0 then -- 514
-			return ____awaiter_resolve(nil, {output = {success = false, message = "ask_user requires a session"}}) -- 514
-		end -- 514
-		local normalized = normalizeQuestionnaire(input) -- 521
-		if not normalized.success then -- 521
-			return ____awaiter_resolve(nil, {output = normalized}) -- 521
-		end -- 521
-		local result = __TS__Await(context.services:publishQuestionnaire({sessionId = context.sessionId, taskId = context.taskId, step = context.step, schema = normalized.schema})) -- 523
-		if not result.success then -- 523
-			return ____awaiter_resolve(nil, {output = result}) -- 523
-		end -- 523
-		context.workflow.waitingQuestionnaireId = result.questionnaireId -- 530
-		return ____awaiter_resolve(nil, {output = {success = true, waitingForUser = true, questionnaireId = result.questionnaireId}, control = {waitForUser = true, questionnaireId = result.questionnaireId}}) -- 530
-	end) -- 530
-end -- 514
-local function spawnSubAgent(context, input) -- 537
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 537
-		if context.services.spawnSubAgent == nil then -- 537
-			return ____awaiter_resolve(nil, {output = {success = false, message = "spawn_sub_agent is not available in this runtime"}}) -- 537
-		end -- 537
-		if context.sessionId == nil or context.sessionId <= 0 then -- 537
-			return ____awaiter_resolve(nil, {output = {success = false, message = "spawn_sub_agent requires a parent session"}}) -- 537
-		end -- 537
-		local filesHint = __TS__ArrayIsArray(input.filesHint) and __TS__ArrayFilter( -- 544
-			input.filesHint, -- 545
-			function(____, item) return type(item) == "string" end -- 545
-		) or nil -- 545
-		local result = __TS__Await(context.services:spawnSubAgent({ -- 547
-			parentSessionId = context.sessionId, -- 548
-			projectRoot = context.workingDir, -- 549
-			title = type(input.title) == "string" and input.title or "Sub", -- 550
-			prompt = type(input.prompt) == "string" and input.prompt or "", -- 551
-			expectedOutput = type(input.expectedOutput) == "string" and input.expectedOutput or nil, -- 552
-			filesHint = filesHint, -- 553
-			disabledAgentTools = context.disabledAgentTools -- 554
-		})) -- 554
-		if not result.success then -- 554
-			return ____awaiter_resolve(nil, {output = result}) -- 554
-		end -- 554
-		context.workflow.hasSpawnedSubAgentThisTask = true -- 557
-		return ____awaiter_resolve(nil, {output = { -- 557
-			success = true, -- 560
-			sessionId = result.sessionId, -- 561
-			taskId = result.taskId, -- 562
-			title = result.title, -- 563
-			hint = "Dispatch any other intended independent sub-agents, do only bounded foreground work that does not depend on them, then finish this turn. Do not call list_sub_agents; results arrive as asynchronous handoffs." -- 564
-		}, control = {spawnedSubAgent = true}}) -- 564
-	end) -- 564
-end -- 537
-local function listSubAgents(context, input) -- 570
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 570
-		if context.services.listSubAgents == nil then -- 570
-			return ____awaiter_resolve(nil, {output = {success = false, message = "list_sub_agents is not available in this runtime"}}) -- 570
-		end -- 570
-		if context.sessionId == nil or context.sessionId <= 0 then -- 570
-			return ____awaiter_resolve(nil, {output = {success = false, message = "list_sub_agents requires a current session"}}) -- 570
-		end -- 570
-		local result = __TS__Await(context.services:listSubAgents({ -- 577
-			sessionId = context.sessionId, -- 578
-			projectRoot = context.workingDir, -- 579
-			status = type(input.status) == "string" and input.status or nil, -- 580
-			limit = type(input.limit) == "number" and input.limit or nil, -- 581
-			offset = type(input.offset) == "number" and input.offset or nil, -- 582
-			query = type(input.query) == "string" and input.query or nil -- 583
-		})) -- 583
-		return ____awaiter_resolve(nil, {output = result}) -- 583
-	end) -- 583
-end -- 570
-local function finish(_context, input) -- 588
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 588
-		local message = type(input.message) == "string" and __TS__StringTrim(input.message) or "" -- 589
-		return ____awaiter_resolve( -- 589
-			nil, -- 589
-			{ -- 590
-				output = {success = true, message = message}, -- 591
-				control = { -- 592
-					concludeTask = true, -- 593
-					finalMessage = message, -- 594
-					completion = AgentUtils.normalizeAgentCompletionReport(input) -- 595
-				} -- 595
-			} -- 595
-		) -- 595
-	end) -- 595
-end -- 588
-local function analyzeImageHandler(context, input) -- 600
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 600
-		local visionContext = context.visionTaskContext or "" -- 601
-		if type(input.context) == "string" and __TS__StringTrim(input.context) ~= "" then -- 601
-			visionContext = visionContext == "" and input.context or (visionContext .. "\n\n") .. input.context -- 603
-		end -- 603
-		return ____awaiter_resolve( -- 603
-			nil, -- 603
-			{output = __TS__Await(analyzeImage({ -- 605
-				workingDir = context.workingDir, -- 606
-				taskId = context.taskId, -- 607
-				sessionId = context.sessionId, -- 608
-				binding = context.visionBinding, -- 609
-				paths = input.paths, -- 610
-				question = input.question, -- 611
-				criteria = input.criteria, -- 612
-				context = visionContext, -- 613
-				isCancelled = function() return context.cancellation:isCancelled() end -- 614
-			}))} -- 614
-		) -- 614
-	end) -- 614
-end -- 600
-____exports.AGENT_TOOL_HANDLERS = { -- 618
-	read_file = readFile, -- 619
-	grep_files = grepFiles, -- 620
-	glob_files = globFiles, -- 621
-	search_dora_doc = searchDoraDoc, -- 622
-	build = build, -- 623
-	fetch_url = fetchUrl, -- 624
-	execute_command = executeCommand, -- 625
-	analyze_image = analyzeImageHandler, -- 626
-	edit_file = editFile, -- 627
-	delete_file = deleteFile, -- 628
-	ask_user = askUser, -- 629
-	spawn_sub_agent = spawnSubAgent, -- 630
-	list_sub_agents = listSubAgents, -- 631
-	finish = finish -- 632
-} -- 632
-return ____exports -- 632
+		local normalizedTargetFile = AgentRuntimePolicy.normalizeAgentPath(targetFile) -- 486
+		local isInternalDocumentEdit = AgentRuntimePolicy.isAgentInternalDocumentPath(normalizedTargetFile) -- 487
+		local result = Tools.deleteFile(context.taskId, context.workingDir, targetFile, {summary = "delete_file: " .. targetFile, toolName = "delete_file"}) -- 488
+		if not result.success then -- 488
+			return ____awaiter_resolve(nil, {output = result}) -- 488
+		end -- 488
+		if not isInternalDocumentEdit then -- 488
+			context.workflow.unbuiltEdits = true -- 494
+			context.workflow.lastBuildSucceeded = false -- 495
+			if context.workflow.failedTestNeedsBuild == true then -- 495
+				context.workflow.failedTestHasSourceEdit = true -- 496
+			end -- 496
+			local editedPaths = context.workflow.editedPathsSinceBuild or ({}) -- 497
+			if __TS__ArrayIndexOf(editedPaths, normalizedTargetFile) < 0 then -- 497
+				editedPaths[#editedPaths + 1] = normalizedTargetFile -- 498
+			end -- 498
+			context.workflow.editedPathsSinceBuild = editedPaths -- 499
+			context.workflow.editsSinceBuild = (context.workflow.editsSinceBuild or 0) + 1 -- 500
+		end -- 500
+		local ____result_checkpointed_46 = result.checkpointed -- 507
+		local ____result_reversible_47 = result.reversible -- 508
+		local ____result_binary_48 = result.binary -- 509
+		local ____temp_49 = result.checkpointed and result.checkpointId or nil -- 510
+		local ____temp_50 = result.checkpointed and result.checkpointSeq or nil -- 511
+		local ____result_checkpointed_45 -- 512
+		if result.checkpointed then -- 512
+			____result_checkpointed_45 = nil -- 512
+		else -- 512
+			____result_checkpointed_45 = result.message -- 512
+		end -- 512
+		return ____awaiter_resolve(nil, {output = { -- 512
+			success = true, -- 504
+			changed = true, -- 505
+			mode = "delete", -- 506
+			checkpointed = ____result_checkpointed_46, -- 507
+			reversible = ____result_reversible_47, -- 508
+			binary = ____result_binary_48, -- 509
+			checkpointId = ____temp_49, -- 510
+			checkpointSeq = ____temp_50, -- 511
+			message = ____result_checkpointed_45, -- 512
+			files = {{path = targetFile, op = "delete"}} -- 513
+		}}) -- 513
+	end) -- 513
+end -- 483
+local function askUser(context, input) -- 518
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 518
+		if context.services.publishQuestionnaire == nil then -- 518
+			return ____awaiter_resolve(nil, {output = {success = false, message = "ask_user is not available in this runtime"}}) -- 518
+		end -- 518
+		if context.sessionId == nil or context.sessionId <= 0 then -- 518
+			return ____awaiter_resolve(nil, {output = {success = false, message = "ask_user requires a session"}}) -- 518
+		end -- 518
+		local normalized = normalizeQuestionnaire(input) -- 525
+		if not normalized.success then -- 525
+			return ____awaiter_resolve(nil, {output = normalized}) -- 525
+		end -- 525
+		local result = __TS__Await(context.services:publishQuestionnaire({sessionId = context.sessionId, taskId = context.taskId, step = context.step, schema = normalized.schema})) -- 527
+		if not result.success then -- 527
+			return ____awaiter_resolve(nil, {output = result}) -- 527
+		end -- 527
+		context.workflow.waitingQuestionnaireId = result.questionnaireId -- 534
+		return ____awaiter_resolve(nil, {output = {success = true, waitingForUser = true, questionnaireId = result.questionnaireId}, control = {waitForUser = true, questionnaireId = result.questionnaireId}}) -- 534
+	end) -- 534
+end -- 518
+local function spawnSubAgent(context, input) -- 541
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 541
+		if context.services.spawnSubAgent == nil then -- 541
+			return ____awaiter_resolve(nil, {output = {success = false, message = "spawn_sub_agent is not available in this runtime"}}) -- 541
+		end -- 541
+		if context.sessionId == nil or context.sessionId <= 0 then -- 541
+			return ____awaiter_resolve(nil, {output = {success = false, message = "spawn_sub_agent requires a parent session"}}) -- 541
+		end -- 541
+		local filesHint = __TS__ArrayIsArray(input.filesHint) and __TS__ArrayFilter( -- 548
+			input.filesHint, -- 549
+			function(____, item) return type(item) == "string" end -- 549
+		) or nil -- 549
+		local result = __TS__Await(context.services:spawnSubAgent({ -- 551
+			parentSessionId = context.sessionId, -- 552
+			projectRoot = context.workingDir, -- 553
+			title = type(input.title) == "string" and input.title or "Sub", -- 554
+			prompt = type(input.prompt) == "string" and input.prompt or "", -- 555
+			expectedOutput = type(input.expectedOutput) == "string" and input.expectedOutput or nil, -- 556
+			filesHint = filesHint, -- 557
+			disabledAgentTools = context.disabledAgentTools -- 558
+		})) -- 558
+		if not result.success then -- 558
+			return ____awaiter_resolve(nil, {output = result}) -- 558
+		end -- 558
+		context.workflow.hasSpawnedSubAgentThisTask = true -- 561
+		return ____awaiter_resolve(nil, {output = { -- 561
+			success = true, -- 564
+			sessionId = result.sessionId, -- 565
+			taskId = result.taskId, -- 566
+			title = result.title, -- 567
+			hint = "Dispatch any other intended independent sub-agents, do only bounded foreground work that does not depend on them, then finish this turn. Do not call list_sub_agents; results arrive as asynchronous handoffs." -- 568
+		}, control = {spawnedSubAgent = true}}) -- 568
+	end) -- 568
+end -- 541
+local function listSubAgents(context, input) -- 574
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 574
+		if context.services.listSubAgents == nil then -- 574
+			return ____awaiter_resolve(nil, {output = {success = false, message = "list_sub_agents is not available in this runtime"}}) -- 574
+		end -- 574
+		if context.sessionId == nil or context.sessionId <= 0 then -- 574
+			return ____awaiter_resolve(nil, {output = {success = false, message = "list_sub_agents requires a current session"}}) -- 574
+		end -- 574
+		local result = __TS__Await(context.services:listSubAgents({ -- 581
+			sessionId = context.sessionId, -- 582
+			projectRoot = context.workingDir, -- 583
+			status = type(input.status) == "string" and input.status or nil, -- 584
+			limit = type(input.limit) == "number" and input.limit or nil, -- 585
+			offset = type(input.offset) == "number" and input.offset or nil, -- 586
+			query = type(input.query) == "string" and input.query or nil -- 587
+		})) -- 587
+		return ____awaiter_resolve(nil, {output = result}) -- 587
+	end) -- 587
+end -- 574
+local function finish(_context, input) -- 592
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 592
+		local message = type(input.message) == "string" and __TS__StringTrim(input.message) or "" -- 593
+		return ____awaiter_resolve( -- 593
+			nil, -- 593
+			{ -- 594
+				output = {success = true, message = message}, -- 595
+				control = { -- 596
+					concludeTask = true, -- 597
+					finalMessage = message, -- 598
+					completion = AgentUtils.normalizeAgentCompletionReport(input) -- 599
+				} -- 599
+			} -- 599
+		) -- 599
+	end) -- 599
+end -- 592
+local function analyzeImageHandler(context, input) -- 604
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 604
+		local visionContext = context.visionTaskContext or "" -- 605
+		if type(input.context) == "string" and __TS__StringTrim(input.context) ~= "" then -- 605
+			visionContext = visionContext == "" and input.context or (visionContext .. "\n\n") .. input.context -- 607
+		end -- 607
+		return ____awaiter_resolve( -- 607
+			nil, -- 607
+			{output = __TS__Await(analyzeImage({ -- 609
+				workingDir = context.workingDir, -- 610
+				taskId = context.taskId, -- 611
+				sessionId = context.sessionId, -- 612
+				binding = context.visionBinding, -- 613
+				paths = input.paths, -- 614
+				question = input.question, -- 615
+				criteria = input.criteria, -- 616
+				context = visionContext, -- 617
+				isCancelled = function() return context.cancellation:isCancelled() end -- 618
+			}))} -- 618
+		) -- 618
+	end) -- 618
+end -- 604
+____exports.AGENT_TOOL_HANDLERS = { -- 622
+	read_file = readFile, -- 623
+	grep_files = grepFiles, -- 624
+	glob_files = globFiles, -- 625
+	search_dora_doc = searchDoraDoc, -- 626
+	build = build, -- 627
+	fetch_url = fetchUrl, -- 628
+	execute_command = executeCommand, -- 629
+	analyze_image = analyzeImageHandler, -- 630
+	edit_file = editFile, -- 631
+	delete_file = deleteFile, -- 632
+	ask_user = askUser, -- 633
+	spawn_sub_agent = spawnSubAgent, -- 634
+	list_sub_agents = listSubAgents, -- 635
+	finish = finish -- 636
+} -- 636
+return ____exports -- 636

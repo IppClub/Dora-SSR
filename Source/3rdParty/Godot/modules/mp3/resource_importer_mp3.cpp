@@ -118,3 +118,8 @@ Error ResourceImporterMP3::import(ResourceUID::ID p_source_id, const String &p_s
 
 ResourceImporterMP3::ResourceImporterMP3() {
 }
+
+// Dora embedded import service: no editor registration/UI dependency.
+Ref<ResourceImporter> dora_godot_mp3_importer() {
+	Ref<ResourceImporterMP3> importer; importer.instantiate(); return importer;
+}

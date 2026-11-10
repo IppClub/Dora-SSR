@@ -41,7 +41,7 @@
     "--js-library=@GODOT@/platform/web/js/libs/library_godot_webgl2.js",
     "--js-library=@GODOT@/platform/web/js/libs/library_godot_javascript_singleton.js",
     "--post-js=@GODOT@/platform/web/js/patches/patch_em_gl.js",
-    "-sEXPORTED_FUNCTIONS=__emscripten_thread_crashed,_dora_web_advance,_dora_web_audio_format,_dora_web_audio_read,_dora_web_audio_start,_dora_web_audio_stats,_dora_web_bind_targets,_dora_web_blits,_dora_web_can_advance,_dora_web_can_produce,_dora_web_close,_dora_web_consumer_begin,_dora_web_consumer_end,_dora_web_context,_dora_web_direct,_dora_web_direct_publications,_dora_web_error,_dora_web_ime,_dora_web_input,_dora_web_open,_dora_web_output,_dora_web_pause,_dora_web_project_state,_dora_web_restart,_dora_web_shutdown,_dora_web_slot,_dora_web_version,_free,_malloc",
+    "-sEXPORTED_FUNCTIONS=__emscripten_thread_crashed,_dora_web_advance,_dora_web_audio_format,_dora_web_audio_read,_dora_web_audio_start,_dora_web_audio_stats,_dora_web_bind_targets,_dora_web_blits,_dora_web_can_advance,_dora_web_can_produce,_dora_web_close,_dora_web_check,_dora_web_consumer_begin,_dora_web_consumer_end,_dora_web_context,_dora_web_direct,_dora_web_direct_publications,_dora_web_error,_dora_web_ime,_dora_web_input,_dora_web_open,_dora_web_output,_dora_web_pause,_dora_web_project_state,_dora_web_restart,_dora_web_shutdown,_dora_web_slot,_dora_web_version,_free,_malloc",
     "-sEXPORTED_RUNTIME_METHODS=FS,GL,HEAP16,HEAP32,HEAP64,HEAP8,HEAPF32,HEAPF64,HEAPU16,HEAPU32,HEAPU64,HEAPU8,UTF8ToString,cwrap,stringToNewUTF8",
     "-lidbfs.js"
   ]

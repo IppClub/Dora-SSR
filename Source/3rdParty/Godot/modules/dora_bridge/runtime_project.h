@@ -187,7 +187,7 @@ inline void unload(GodotInstance *instance) {
     }, &orphan_nodes);
     print_line(vformat("DORA_GODOT_PROJECT_CLEAN objects=%d resources=%d nodes=%d", ObjectDB::get_object_count(), ResourceCache::get_cached_resource_count(), orphan_nodes));
 }
-inline bool load(GodotInstance *instance, const char *path, const char *scene, int width, int height, std::string &error, bool start_scene=true) {
+inline bool load(GodotInstance *instance, const char *path, const char *scene, int width, int height, std::string &error, bool start_scene=true, bool (*configure)(std::string &)=nullptr) {
     if (start_scene) DoraGodotDiagnostics::begin();
     begin_node_boundary();
     auto *settings = ProjectSettings::get_singleton();
@@ -212,6 +212,7 @@ inline bool load(GodotInstance *instance, const char *path, const char *scene, i
         ScriptServer::init_languages();
         return true; // No input actions, translations, themes, buses or shaders.
     }
+    if(configure && !configure(error)) return false;
     OS::get_singleton()->ensure_user_data_dir();
     OS::get_singleton()->set_exit_code(0);
     ResourceUID::get_singleton()->load_from_cache(true);

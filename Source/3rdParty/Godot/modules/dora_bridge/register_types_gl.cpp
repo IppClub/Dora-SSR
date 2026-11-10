@@ -55,6 +55,11 @@ bool DisplayServerDoraGL::desktop=false;
 void *DisplayServerDoraGL::transport=nullptr;
 void initialize_dora_bridge_module(ModuleInitializationLevel) {}
 void uninitialize_dora_bridge_module(ModuleInitializationLevel) {}
+#include "runtime_project.h"
+#include "runtime_check.h"
+#include "runtime_import.h"
+#include "runtime_check_boot.h"
+
 namespace {
 struct Runtime {
     std::set<Key> held_keys;
@@ -166,6 +171,37 @@ bool draw(int direct_slot=-1) {
     rs->draw(false,DoraGodotRenderTiming::consume());
     Engine::get_singleton()->increment_frames_drawn(); rs->sync(); return true;
 }
+bool boot_check(const DoraGodotConfig *config) {
+    if(!runtime.transport) {
+        runtime.transport=dora_gl_create(config->native_device,1,1,2);
+        if(!runtime.transport) { runtime.error="Cannot initialize Godot compiler GL context";return false; }
+        runtime.width=1;runtime.height=1;runtime.buffers=2;
+    }
+    ProducerScope scope;if(!scope.ok) {runtime.error="Cannot activate Godot compiler GL context";return false;}
+    DisplayServerDoraGL::transport=runtime.transport;DisplayServerDoraGL::desktop=dora_gl_desktop(runtime.transport);
+    if(!prepare_audio()) return false;
+    runtime.project=config->project_path;
+    return DoraGodotServiceBoot::boot(runtime,extension_init,"dora-gl",DisplayServerDoraGL::desktop?"opengl3":"opengl3_es","gl_compatibility");
+}
+const char *check_code(const DoraGodotConfig *config,const char *file,const char *source) {
+    if(!config || config->size<sizeof(*config) || !config->project_path || !config->native_device) return DoraGodotCodeCheck::failure(file,"Invalid GL compiler configuration");
+    if(runtime.terminated) return DoraGodotCodeCheck::failure(file,"Godot runtime has terminated; restart Dora");
+    if(!runtime.instance && !boot_check(config)) return DoraGodotCodeCheck::failure(file,runtime.error);
+    ProducerScope scope;if(!scope.ok) return DoraGodotCodeCheck::failure(file,"Cannot activate Godot compiler GL context");
+    return DoraGodotCodeCheck::check(runtime,config,file,source,boot_check);
+}
+const char *import_asset(const DoraGodotConfig *config,const char *file,const char *options) {
+#if defined(LINUXBSD_ENABLED) || defined(WINDOWS_ENABLED)
+    if(!config || config->size<sizeof(*config) || !config->project_path || !config->native_device) return DoraGodotAssetImport::reply("","failed","Invalid GL import configuration");
+    if(runtime.active || runtime.terminated) return DoraGodotAssetImport::reply("","failed","Stop the running project or restart a terminated Godot runtime before importing");
+    if(!runtime.instance && !boot_check(config)) return DoraGodotAssetImport::reply("","failed",String::utf8(runtime.error.c_str()));
+    ProducerScope scope;if(!scope.ok) return DoraGodotAssetImport::reply("","failed","Cannot activate Godot import GL context");
+    return DoraGodotAssetImport::import_asset(runtime,config,file,options,boot_check);
+#else
+    return DoraGodotAssetImport::reply("","failed","Embedded asset importing is available on desktop only");
+#endif
+}
+
 void *open(const DoraGodotConfig *config) {
     runtime.error.clear();
     if (!config || config->size<sizeof(*config) || config->backend!=
@@ -475,3 +511,4 @@ extern "C" DORA_GODOT_EXPORT int dora_godot_get_project_api(uint32_t requested,D
     }};return 1;
 }
 #endif
+#include "runtime_service_api.inc"

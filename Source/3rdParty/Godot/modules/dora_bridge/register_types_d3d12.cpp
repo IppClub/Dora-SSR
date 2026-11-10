@@ -4,6 +4,7 @@
 #include "GodotBridgeD3D12.h"
 #include "GodotBridgeAudio.h"
 #include "GodotBridgeOutput.h"
+#include "GodotBridgeProject.h"
 #include "GodotBridgeIME.h"
 #include "GodotAudioQueue.h"
 #include "runtime_timing.h"
@@ -37,6 +38,11 @@
 
 void initialize_dora_bridge_module(ModuleInitializationLevel) {}
 void uninitialize_dora_bridge_module(ModuleInitializationLevel) {}
+
+#include "runtime_project.h"
+#include "runtime_check.h"
+#include "runtime_import.h"
+#include "runtime_check_boot.h"
 
 namespace {
 struct Slot {
@@ -176,6 +182,46 @@ bool prepare_device(void *host_device) {
     std::fprintf(stderr,"DORA_GODOT_D3D12_CPU prepare_device ready\n");
     return true;
 }
+// Retain backend adapter policy when compiler/import boot precedes gameplay.
+bool configure_project(std::string &error) {
+    if (OS::get_singleton()->get_environment("DORA_GODOT_D3D12_WARP")=="1") {
+        const String cache=OS::get_singleton()->get_environment("DORA_GODOT_D3D12_WARP_SHADER_CACHE");
+        if (!cache.is_empty()) {
+            if (cache!="0" && cache!="1") { error="DORA_GODOT_D3D12_WARP_SHADER_CACHE must be 0 or 1";return false; }
+            ProjectSettings::get_singleton()->set("rendering/shader_compiler/shader_cache/enabled",cache=="1");
+            print_line(vformat("DORA_GODOT_D3D12_WARP shader_cache=%d",int(cache=="1")));
+        }
+        // Current Windows 11 ARM64 WARP crashes in Forward Mobile's
+        // fragment shadow-receiver path. Keep per-pixel diffuse, specular
+        // and ambient lighting, but compile shadows out in the default
+        // compatibility tier. Vertex and none remain diagnostic overrides.
+        String compat=OS::get_singleton()->get_environment("DORA_GODOT_D3D12_WARP_COMPAT").to_lower();
+        if (compat.is_empty()) compat="shadows";
+        const bool force_vertex=compat=="vertex";
+        const bool force_disable_shadows=compat=="shadows";
+        if (compat!="none" && !force_vertex && !force_disable_shadows) {
+            error="DORA_GODOT_D3D12_WARP_COMPAT must be shadows, vertex or none";return false;
+        }
+        if (force_vertex) ProjectSettings::get_singleton()->set("rendering/shading/overrides/force_vertex_shading",true);
+        if (force_disable_shadows) ProjectSettings::get_singleton()->set("rendering/shading/overrides/force_disable_shadows",true);
+        print_line(vformat("DORA_GODOT_D3D12_WARP compat=%s force_disable_shadows=%d force_vertex_shading=%d",
+            compat,int(force_disable_shadows),int(force_vertex)));
+    }
+    return true;
+}
+bool boot_check(const DoraGodotConfig *config) {
+    if(!prepare_audio()) return false;
+    runtime.project=config->project_path;
+    return DoraGodotServiceBoot::boot(runtime,extension_init,"dora-d3d12","d3d12","mobile");
+}
+const char *check_code(const DoraGodotConfig *config,const char *file,const char *source) {
+    if(!config || config->backend!=DORA_GODOT_D3D12 || !config->native_device) return DoraGodotCodeCheck::failure(file,"Invalid D3D12 compiler configuration");
+    return DoraGodotCodeCheck::check(runtime,config,file,source,boot_check);
+}
+const char *import_asset(const DoraGodotConfig *config,const char *file,const char *options) {
+    return DoraGodotAssetImport::import_asset(runtime,config,file,options,boot_check);
+}
+
 void *open(const DoraGodotConfig *config) {
     runtime.error.clear();
     if (!config || config->size<sizeof(*config) || config->backend!=DORA_GODOT_D3D12 || !config->native_device ||
@@ -183,12 +229,8 @@ void *open(const DoraGodotConfig *config) {
         config->width>8192 || config->height>8192 || config->buffer_count<2 || config->buffer_count>4) {
         runtime.error="invalid D3D12 Godot configuration";return nullptr;
     }
-    if (runtime.active || runtime.terminated || (runtime.instance && !runtime.tree)) {
+    if (runtime.active || runtime.terminated) {
         runtime.error="Godot runtime is active, terminated or startup failed";return nullptr;
-    }
-    if (runtime.instance && (runtime.project!=config->project_path || runtime.width!=config->width ||
-        runtime.height!=config->height || runtime.buffers!=config->buffer_count)) {
-        runtime.error="D3D12 runtime reopen requires the same project, dimensions and buffer count";return nullptr;
     }
     runtime.scene=config->scene_path?config->scene_path:"";
     DoraGodotIME::reset();runtime.width=config->width;runtime.height=config->height;runtime.buffers=config->buffer_count;
@@ -205,31 +247,9 @@ void *open(const DoraGodotConfig *config) {
             (char*)"--disable-render-loop",(char*)"--disable-crash-handler",(char*)"--resolution",(char*)resolution.c_str()};
         runtime.instance=(GodotInstance*)libgodot_create_godot_instance(sizeof(args)/sizeof(args[0]),args,extension_init);
         if (!runtime.instance) { runtime.error="LibGodot D3D12 initialization failed";return nullptr; }
-        if (OS::get_singleton()->get_environment("DORA_GODOT_D3D12_WARP")=="1") {
-            const String cache=OS::get_singleton()->get_environment("DORA_GODOT_D3D12_WARP_SHADER_CACHE");
-            if (!cache.is_empty()) {
-                if (cache!="0" && cache!="1") { runtime.error="DORA_GODOT_D3D12_WARP_SHADER_CACHE must be 0 or 1";return nullptr; }
-                ProjectSettings::get_singleton()->set("rendering/shader_compiler/shader_cache/enabled",cache=="1");
-                print_line(vformat("DORA_GODOT_D3D12_WARP shader_cache=%d",int(cache=="1")));
-            }
-            // Current Windows 11 ARM64 WARP crashes in Forward Mobile's
-            // fragment shadow-receiver path. Keep per-pixel diffuse, specular
-            // and ambient lighting, but compile shadows out in the default
-            // compatibility tier. Vertex and none remain diagnostic overrides.
-            String compat=OS::get_singleton()->get_environment("DORA_GODOT_D3D12_WARP_COMPAT").to_lower();
-            if (compat.is_empty()) compat="shadows";
-            const bool force_vertex=compat=="vertex";
-            const bool force_disable_shadows=compat=="shadows";
-            if (compat!="none" && !force_vertex && !force_disable_shadows) {
-                runtime.error="DORA_GODOT_D3D12_WARP_COMPAT must be shadows, vertex or none";return nullptr;
-            }
-            if (force_vertex) ProjectSettings::get_singleton()->set("rendering/shading/overrides/force_vertex_shading",true);
-            if (force_disable_shadows) ProjectSettings::get_singleton()->set("rendering/shading/overrides/force_disable_shadows",true);
-            print_line(vformat("DORA_GODOT_D3D12_WARP compat=%s force_disable_shadows=%d force_vertex_shading=%d",
-                compat,int(force_disable_shadows),int(force_vertex)));
-        }
+        if(!configure_project(runtime.error)) return nullptr;
         if (!runtime.scene.empty()) ProjectSettings::get_singleton()->set("application/run/main_scene",String::utf8(runtime.scene.c_str()));
-        if (!runtime.instance->start()) { runtime.error="Godot D3D12 project startup failed";return nullptr; }
+        if (!DoraGodotProject::start(runtime.instance)) { runtime.error="Godot D3D12 project startup failed";return nullptr; }
         std::fprintf(stderr,"DORA_GODOT_D3D12_CPU open instance_started\n");
         runtime.tree=Object::cast_to<SceneTree>(OS::get_singleton()->get_main_loop());
         std::fprintf(stderr,"DORA_GODOT_D3D12_CPU open tree=%d\n",runtime.tree!=nullptr);
@@ -237,12 +257,14 @@ void *open(const DoraGodotConfig *config) {
         runtime.root=runtime.tree->get_root();
         std::fprintf(stderr,"DORA_GODOT_D3D12_CPU open root=%d\n",runtime.root!=nullptr);
         std::fprintf(stderr,"DORA_GODOT_D3D12_CPU open scene_ready\n");
-        if (!prepare_device(config->native_device)) return nullptr;
     } else {
-        runtime.root->set_size(Size2i(runtime.width,runtime.height));
-        const String scene=runtime.scene.empty()?String(ProjectSettings::get_singleton()->get("application/run/main_scene")):String::utf8(runtime.scene.c_str());
-        if (runtime.tree->change_scene_to_file(scene)!=OK) { runtime.error="cannot load Godot D3D12 scene";return nullptr; }
+        if(!DoraGodotProject::load(runtime.instance,config->project_path,config->scene_path,config->width,config->height,runtime.error,true,configure_project)) {
+            DoraGodotProject::unload(runtime.instance);runtime.tree=nullptr;runtime.root=nullptr;return nullptr;
+        }
+        runtime.project=config->project_path;
+        runtime.tree=Object::cast_to<SceneTree>(OS::get_singleton()->get_main_loop());runtime.root=runtime.tree->get_root();
     }
+    if(!runtime.device && !prepare_device(config->native_device)) return nullptr;
     runtime.tree->set_pause(false);runtime.root->set_transparent_background(true);runtime.root->set_disable_input(false);
     // Do not submit a temporary Windows swap-chain/offscreen draw before the
     // host-owned textures are imported. In particular, ARM64 WARP can execute
@@ -310,6 +332,8 @@ void close(void *handle,DoraGodotStats *stats) {
         (unsigned long long)runtime.sequence,(unsigned long long)runtime.cpu_waits);
     if (runtime.host_queue) print_line(vformat("DORA_GODOT_D3D12_CPU_READERS completed waits=%d",runtime.host_cpu_waits));
     clear_targets();release_inputs();runtime.tree->set_pause(true);runtime.active=false;
+    if(!DoraGodotProject::supported(runtime.error)) runtime.terminated=true;
+    else { output.close(runtime.root);DoraGodotProject::unload(runtime.instance);runtime.tree=nullptr;runtime.root=nullptr; }
     DoraGodotRenderTiming::reset();DoraGodotIME::reset();
 }
 void shutdown() {
@@ -348,3 +372,11 @@ extern "C" DORA_GODOT_EXPORT int dora_godot_get_ime_api(uint32_t requested,DoraG
         DoraGodotIME::snapshot(state);return 1;
     }};return 1;
 }
+extern "C" DORA_GODOT_EXPORT int dora_godot_get_project_api(uint32_t requested,DoraGodotProjectAPI *api) {
+    if(requested!=DORA_GODOT_PROJECT_ABI_VERSION || !api || api->size<sizeof(*api)) return 0;
+    *api={sizeof(*api),DORA_GODOT_PROJECT_ABI_VERSION,[]()->uint32_t {
+        if(runtime.terminated) return DORA_GODOT_PROJECT_TERMINATED;
+        return runtime.active || runtime.tree?DORA_GODOT_PROJECT_ACTIVE:DORA_GODOT_PROJECT_UNLOADED;
+    }};return 1;
+}
+#include "runtime_service_api.inc"

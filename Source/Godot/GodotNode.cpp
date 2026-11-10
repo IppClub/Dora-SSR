@@ -15,19 +15,23 @@ NS_DORA_BEGIN
 #if BX_PLATFORM_OSX || BX_PLATFORM_IOS
 std::shared_ptr<GodotSession> createGodotMetalSession(GodotNode *node);
 void shutdownGodotMetalRuntime();
+std::pair<bool,std::string> callGodotMetalService(bool,const std::string &,const std::string &,const std::string &);
 std::string godotMetalUnsupportedReason();
-void checkGodotMetalCode(std::string,std::string,std::string,std::function<void(bool,std::string)>);
+
 #elif BX_PLATFORM_WINDOWS
 #if defined(DORA_GODOT_WINDOWS_D3D12_BACKEND)
 std::shared_ptr<GodotSession> createGodotD3D12Session(GodotNode *node);
 void shutdownGodotD3D12Runtime();
+std::pair<bool,std::string> callGodotD3D12Service(bool,const std::string &,const std::string &,const std::string &);
 #elif defined(DORA_GODOT_WINDOWS_GL_BACKEND)
 std::shared_ptr<GodotSession> createGodotGLSession(GodotNode *node);
 void shutdownGodotGLRuntime();
+std::pair<bool,std::string> callGodotGLService(bool,const std::string &,const std::string &,const std::string &);
 #endif
 #elif BX_PLATFORM_LINUX || BX_PLATFORM_ANDROID || (BX_PLATFORM_EMSCRIPTEN && !defined(DORA_WEB_NO_GODOT))
 std::shared_ptr<GodotSession> createGodotGLSession(GodotNode *node);
 void shutdownGodotGLRuntime();
+std::pair<bool,std::string> callGodotGLService(bool,const std::string &,const std::string &,const std::string &);
 #endif
 namespace {
 std::atomic<bool> runtimeShutdownRequired{false};
@@ -64,16 +68,38 @@ std::string GodotNode::getUnsupportedReason() {
 #endif
     return {};
 }
-void GodotNode::checkCodeAsync(String project,String file,String content,const std::function<void(bool,std::string)> &callback) {
-#if BX_PLATFORM_OSX
-    const auto reason=getUnsupportedReason();
-    if(!reason.empty()) { callback(false,reason);return; }
+namespace {
+void callGodotService(bool importing,String project,String file,String content,const std::function<void(bool,std::string)> &callback) {
+    const auto reason=GodotNode::getUnsupportedReason();
+    if(!reason.empty()) {callback(false,reason);return;}
     runtimeShutdownRequired=true;
-    checkGodotMetalCode(project.toString(),file.toString(),content.toString(),callback);
+    SharedApplication.invokeInRender([importing,project=project.toString(),file=file.toString(),content=content.toString(),callback] {
+        std::pair<bool,std::string> result;
+#if BX_PLATFORM_OSX || BX_PLATFORM_IOS
+        result=callGodotMetalService(importing,project,file,content);
+#elif BX_PLATFORM_WINDOWS && defined(DORA_GODOT_WINDOWS_D3D12_BACKEND)
+        result=callGodotD3D12Service(importing,project,file,content);
+#elif (BX_PLATFORM_WINDOWS && defined(DORA_GODOT_WINDOWS_GL_BACKEND)) || BX_PLATFORM_LINUX || BX_PLATFORM_ANDROID || (BX_PLATFORM_EMSCRIPTEN && !defined(DORA_WEB_NO_GODOT))
+        result=callGodotGLService(importing,project,file,content);
 #else
-    callback(false,"Embedded Godot compiler checks are not available on this runtime backend yet");
+        result={false,"Embedded Godot services are unavailable on this backend"};
+#endif
+        SharedApplication.invokeInLogic([callback,result=std::move(result)] {callback(result.first,result.second);});
+    });
+
+}
+}
+void GodotNode::checkCodeAsync(String project,String file,String content,const std::function<void(bool,std::string)> &callback) {
+    callGodotService(false,project,file,content,callback);
+}
+void GodotNode::importAssetAsync(String project,String file,String options,const std::function<void(bool,std::string)> &callback) {
+#if BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS || BX_PLATFORM_LINUX
+    callGodotService(true,project,file,options,callback);
+#else
+    callback(false,"Embedded Godot asset importing is available on desktop only");
 #endif
 }
+
 GodotNode *GodotNode::create(String projectPath, String sceneFile, int width, int height, int buffers) {
     const auto unsupported=getUnsupportedReason();
     if (!unsupported.empty()) { Error("GodotNode: {}",unsupported); return nullptr; }

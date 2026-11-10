@@ -35,3 +35,23 @@ local node = Dora.GodotNode("path/to/project", "", 640, 360, 3)
 assert(node)
 node:addTo(Dora.Director.ui)
 ```
+
+## checkCodeAsync
+
+```tl
+checkCodeAsync: function(self: GodotNodeClass, project: string, file: string, content: string, callback: function(available: boolean, result: string))
+```
+
+通过内置 runtime 检查未保存的 GDScript、文本场景／资源、shader／include 或 `project.godot`。项目和文件须使用绝对路径。Metal、GL／GLES／WebGL、D3D12 共用同一检查器。不执行场景、Autoload 或用户脚本，也不导入素材或编译后端 GPU 管线。
+
+回调在 Dora 逻辑线程执行。`available` 为假时，`result` 为能力／错误消息；否则为含 `success` 与 `info` 诊断的 JSON 字符串。旧 runtime 缺少扩展时返回能力错误。
+
+## importAssetAsync
+
+```tl
+importAssetAsync: function(self: GodotNodeClass, project: string, file: string, options: string, callback: function(available: boolean, result: string))
+```
+
+在 macOS、Windows 或 Linux 桌面版中直接使用内置 runtime 导入单个素材。项目和文件须使用绝对路径，`options` 为 JSON 字符串（`{}` 或 `{"force":true}`）。先停止正在运行的 Godot 工程。支持图片、WAV／MP3／Ogg Vorbis 音频、字体和 glTF／GLB 的默认导入。已有编辑器管理的导入设置会保留，并返回失败而不覆盖。
+
+逻辑线程回调的 `available` 含义同 `checkCodeAsync`。JSON 响应包含 `success`、`status`（`imported`／`skipped`／`failed`）、`path`、`output` 和 `message`。产物写入 `.godot/imported`，并生成素材旁的 `.import` 映射及 UID 缓存，不修改原素材。源文件与产物校验和用于识别失效或损坏的缓存；模型始终重新导入以包含外部 buffer／纹理。不启动外部 Godot 可执行程序、场景、Autoload 或用户脚本。Agent 应使用 `execute_command` 的 Lua 注入函数 `importGodotAssets({project=".", paths={"art/player.png"}})` 解析工作区路径并取得批量结果。

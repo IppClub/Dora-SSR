@@ -45,6 +45,18 @@ int audioStart(void *handle){return valid(handle)&&dispatch(AudioStart,nullptr,0
 uint32_t audioRead(void *handle,float *samples,uint32_t frames){return valid(handle)&&samples&&frames&&frames<=DORA_GODOT_AUDIO_MAX_FRAMES?dispatch(AudioRead,samples,frames,0,0,0):0;}
 int audioStats(void *handle,DoraGodotAudioStats *value){return valid(handle)&&value&&value->size>=sizeof(*value)&&dispatch(AudioStats,value,0,0,0,0);}
 }
+EM_JS(char *,checkService,(const char *project,const char *file,const char *source),{
+    const bridge=Module['doraGodotBridge'];
+    if(!bridge || typeof bridge.checkCode!=='function')return 0;
+    try {return stringToNewUTF8(bridge.checkCode(UTF8ToString(project),UTF8ToString(file),UTF8ToString(source)));}
+    catch(error) {return stringToNewUTF8(JSON.stringify({success:false,info:[['tool',UTF8ToString(file),1,0,String(error)]]}));}
+});
+std::pair<bool,std::string> callGodotWebService(const DoraGodotConfig &config,const std::string &file,const std::string &source,bool importing) {
+    if(importing)return {false,"Embedded Godot asset importing is available on desktop only"};
+    char *value=checkService(config.project_path,file.c_str(),source.c_str());
+    if(!value)return {false,"Bundled Web runtime has no compiler-check API; rebuild the Web runtime"};
+    std::string result=value;free(value);return {true,std::move(result)};
+}
 bool loadGodotWebAPI(DoraGodotAPI &api,DoraGodotGLAPI &gl,DoraGodotAudioAPI &audio,DoraGodotGLTargetsAPI &targets,DoraGodotOutputAPI &out,DoraGodotIMEAPI &imeAPI,DoraGodotProjectAPI &project,std::string &error){
     const int capabilities=dispatch(Init,nullptr,1,0,0,0);
     if(!capabilities){error="Godot Web runtime must be preloaded with a canvas GL boundary: ";dispatch(Error,errorText,sizeof(errorText),0,0,0);error+=errorText;return false;}

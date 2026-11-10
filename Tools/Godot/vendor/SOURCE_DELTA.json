@@ -5,7 +5,7 @@
   "attributes_baseline_commit": "199c2c69c0e707808ad189200922bf71d04057b8",
   "policy": "Canonical Git text/EOL content using attributes from the fixed initial import; no other content normalization",
   "upstream_files": 13989,
-  "registered_current_files": 14035,
+  "registered_current_files": 14040,
   "archive_crlf_to_git_lf_files": [
     "misc/msvs/nmake.substitution.props",
     "misc/msvs/props.template",
@@ -33,7 +33,7 @@
     "modules/mono/glue/GodotSharp/GodotSharpEditor/GodotSharpEditor.csproj",
     "platform/android/java/gradlew.bat"
   ],
-  "delta_patch_sha256": "9c375ad3013a44cf5018b1d824d7d08dfcbbe46df71cd670b3357e4c05d29516",
+  "delta_patch_sha256": "8d036bc38813379d72f70f7646388c60e2047d4be79bb7d7f3f4d29a49d5d427",
   "files": [
     {
       "path": "UPSTREAM.json",
@@ -88,14 +88,14 @@
       "path": "dora_bridge.exports",
       "status": "added",
       "mode": "100644",
-      "canonical_sha256": "b57047a9642b96a0badc88b317aedc537f7ee4453f955b7c78b7ff7f66ca8992",
+      "canonical_sha256": "264803c79db6e30801fb787f9923a11ca1203b1689b3a1826767547ba3d24a17",
       "upstream_canonical_sha256": null
     },
     {
       "path": "dora_bridge.map",
       "status": "added",
       "mode": "100644",
-      "canonical_sha256": "4fbf3494091afda20e2a7ae82c0169fe17761959b1e1fbb5ede0d3d1b44789c3",
+      "canonical_sha256": "e258bec78ded2eeef467b3989da90cdfbc49799882ec2d771249d37729371402",
       "upstream_canonical_sha256": null
     },
     {
@@ -214,7 +214,7 @@
       "path": "modules/dora_bridge/GodotBridgeCheck.h",
       "status": "added",
       "mode": "100644",
-      "canonical_sha256": "bcee0e66b4ddefdb9ca5a0407c1527875c3451771fdbd1c29e925535f06f9393",
+      "canonical_sha256": "b58ce40e9bb71247e678dcc7a111ee048f3ff2d12ceadcf7432de96068b43fbd",
       "upstream_canonical_sha256": null
     },
     {
@@ -243,6 +243,13 @@
       "status": "added",
       "mode": "100644",
       "canonical_sha256": "76ce31813d1d9ad9aca4eac11bc7fd196d0ccd9d1d0d109870b5acc94466f86e",
+      "upstream_canonical_sha256": null
+    },
+    {
+      "path": "modules/dora_bridge/GodotBridgeImport.h",
+      "status": "added",
+      "mode": "100644",
+      "canonical_sha256": "9b52b0e30a09302eab962dd4cc90731cbc5dcf19ed629eb5f2228921c3a229ee",
       "upstream_canonical_sha256": null
     },
     {
@@ -382,21 +389,21 @@
       "path": "modules/dora_bridge/register_types.mm",
       "status": "added",
       "mode": "100644",
-      "canonical_sha256": "888104dffb5ff08ea3e1df7c85141913c957d2a93db7b3c87600505d7d60c08e",
+      "canonical_sha256": "b1453707a659ebf9e80b5ce2b378ddf9a56e8e8e281f5ecffbd7c6fc53dd7b8b",
       "upstream_canonical_sha256": null
     },
     {
       "path": "modules/dora_bridge/register_types_d3d12.cpp",
       "status": "added",
       "mode": "100644",
-      "canonical_sha256": "9c3b24f9b4b930e714df12ae8d33ddf0d7e76dadc0700cc7e7f0bdf7f10d4676",
+      "canonical_sha256": "16d1f9ab95478b531c5b7859538307ae95d80b801053614ae4d3e52a208f30de",
       "upstream_canonical_sha256": null
     },
     {
       "path": "modules/dora_bridge/register_types_gl.cpp",
       "status": "added",
       "mode": "100644",
-      "canonical_sha256": "a41306aaac9702240b1362351ad62d3bcc106f4f865acf401c95a2890e5d08a3",
+      "canonical_sha256": "d89f3a7fc977c83a497e100d5c1a2834325f8389bc3feb6b86fd916fea9f1529",
       "upstream_canonical_sha256": null
     },
     {
@@ -414,10 +421,31 @@
       "upstream_canonical_sha256": null
     },
     {
+      "path": "modules/dora_bridge/runtime_check_boot.h",
+      "status": "added",
+      "mode": "100644",
+      "canonical_sha256": "d6bd80471d33c03b5267a446abf69118b5e699bb29b3e7b22639787aa9945bab",
+      "upstream_canonical_sha256": null
+    },
+    {
+      "path": "modules/dora_bridge/runtime_diagnostics.h",
+      "status": "added",
+      "mode": "100644",
+      "canonical_sha256": "8d0bb79235826e820497e51b4e97885130ea50fc0bd5b06652833fac183ebec2",
+      "upstream_canonical_sha256": null
+    },
+    {
       "path": "modules/dora_bridge/runtime_ime.h",
       "status": "added",
       "mode": "100644",
       "canonical_sha256": "5f2badef5435711e492c07c06b75419daf924ad71fb7bef9812e742bc8f841d7",
+      "upstream_canonical_sha256": null
+    },
+    {
+      "path": "modules/dora_bridge/runtime_import.h",
+      "status": "added",
+      "mode": "100644",
+      "canonical_sha256": "1f231752b4ee3ccdabbf0477913cafe7d7d5e965978f4562c8ab17c8d7cef7b8",
       "upstream_canonical_sha256": null
     },
     {
@@ -438,7 +466,14 @@
       "path": "modules/dora_bridge/runtime_project.h",
       "status": "added",
       "mode": "100644",
-      "canonical_sha256": "7209140919a1c1e3bc80fd6ccef8a3c33d54a41310d5730e4a4627726d05ac44",
+      "canonical_sha256": "5965d3f440c0af82a021a3b4dfe77635f8df5fbe1252d1063ccb27be9a9efe4c",
+      "upstream_canonical_sha256": null
+    },
+    {
+      "path": "modules/dora_bridge/runtime_service_api.inc",
+      "status": "added",
+      "mode": "100644",
+      "canonical_sha256": "d8f655d9b9a74e56e9e1baa8321368081727dafc9b293810e1e60b997acb8dd3",
       "upstream_canonical_sha256": null
     },
     {
@@ -459,7 +494,7 @@
       "path": "modules/dora_bridge/web/web_api.cpp",
       "status": "added",
       "mode": "100644",
-      "canonical_sha256": "411ed6682df9cda53a4080dd13bee362aae14e7b9459771a3fd1444f77313280",
+      "canonical_sha256": "daaff2c982241cc73d094970b9cb06c5af6eebf9509bfd568d8a508739cdaa16",
       "upstream_canonical_sha256": null
     },
     {
@@ -510,6 +545,20 @@
       "mode": "100644",
       "canonical_sha256": "f7c3d2e6c68bc30ef9ebb49ffa9a7ae2b538b021a2c16bc979fbbf4d40175763",
       "upstream_canonical_sha256": "1e0ad66b0e6c4390d67c2e83cd6917e3848b1b346207a9870018d53530f1ea37"
+    },
+    {
+      "path": "modules/mp3/resource_importer_mp3.cpp",
+      "status": "modified",
+      "mode": "100644",
+      "canonical_sha256": "1d6c84b33e704f05ec426567899786fbdda8bd27017aee6906f99d0ace24c9f5",
+      "upstream_canonical_sha256": "71213c0e3cdd3f8543746f986da3d6029e467aec62eb5db0f4cb4fd26ffa9ecd"
+    },
+    {
+      "path": "modules/vorbis/resource_importer_ogg_vorbis.cpp",
+      "status": "modified",
+      "mode": "100644",
+      "canonical_sha256": "41777754d641ba6f4fdcb72d96341642b02e4c814bb37f1ec2753823645a238e",
+      "upstream_canonical_sha256": "04bdccfb040f9bbfc8aea0932f7f9ca664f6e903ccc7753b2d7e1f5c56815773"
     },
     {
       "path": "platform/android/detect.py",

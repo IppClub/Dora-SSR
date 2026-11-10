@@ -8598,6 +8598,8 @@ export namespace GodotNode { export type Type = GodotNode; }
 interface GodotNodeClass {
     /** Checks in-memory GDScript or text resources using the bundled runtime; never launches an external editor or runs a scene. Callback returns host availability and a JSON check result (or host error). */
     checkCodeAsync(project: string, file: string, content: string, callback: (this: void, available: boolean, result: string) => void): void;
+    /** Import one desktop source asset using the bundled runtime. options is JSON; result contains success/status/path/output/message. */
+    importAssetAsync(project: string, file: string, options: string, callback: (this: void, available: boolean, result: string) => void): void;
     /** Returns an empty string if the GPU/backend is supported, otherwise a reason. Call after renderer initialization; does not validate the runtime library. */
     getUnsupportedReason(this: void): string;
     /**

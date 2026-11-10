@@ -1580,3 +1580,20 @@ python3 "$DORA_TEST_REPO/Test/Godot/tests/android/run_warm_cache.py" \
 ```
 
 入口保持严格校验失败码，要求两次是不同应用进程、暖启动前缓存哈希与冷退出后完全一致，并读取专用userdebug模拟器的实际GLSC binary内容保存证据。可选`--probe`仅生成明确失败的补充诊断，不能通过验收；不重复启动、不改驱动能力或cache开关。结束后由任务所有者归档证据、卸载本轮测试APK并关闭模拟器。实际长度保存的CPU回归为`Test/Godot/test_shader_cache_binary.py --output /fresh/length --baseline-ref b206381f2`，不替代真实binary恢复验证。
+
+## 内置素材导入与跨平台检查
+
+桌面 `execute_command` 的 Lua 注入函数 `importGodotAssets` 直接调用内置 LibGodot，不执行 Godot 命令行，也不启动场景、Autoload 或用户脚本。先停止正在运行的 Godot 工程，然后调用：
+
+```lua
+local result = importGodotAssets({project=".", paths={"art/player.png", "audio/jump.wav", "models/player.glb"}, force=false})
+assert(result.success)
+```
+
+路径相对于 Agent 工作区，素材必须位于所选 Godot 工程内。首批支持 PNG/JPEG/WebP/SVG/BMP/TGA、WAV/MP3/Ogg Vorbis、TTF/OTF/WOFF/WOFF2 和 glTF/GLB，采用默认导入设置。图片保存为无损 PortableCompressedTexture2D，音频和字体保存为 Godot 原生资源，模型保存为 PackedScene。模型始终重新导入，以覆盖外部纹理／buffer 的变化。其他模型格式、自定义编辑器导入插件及已有编辑器导入配置暂不支持；明确返回失败并保留原配置。
+
+函数返回并打印批量结果，也附加到 `execute_command.godotImports`；任一批次失败会使命令失败，没有新增独立 Agent tool。每个文件返回 `success/status/path/output/message`。服务写入 `.godot/imported`、原素材旁的 `.import` 及 UID 缓存，不改原素材。普通素材按源文件与产物 SHA-256 判定缓存；`force` 可重新导入。`.import` 使用标准 Godot importer 标识，附加 `[dora]` 区域记录缓存所有权，官方编辑器可以从原素材重新导入。版本管理保留 `.import`，忽略 `.godot`。成功导入后仍需 `build` 和预览，导入不代表代码或画面验证成功。
+
+公共实现位于 `runtime_check.h`、`runtime_import.h`、`runtime_check_boot.h` 和 `runtime_service_api.inc`。宿主的线程调度统一在 `GodotNode.cpp`，ABI 加载与结果复制统一在 `GodotRuntimeServices.h`。Metal、WGL/EGL/GLES、D3D12 只提供设备／上下文及符号解析适配；Web 另外复制独立 WASM 堆之间的字符串和工程资源。检查入口覆盖 macOS/iOS、Windows WGL/D3D12、Linux/Android GL 和 WebGL；素材导入只开放 macOS、Windows、Linux。旧 runtime 缺少扩展时报告能力错误，不回退外部进程。Dora Studio 不提供 Godot 开发支持。
+
+测试位于 Dora-Example：`Test/Godot/tests/services/import_macos.mm`（真实 LibGodot 导入、缓存、资源 preload、检查与项目生命周期），`Test/Godot/tests/web/test_compiler_bridge.mjs`（跨堆传输及异常清理），以及 `Test/Agent/test_godot_import_runtime.py`（execute_command 注入函数与模型结果）。其他平台仍需在对应设备／CI 执行，macOS 验收不能替代这些平台的运行验证。

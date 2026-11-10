@@ -35,3 +35,23 @@ local node = Dora.GodotNode("path/to/project", "", 640, 360, 3)
 assert(node)
 node:addTo(Dora.Director.ui)
 ```
+
+## checkCodeAsync
+
+```tl
+checkCodeAsync: function(self: GodotNodeClass, project: string, file: string, content: string, callback: function(available: boolean, result: string))
+```
+
+Checks unsaved GDScript, text scenes/resources, shaders/includes or `project.godot` through the bundled runtime. Supply absolute project/file paths. Metal, GL/GLES/WebGL and D3D12 share the checker. No scene, Autoload or user script is executed, and no assets or backend GPU pipelines are compiled.
+
+The callback runs on Dora's logic thread. When `available` is false, `result` is a capability/error message; otherwise it is JSON containing `success` and `info` diagnostics. An older runtime without this extension reports a capability error.
+
+## importAssetAsync
+
+```tl
+importAssetAsync: function(self: GodotNodeClass, project: string, file: string, options: string, callback: function(available: boolean, result: string))
+```
+
+Imports one asset directly through the bundled runtime on desktop macOS, Windows or Linux. Supply absolute project/file paths and JSON options (`{}` or `{"force":true}`). Stop any running Godot project first. Supports default imports for images, WAV/MP3/Ogg Vorbis audio, fonts and glTF/GLB scenes. Existing editor-managed import settings are preserved and return a failure rather than being overwritten.
+
+The logic-thread callback uses the same `available` convention as `checkCodeAsync`. The JSON result contains `success`, `status` (`imported`, `skipped` or `failed`), `path`, `output` and `message`. Generated resources go into `.godot/imported` with adjacent `.import` mappings and a UID cache. Source and output checksums detect stale/corrupt caches; models always reimport external buffers/textures. Source assets are unchanged. No external Godot executable, scene, Autoload or user script runs. Agent callers should use the `execute_command` Lua injection `importGodotAssets({project=".", paths={"art/player.png"}})` for workspace path resolution and batch results.

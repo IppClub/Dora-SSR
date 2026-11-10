@@ -1,4 +1,5 @@
 // @preview-file off clear
+import type { GodotImportBatchResult } from 'Agent/Tool/GodotImport';
 export type ExecuteCommandMode = "lua" | "git";
 
 export type ExecuteCommandProgress = {
@@ -14,6 +15,8 @@ export type ExecuteCommandProgress = {
 };
 
 export type ExecuteCommandVisionFields = {
+	/** Embedded import batches, including failures the Lua snippet did not print. */
+	godotImports?: GodotImportBatchResult[];
 	/** Capture attempts reserved by previewGame in this command. */
 	visionCapture?: {batchCount: number; frameCount: number};
 	/** Persisted task usage plus the current command's reserved captures. */

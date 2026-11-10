@@ -2,7 +2,9 @@
 #pragma once
 #include "GodotBridge.h"
 #ifdef __cplusplus
+#ifdef __cplusplus
 extern "C" {
+#endif
 #endif
 #define DORA_GODOT_CHECK_ABI_VERSION 1u
 // Owner/render thread only. The returned UTF-8 JSON is owned by the library

@@ -189,3 +189,24 @@ GodotWebBridge.prototype.shutdown=function() {
   if(this.scratch)g._free(this.scratch);if(this.audioBuffer)g._free(this.audioBuffer);
   this.scratch=0;this.audioBuffer=0;
 };
+
+// Copy strings and source bytes between independent WASM heaps. Compiler
+// diagnostics are copied before the next service call can invalidate them.
+GodotWebBridge.prototype.checkCode=function(project,file,source) {
+  const g=this.godot;
+  if(typeof g._dora_web_check!=='function')throw new Error('Bundled Web runtime has no compiler-check API');
+  const isolated=this.projectState()!==1;
+  let p=0,f=0,s=0;
+  try {
+    if(isolated)this.copyProject(project);
+    this.boundary.activate('godot');
+    p=g.stringToNewUTF8(project);f=g.stringToNewUTF8(file);s=g.stringToNewUTF8(source);
+    const result=g._dora_web_check(p,f,s);
+    if(!result)throw new Error('Godot compiler check returned no diagnostics');
+    return g.UTF8ToString(result);
+  } finally {
+    if(p)g._free(p);if(f)g._free(f);if(s)g._free(s);
+    this.boundary.activate('host');
+    if(isolated && this.projectState()===2)this.releaseProjectCopy();
+  }
+};

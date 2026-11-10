@@ -133,3 +133,8 @@ void ResourceImporterOggVorbis::_bind_methods() {
 
 ResourceImporterOggVorbis::ResourceImporterOggVorbis() {
 }
+
+// Dora embedded import service: no editor registration/UI dependency.
+Ref<ResourceImporter> dora_godot_ogg_importer() {
+	Ref<ResourceImporterOggVorbis> importer; importer.instantiate(); return importer;
+}

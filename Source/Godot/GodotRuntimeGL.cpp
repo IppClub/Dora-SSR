@@ -1,6 +1,7 @@
 // Native GL backend: Linux/Android EGL / Windows WGL. The module owns a shared context.
 #include "Const/Header.h"
 #include "Godot/GodotNode.h"
+#include "Godot/GodotRuntimeServices.h"
 #include "Godot/GodotAudio.h"
 #include "Godot/GodotBridgeOutput.h"
 #include "Godot/GodotBridgeIME.h"
@@ -519,5 +520,21 @@ void shutdownInterop(bgfx::RendererType::Enum,void *) {
 }
 }
 std::shared_ptr<GodotSession> createGodotGLSession(GodotNode *node) { return std::make_shared<GLSession>(node); }
+std::pair<bool,std::string> callGodotGLService(bool importing,const std::string &project,const std::string &file,const std::string &content) {
+    if(!loadAPI()) return {false,loaderError};
+    DoraGodotConfig config{sizeof(config),DORA_GODOT_OPENGL,1,1,2,project.c_str(),"",bgfx::getInternalData()->context};
+#if BX_PLATFORM_EMSCRIPTEN
+    return callGodotWebService(config,file,content,importing);
+#else
+    return GodotRuntimeServices::call(importing,config,file,content,[](const char *name) {
+        #if BX_PLATFORM_WINDOWS
+        return GetProcAddress(static_cast<HMODULE>(library),name);
+#else
+        return dlsym(library,name);
+#endif
+
+    });
+#endif
+}
 void shutdownGodotGLRuntime() { /* Native GL teardown runs before the host context is destroyed. */ }
 NS_DORA_END

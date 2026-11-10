@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Dora SSR contributors. MIT license (see repository LICENSE).
 #include "Const/Header.h"
 #include "Godot/GodotNode.h"
+#include "Godot/GodotRuntimeServices.h"
 #include "Godot/GodotAudio.h"
 #include "Godot/GodotBridgeOutput.h"
 #include "Godot/GodotBridgeProject.h"
@@ -455,22 +456,11 @@ void encodeFrame(bgfx::RendererType::Enum renderer,uint32_t frame,void *native,b
 }
 }
 std::shared_ptr<GodotSession> createGodotMetalSession(GodotNode *node) { return std::make_shared<MetalSession>(node); }
-void checkGodotMetalCode(std::string project,std::string file,std::string content,std::function<void(bool,std::string)> callback) {
-    SharedApplication.invokeInRender([project=std::move(project),file=std::move(file),content=std::move(content),callback=std::move(callback)] {
-        bool success=false;std::string result;
-        if(!loadAPI()) result=loaderError;
-        else {
-            auto getter=reinterpret_cast<DoraGodotGetCheckAPI>(dlsym(library,"dora_godot_get_check_api"));
-            DoraGodotCheckAPI checks{};checks.size=sizeof(checks);
-            if(!getter || !getter(DORA_GODOT_CHECK_ABI_VERSION,&checks) || !checks.check)
-                result="The bundled Godot runtime has no compiler-check API; rebuild the runtime library";
-            else {
-                DoraGodotConfig config{sizeof(config),DORA_GODOT_METAL,1,1,2,project.c_str(),"",bgfx::getInternalData()->context};
-                const char *reply=checks.check(&config,file.c_str(),content.c_str());
-                success=reply!=nullptr;result=reply?reply:"Godot compiler check returned no diagnostics";
-            }
-        }
-        SharedApplication.invokeInLogic([callback,success,result=std::move(result)] { callback(success,result); });
+std::pair<bool,std::string> callGodotMetalService(bool importing,const std::string &project,const std::string &file,const std::string &content) {
+    if(!loadAPI()) return {false,loaderError};
+    DoraGodotConfig config{sizeof(config),DORA_GODOT_METAL,1,1,2,project.c_str(),"",bgfx::getInternalData()->context};
+    return GodotRuntimeServices::call(importing,config,file,content,[](const char *name) {
+        return dlsym(library,name);
     });
 }
 void shutdownGodotMetalRuntime() {
