@@ -86,6 +86,7 @@ jobs:
   # Only deploy on push to main or manual dispatch from the upstream repo (skip PRs and forks).
   deploy:
     needs: build
+    timeout-minutes: 25
     if: github.event_name != 'pull_request' && github.repository == 'IppClub/Dora-SSR'
     permissions:
       contents: read
@@ -99,3 +100,6 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+        with:
+          # Pages file synchronization can exceed the action's 10-minute default.
+          timeout: '1200000'
