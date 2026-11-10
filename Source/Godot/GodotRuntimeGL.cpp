@@ -520,13 +520,13 @@ void shutdownInterop(bgfx::RendererType::Enum,void *) {
 }
 }
 std::shared_ptr<GodotSession> createGodotGLSession(GodotNode *node) { return std::make_shared<GLSession>(node); }
-std::pair<bool,std::string> callGodotGLService(bool importing,const std::string &project,const std::string &file,const std::string &content) {
+std::pair<bool,std::string> callGodotGLService(int operation,const std::string &project,const std::string &file,const std::string &content) {
     if(!loadAPI()) return {false,loaderError};
     DoraGodotConfig config{sizeof(config),DORA_GODOT_OPENGL,1,1,2,project.c_str(),"",bgfx::getInternalData()->context};
 #if BX_PLATFORM_EMSCRIPTEN
-    return callGodotWebService(config,file,content,importing);
+    return callGodotWebService(config,file,content,operation);
 #else
-    return GodotRuntimeServices::call(importing,config,file,content,[](const char *name) {
+    return GodotRuntimeServices::call(operation,config,file,content,[](const char *name) {
         #if BX_PLATFORM_WINDOWS
         return GetProcAddress(static_cast<HMODULE>(library),name);
 #else

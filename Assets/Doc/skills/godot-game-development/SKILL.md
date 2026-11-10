@@ -12,6 +12,12 @@ description: Create, modify, or debug GDScript Godot games hosted by Dora GodotN
 - Keep the standard Godot project editable in the official editor. Retain resource paths, node paths, scene IDs, signal connections, and `.uid`/`.import` metadata when changing existing files. Do not hand-edit `.godot` caches or generated `init.lua` when `init.ts` exists.
 - Current Dora Godot delivery supports GDScript projects; Godot C#/Mono and native GDExtension sidecars are outside that supported workflow.
 
+## Inspect saved scenes
+
+Use the existing `execute_command` Lua injection `inspectGodotScene({path="main.tscn"})` before editing an unfamiliar scene. Optional `project` selects a workspace-relative Godot directory; otherwise the nearest enclosing project is used. `nodePath="Player"` selects a scene subtree (`.` is root), `maxNodes` is 1–512 (default 128), and `maxProperties` is 0–128 (default 64).
+
+The bundled runtime parses authored nodes, script/instance/resource references, sub-resource properties and signal connections without loading resources, constructing scene nodes, running scripts or changing the active project. Read typed values in `properties`, references in `script`/`instance`, and check `warnings`, counts and `truncated`. Inheritance/instances are not expanded and script export defaults are not evaluated. Missing resources are reported, not loaded. This query is not build validation. Reports are returned/printed and attached to `execute_command.godotScenes`; query failures fail the command. Narrow the query when bounded output is insufficient. Binary `.scn`, inline Object constructors and Dora Studio are unsupported. There is no extra Godot Agent tool and no external editor process.
+
 ## Edit, import, validate, run
 
 1. Read the project settings, main scene, relevant scripts, and Dora host entry. Check Autoloads, input actions, and the configured renderer when the change depends on them.

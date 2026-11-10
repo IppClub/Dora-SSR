@@ -58,6 +58,7 @@ void uninitialize_dora_bridge_module(ModuleInitializationLevel) {}
 #include "runtime_project.h"
 #include "runtime_check.h"
 #include "runtime_import.h"
+#include "runtime_scene.h"
 #include "runtime_check_boot.h"
 
 namespace {
@@ -200,6 +201,14 @@ const char *import_asset(const DoraGodotConfig *config,const char *file,const ch
 #else
     return DoraGodotAssetImport::reply("","failed","Embedded asset importing is available on desktop only");
 #endif
+}
+
+const char *inspect_scene(const DoraGodotConfig *config,const char *file,const char *options) {
+    if(!config || config->size<sizeof(*config) || !config->project_path || !config->native_device) return DoraGodotSceneInspect::failure("","Invalid GL scene configuration");
+    if(runtime.terminated) return DoraGodotSceneInspect::failure("","Godot runtime has terminated; restart Dora");
+    if(!runtime.instance && !boot_check(config)) return DoraGodotSceneInspect::failure("",String::utf8(runtime.error.c_str()));
+    ProducerScope scope;if(!scope.ok) return DoraGodotSceneInspect::failure("","Cannot activate Godot scene inspection GL context");
+    return DoraGodotSceneInspect::inspect(runtime,config,file,options,boot_check);
 }
 
 void *open(const DoraGodotConfig *config) {

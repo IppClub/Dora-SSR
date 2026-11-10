@@ -456,10 +456,10 @@ void encodeFrame(bgfx::RendererType::Enum renderer,uint32_t frame,void *native,b
 }
 }
 std::shared_ptr<GodotSession> createGodotMetalSession(GodotNode *node) { return std::make_shared<MetalSession>(node); }
-std::pair<bool,std::string> callGodotMetalService(bool importing,const std::string &project,const std::string &file,const std::string &content) {
+std::pair<bool,std::string> callGodotMetalService(int operation,const std::string &project,const std::string &file,const std::string &content) {
     if(!loadAPI()) return {false,loaderError};
     DoraGodotConfig config{sizeof(config),DORA_GODOT_METAL,1,1,2,project.c_str(),"",bgfx::getInternalData()->context};
-    return GodotRuntimeServices::call(importing,config,file,content,[](const char *name) {
+    return GodotRuntimeServices::call(operation,config,file,content,[](const char *name) {
         return dlsym(library,name);
     });
 }

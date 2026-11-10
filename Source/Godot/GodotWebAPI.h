@@ -8,6 +8,6 @@
 #include "Godot/GodotBridgeProject.h"
 #include <string>
 namespace Dora {
-std::pair<bool,std::string> callGodotWebService(const DoraGodotConfig &,const std::string &,const std::string &,bool);
+std::pair<bool,std::string> callGodotWebService(const DoraGodotConfig &,const std::string &,const std::string &,int);
 bool loadGodotWebAPI(DoraGodotAPI &,DoraGodotGLAPI &,DoraGodotAudioAPI &,DoraGodotGLTargetsAPI &,DoraGodotOutputAPI &,DoraGodotIMEAPI &,DoraGodotProjectAPI &,std::string &);
 }

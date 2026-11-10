@@ -55,3 +55,17 @@ importAssetAsync: function(self: GodotNodeClass, project: string, file: string, 
 Imports one asset directly through the bundled runtime on desktop macOS, Windows or Linux. Supply absolute project/file paths and JSON options (`{}` or `{"force":true}`). Stop any running Godot project first. Supports default imports for images, WAV/MP3/Ogg Vorbis audio, fonts and glTF/GLB scenes. Existing editor-managed import settings are preserved and return a failure rather than being overwritten.
 
 The logic-thread callback uses the same `available` convention as `checkCodeAsync`. The JSON result contains `success`, `status` (`imported`, `skipped` or `failed`), `path`, `output` and `message`. Generated resources go into `.godot/imported` with adjacent `.import` mappings and a UID cache. Source and output checksums detect stale/corrupt caches; models always reimport external buffers/textures. Source assets are unchanged. No external Godot executable, scene, Autoload or user script runs. Agent callers should use the `execute_command` Lua injection `importGodotAssets({project=".", paths={"art/player.png"}})` for workspace path resolution and batch results.
+
+## inspectSceneAsync
+
+```tl
+inspectSceneAsync: function(self: GodotNodeClass, project: string, file: string, options: string, callback: function(available: boolean, result: string))
+```
+
+Reads a saved `.tscn` through the bundled Godot VariantParser without loading resources, instantiating scene nodes, running scripts or changing a running project's settings. Supply absolute project/file paths and JSON options, for example `{"nodePath":"Player","maxNodes":128,"maxProperties":64}`. `nodePath` selects a scene-relative subtree (`.` is the root); omit it to query all authored nodes. Resource declarations and signal connections remain scene-wide. Query diagnostics are isolated from the game runtime error collector, while worker-thread game errors remain visible. `maxNodes` accepts 1–512 (default 128), and `maxProperties` accepts 0–128 per node/sub-resource (default 64).
+
+The logic-thread callback uses the same `available` convention as `checkCodeAsync`. An available JSON response contains `success`, `nodes`, `resources`, `subresources`, `connections`, counts, `warnings` and `truncated`. Nodes include name, scene-relative path, authored type, script/scene-instance references, attributes and named properties. Property values retain Godot type names: scalar data uses `value`, resource references use `id/path/resourceType/resolved`, arrays use `items/count`, and dictionaries use typed key/value `entries/count`. Vectors, colors, transforms and packed arrays use Godot text notation in `value`.
+
+`resolved` means the resource ID has a declaration; check external `resources[].exists` for file availability. No referenced resource has been loaded.
+
+This is metadata inspection, not build validation. Inherited and instanced scenes remain references; script exports, defaults and runtime state are not evaluated. Missing dependencies are reported as unavailable references, not loaded. Binary `.scn` and inline `Object(...)` constructors are unsupported. Source files are limited to 2 MiB, scenes to 8192 sections, reports to 256 KiB; bounded collection/value output explicitly sets `truncated`. Agent code should call the `execute_command` injection `inspectGodotScene({path="main.tscn"})`. Reports are returned, printed and included in `godotScenes`; failed inspections fail the command. Dora Studio is unsupported.

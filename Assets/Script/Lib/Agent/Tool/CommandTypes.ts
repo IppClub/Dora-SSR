@@ -1,4 +1,5 @@
 // @preview-file off clear
+import type { GodotSceneResult } from 'Agent/Tool/GodotScene';
 import type { GodotImportBatchResult } from 'Agent/Tool/GodotImport';
 export type ExecuteCommandMode = "lua" | "git";
 
@@ -15,6 +16,8 @@ export type ExecuteCommandProgress = {
 };
 
 export type ExecuteCommandVisionFields = {
+	/** Read-only authored .tscn metadata from the bundled Godot runtime. */
+	godotScenes?: GodotSceneResult[];
 	/** Embedded import batches, including failures the Lua snippet did not print. */
 	godotImports?: GodotImportBatchResult[];
 	/** Capture attempts reserved by previewGame in this command. */

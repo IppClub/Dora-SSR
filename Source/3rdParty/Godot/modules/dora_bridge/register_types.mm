@@ -14,6 +14,7 @@
 #include "runtime_project.h"
 #include "runtime_check.h"
 #include "runtime_import.h"
+#include "runtime_scene.h"
 #include "runtime_check_boot.h"
 #include "core/config/engine.h"
 #include "servers/audio/audio_driver_dummy.h"
@@ -141,6 +142,11 @@ const char *check_code(const DoraGodotConfig *config,const char *file,const char
 const char *import_asset(const DoraGodotConfig *config,const char *file,const char *options) {
     return DoraGodotAssetImport::import_asset(runtime,config,file,options,boot_check);
 }
+const char *inspect_scene(const DoraGodotConfig *config,const char *file,const char *options) {
+    if(!config || config->size<sizeof(*config) || config->backend!=DORA_GODOT_METAL || !config->native_device) return DoraGodotSceneInspect::failure("","Invalid scene inspection backend configuration");
+    return DoraGodotSceneInspect::inspect(runtime,config,file,options,boot_check);
+}
+
 void *open(const DoraGodotConfig *config) {
     runtime.error.clear();
     if (!config || config->size < sizeof(*config) || config->backend != DORA_GODOT_METAL

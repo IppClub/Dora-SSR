@@ -7,6 +7,7 @@
 #include "../GodotBridgeIME.h"
 #include "../GodotBridgeProject.h"
 #include "../GodotBridgeCheck.h"
+#include "../GodotBridgeScene.h"
 #include <emscripten.h>
 #include <emscripten/html5.h>
 #include <cstdlib>
@@ -34,6 +35,12 @@ EMSCRIPTEN_KEEPALIVE int dora_web_context(){
 }
 EMSCRIPTEN_KEEPALIVE int dora_web_direct(int enabled){
     return !runtime && setenv("DORA_GODOT_GL_DIRECT",enabled?"1":"0",1)==0;
+}
+EMSCRIPTEN_KEEPALIVE const char *dora_web_inspect_scene(const char *project,const char *file,const char *options) {
+    DoraGodotSceneAPI scenes{};scenes.size=sizeof(scenes);
+    if(!dora_godot_get_scene_api(DORA_GODOT_SCENE_ABI_VERSION,&scenes) || !scenes.inspect)return nullptr;
+    DoraGodotConfig config{sizeof(config),DORA_GODOT_WEBGL2,1,1,2,project,"",(void*)(uintptr_t)emscripten_webgl_get_current_context()};
+    return scenes.inspect(&config,file,options);
 }
 EMSCRIPTEN_KEEPALIVE const char *dora_web_check(const char *project,const char *file,const char *source) {
     DoraGodotCheckAPI checks{};checks.size=sizeof(checks);

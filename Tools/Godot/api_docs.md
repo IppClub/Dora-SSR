@@ -7,6 +7,7 @@ Read the returned @dora-doc/godot-api/... path with read_file or grep_files.
 
 init.ts is the Dora host entry. project.godot, .gd, .tscn and .tres belong to Godot.
 Build the project directory to validate sources with the bundled runtime, then run the built Dora entry.
+Use execute_command Lua injection inspectGodotScene({path="main.tscn"}) for saved authored nodes, typed properties, resource/script references and signal connections; it does not load resources, execute scripts, expand inherited/instanced scenes or evaluate script defaults. Results appear in godotScenes with warnings/truncation; this is not build validation.
 Use previewGame for requested visual checks; it waits for readiness but covers only the observation interval and errors actually reported by the runtime.
 Use the execute_command Lua injection importGodotAssets({project=".", paths={"art/player.png", "models/player.glb"}}) to prepare desktop image/audio/font/glTF assets through the bundled runtime. It returns per-file results in godotImports; failed batches fail the command. Stop the running project first. Existing editor-managed import settings are preserved and are not reimported by this service. No separate Godot Agent tool or external Godot process is used.
 Static checks do not import assets or validate GPU pipelines. Editor-only APIs, C#/Mono and native GDExtensions are outside the supported workflow.

@@ -1597,3 +1597,23 @@ assert(result.success)
 公共实现位于 `runtime_check.h`、`runtime_import.h`、`runtime_check_boot.h` 和 `runtime_service_api.inc`。宿主的线程调度统一在 `GodotNode.cpp`，ABI 加载与结果复制统一在 `GodotRuntimeServices.h`。Metal、WGL/EGL/GLES、D3D12 只提供设备／上下文及符号解析适配；Web 另外复制独立 WASM 堆之间的字符串和工程资源。检查入口覆盖 macOS/iOS、Windows WGL/D3D12、Linux/Android GL 和 WebGL；素材导入只开放 macOS、Windows、Linux。旧 runtime 缺少扩展时报告能力错误，不回退外部进程。Dora Studio 不提供 Godot 开发支持。
 
 测试位于 Dora-Example：`Test/Godot/tests/services/import_macos.mm`（真实 LibGodot 导入、缓存、资源 preload、检查与项目生命周期），`Test/Godot/tests/web/test_compiler_bridge.mjs`（跨堆传输及异常清理），以及 `Test/Agent/test_godot_import_runtime.py`（execute_command 注入函数与模型结果）。其他平台仍需在对应设备／CI 执行，macOS 验收不能替代这些平台的运行验证。
+
+## 静态场景查询
+
+`execute_command` 的 Lua 环境注入 `inspectGodotScene`，不新增 Agent tool：
+
+```lua
+local scene = inspectGodotScene({path="main.tscn"})
+assert(scene.success)
+local player = inspectGodotScene({path="main.tscn", nodePath="Player", maxNodes=32, maxProperties=32})
+```
+
+文件路径相对于工作区；默认查找文件最近的 Godot 工程，也可显式指定 `project`。直接调用内置 runtime 的版本化 `GodotBridgeScene` API，各后端共用 `runtime_scene.h`。使用 Godot VariantParser 的元数据模式：资源引用用原生空 Resource 占位，不调用 ResourceLoader，不构造场景节点，不运行 GDScript／自定义 Resource／Autoload，不切换工程设置。查询线程的诊断与游戏运行错误隔离，其他工作线程的真实游戏错误仍会记录。`Object(...)` 明确拒绝；类型容器保留原始值而不加载其脚本来验证类型。元数据模式的改动不影响普通 Godot 资源解析。
+
+返回 `nodes/resources/subresources/connections`、总数、警告和截断标记；脚本、实例场景及嵌套资源值保留引用和类型。节点属性是源文件实际写入的属性，继承／实例场景不展开，脚本导出定义、默认值与运行时属性不推测，查询成功也不代表构建验证通过。`nodePath` 是节点相对路径，根为 `.`，不是文件路径；它只过滤节点，资源声明和信号连接仍提供场景级信息。结果自动打印并附加到命令的 `godotScenes`；失败会使命令失败。查询不标记源码为待构建。
+
+默认返回至多 128 个节点、每个节点／子资源 64 个属性；允许 `maxNodes=1..512`、`maxProperties=0..128`。外部资源、子资源和信号连接各返回至多 128 项。源文件上限 2 MiB、8192 节；嵌套解析上限 64 层，报告值上限 8 层，每个集合最多 64 项、字符串最多 2048 字符，整体值预算 4096；不完整输出标记 `truncated`。超过 256 KiB 的报告明确失败，应收窄 `nodePath` 或减少返回节点／属性。二进制 `.scn` 与 Dora Studio 暂不支持。
+
+Web 桥接为查询建立独立的临时元数据镜像，只复制当前场景／工程配置正文，其他文件仅建立存在标记，不覆盖运行中工程的文件；查询结束或失败后回收镜像。不会跟随源符号链接。桌面版在原路径上只读查询，拒绝越出工程的目标路径。
+
+Dora-Example 测试：`Test/Godot/tests/services/run_scene_macos.py` 验证真实 runtime 查询、类型值／引用／连接、限制、源码保持、脚本与 Autoload 不执行，以及查询其他工程时活动工程不变；`Test/Agent/test_godot_scene_runtime.py` 验证真实编译器及注入函数、失败传递、工具集合不变；`Test/Godot/tests/web/test_scene_bridge.mjs` 验证 Web 独立堆与活动文件隔离、部分写入回滚。跨平台桥接仍需在目标平台运行验收。

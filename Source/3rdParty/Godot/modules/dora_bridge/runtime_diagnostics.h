@@ -8,9 +8,19 @@ namespace DoraGodotDiagnostics {
 inline std::mutex mutex;
 inline std::string first_error;
 inline bool installed = false;
+// Metadata/service errors on the owner thread are not game runtime failures.
+// Worker-thread game errors remain visible while a metadata query is running.
+inline thread_local bool metadata_query = false;
+struct ScopedMetadataQuery {
+    bool previous;
+    ScopedMetadataQuery() : previous(metadata_query) { metadata_query = true; }
+    ~ScopedMetadataQuery() { metadata_query = previous; }
+    ScopedMetadataQuery(const ScopedMetadataQuery &) = delete;
+    ScopedMetadataQuery &operator=(const ScopedMetadataQuery &) = delete;
+};
 inline void capture(void *, const char *function, const char *file, int line,
         const char *error, const char *message, bool, ErrorHandlerType type) {
-    if (type == ERR_HANDLER_WARNING) return;
+    if (metadata_query || type == ERR_HANDLER_WARNING) return;
     std::lock_guard<std::mutex> lock(mutex);
     if (!first_error.empty()) return;
     first_error = std::string(file ? file : "") + ":" + std::to_string(line) + ": "

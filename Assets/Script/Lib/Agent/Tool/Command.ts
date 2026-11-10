@@ -10,6 +10,7 @@ import { executeGitCommand } from 'Agent/Tool/GitCommand';
 import { createOperationId } from 'Agent/Tool/Operation';
 import { refreshWorkspaceTree } from 'Agent/Tool/WebIDESync';
 import { isValidWorkspacePath, type DoraDocLanguage } from 'Agent/Tool/Workspace';
+import { createGodotSceneInjection, type GodotSceneResult } from 'Agent/Tool/GodotScene';
 import { createGodotImportInjection, type GodotImportBatchResult } from 'Agent/Tool/GodotImport';
 import { createCommandContent } from 'Agent/Tool/CommandContent';
 
@@ -47,7 +48,7 @@ function executeStudioLuaCommand(req: {
 	// injected previewGame function disappear.
 	const usesPreviewGame=string.match(req.code,"%f[%a_]previewGame%f[^%w_]%s*%(")[0]!==undefined;
 	const usesGodotImport=string.match(req.code,"%f[%a_]importGodotAssets%f[^%w_]")[0]!==undefined;
-	if (typeof _studio_agent_tool_begin !== "function" || usesPreviewGame || usesGodotImport) return undefined;
+	if (typeof _studio_agent_tool_begin !== "function" || usesPreviewGame || usesGodotImport || string.match(req.code,"%f[%a_]inspectGodotScene%f[^%w_]")[0]!==undefined) return undefined;
 	const onProgress=req.onProgress;
 	const isCancelled=req.isCancelled;
 	return new Promise(resolve => {
@@ -125,6 +126,7 @@ function executeLuaCommand(req: {
 	let capturedBatches = 0;
 	let capturedFrames = 0;
 	let commandClosed = false;
+	const godotSceneResults: GodotSceneResult[] = [];
 	const godotImportResults: GodotImportBatchResult[] = [];
 	let lastPreviewResult: CommandPreviewGameResult | undefined;
 	let previewCleanup: (() => void) | undefined;
@@ -225,6 +227,12 @@ function executeLuaCommand(req: {
 	const scopedContent = createCommandContent(req.workDir, req.docLanguage);
 	const env = setmetatable({
 		projectDir: req.workDir,
+		inspectGodotScene: createGodotSceneInjection({
+			workDir: req.workDir,
+			isCancelled: () => commandClosed || req.isCancelled?.() === true,
+			print: capturePrint,
+			onResult: result => {godotSceneResults.push(result);},
+		}),
 		importGodotAssets: createGodotImportInjection({
 			workDir: req.workDir,
 			isCancelled: () => commandClosed || req.isCancelled?.() === true,
@@ -392,6 +400,7 @@ function executeLuaCommand(req: {
 				frameCount: lastPreviewResult.frames?.length,
 			} : undefined;
 			const visionFields = {
+				...(godotSceneResults.length > 0 ? {godotScenes: godotSceneResults} : {}),
 				...(godotImportResults.length > 0 ? {godotImports: godotImportResults} : {}),
 				...(previewGame ? {previewGame} : {}),
 				...(capturedBatches > 0 ? {
@@ -411,6 +420,11 @@ function executeLuaCommand(req: {
 					cleanupError,
 					...visionFields,
 				});
+				return;
+			}
+			if (result.success && godotSceneResults.some(scene => !scene.success)) {
+				resolve({success: false, mode: "lua", output: result.output,
+					message: "inspectGodotScene failed; inspect godotScenes for diagnostics", phase: "execute", ...visionFields});
 				return;
 			}
 			if (result.success && godotImportResults.some(batch => !batch.success)) {

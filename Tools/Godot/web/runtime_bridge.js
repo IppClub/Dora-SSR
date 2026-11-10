@@ -210,3 +210,42 @@ GodotWebBridge.prototype.checkCode=function(project,file,source) {
     if(isolated && this.projectState()===2)this.releaseProjectCopy();
   }
 };
+
+// Inspect a private metadata mirror, even while another project is running.
+// Dependencies need existence only: copy source scene/settings, create empty
+// file markers for everything else. Never overwrite live Godot project files.
+GodotWebBridge.prototype.inspectScene=function(project,file,options) {
+  const g=this.godot,h=this.host;
+  if(typeof g._dora_web_inspect_scene!=='function')throw new Error('Bundled Web runtime has no static scene inspection API');
+  project=project.endsWith('/')?project.slice(0,-1):project;
+  const relative=file.slice(project.length+1);
+  if(!file.startsWith(project+'/') || relative.split('/').includes('..'))throw new Error('Scene must be inside the project');
+  let temporary;do {this.sceneQuerySequence=(this.sceneQuerySequence||0)+1;temporary='/tmp/dora-scene-query-'+this.sceneQuerySequence;}while(g.FS.analyzePath(temporary).exists);
+  const created=[],ancestors=new Set();let p=0,f=0,o=0,bodyFailed=false;
+  const mkdir=path=>{if(!path||g.FS.analyzePath(path).exists)return;mkdir(path.slice(0,path.lastIndexOf('/'))||'/');g.FS.mkdir(path);created.push({path,directory:true});};
+  const copy=(source,destination)=>{
+    const node=h.FS.lookupPath(source,{follow:false}).node;
+    if(h.FS.isLink(node.mode))return; // Never follow source links outside the workspace.
+    if(h.FS.isDir(node.mode)) {
+      if(ancestors.has(node))throw new Error('Cyclic source project');ancestors.add(node);mkdir(destination);
+      for(const name of h.FS.readdir(source))if(name!=='.'&&name!=='..'&&!['.git','.godot','.agent','node_modules'].includes(name))copy(source+'/'+name,destination+'/'+name);
+      ancestors.delete(node);
+    }else {
+      mkdir(destination.slice(0,destination.lastIndexOf('/'))||'/');
+      created.push({path:destination,directory:false});g.FS.writeFile(destination,source===file||source===project+'/project.godot'?h.FS.readFile(source):new Uint8Array());
+    }
+  };
+  try {
+    copy(project,temporary);this.boundary.activate('godot');
+    p=g.stringToNewUTF8(temporary);f=g.stringToNewUTF8(temporary+'/'+relative);o=g.stringToNewUTF8(options);
+    const pointer=g._dora_web_inspect_scene(p,f,o);if(!pointer)throw new Error('Godot scene inspection returned no report');
+    const report=JSON.parse(g.UTF8ToString(pointer));report.path=file;return JSON.stringify(report);
+}catch(error){bodyFailed=true;throw error;}finally {
+  if(p)g._free(p);if(f)g._free(f);if(o)g._free(o);this.boundary.activate('host');
+  let cleanupError;
+  for(const entry of created.reverse())try {
+    if(g.FS.analyzePath(entry.path).exists){if(entry.directory)g.FS.rmdir(entry.path);else g.FS.unlink(entry.path);}
+  }catch(error){cleanupError??=error;}
+  if(cleanupError&&!bodyFailed)throw cleanupError;
+}
+};

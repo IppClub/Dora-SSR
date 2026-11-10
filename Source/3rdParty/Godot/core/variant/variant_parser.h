@@ -94,6 +94,9 @@ public:
 		ParseResourceFunc func = nullptr;
 		ParseResourceFunc ext_func = nullptr;
 		ParseResourceFunc sub_func = nullptr;
+		// Dora static inspection: preserve values without constructing objects or enforcing resource types.
+		bool metadata_only = false;
+		int metadata_depth = 0;
 	};
 
 	enum TokenType {

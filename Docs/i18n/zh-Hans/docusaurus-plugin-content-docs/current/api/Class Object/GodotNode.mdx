@@ -55,3 +55,17 @@ importAssetAsync: function(self: GodotNodeClass, project: string, file: string, 
 在 macOS、Windows 或 Linux 桌面版中直接使用内置 runtime 导入单个素材。项目和文件须使用绝对路径，`options` 为 JSON 字符串（`{}` 或 `{"force":true}`）。先停止正在运行的 Godot 工程。支持图片、WAV／MP3／Ogg Vorbis 音频、字体和 glTF／GLB 的默认导入。已有编辑器管理的导入设置会保留，并返回失败而不覆盖。
 
 逻辑线程回调的 `available` 含义同 `checkCodeAsync`。JSON 响应包含 `success`、`status`（`imported`／`skipped`／`failed`）、`path`、`output` 和 `message`。产物写入 `.godot/imported`，并生成素材旁的 `.import` 映射及 UID 缓存，不修改原素材。源文件与产物校验和用于识别失效或损坏的缓存；模型始终重新导入以包含外部 buffer／纹理。不启动外部 Godot 可执行程序、场景、Autoload 或用户脚本。Agent 应使用 `execute_command` 的 Lua 注入函数 `importGodotAssets({project=".", paths={"art/player.png"}})` 解析工作区路径并取得批量结果。
+
+## inspectSceneAsync
+
+```tl
+inspectSceneAsync: function(self: GodotNodeClass, project: string, file: string, options: string, callback: function(available: boolean, result: string))
+```
+
+直接使用内置 Godot VariantParser 查询已保存的 `.tscn`，不加载资源、实例化场景节点、执行脚本或改变运行中工程的设置。项目和文件须使用绝对路径，`options` 为 JSON 字符串，例如 `{"nodePath":"Player","maxNodes":128,"maxProperties":64}`。`nodePath` 选择场景内的子树（根节点为 `.`），省略时查询全部已写入的节点；资源声明和信号连接仍提供场景级信息。查询线程的诊断不记入游戏运行错误，其他工作线程的真实错误仍会保留。`maxNodes` 范围 1–512，默认 128；`maxProperties` 为每个节点／子资源的属性上限，范围 0–128，默认 64。
+
+逻辑线程回调的 `available` 含义同 `checkCodeAsync`。有效 JSON 响应包含 `success`、`nodes`、`resources`、`subresources`、`connections`、数量统计、`warnings` 与 `truncated`。节点记录名称、场景相对路径、已声明类型、脚本／场景实例引用、标签字段和命名属性。属性值保留 Godot 类型名称：标量使用 `value`；资源引用包含 `id/path/resourceType/resolved`；数组使用 `items/count`；字典使用带类型的键值 `entries/count`；向量、颜色、变换和打包数组的 `value` 使用 Godot 文本表示。
+
+`resolved` 表示资源 ID 有对应声明；外部文件是否可用应查看 `resources[].exists`，并不代表资源已加载。
+
+此功能查询元数据，不替代构建验证。继承和实例场景保留为引用，不展开；不推测脚本导出定义、默认值或运行时状态。缺失依赖只报告引用不可用，不加载依赖。暂不支持二进制 `.scn` 和内联 `Object(...)` 构造。源文件上限 2 MiB、场景上限 8192 节、报告上限 256 KiB；集合与属性值的截断会设置 `truncated`。Agent 应通过 `execute_command` 注入函数 `inspectGodotScene({path="main.tscn"})` 调用，结果会返回、打印并附加到 `godotScenes`，查询失败会使命令失败。Dora Studio 不支持此功能。

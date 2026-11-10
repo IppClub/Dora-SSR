@@ -675,6 +675,24 @@ Error VariantParser::_parse_byte_array(Stream *p_stream, Vector<uint8_t> &r_cons
 }
 
 Error VariantParser::parse_value(Token &token, Variant &value, Stream *p_stream, int &line, String &r_err_str, ResourceParser *p_res_parser) {
+	// Dora: bound metadata recursion without changing normal resource parsing.
+	struct MetadataDepth {
+		ResourceParser *parser;
+		MetadataDepth(ResourceParser *value) : parser(value && value->metadata_only ? value : nullptr) {
+			if (parser) {
+				++parser->metadata_depth;
+			}
+		}
+		~MetadataDepth() {
+			if (parser) {
+				--parser->metadata_depth;
+			}
+		}
+	} metadata_depth(p_res_parser);
+	if (p_res_parser && p_res_parser->metadata_only && p_res_parser->metadata_depth > 64) {
+		r_err_str = "Static scene value nesting exceeds 64 levels";
+		return ERR_PARSE_ERROR;
+	}
 	if (token.type == TK_CURLY_BRACKET_OPEN) {
 		Dictionary d;
 		Error err = _parse_dictionary(d, p_stream, line, r_err_str, p_res_parser);
@@ -993,6 +1011,10 @@ Error VariantParser::parse_value(Token &token, Variant &value, Stream *p_stream,
 				return ERR_PARSE_ERROR;
 			}
 		} else if (id == "Object") {
+			if (p_res_parser && p_res_parser->metadata_only) {
+				r_err_str = "Object constructors are unavailable in static scene inspection";
+				return ERR_PARSE_ERROR;
+			}
 			get_token(p_stream, token, line, r_err_str);
 			if (token.type != TK_PARENTHESIS_OPEN) {
 				r_err_str = "Expected '('";
@@ -1122,6 +1144,10 @@ Error VariantParser::parse_value(Token &token, Variant &value, Stream *p_stream,
 
 				value = res;
 			} else {
+				if (p_res_parser && p_res_parser->metadata_only) {
+					r_err_str = "Static scene resource callbacks are required";
+					return ERR_PARSE_ERROR;
+				}
 				get_token(p_stream, token, line, r_err_str);
 				if (token.type == TK_STRING) {
 					String path = token.value;
@@ -1322,9 +1348,12 @@ Error VariantParser::parse_value(Token &token, Variant &value, Stream *p_stream,
 				return ERR_PARSE_ERROR;
 			}
 
-			dict.assign(values);
-
-			value = dict;
+			if (p_res_parser && p_res_parser->metadata_only) {
+				value = values;
+			} else {
+				dict.assign(values);
+				value = dict;
+			}
 		} else if (id == "Array") {
 			Error err = OK;
 
@@ -1405,9 +1434,12 @@ Error VariantParser::parse_value(Token &token, Variant &value, Stream *p_stream,
 				return ERR_PARSE_ERROR;
 			}
 
-			array.assign(values);
-
-			value = array;
+			if (p_res_parser && p_res_parser->metadata_only) {
+				value = values;
+			} else {
+				array.assign(values);
+				value = array;
+			}
 		} else if (id == "PackedByteArray" || id == "PoolByteArray" || id == "ByteArray") {
 			Vector<uint8_t> args;
 			Error err = _parse_byte_array(p_stream, args, line, r_err_str);
