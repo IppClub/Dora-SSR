@@ -14,7 +14,7 @@ function generate(output, profile_path, disabled)
     table.join2(inputs, os.files(path.join(os.scriptdir(), "codegen*.lua")), {path.join(os.scriptdir(), "generate_xmake_sources.lua")})
     for _, suffix in ipairs({"py", "glsl", "svg"}) do table.join2(inputs, os.files(path.join(root, "**." .. suffix))) end
     for _, name in ipairs({"AUTHORS.md", "DONORS.md", "COPYRIGHT.txt", "LICENSE.txt", "thirdparty/certs/ca-bundle.crt", "thirdparty/fonts/OpenSans_SemiBold.woff2", "thirdparty/smaa/AreaTex.png", "thirdparty/smaa/SearchTex.png", "main/splash.png", "main/app_icon.png", "core/input/gamecontrollerdb.txt", "core/input/godotcontrollerdb.txt", "core/extension/gdextension_interface.json", "servers/rendering/storage/ltc/ltc_lut1.dds", "servers/rendering/storage/ltc/ltc_lut2.dds"}) do inputs[#inputs + 1] = path.join(root, name) end
-    table.sort(inputs)
+    table.sort(inputs, C.byte_less)
     import("core.base.json")
     local hashes = {C.serialize(profile, true)}
     for _, file in ipairs(inputs) do hashes[#hashes + 1] = C.relative(file, C.root()) .. "\0" .. C.digest(file) end

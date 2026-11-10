@@ -83,7 +83,7 @@ function generate(root, emit)
         end
         return table.concat(result)
     end
-    local files = os.files(path.join(root, "servers/rendering/renderer_rd/shaders/**.glsl")); table.sort(files)
+    local files = os.files(path.join(root, "servers/rendering/renderer_rd/shaders/**.glsl")); table.sort(files, C.byte_less)
     for _, file in ipairs(files) do
         local relative = C.relative(file, root)
         if file:endswith("_inc.glsl") then
@@ -105,7 +105,7 @@ function generate(root, emit)
         end
     end
     files = {}; for _, name in ipairs({"canvas", "feed", "scene", "sky", "canvas_occlusion", "canvas_sdf", "particles", "particles_copy", "skeleton", "tex_blit"}) do files[#files + 1] = path.join(root, "drivers/gles3/shaders", name .. ".glsl") end
-    local effects = os.files(path.join(root, "drivers/gles3/shaders/effects/*.glsl")); table.sort(effects)
+    local effects = os.files(path.join(root, "drivers/gles3/shaders/effects/*.glsl")); table.sort(effects, C.byte_less)
     for _, file in ipairs(effects) do if not file:endswith("_inc.glsl") then files[#files + 1] = file end end
     for _, file in ipairs(files) do
         local data, body, values = parse(root, file, true), {}, {}

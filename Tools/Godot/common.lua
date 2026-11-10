@@ -31,6 +31,14 @@ function safe_file(base,name)
     assert(actual and parent and (actual==parent or actual:startswith(parent..path.sep())),"Input escapes root: "..name)
     return file
 end
+-- Lua string comparison follows LC_COLLATE; build outputs must use byte order.
+function byte_less(a,b)
+    for i=1,math.min(#a,#b) do
+        local left,right=a:byte(i),b:byte(i)
+        if left~=right then return left<right end
+    end
+    return #a<#b
+end
 function files(base)
     local result=os.files(path.join(base,"**"));table.sort(result);return result
 end
