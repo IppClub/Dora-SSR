@@ -146,10 +146,29 @@ export function createWorkspaceList(host) {
 // Only platform operations are supplied by the Studio host.
 const buildSourcePath = new URL('../../../Assets/Script/Lib/Agent/Tool/Build.ts', import.meta.url);
 const buildSource = ts.createSourceFile(buildSourcePath.pathname, await readFile(buildSourcePath, 'utf8'), ts.ScriptTarget.Latest, true);
+// Studio shares source compilation, but has no native Godot compiler. Remove
+// the desktop Godot hooks when extracting traversal instead of emitting free
+// references to functions that are not part of the Studio host contract.
+const godotBuildNames = new Set(['godotProject', 'findGodotProject', 'buildGodotProject']);
+function referencesGodot(node) {
+  return ts.isIdentifier(node) && godotBuildNames.has(node.text) || ts.forEachChild(node, referencesGodot);
+}
+function studioBuildFunction(fn) {
+  const result = ts.transform(fn, [context => {
+    const visit = node => {
+      if (ts.isVariableStatement(node) && node.declarationList.declarations.some(d => referencesGodot(d.name))) return undefined;
+      if (ts.isIfStatement(node) && referencesGodot(node.expression)) return undefined;
+      return ts.visitEachChild(node, visit, context);
+    };
+    return node => ts.visitNode(node, visit);
+  }]);
+  try { return ts.createPrinter().printNode(ts.EmitHint.Unspecified, result.transformed[0], buildSource); }
+  finally { result.dispose(); }
+}
 const buildFunctions = ['isDtsFile', 'isTiledEditorContent', 'getSupportedBuildKind', 'finalizeBuildResult', 'build'].map(name => {
   const fn = buildSource.statements.find(statement => ts.isFunctionDeclaration(statement) && statement.name?.text === name);
   if (!fn) throw new Error(`Upstream build function changed: ${name}`);
-  return fn.getText(buildSource).replace(/^export /, '');
+  return (name === 'build' ? studioBuildFunction(fn) : fn.getText(buildSource)).replace(/^export /, '');
 });
 const extensions = workspaceSource.statements.find(statement => ts.isVariableStatement(statement) &&
   statement.declarationList.declarations.some(declaration => declaration.name.getText(workspaceSource) === 'codeExtensions'));

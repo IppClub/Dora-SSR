@@ -4,7 +4,7 @@ local dora_host_arch = os.arch()
 -- an emulated x64 xmake cannot select ARM64 Rust via add_requires.arch.
 
 if not has_config("dora_godot_standalone") then
-add_requires("go", {
+add_requires("dora-go", {
     alias = "dora_go",
     host = true,
     system = false,

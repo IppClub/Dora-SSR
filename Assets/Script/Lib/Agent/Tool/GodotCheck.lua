@@ -4,10 +4,10 @@ local Map = ____lualib.Map -- 1
 local __TS__New = ____lualib.__TS__New -- 1
 local Set = ____lualib.Set -- 1
 local __TS__Promise = ____lualib.__TS__Promise -- 1
+local __TS__StringSplit = ____lualib.__TS__StringSplit -- 1
 local __TS__StringStartsWith = ____lualib.__TS__StringStartsWith -- 1
 local __TS__StringTrim = ____lualib.__TS__StringTrim -- 1
 local __TS__StringIncludes = ____lualib.__TS__StringIncludes -- 1
-local __TS__StringSplit = ____lualib.__TS__StringSplit -- 1
 local __TS__ArraySome = ____lualib.__TS__ArraySome -- 1
 local ____exports = {} -- 1
 local ____Dora = require("Dora") -- 2
@@ -38,87 +38,94 @@ function ____exports.checkGodotFile(project, file, content, coalesce) -- 19
 	if type(_studio_agent_tool_begin) == "function" then -- 20
 		return __TS__Promise.resolve(failure("Godot game development is not supported in Dora Studio. Use the desktop Dora Web IDE.")) -- 21
 	end -- 21
-	project = Path(project) -- 22
-	file = Path(file) -- 23
-	if not __TS__StringStartsWith(file, project .. "/") then -- 23
-		return __TS__Promise.resolve(failure("Godot check target is outside the project.")) -- 24
-	end -- 24
-	local settings = Content:load(Path(project, "project.godot")) or "" -- 25
-	local format = string.match(settings, "config_version%s*=%s*(%d+)") -- 26
-	if format ~= "5" then -- 26
-		return __TS__Promise.resolve(failure("Embedded checks require a Godot 4 project (config_version=5).")) -- 27
-	end -- 27
-	if __TS__ArraySome( -- 27
-		__TS__StringSplit(settings, "\n"), -- 28
-		function(____, line) return __TS__StringStartsWith( -- 28
-			__TS__StringTrim(line), -- 28
-			"config/features" -- 28
-		) and __TS__StringIncludes(line, "\"C#\"") end -- 28
-	) or #Content:glob(project, {"**/*.gdextension", "!**/.*/**", "!**/node_modules/**"}) > 0 then -- 28
-		return __TS__Promise.resolve(failure("Embedded checks do not load Godot C#/Mono or native GDExtension sidecars.")) -- 30
-	end -- 30
-	if GodotNode == nil or type(GodotNode.checkCodeAsync) ~= "function" then -- 30
-		return __TS__Promise.resolve(failure("This Dora host has no embedded Godot compiler API; rebuild Dora.")) -- 31
-	end -- 31
-	sequence = sequence + 1 -- 32
-	local id = sequence -- 32
-	if coalesce then -- 32
-		pending:set(project, id) -- 33
+	project = Path:getPath(Path(project, "project.godot")) -- 22
+	file = Path(file, "") -- 23
+	local relative = table.concat( -- 24
+		__TS__StringSplit( -- 24
+			Path:getRelative(file, project), -- 24
+			"\\" -- 24
+		), -- 24
+		"/" -- 24
+	) -- 24
+	if relative == "" or relative == "." or relative == ".." or __TS__StringStartsWith(relative, "../") or Content:isAbsolutePath(relative) then -- 24
+		return __TS__Promise.resolve(failure("Godot check target is outside the project.")) -- 26
+	end -- 26
+	local settings = Content:load(Path(project, "project.godot")) or "" -- 27
+	local format = string.match(settings, "config_version%s*=%s*(%d+)") -- 28
+	if format ~= "5" then -- 28
+		return __TS__Promise.resolve(failure("Embedded checks require a Godot 4 project (config_version=5).")) -- 29
+	end -- 29
+	if __TS__ArraySome( -- 29
+		__TS__StringSplit(settings, "\n"), -- 30
+		function(____, line) return __TS__StringStartsWith( -- 30
+			__TS__StringTrim(line), -- 30
+			"config/features" -- 30
+		) and __TS__StringIncludes(line, "\"C#\"") end -- 30
+	) or #Content:glob(project, {"**/*.gdextension", "!**/.*/**", "!**/node_modules/**"}) > 0 then -- 30
+		return __TS__Promise.resolve(failure("Embedded checks do not load Godot C#/Mono or native GDExtension sidecars.")) -- 32
+	end -- 32
+	if GodotNode == nil or type(GodotNode.checkCodeAsync) ~= "function" then -- 32
+		return __TS__Promise.resolve(failure("This Dora host has no embedded Godot compiler API; rebuild Dora.")) -- 33
 	end -- 33
-	local function cancelled() -- 34
-		return coalesce and pending:get(project) ~= id -- 34
-	end -- 34
-	return __TS__New( -- 35
-		__TS__Promise, -- 35
-		function(____, resolve) -- 35
-			Director.systemScheduler:schedule(once(function() -- 36
-				while active:has(project) and not cancelled() do -- 36
-					sleep(0.02) -- 37
-				end -- 37
-				if cancelled() then -- 37
-					resolve(nil, {success = true, skipped = true}) -- 38
-					return -- 38
-				end -- 38
-				active:add(project) -- 39
-				do -- 39
-					local function ____catch(____error) -- 39
+	sequence = sequence + 1 -- 34
+	local id = sequence -- 34
+	if coalesce then -- 34
+		pending:set(project, id) -- 35
+	end -- 35
+	local function cancelled() -- 36
+		return coalesce and pending:get(project) ~= id -- 36
+	end -- 36
+	return __TS__New( -- 37
+		__TS__Promise, -- 37
+		function(____, resolve) -- 37
+			Director.systemScheduler:schedule(once(function() -- 38
+				while active:has(project) and not cancelled() do -- 38
+					sleep(0.02) -- 39
+				end -- 39
+				if cancelled() then -- 39
+					resolve(nil, {success = true, skipped = true}) -- 40
+					return -- 40
+				end -- 40
+				active:add(project) -- 41
+				do -- 41
+					local function ____catch(____error) -- 41
+						resolve( -- 54
+							nil, -- 54
+							cancelled() and ({success = true, skipped = true}) or failure(tostring(____error)) -- 54
+						) -- 54
+					end -- 54
+					local ____try, ____hasReturned = pcall(function() -- 54
+						local result -- 43
+						GodotNode:checkCodeAsync( -- 44
+							project, -- 44
+							file, -- 44
+							content, -- 44
+							function(available, text) -- 44
+								if not available then -- 44
+									result = failure(text) -- 45
+									return -- 45
+								end -- 45
+								local decoded = safeJsonDecode(text) -- 46
+								result = type(decoded) == "table" and type(decoded.success) == "boolean" and decoded or failure("Invalid diagnostics from embedded Godot compiler.") -- 47
+							end -- 44
+						) -- 44
+						while result == nil do -- 44
+							sleep(0.02) -- 51
+						end -- 51
 						resolve( -- 52
 							nil, -- 52
-							cancelled() and ({success = true, skipped = true}) or failure(tostring(____error)) -- 52
+							cancelled() and ({success = true, skipped = true}) or result -- 52
 						) -- 52
+					end) -- 52
+					if not ____try then -- 52
+						____catch(____hasReturned) -- 52
 					end -- 52
-					local ____try, ____hasReturned = pcall(function() -- 52
-						local result -- 41
-						GodotNode:checkCodeAsync( -- 42
-							project, -- 42
-							file, -- 42
-							content, -- 42
-							function(available, text) -- 42
-								if not available then -- 42
-									result = failure(text) -- 43
-									return -- 43
-								end -- 43
-								local decoded = safeJsonDecode(text) -- 44
-								result = type(decoded) == "table" and type(decoded.success) == "boolean" and decoded or failure("Invalid diagnostics from embedded Godot compiler.") -- 45
-							end -- 42
-						) -- 42
-						while result == nil do -- 42
-							sleep(0.02) -- 49
-						end -- 49
-						resolve( -- 50
-							nil, -- 50
-							cancelled() and ({success = true, skipped = true}) or result -- 50
-						) -- 50
-					end) -- 50
-					if not ____try then -- 50
-						____catch(____hasReturned) -- 50
-					end -- 50
-					do -- 50
-						active:delete(project) -- 54
-					end -- 54
-				end -- 54
-			end)) -- 36
-		end -- 35
-	) -- 35
+					do -- 52
+						active:delete(project) -- 56
+					end -- 56
+				end -- 56
+			end)) -- 38
+		end -- 37
+	) -- 37
 end -- 19
 return ____exports -- 19

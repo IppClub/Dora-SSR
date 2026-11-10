@@ -19,9 +19,11 @@ declare const _studio_agent_tool_begin: unknown;
 export function checkGodotFile(project: string, file: string, content: string, coalesce = true): Promise<GodotCheckResult> {
 	const failure = (message: string): GodotCheckResult => ({ success: false, info: [['tool', file, 1, 0, message]] });
 	if (typeof _studio_agent_tool_begin === 'function') return Promise.resolve(failure('Godot game development is not supported in Dora Studio. Use the desktop Dora Web IDE.'));
-	project = Path(project);
-	file = Path(file);
-	if (!file.startsWith(`${project}/`)) return Promise.resolve(failure('Godot check target is outside the project.'));
+	project = Path.getPath(Path(project, 'project.godot'));
+	file = Path(file, '');
+	const relative = Path.getRelative(file, project).split('\\').join('/');
+	if (relative === '' || relative === '.' || relative === '..' || relative.startsWith('../') || Content.isAbsolutePath(relative))
+		return Promise.resolve(failure('Godot check target is outside the project.'));
 	const settings = Content.load(Path(project, 'project.godot')) ?? '';
 	const [format] = string.match(settings, 'config_version%s*=%s*(%d+)');
 	if (format !== '5') return Promise.resolve(failure('Embedded checks require a Godot 4 project (config_version=5).'));

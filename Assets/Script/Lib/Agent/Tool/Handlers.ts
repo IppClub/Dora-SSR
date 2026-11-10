@@ -129,7 +129,9 @@ const build: AgentToolHandler = async (context, input) => {
 			result = { success: false, failureKind: "tool", message: tostring(err) };
 		}
 		if (result.success) succeeded++;
-		else if (result.failureKind === "tool") callFailureMessages.push(result.message);
+		// File diagnostics are build results even when the compiler bridge failed.
+		// Only invocation failures without file results become step exceptions.
+		else if (result.failureKind === "tool" && (result.messages?.length ?? 0) === 0) callFailureMessages.push(result.message);
 		rawResults.push(result);
 		results.push({ index: i, path: paths[i], ...result });
 		if (context.cancellation.isCancelled()) break;

@@ -24,9 +24,9 @@ local checkGodotFile = ____GodotCheck.checkGodotFile -- 3
 ____exports.GODOT_RUNTIME_VERSION = "4.7.2" -- 6
 local activeProjects = __TS__New(Set) -- 7
 function ____exports.findGodotProject(workDir, target) -- 10
-	workDir = Path(workDir) -- 11
+	workDir = Path:getPath(Path(workDir, "project.godot")) -- 11
 	target = Path(target) -- 12
-	local dir = Content:isdir(target) and target or Path:getPath(target) -- 13
+	local dir = Content:isdir(target) and Path:getPath(Path(target, "project.godot")) or Path:getPath(target) -- 13
 	while dir == workDir or __TS__StringStartsWith(dir, workDir .. "/") do -- 13
 		if Content:exist(Path(dir, "project.godot")) then -- 13
 			return dir -- 15
@@ -44,7 +44,7 @@ function ____exports.findGodotProject(workDir, target) -- 10
 end -- 10
 function ____exports.buildGodotProject(project, cancelled) -- 28
 	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 28
-		project = Path(project) -- 29
+		project = Path:getPath(Path(project, "project.godot")) -- 29
 		local file = Path(project, "project.godot") -- 30
 		local completed = {} -- 31
 		local function finish(result) -- 32
@@ -137,41 +137,41 @@ function ____exports.buildGodotProject(project, cancelled) -- 28
 							checked.info, -- 50
 							function(____, item) return item[1] == "tool" end -- 50
 						) and "tool" or nil, -- 50
-						message = table.concat( -- 51
-							__TS__ArrayMap( -- 51
-								checked.info or ({}), -- 51
-								function(____, item) return (((((("res://" .. Path:getRelative(item[2], project)) .. ":") .. tostring(item[3])) .. ":") .. tostring(item[4])) .. ": ") .. item[5] end -- 51
-							), -- 51
-							"\n" -- 51
-						) or "Embedded Godot compiler check failed." -- 51
-					}) -- 51
+						message = checked.info ~= nil and #checked.info > 0 and table.concat( -- 51
+							__TS__ArrayMap( -- 52
+								checked.info, -- 52
+								function(____, item) return (((((("res://" .. Path:getRelative(item[2], project)) .. ":") .. tostring(item[3])) .. ":") .. tostring(item[4])) .. ": ") .. item[5] end -- 52
+							), -- 52
+							"\n" -- 52
+						) or "Embedded Godot compiler check failed." -- 52
+					}) -- 52
 					return -- 49
 				end -- 49
-				completed[#completed + 1] = {success = true, file = target, message = "Godot validation passed (bundled runtime)."} -- 52
-				Log( -- 54
-					"Info", -- 54
-					"Built Godot " .. Path( -- 54
-						Path:getFilename(project), -- 54
-						relative -- 54
-					) -- 54
-				) -- 54
-			end -- 54
-			____hasReturned = true -- 56
-			____returnValue = finish({ -- 56
-				success = true, -- 56
-				file = file, -- 56
-				message = tostring(#completed) .. " Godot file(s) passed validation." -- 56
-			}) -- 56
-			return -- 56
-		end) -- 56
-		____try = ____try.finally( -- 56
-			____try, -- 56
-			function() -- 56
-				return __TS__AsyncAwaiter(function() -- 56
-					activeProjects:delete(project) -- 58
-				end) -- 58
-			end -- 58
-		) -- 58
+				completed[#completed + 1] = {success = true, file = target, message = "Godot validation passed (bundled runtime)."} -- 54
+				Log( -- 56
+					"Info", -- 56
+					"Built Godot " .. Path( -- 56
+						Path:getFilename(project), -- 56
+						relative -- 56
+					) -- 56
+				) -- 56
+			end -- 56
+			____hasReturned = true -- 58
+			____returnValue = finish({ -- 58
+				success = true, -- 58
+				file = file, -- 58
+				message = tostring(#completed) .. " Godot file(s) passed validation." -- 58
+			}) -- 58
+			return -- 58
+		end) -- 58
+		____try = ____try.finally( -- 58
+			____try, -- 58
+			function() -- 58
+				return __TS__AsyncAwaiter(function() -- 58
+					activeProjects:delete(project) -- 60
+				end) -- 60
+			end -- 60
+		) -- 60
 		__TS__Await(____try) -- 35
 		if ____hasReturned then -- 35
 			return ____awaiter_resolve(nil, ____returnValue) -- 35

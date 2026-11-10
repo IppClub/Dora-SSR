@@ -8,9 +8,9 @@ const activeProjects = new Set<string>();
 export type GodotBuildResult = BuildMessage & { messages: BuildMessage[] };
 
 export function findGodotProject(workDir: string, target: string): string | undefined {
-	workDir = Path(workDir);
+	workDir = Path.getPath(Path(workDir, 'project.godot'));
 	target = Path(target);
-	let dir = Content.isdir(target) ? target : Path.getPath(target);
+	let dir = Content.isdir(target) ? Path.getPath(Path(target, 'project.godot')) : Path.getPath(target);
 	while (dir === workDir || dir.startsWith(`${workDir}/`)) {
 		if (Content.exist(Path(dir, 'project.godot'))) return dir;
 		if (dir === workDir) break;
@@ -26,7 +26,7 @@ export function findGodotProject(workDir: string, target: string): string | unde
 // Imported asset generation is separate; it is not silently delegated to an
 // installed editor or reported as successful by this static validation pass.
 export async function buildGodotProject(project: string, cancelled?: () => boolean): Promise<GodotBuildResult> {
-	project = Path(project);
+	project = Path.getPath(Path(project, 'project.godot'));
 	const file = Path(project, 'project.godot');
 	const completed: BuildMessage[] = [];
 	const finish = (result: BuildMessage): GodotBuildResult => ({ ...result, messages: result.success ? completed : [...completed, result] });
@@ -48,7 +48,9 @@ export async function buildGodotProject(project: string, cancelled?: () => boole
 			if (checked.skipped) return finish({ success: false, file: target, failureKind: 'tool', message: 'Godot check was superseded by a newer editor request; retry the build.' });
 			if (!checked.success) return finish({ success: false, file: target,
 				failureKind: checked.info?.some(item => item[0] === 'tool') ? 'tool' : undefined,
-				message: (checked.info ?? []).map(item => `res://${Path.getRelative(item[1], project)}:${item[2]}:${item[3]}: ${item[4]}`).join('\n') || 'Embedded Godot compiler check failed.' });
+				message: checked.info !== undefined && checked.info.length > 0
+					? checked.info.map(item => `res://${Path.getRelative(item[1], project)}:${item[2]}:${item[3]}: ${item[4]}`).join('\n')
+					: 'Embedded Godot compiler check failed.' });
 			completed.push({ success: true, file: target, message: 'Godot validation passed (bundled runtime).' });
 			// User-visible build output must not be filtered by Agent debug levels.
 			Log('Info', `Built Godot ${Path(Path.getFilename(project), relative)}`);
