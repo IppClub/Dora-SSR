@@ -90,18 +90,6 @@ function getFinishMessage(input: Record<string, unknown>): string {
 
 export function validateAgentToolInput(tool: AgentToolName, input: Record<string, unknown>): AgentToolSemanticValidationResult {
 	const value = { ...input };
-	if (tool === "finish") {
-		const message = getFinishMessage(value);
-		if (message === "") return { success: false, message: "finish requires params.message" };
-		const completion = AgentUtils.normalizeAgentCompletionReport(value);
-		value.message = message;
-		value.outcome = completion.outcome;
-		value.validation = completion.validation;
-		value.knownIssues = completion.knownIssues;
-		value.assumptions = completion.assumptions;
-		value.learningCandidates = completion.learningCandidates;
-		return { success: true, value };
-	}
 	if (tool === "ask_user") {
 		const normalized = normalizeQuestionnaire(value);
 		return normalized.success
@@ -241,24 +229,6 @@ export function validateAgentToolInput(tool: AgentToolName, input: Record<string
 		value.target = target;
 		return { success: true, value };
 	}
-	if (tool === "analyze_image") {
-		const imageExt = (path: string) => {
-			const ext = Path.getExt(path).toLowerCase();
-			return ext === "png" || ext === "jpg" || ext === "jpeg";
-		};
-		if (!Array.isArray(value.paths) || value.paths.length < 1 || value.paths.length > 3 || value.paths.some(item => typeof item !== "string" || item.trim() === "" || !isValidWorkspacePath(item.trim()) || !imageExt(item.trim()))) {
-			return {success:false, message:"analyze_image requires 1–3 project-relative PNG/JPEG image paths"};
-		}
-		value.paths = (value.paths as unknown[]).map(item => (item as string).trim());
-		for (const name of ["question", "criteria", "context"]) {
-			const text = value[name];
-			if ((name === "criteria" || name === "context") && text === undefined) continue;
-			if (typeof text !== "string" || (name === "question" && text.trim() === "")) return {success:false, message:`${name} must be valid text`};
-			const [length] = utf8.len(text);
-			if (length === undefined || length > 4000) return {success:false, message:`${name} must contain at most 4000 Unicode characters`};
-		}
-		return {success:true, value};
-	}
 	if (tool === "execute_command") {
 		const mode = typeof value.mode === "string" ? value.mode.trim() : "";
 		if (mode !== "lua" && mode !== "git") return { success: false, message: "execute_command requires mode: lua or git" };
@@ -316,9 +286,7 @@ export const AGENT_TOOL_VALIDATORS: Partial<Record<AgentToolName, AgentToolInput
 	search_dora_doc: value => validateAgentToolInput("search_dora_doc", value),
 	build: value => validateAgentToolInput("build", value),
 	fetch_url: value => validateAgentToolInput("fetch_url", value),
-	analyze_image: value => validateAgentToolInput("analyze_image", value),
 	execute_command: value => validateAgentToolInput("execute_command", value),
 	spawn_agent: value => validateAgentToolInput("spawn_agent", value),
 	ask_user: value => validateAgentToolInput("ask_user", value),
-	finish: value => validateAgentToolInput("finish", value),
 };

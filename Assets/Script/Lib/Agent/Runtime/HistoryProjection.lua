@@ -533,7 +533,7 @@ function ____exports.projectMessagesForLLMContext(messages) -- 483
 				next.reasoning_content = nil -- 491
 			end -- 491
 			if message.role == "tool" and type(message.content) == "string" then -- 491
-				next.content = projectToolResultContentForLLM(message.name or "tool", message.content) -- 493
+				next.content = type(message.content) == "string" and projectToolResultContentForLLM(message.name or "tool", message.content) or message.content -- 493
 			end -- 493
 			projected[#projected + 1] = next -- 495
 			i = i + 1 -- 488

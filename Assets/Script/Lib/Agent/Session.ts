@@ -1380,7 +1380,7 @@ function normalizeSessionRuntimeState(session: AgentSessionItem): AgentSessionIt
 	const pendingToolRows = queryRows(
 		`SELECT id, result_json FROM ${TABLE_STEP}
 		WHERE session_id = ? AND task_id = ? AND tool IN (?, ?, ?, ?) AND status IN ('PENDING', 'RUNNING')`,
-		[session.id, session.currentTaskId, "fetch_url", "execute_command", "analyze_image"],
+		[session.id, session.currentTaskId, "fetch_url", "execute_command"],
 	) ?? [];
 	if (pendingToolRows.length > 0) {
 		const t = now();
@@ -2462,11 +2462,19 @@ async function finalizeSubSession(
 	const resultText = sanitizeUTF8(message);
 	const changeSet = getTaskChangeSetSummary(taskId);
 	const handoffEvidence = getTaskHandoffEvidence(taskId, changeSet);
+	// Engine-generated handoff: outcome from telemetry, not model self-report.
 	let completionReport = completion ?? normalizeAgentCompletionReport({
-		outcome: success ? "completed" : (forceHandoff ? "partial" : "blocked"),
-		knownIssues: success ? [] : [resultText !== "" ? resultText : "The sub-agent handoff summary could not be completed."],
+		outcome: handoffEvidence.lastBuild?.result === "passed" ? "completed" : "partial",
+		knownIssues: [],
 	});
 	completionReport = reconcileCompletionWithHandoffEvidence(completionReport, handoffEvidence);
+	if (!success && completionReport.outcome === "completed" && !forceHandoff) {
+		completionReport = normalizeAgentCompletionReport({
+			...completionReport,
+			outcome: "blocked",
+			knownIssues: [resultText !== "" ? resultText : "The sub-agent did not complete."],
+		});
+	}
 	if (forceHandoff && !success && completionReport.outcome !== "partial") {
 		completionReport = normalizeAgentCompletionReport({
 			...completionReport,
@@ -2908,9 +2916,9 @@ export function finishSubSessionHandoff(sessionId: number, llmConfigId?: unknown
 		return { success: false, message: "only stopped or failed sub-agent sessions can be ended with handoff" };
 	}
 	const disabledAgentTools = AgentToolRegistry.getAllowedToolsForRole("sub")
-		.filter(tool => tool !== "finish");
+;
 	const prompt = getDefaultUseChineseResponse()
-		? "请结束当前子任务并立即交接已有工作。不要继续实现、读取、搜索、构建或验证。请只调用 finish：根据当前会话中已有的真实证据，总结已完成内容、文件变更、验证状态和剩余问题；未完成时将 outcome 设为 partial，不要把未验证内容写成已完成。"
+		? "请结束当前子任务并给出最终总结。不要再调用任何工具；用纯文本如实总结已完成内容、文件变更、验证状态和剩余问题。"
 		: "End this sub task now and hand off the work already completed. Do not continue implementation, reading, searching, building, or validation. Call finish only: summarize completed work, file changes, validation status, and remaining issues from evidence already present in this session. Use outcome partial when unfinished, and do not claim unverified work as complete.";
 	return startPromptTask(session, prompt, undefined, disabledAgentTools, {
 		maxSteps: 1,

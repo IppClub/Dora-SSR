@@ -15,10 +15,8 @@ export type AgentToolName =
 	| "build"
 	| "fetch_url"
 	| "execute_command"
-	| "analyze_image"
 	| "spawn_agent"
 	| "ask_user"
-	| "finish";
 
 export interface AgentToolSchemaContext {
 	searchDoraDocLimitMax: number;

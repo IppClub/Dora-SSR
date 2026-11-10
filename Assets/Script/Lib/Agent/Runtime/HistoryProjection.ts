@@ -490,7 +490,7 @@ export function projectMessagesForLLMContext(messages: Message[]): Message[] {
 		const next: Message = { ...message };
 		if (message.role === "assistant" && (!message.tool_calls || message.tool_calls.length === 0)) next.reasoning_content = undefined; // DeepSeek replays reasoning only with its tool calls.
 		if (message.role === "tool" && typeof message.content === "string") {
-			next.content = projectToolResultContentForLLM(message.name ?? "tool", message.content);
+			next.content = typeof message.content === "string" ? projectToolResultContentForLLM(message.name ?? "tool", message.content) : message.content;
 		}
 		projected.push(next);
 	}

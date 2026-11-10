@@ -5,7 +5,7 @@ import { Path, Content } from 'Dora';
 import { Flow, Node } from 'Agent/Runtime/Flow';
 import { RepeatedOutputRecovery, type DecisionOutput } from 'Agent/Runtime/RepeatedOutput';
 import * as AgentUtils from 'Agent/Utils';
-import type { LLMConfig, LLMTokenUsage, Message, StopToken } from 'Agent/Utils';
+import type { LLMConfig, LLMTokenUsage, Message, MessageContentBlock, StopToken } from 'Agent/Utils';
 import * as Tools from 'Agent/Tools';
 import { MemoryCompressor } from 'Agent/Runtime/Memory';
 import type { AgentPromptPack, AgentConversationMessage } from 'Agent/Runtime/Memory';
@@ -47,7 +47,6 @@ import {
 	parseToolCallArguments,
 	getDecisionPath,
 	validateDecision,
-	validateCompletionForRole,
 	isDecisionBatchSuccess,
 	isDecisionLoopContinue,
 	isDecisionPlainTextCompletion,
@@ -800,7 +799,7 @@ async function executeToolActionWithGuidance(shared: AgentShared, action: AgentA
 		shared.workflow.hasSpawnedSubAgentThisTask === true
 		&& (shared.workflow.delegatedForegroundBatches ?? 0) + 1 >= AgentConfig.AGENT_DEFAULTS.delegatedForegroundBatchLimit
 		&& action.tool !== "spawn_agent"
-		&& action.tool !== "finish"
+		&& true
 	) {
 		guidance.push("Foreground work after delegation has reached the recommended bound. Prefer dispatching another independent sub-agent or finishing this turn so the user can continue interacting.");
 	}
@@ -1333,8 +1332,7 @@ function applyCompressedSessionState(
 			const nextToolLine = sessionSummary.slice(markerIndex, markerIndex + 120);
 			const toolNames: AgentToolName[] = [
 				"read_file", "edit_file", "write_file", "grep_files", "search_dora_doc",
-				"build", "fetch_url", "execute_command", "analyze_image", "spawn_agent",
-				"finish",
+				"build", "fetch_url", "execute_command", "spawn_agent",
 			];
 			for (let i = 0; i < toolNames.length; i++) {
 				const tool = toolNames[i];
@@ -1356,7 +1354,7 @@ function applyCompressedSessionState(
 function appendConversationMessage(shared: AgentShared, message: AgentConversationMessage): void {
 	shared.messages.push({
 		...message,
-		content: message.content ? AgentUtils.sanitizeUTF8(message.content) : message.content,
+		content: (typeof message.content === "string" && message.content) ? AgentUtils.sanitizeUTF8(message.content) : message.content,
 		name: message.name ? AgentUtils.sanitizeUTF8(message.name) : message.name,
 		tool_call_id: message.tool_call_id ? AgentUtils.sanitizeUTF8(message.tool_call_id) : message.tool_call_id,
 		reasoning_content: message.reasoning_content ? AgentUtils.sanitizeUTF8(message.reasoning_content) : message.reasoning_content,
@@ -1369,7 +1367,40 @@ function ensureToolCallId(toolCallId?: string): string {
 	return AgentUtils.createLocalToolCallId();
 }
 
+function imageBlocksForToolResult(shared: AgentShared, action: AgentActionRecord): unknown[] | undefined {
+	// Images read via read_file become inline image blocks for image-capable
+	// models (Codex-style modality metadata); text-only models keep metadata text.
+	if (action.tool !== "read_file" || !action.result) return undefined;
+	const result = action.result as Record<string, unknown>;
+	if (result.kind !== "image") return undefined;
+	const modalities = shared.llmConfig.modalities;
+	if (Array.isArray(modalities) && !modalities.includes("image")) return undefined;
+	const imgPath = Path(shared.workingDir, tostring(result.path));
+	if (!Content.exist(imgPath)) return undefined;
+	const imgData = Content.load(imgPath);
+	if (imgData === undefined || imgData === "") return undefined;
+	const mimeMod = require("mime") as { b64(this: void, value: string): LuaMultiReturn<[string | undefined, string | undefined]> };
+	const [encoded] = mimeMod.b64(imgData as string);
+	if (encoded === undefined || encoded === "") return undefined;
+	const mime = result.mime === "image/jpeg" ? "image/jpeg" : "image/png";
+	return [
+		{ type: "text", text: `[image ${tostring(result.path)}]` },
+		{ type: "image_url", image_url: { url: `data:${mime};base64,${encoded}` } },
+	];
+}
+
 function appendToolResultMessage(shared: AgentShared, action: AgentActionRecord): void {
+	const imageBlocks = imageBlocksForToolResult(shared, action);
+	if (imageBlocks !== undefined) {
+		shared.messages.push({
+			role: "tool",
+			tool_call_id: action.toolCallId,
+			name: action.providerToolName ?? action.tool,
+			content: imageBlocks as unknown as string | MessageContentBlock[] | undefined,
+			timestamp: os.date("!%Y-%m-%dT%H:%M:%SZ"),
+		});
+		return;
+	}
 	appendConversationMessage(shared, {
 		role: "tool",
 		tool_call_id: action.toolCallId,
@@ -1437,11 +1468,6 @@ function parseAndValidateToolCallDecision(
 	decision.providerArguments = argsText;
 	decision.reason = reason;
 	decision.reasoningContent = reasoningContent;
-	const completionValidation = validateCompletionForRole(shared.role, decision.tool, decision.params);
-	if (!completionValidation.success) {
-		decision.preExecutionFailure = { code: "INVALID_TOOL_INPUT", message: completionValidation.message };
-		return decision;
-	}
 	const validation = validateDecision(decision.tool, decision.params);
 	if (!validation.success) {
 		decision.preExecutionFailure = { code: "INVALID_TOOL_INPUT", message: validation.message };
@@ -1463,7 +1489,7 @@ function validateDecisionForShared(
 	_params: Record<string, unknown>,
 	enforceFinalTurn = false
 ): { success: true } | { success: false; message: string } {
-	if (enforceFinalTurn && isFinalDecisionTurn(shared) && tool !== "finish") {
+	if (enforceFinalTurn && isFinalDecisionTurn(shared) && true) {
 		return shared.role === "sub"
 			? { success: false, message: "the final sub-agent turn must call finish with structured completion metadata" }
 			: { success: false, message: "the final main-agent turn must return a plain-text completion instead of calling another tool" };
@@ -1532,8 +1558,8 @@ function isFinalDecisionTurn(shared: AgentShared): boolean {
 function getFinalDecisionTurnPrompt(shared: AgentShared): string {
 	if (shared.role === "sub") {
 		return shared.useChineseResponse
-			? "当前已到达本子任务的最后处理轮次。不要再调用其它工具，请调用 finish 提交结构化交接；如实填写 outcome、validation、knownIssues、assumptions 和 learningCandidates，不要把部分或未验证工作描述为全部完成。"
-			: "This is the final processing turn for the sub task. Do not call another work tool; call finish with a structured handoff. Report outcome, validation, knownIssues, assumptions, and learningCandidates truthfully, and do not describe partial or unverified work as complete.";
+			? "当前已到达本子任务的最后处理轮次。不要再调用工具，请直接用纯文本给出最终答复；如实区分已完成且有证据的内容、未验证或未完成的项目以及建议的下一步，不要把部分结果描述为全部完成。"
+			: "This is the final processing turn for the task. Do not call another tool; return the final user-facing answer as plain text. Clearly distinguish completed work with evidence, unverified or unfinished items, and the recommended next action. Do not describe partial work as fully complete.";
 	}
 	return shared.useChineseResponse
 		? "当前已到达本 task 的最后处理轮次。不要再调用工具，请直接用 plain text 向用户给出最终答复；如实区分已完成且有证据的内容、未验证或未完成的项目以及建议的下一步，不要把部分结果描述为全部完成。"
@@ -1787,7 +1813,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 			return decisions[0];
 		}
 		for (let i = 0; i < decisions.length; i++) {
-			if ((decisions[i].tool === "finish" || decisions[i].tool === "ask_user")
+			if (decisions[i].tool !== undefined
 				&& decisions[i].preExecutionFailure === undefined) {
 				decisions[i].preExecutionFailure = {
 					code: "INVALID_TOOL_COMBINATION",
@@ -1941,37 +1967,6 @@ class MainDecisionAgent extends Node<AgentShared> {
 			persistHistoryState(shared);
 			return "batch_tools";
 		}
-		if (result.tool === "finish") {
-			const action: AgentActionRecord = {
-				step: shared.step,
-				toolCallId: ensureToolCallId(result.toolCallId),
-				tool: "finish",
-				reason: result.reason ?? "",
-				reasoningContent: result.reasoningContent,
-				params: result.params,
-				timestamp: os.date("!%Y-%m-%dT%H:%M:%SZ"),
-			};
-			const output = await executeToolAction(shared, action);
-			if (output.success !== true || action.control?.concludeTask !== true) {
-				shared.error = typeof output.message === "string" ? output.message : "finish execution failed";
-				shared.response = getFailureSummaryFallback(shared, shared.error);
-				shared.done = true;
-				appendConversationMessage(shared, { role: "assistant", content: shared.response });
-				persistHistoryState(shared);
-				return "done";
-			}
-			const finalMessage = action.control.finalMessage ?? getFinishMessage(result.params, result.reason ?? "");
-			shared.response = finalMessage;
-			shared.completion = action.control.completion ?? getCompletionReport(result.params);
-			shared.done = true;
-			appendConversationMessage(shared, {
-				role: "assistant",
-				content: finalMessage,
-				reasoning_content: result.reasoningContent,
-			});
-			persistHistoryState(shared);
-			return "done";
-		}
 		const toolCallId = ensureToolCallId(result.toolCallId);
 		shared.step += 1;
 		shared.agentStepCount += 1;
@@ -2042,17 +2037,6 @@ function createAgentToolExecutionContext(
 		return next === undefined ? value : string.sub(value, 1, next - 1);
 	};
 	const contextParts: string[] = [];
-	if (action.tool === "analyze_image") {
-		contextParts.push(
-			`Original task goal:\n${takeVisionContext(shared.userQuery, 1800)}`,
-			action.reason.trim() !== "" ? `Current Agent stage:\n${takeVisionContext(action.reason, 800)}` : "",
-		);
-		const changeSet = Tools.summarizeTaskChangeSet(shared.taskId);
-		if (changeSet.success && changeSet.files.length > 0) {
-			const changedFiles = changeSet.files.slice(0, 12).map(item => `${item.op}: ${item.path}`);
-			contextParts.push(`Relevant files changed in this task:\n${changedFiles.join("\n")}`);
-		}
-	}
 	return {
 		sessionId: shared.sessionId,
 		taskId: shared.taskId,
@@ -2116,18 +2100,7 @@ async function executeToolAction(shared: AgentShared, action: AgentActionRecord)
 	});
 	action.control = execution.control;
 	action.execution = execution.execution;
-	if (action.tool === "analyze_image") {
-		const total = getVisionTaskUsage(shared.taskId);
-		if (execution.output.requestIssued === true) total.requestCount++;
-		const usage = execution.output.usage as {prompt_tokens?: number; completion_tokens?: number; total_tokens?: number} | undefined;
-		if (usage && typeof usage.prompt_tokens === "number" && typeof usage.completion_tokens === "number") {
-			total.reportedRequests++;
-			total.inputTokens += usage.prompt_tokens;
-			total.outputTokens += usage.completion_tokens;
-			total.totalTokens += usage.total_tokens ?? (usage.prompt_tokens + usage.completion_tokens);
-		}
-		emitAgentEvent(shared, {type:"metrics_updated", sessionId:shared.sessionId, taskId:shared.taskId, step:action.step, metrics:{visionUsage:total}});
-	} else if (action.tool === "execute_command") {
+	if (action.tool === "execute_command") {
 		const capture = execution.output.visionCapture as {batchCount?: number; frameCount?: number} | undefined;
 		if (capture && typeof capture.batchCount === "number" && typeof capture.frameCount === "number") {
 			const total = getVisionTaskUsage(shared.taskId);
@@ -2152,6 +2125,7 @@ async function executeToolActionSafely(shared: AgentShared, action: AgentActionR
 
 function sanitizeToolActionResultForHistory(action: AgentActionRecord, result: Record<string, unknown>): Record<string, unknown> {
 	if (action.tool === "read_file") {
+		if (result.kind === "image") return result;  // image metadata flows to blocks assembly
 		return sanitizeReadResultForHistory(action.tool, result);
 	}
 	if (action.tool === "grep_files" || action.tool === "search_dora_doc") {
@@ -2389,7 +2363,7 @@ class BatchToolAction extends Node<AgentShared> {
 				if (action.result?.success === true) spawnSeen = true;
 				continue;
 			}
-			if (spawnSeen && action.tool !== "finish") {
+			if (spawnSeen && true) {
 				didDelegatedForegroundWork = true;
 			}
 		}
@@ -2482,7 +2456,6 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 	}
 	const llmConfig = {...llmConfigRes.config};
 	const disabledAgentTools = (options.disabledAgentTools ?? []).slice();
-	if (!resolveVisionBinding(llmConfig) && disabledAgentTools.indexOf("analyze_image") < 0) disabledAgentTools.push("analyze_image");
 	const taskRes = options.taskId !== undefined
 		? { success: true as const, taskId: options.taskId }
 		: Tools.createTask(normalizedPrompt, options.workMode ?? "code");
@@ -2504,7 +2477,7 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 		for (let i = persistedSession.messages.length - 1; i >= 0; i--) {
 			const message = persistedSession.messages[i];
 			if (message.role === "user" && typeof message.content === "string" && message.content.trim() !== "") {
-				effectiveUserQuery = message.content;
+				if (typeof message.content === "string") effectiveUserQuery = message.content;
 				break;
 			}
 		}

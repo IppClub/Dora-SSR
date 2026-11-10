@@ -1,5 +1,5 @@
+import { Content, Path } from 'Dora';
 // @preview-file off clear
-import { analyzeImage } from 'Agent/Tool/VisionAnalysis';
 import * as AgentConfig from 'Agent/Config/Defaults';
 import { normalizeQuestionnaire } from 'Agent/Runtime/Questionnaire';
 import * as AgentRuntimePolicy from 'Agent/Runtime/Policy';
@@ -26,6 +26,28 @@ function readOneFile(context: Parameters<AgentToolHandler>[0], input: Record<str
 	const path = typeof input.path === "string" ? input.path : "";
 	if (path.trim() === "") {
 		return { success: false, message: "missing path" };
+	}
+	const lowered = path.toLowerCase();
+	if (lowered.endsWith(".png") || lowered.endsWith(".jpg") || lowered.endsWith(".jpeg")) {
+		// Images are read as visual content: image-capable models receive the
+		// picture inline in the tool message; text-only models get metadata only.
+		// Images bypass the text-readable-file gate: load raw bytes via Content
+		// so binary pictures reach the vision path intact.
+		const fullPath = Path(context.workingDir, path);
+		if (!Content.exist(fullPath)) {
+			return { success: false, message: `image not found: ${path}` };
+		}
+		const data = Content.load(fullPath);
+		if (data === undefined || data === "") {
+			return { success: false, message: `failed to read image ${path}` };
+		}
+		return {
+			success: true,
+			path,
+			kind: "image",
+			mime: lowered.endsWith(".png") ? "image/png" : "image/jpeg",
+			bytes: data.length,
+		};
 	}
 	const output = Tools.readFile(
 		context.workingDir,
@@ -607,24 +629,6 @@ const finish: AgentToolHandler = async (_context, input) => {
 	};
 };
 
-const analyzeImageHandler: AgentToolHandler = async (context, input) => {
-	let visionContext = context.visionTaskContext ?? "";
-	if (typeof input.context === "string" && input.context.trim() !== "") {
-		visionContext = visionContext === "" ? input.context : `${visionContext}\n\n${input.context}`;
-	}
-	return {output: await analyzeImage({
-		workingDir:context.workingDir,
-		taskId:context.taskId,
-		sessionId:context.sessionId,
-		binding:context.visionBinding,
-		paths:input.paths as string[],
-		question:input.question as string,
-		criteria:input.criteria as string | undefined,
-		context:visionContext,
-		isCancelled:()=>context.cancellation.isCancelled(),
-	})};
-};
-
 export const AGENT_TOOL_HANDLERS: Partial<Record<AgentToolName, AgentToolHandler>> = {
 	read_file: readFile,
 	grep_files: grepFiles,
@@ -632,10 +636,8 @@ export const AGENT_TOOL_HANDLERS: Partial<Record<AgentToolName, AgentToolHandler
 	build,
 	fetch_url: fetchUrl,
 	execute_command: executeCommand,
-	analyze_image: analyzeImageHandler,
 	edit_file: editFile,
 	write_file: writeFile,
 	ask_user: askUser,
 	spawn_agent: spawnAgent,
-	finish,
 };

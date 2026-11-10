@@ -31,9 +31,15 @@ export interface ToolCall {
 	function?: ToolCallFunction;
 }
 
+export interface MessageContentBlock {
+	type: "text" | "image_url";
+	text?: string;
+	image_url?: { url: string };
+}
+
 export interface Message {
 	role: string;
-	content?: string;
+	content?: string | MessageContentBlock[];
 	name?: string;
 	tool_call_id?: string;
 	reasoning_content?: string;
@@ -431,13 +437,26 @@ export function estimateTextTokens(text: string): number {
 	return App.estimateTokens(text);
 }
 
+function stringifyMessageContent(content: string | MessageContentBlock[] | undefined): string {
+	if (typeof content === "string") return content;
+	if (Array.isArray(content)) {
+		const parts: string[] = [];
+		for (const block of content) {
+			if (block.type === "text" && block.text !== undefined) parts.push(block.text);
+			else if (block.type === "image_url") parts.push("[image]");
+		}
+		return parts.join("\n");
+	}
+	return "";
+}
+
 function estimateMessagesTokens(messages: Message[]): number {
 	let total = 0;
 	for (let i = 0; i < messages.length; i++) {
 		const message = messages[i];
 		total += 8;
 		total += estimateTextTokens(message.role ?? "");
-		total += estimateTextTokens(message.content ?? "");
+		total += estimateTextTokens(typeof message.content === "string" ? message.content : stringifyMessageContent(message.content));
 		total += estimateTextTokens(message.name ?? "");
 		total += estimateTextTokens(message.tool_call_id ?? "");
 		total += estimateTextTokens(message.reasoning_content ?? "");
@@ -715,7 +734,7 @@ export function fitMessagesToContext(messages: Message[], options: Record<string
 	const contentBudget = math.max(64, budgetTokens - fixedOverhead);
 	if (contentIndexes.length === 1) {
 		const idx = contentIndexes[0];
-		cloned[idx].content = clipTextToTokenBudget(cloned[idx].content ?? "", contentBudget);
+		cloned[idx].content = clipTextToTokenBudget(typeof cloned[idx].content === "string" ? cloned[idx].content : stringifyMessageContent(cloned[idx].content), contentBudget);
 		const fittedTokens = estimateMessagesTokens(cloned);
 		return {
 			messages: cloned,
@@ -739,8 +758,8 @@ export function fitMessagesToContext(messages: Message[], options: Record<string
 		const message = cloned[idx];
 		const minBudget = message.role === "system" ? 96 : 192;
 		const target = math.max(minBudget, math.floor(remainingContentBudget / math.max(1, i + 1)));
-		message.content = clipTextToTokenBudget(message.content ?? "", target);
-		remainingContentBudget -= estimateTextTokens(message.content ?? "");
+		message.content = clipTextToTokenBudget(typeof message.content === "string" ? message.content : stringifyMessageContent(message.content), target);
+		remainingContentBudget -= estimateTextTokens(typeof message.content === "string" ? message.content : stringifyMessageContent(message.content));
 		remainingContentBudget = math.max(0, remainingContentBudget);
 	}
 
@@ -749,10 +768,10 @@ export function fitMessagesToContext(messages: Message[], options: Record<string
 		for (let i = 0; i < priorityIndexes.length && fittedTokens > budgetTokens; i++) {
 			const idx = priorityIndexes[i];
 			const message = cloned[idx];
-			const currentTokens = estimateTextTokens(message.content ?? "");
+			const currentTokens = estimateTextTokens(typeof message.content === "string" ? message.content : stringifyMessageContent(message.content));
 			const excess = fittedTokens - budgetTokens;
 			const nextBudget = math.max(message.role === "system" ? 48 : 96, currentTokens - excess - 16);
-			message.content = clipTextToTokenBudget(message.content ?? "", nextBudget);
+			message.content = clipTextToTokenBudget(typeof message.content === "string" ? message.content : stringifyMessageContent(message.content), nextBudget);
 			fittedTokens = estimateMessagesTokens(cloned);
 		}
 	}
@@ -760,7 +779,7 @@ export function fitMessagesToContext(messages: Message[], options: Record<string
 		for (let i = 0; i < priorityIndexes.length && fittedTokens > budgetTokens; i++) {
 			const idx = priorityIndexes[i];
 			if (cloned[idx].role === "system") continue;
-			cloned[idx].content = clipTextToTokenBudget(cloned[idx].content ?? "", 48);
+			cloned[idx].content = clipTextToTokenBudget(typeof cloned[idx].content === "string" ? cloned[idx].content : stringifyMessageContent(cloned[idx].content), 48);
 			fittedTokens = estimateMessagesTokens(cloned);
 		}
 	}
@@ -1162,6 +1181,8 @@ export type LLMConfig = {
 	reasoningEffort?: string;
 	customOptions?: Record<string, unknown>;
 	supportsFunctionCalling: boolean;
+	/** Input modalities; defaults to text+image (Codex-style tolerant default). */
+	modalities?: string[];
 	studioGateway?: boolean;
 	studioVision?: {
 		provider: "deepseek" | "glm-coding-cn";

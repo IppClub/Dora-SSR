@@ -644,7 +644,7 @@ function TokenEstimator.estimateMessages(self, messages) -- 860
 		while i < #messages do -- 863
 			local message = messages[i + 1] -- 864
 			total = total + self:estimate(message.role or "") -- 865
-			total = total + self:estimate(message.content or "") -- 866
+			total = total + self:estimate(type(message.content) == "string" and message.content or "[image content]") -- 866
 			total = total + self:estimate(message.name or "") -- 867
 			total = total + self:estimate(message.tool_call_id or "") -- 868
 			total = total + self:estimate(message.reasoning_content or "") -- 869
@@ -1851,7 +1851,7 @@ function MemoryCompressor.prototype.estimateCompressionMessageTokens(self, messa
 		lines[#lines + 1] = "tool_calls=" .. (toolCallsText or "") -- 1869
 	end -- 1869
 	if message.content and message.content ~= "" then -- 1869
-		lines[#lines + 1] = message.content -- 1871
+		lines[#lines + 1] = type(message.content) == "string" and message.content or "[image content]" -- 1871
 	end -- 1871
 	local prefix = index > 0 and "\n\n" or "" -- 1872
 	return ____exports.TokenEstimator:estimate(prefix .. table.concat(lines, "\n")) -- 1873
@@ -1893,7 +1893,7 @@ function MemoryCompressor.prototype.formatMessagesForCompression(self, messages)
 				lines[#lines + 1] = "tool_calls=" .. (toolCallsText or "") -- 1905
 			end -- 1905
 			if message.content and message.content ~= "" then -- 1905
-				lines[#lines + 1] = message.content -- 1907
+				lines[#lines + 1] = type(message.content) == "string" and message.content or "[image content]" -- 1907
 			end -- 1907
 			if i < #messages - 1 then -- 1907
 				lines[#lines + 1] = "" -- 1908

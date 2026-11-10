@@ -863,7 +863,7 @@ export class TokenEstimator {
 		for (let i = 0; i < messages.length; i++) {
 			const message = messages[i];
 			total += this.estimate(message.role ?? "");
-			total += this.estimate(message.content ?? "");
+			total += this.estimate(typeof message.content === "string" ? message.content : "[image content]");
 			total += this.estimate(message.name ?? "");
 			total += this.estimate(message.tool_call_id ?? "");
 			total += this.estimate(message.reasoning_content ?? "");
@@ -1868,7 +1868,7 @@ export class MemoryCompressor {
 			const [toolCallsText] = safeJsonEncode(message.tool_calls as object);
 			lines.push(`tool_calls=${toolCallsText ?? ""}`);
 		}
-		if (message.content && message.content !== "") lines.push(message.content);
+		if (message.content && message.content !== "") lines.push(typeof message.content === "string" ? message.content : "[image content]");
 		const prefix = index > 0 ? "\n\n" : "";
 		return TokenEstimator.estimate(prefix + lines.join("\n"));
 	}
@@ -1904,7 +1904,7 @@ export class MemoryCompressor {
 				const [toolCallsText] = safeJsonEncode(message.tool_calls as object);
 				lines.push(`tool_calls=${toolCallsText ?? ""}`);
 			}
-			if (message.content && message.content !== "") lines.push(message.content);
+			if (message.content && message.content !== "") lines.push(typeof message.content === "string" ? message.content : "[image content]");
 			if (i < messages.length - 1) lines.push("");
 		}
 		return lines.join("\n");
