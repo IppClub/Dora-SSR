@@ -71,7 +71,9 @@ local stages = {
 }
 
 target("godot-codegen")
-    set_kind("phony")
+    -- Xcode's generator only serializes binary/static/shared products. Its
+    -- build phase invokes normal xmake, which keeps this target phony.
+    set_kind(os.getenv("XMAKE_IN_PROJECT_GENERATOR") and "binary" or "phony")
     set_default(false)
     set_group("godot/runtime")
     set_values("godot.generated_root", generated_root)
@@ -133,7 +135,9 @@ for _, stage in ipairs(stages) do
         -- an archive twice through xmake's transitive library dependencies.
         local raw_objects = stage.object or stage.name == "godot-dora-bridge" or
             (is_plat("android", "wasm") and stage.name == "godot-main-platform")
-        set_kind(raw_objects and "object" or "static")
+        -- Object libraries also need a serializable IDE product. This is
+        -- metadata only; actual builds retain the raw-object link behavior.
+        set_kind(raw_objects and not os.getenv("XMAKE_IN_PROJECT_GENERATOR") and "object" or "static")
         set_default(false)
         set_group("godot/runtime")
         if is_plat("wasm") then

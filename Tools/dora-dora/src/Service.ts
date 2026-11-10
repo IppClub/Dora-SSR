@@ -925,7 +925,7 @@ export interface RunResponse {
 	err?: string;
 };
 export const run = (req: RunRequest) => {
-	return runWithNativeIDE(() => post<RunResponse>("/run", req));
+	return runWithNativeIDE(() => post<RunResponse>("/run", { ...req, waitForFrame: isNativeIDE() }));
 };
 
 export type RunStatusResponse = {

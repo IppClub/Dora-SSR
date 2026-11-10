@@ -2307,7 +2307,11 @@ HttpServer\postSchedule "/run", (req): success: false ->
 			if workDir
 				Entry.allClear!
 				target = Path workDir, "init"
+				runId = Entry.getCurrentEntryStatus!.runId + 1
 				success, err = Entry.enterEntryAsync entryName: "Project", fileName: target, workDir: workDir, projectRoot: workDir, runKind: "project"
+				if success and not err and req.body.waitForFrame == true
+					import "Script.Dev.RunTransition" as RunTransition
+					success, err = RunTransition.waitForFrameAsync Entry, runId, Content\exist Path(workDir, "project.godot")
 				target = target |> Path\getPath |> Path\getName
 				return :success, :target, :err
 		else
@@ -2325,7 +2329,11 @@ HttpServer\postSchedule "/run", (req): success: false ->
 		if workDir
 			entry.workDir = workDir
 			entry.projectRoot = workDir
+		runId = Entry.getCurrentEntryStatus!.runId + 1
 		success, err = Entry.enterEntryAsync entry
+		if success and not err and req.body.waitForFrame == true
+			import "Script.Dev.RunTransition" as RunTransition
+			success, err = RunTransition.waitForFrameAsync Entry, runId, workDir and Content\exist Path(workDir, "project.godot")
 		return :success, :err
 
 HttpServer\postSchedule "/agent/preview", (req): success: false, message: "invalid call" ->

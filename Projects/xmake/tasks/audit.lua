@@ -14,5 +14,5 @@ task("audit-manifests")
         end
         cprint("${green}OK${clear} %d unique, present engine sources; core coverage passed", #manifest.sources)
     end)
-    set_menu {usage = "xmake audit-manifests", description = "Validate the canonical source manifest without a duplicate legacy list"}
+    set_menu {usage = "xmake audit-manifests", description = "Validate the canonical source manifest without a duplicate legacy list", options = {}}
 task_end()

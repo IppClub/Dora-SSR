@@ -143,7 +143,7 @@ task_end()
 
 task("dora-web-env")
     set_category("plugin")
-    set_menu {usage = "xmake dora-web-env", description = "Install managed Web tools and check the host environment"}
+    set_menu {usage = "xmake dora-web-env", description = "Install managed Web tools and check the host environment", options = {}}
     on_run(function ()
         local root = os.projectdir()
         local directory = path.join(root, "build/web-env")

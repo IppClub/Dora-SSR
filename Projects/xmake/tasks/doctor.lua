@@ -7,6 +7,8 @@ task("doctor")
         import("lib.detect.find_tool")
 
         local requested = option.get("platform") or "host"
+        assert(table.contains({"host", "all", "macosx", "iphoneos", "linux", "windows", "android", "wasm"}, requested),
+            "unsupported doctor platform: " .. requested)
         local host = os.host()
         local failures = 0
         local warnings = 0
@@ -143,10 +145,12 @@ task("doctor")
         end
 
         if applies("windows") then
+            local arch = config.plat() == "windows" and config.arch() or "x64"
+            local machine = arch == "x86" and "i686" or "x86_64"
             local vsenvs
             if host == "windows" then
                 import("core.tool.toolchain")
-                local msvc = toolchain.load("msvc", {plat = "windows", arch = "x86"})
+                local msvc = toolchain.load("msvc", {plat = "windows", arch = arch})
                 if msvc and msvc:check() then vsenvs = msvc:runenvs() end
                 local emulated = os.arch() ~= "arm64" and (os.getenv("PROCESSOR_IDENTIFIER") or ""):find("ARM", 1, true)
                 if emulated then
@@ -155,12 +159,12 @@ task("doctor")
             end
             tool("cl", "Install Visual Studio Build Tools with the Desktop C++ workload.", {envs = vsenvs})
             tool("msbuild", "MSBuild is optional for opening/building generated Visual Studio projects.", {optional = true, envs = vsenvs})
-            local gcc = os.getenv("CC") or (find_tool("i686-w64-mingw32-gcc", {force = true}) or {}).program
-            gcc = tool("gcc", "Install 32-bit MinGW GCC for Wa cgo, or set CC.", {program = gcc})
+            local gcc = os.getenv("CC") or (find_tool(machine .. "-w64-mingw32-gcc", {force = true}) or {}).program
+            gcc = tool("gcc", "Install " .. machine .. " MinGW GCC for Wa cgo, or set CC.", {program = gcc})
             if gcc then
                 local triple = try {function () return first_line(os.iorunv(gcc, {"-dumpmachine"})) end}
-                report(triple and triple:find("i686", 1, true) and "OK" or "ERROR", "Wa cgo target", triple or "unknown",
-                    not (triple and triple:find("i686", 1, true)) and "CC must select a 32-bit MinGW compiler." or nil)
+                report(triple and triple:find(machine, 1, true) and "OK" or "ERROR", "Wa cgo target", triple or "unknown",
+                    not (triple and triple:find(machine, 1, true)) and "CC must select a " .. machine .. " MinGW compiler." or nil)
             end
         end
 

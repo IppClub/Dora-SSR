@@ -4,11 +4,44 @@ local function settings(option, api)
     if platform == "macos" then platform = "macosx" end
     if platform == "ios" then platform = "iphoneos" end
     assert(platform == "macosx" or platform == "linux" or platform == "windows" or platform == "iphoneos", "unsupported native platform")
-    local arch = option.get("arch") or (platform == "windows" and "x86" or os.arch())
+    local arch = option.get("arch") or (platform == "windows" and "x64" or os.arch())
     if arch == "aarch64" then arch = "arm64" end
+    if platform == "windows" and arch == "x86_64" then arch = "x64" end
+    if platform == "iphoneos" then
+        local sdk = option.get("appledev") or "simulator"
+        assert(sdk == "simulator" or sdk == "device", "--appledev must be simulator or device")
+    end
     local mode = option.get("mode") or "debug"
     assert(mode == "debug" or mode == "release", "mode must be debug or release")
     return platform, arch, mode
+end
+
+local function run_arguments(root, arguments, api)
+    local os, assert, path = api.os, api.ensure, api.path
+    local args = table.join(arguments or {})
+    local assets
+    for i, arg in ipairs(args) do
+        local value
+        if arg == "--asset" then
+            value = args[i + 1]
+            assert(value and #value > 0 and not value:startswith("--"), "--asset expects a directory")
+            args[i + 1] = path.absolute(value, root)
+        elseif arg:startswith("--asset=") then
+            value = arg:sub(9)
+            assert(#value > 0, "--asset expects a directory")
+            args[i] = "--asset=" .. path.absolute(value, root)
+        end
+        if value then
+            assert(not assets, "--asset may only be specified once")
+            assets = path.absolute(value, root)
+        end
+    end
+    if not assets then
+        assets = path.join(root, "Assets")
+        args = table.join({"--asset", assets}, args)
+    end
+    assert(os.isdir(assets), "asset directory not found: " .. assets)
+    return args, assets
 end
 
 local function configure(platform, arch, mode, envs, appledev, api, tests)
@@ -38,7 +71,7 @@ for _, name in ipairs({"dora-build", "dora-run"}) do
         local run = name == "dora-run"
         on_run(function ()
             import("core.base.option")
-            local api = {os = os, ensure = assert}
+            local api = {os = os, ensure = assert, path = path}
             local platform, arch, mode = settings(option, api)
             assert(not run or platform == os.host(), "run requires the host platform")
             local jobs = tonumber(option.get("jobs"))
@@ -46,9 +79,10 @@ for _, name in ipairs({"dora-build", "dora-run"}) do
             local root = os.projectdir()
             local sdk = platform == "iphoneos" and option.get("appledev") or "native"
             local envs = {XMAKE_CONFIGDIR = path.join(root, "build/native-config", platform, sdk, arch, mode)}
-            -- Run uses source Assets instead of the bundled resources. Let the
-            -- configured target stage its matching runtime into that directory.
-            if run then envs.DORA_NATIVE_RUN_ASSET_DIR = path.join(root, "Assets") end
+            local arguments
+            if run then
+                arguments, envs.DORA_NATIVE_RUN_ASSET_DIR = run_arguments(root, option.get("arguments"), api)
+            end
             local tests = option.get("tests") and import("Projects.xmake.testing.repository", {rootdir = root, anonymous = true})()
             configure(platform, arch, mode, envs, option.get("appledev"), api, tests)
             os.execv(os.programfile(), {"build", "-j", tostring(jobs), "Dora"}, {curdir = root, envs = envs})
@@ -56,7 +90,7 @@ for _, name in ipairs({"dora-build", "dora-run"}) do
                 local binary = path.join(root, "build", platform, arch, mode, platform == "windows" and "Dora.exe" or "Dora")
                 if platform == "macosx" then binary = path.join(root, "build/macosx", arch, mode, "Dora.app/Contents/MacOS/Dora") end
                 assert(os.isfile(binary), "missing engine executable: " .. binary)
-                os.execv(binary, table.join({"--asset", path.join(root, "Assets")}, option.get("arguments") or {}), {curdir = root})
+                os.execv(binary, arguments, {curdir = root})
             end
         end)
     task_end()
@@ -84,17 +118,22 @@ task("dora-ide")
         local envs = {XMAKE_IN_PROJECT_GENERATOR = "1"}
         configure(platform, arch, mode, envs, option.get("appledev"), api)
         os.execv(os.programfile(), {"project", "-k", kind, "-m", "debug,release", "-a", arch, out}, {curdir = os.projectdir(), envs = envs})
-        if kind == "xcode" and platform == "iphoneos" then
-            -- The generic generator does not model simulator appledev or
-            -- the application rule's SDK-specific output directory.
+        if kind == "xcode" then
             local file = path.join(out, "Dora-SSR.xcodeproj/project.pbxproj")
             local text = assert(io.readfile(file), "missing generated Xcode project")
-            local appledev = option.get("appledev")
-            assert(appledev == "simulator" or appledev == "device", "invalid iOS SDK")
-            text = text:gsub("%-p %${PLATFORM_NAME}", "-p iphoneos --appledev=" .. appledev)
-            text = text:gsub("SUPPORTED_PLATFORMS = \"macosx iphoneos\";", "SUPPORTED_PLATFORMS = \"" .. (appledev == "simulator" and "iphonesimulator" or "iphoneos") .. "\";")
+            -- The application rules use explicit project-local output paths,
+            -- independent of Xcode's DerivedData BUILD_DIR. Copy that actual
+            -- output so the generated product is available to Xcode Run.
+            local build_output = path.join(os.projectdir(), "build/macosx")
+            if platform == "iphoneos" then
+                local appledev = option.get("appledev")
+                assert(appledev == "simulator" or appledev == "device", "invalid iOS SDK")
+                text = text:gsub("%-p %${PLATFORM_NAME}", "-p iphoneos --appledev=" .. appledev)
+                text = text:gsub("SUPPORTED_PLATFORMS = \"macosx iphoneos\";", "SUPPORTED_PLATFORMS = \"" .. (appledev == "simulator" and "iphonesimulator" or "iphoneos") .. "\";")
+                build_output = path.join(os.projectdir(), "build/iphoneos", appledev)
+            end
             text = text:gsub("XMAKE_BUILD_DIR=%${BUILD_DIR}/%${PLATFORM_NAME}/%${NATIVE_ARCH}/%${CONFIGURATION}",
-                "XMAKE_BUILD_DIR=\\\"" .. path.join(os.projectdir(), "build/iphoneos", appledev) .. "/${NATIVE_ARCH}/${CONFIGURATION}\\\"")
+                "XMAKE_BUILD_DIR=\\\"" .. build_output .. "/${NATIVE_ARCH}/${CONFIGURATION}\\\"")
             io.writefile(file, text)
         elseif kind == "vsxmake" then
             -- A pushd of a UNC checkout creates a temporary drive letter.

@@ -23,7 +23,7 @@ end
 
 task("dora-studio")
     set_category("plugin")
-    set_menu {usage = "xmake dora-studio", description = "Build Godot-enabled Studio Agent and game Players"}
+    set_menu {usage = "xmake dora-studio", description = "Build Godot-enabled Studio Agent and game Players", options = {}}
     on_run(function ()
         local root = os.projectdir()
         import("lib.detect.find_tool")
