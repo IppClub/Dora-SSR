@@ -62,6 +62,13 @@ jobs:
         run: sdkmanager --install 'ndk;29.0.14206865' 'cmake;3.22.1' 'platforms;android-36' 'build-tools;34.0.0' 'build-tools;36.1.0'
       - name: Record xmake version
         run: xmake --version
+      - name: Validate Android CMake target export
+        run: >-
+          "$ANDROID_HOME/cmake/3.22.1/bin/cmake"
+          -S Projects/Android/Dora/app -B build/android-cmake-smoke -G Ninja
+          -DCMAKE_BUILD_TYPE=Debug -DANDROID_ABI=arm64-v8a
+          -DANDROID_PLATFORM=android-28 -DANDROID_STL=c++_shared
+          -DCMAKE_TOOLCHAIN_FILE="$ANDROID_HOME/ndk/29.0.14206865/build/cmake/android.toolchain.cmake"
       - name: Build Android
         if: "!startsWith(github.ref, 'refs/tags/')"
         run: xmake app-package --platform=android --mode=debug

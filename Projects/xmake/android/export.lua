@@ -9,7 +9,8 @@ function main(output)
     local root = os.projectdir()
     local lines = {"# Generated from xmake targets. Do not edit."}
     local targets, visited = {}, {}
-    local preparation = { ["dora-lua-bindings"] = true, ["dora-rust-runtime"] = true }
+    local preparation = { ["dora-lua-bindings"] = true, ["dora-rust-runtime"] = true, ["dora-godot-docs"] = true }
+    local required_preparation = {}
 
     local function absolute(value)
         return (path.normalize(path.absolute(value, root)):gsub("\\", "/"))
@@ -43,7 +44,9 @@ function main(output)
         if visited[target:name()] then return end
         visited[target:name()] = true
         for _, name in ipairs(table.wrap(target:get("deps"))) do
-            if not preparation[name] then
+            if preparation[name] then
+                required_preparation[name] = true
+            else
                 local dependency = assert(project.target(name), "missing dependency: " .. name)
                 assert(dependency:plat() == "android", "host target requires an explicit preparation adapter: " .. name)
                 collect(dependency)
@@ -54,6 +57,9 @@ function main(output)
         table.insert(targets, target)
     end
     collect(assert(project.target("Dora")))
+    table.insert(bindings, "set(DORA_PREPARATION_TARGETS dora-bgfx-shader-sources dora-lua-bindings dora-rust-runtime")
+    if required_preparation["dora-godot-docs"] then table.insert(bindings, "    dora-godot-docs") end
+    table.insert(bindings, ")")
 
     -- Bootstrap bindings from the generator's declared outputs, not per-file
     -- metadata: xmake does not retain always_added in target:fileconfig().

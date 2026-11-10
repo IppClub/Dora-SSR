@@ -10,7 +10,7 @@ foreach(output IN LISTS DORA_BINDING_OUTPUTS)
         string(APPEND previous_hashes "${hash}")
     endif()
 endforeach()
-foreach(task IN ITEMS dora-bgfx-shader-sources dora-lua-bindings dora-rust-runtime)
+foreach(task IN LISTS DORA_PREPARATION_TARGETS)
     execute_process(
         COMMAND "${CMAKE_COMMAND}" -E env "XMAKE_CONFIGDIR=${DORA_XMAKE_CONFIG}"
             "${DORA_XMAKE}" build -P "${DORA_ROOT}" "${task}"

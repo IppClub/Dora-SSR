@@ -45,8 +45,9 @@ PATH; macOS Homebrew locations are also discovered. Signing uses the existing
 `DORA_ANDROID_SIGNING_*` environment variables in the package task. A release
 APK without credentials is unsigned.
 
-CMake runs the existing `dora-lua-bindings` and `dora-rust-runtime` xmake
-targets before compiling. Their shared output paths are serialized with a
+CMake runs the existing shader-source, Lua-binding and Rust-runtime xmake
+targets before compiling. The exporter also includes `dora-godot-docs` when
+the engine depends on it, generating the bundled Godot API corpus. Their shared output paths are serialized with a
 CMake process lock; Cargo and xmake retain their own incremental checks.
 Gradle's `prepareXmakeAndroid` task builds/stages the Wa AAR and module assets.
 It does not invoke Gradle recursively. Existing `app/build/xmake-jniLibs`
