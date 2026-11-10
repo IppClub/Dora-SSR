@@ -77,7 +77,7 @@ GDExtensionBool extension_init(GDExtensionInterfaceGetProcAddress, GDExtensionCl
     return true;
 }
 const char *version() { return "Godot 4.7.2-stable / Dora bridge ABI 1"; }
-const char *last_error(void *) { return runtime.error.c_str(); }
+const char *last_error(void *) { return DoraGodotDiagnostics::get(runtime.error); }
 bool valid(void *handle) { return handle == &runtime && runtime.active; }
 #include "runtime_audio.inc"
 void offscreen() {

@@ -7,6 +7,7 @@ import { isValidWorkspacePath, ensureDirPath } from 'Agent/Tool/Workspace';
 import { PREVIEW_GAME_STARTUP_TIMEOUT_SECONDS, PREVIEW_GAME_TIMEOUT_SECONDS } from 'Agent/Tool/ToolBudgets';
 import { safeJsonDecode, safeJsonEncode } from 'Agent/Utils';
 import type { VisionBudgetState } from 'Agent/Tool/VisionBudget';
+import { findGodotProject } from 'Agent/Tool/GodotBuild';
 
 export interface CommandPreviewFrame {
 	path: string;
@@ -60,7 +61,7 @@ export function pruneVisionCaptures(dir: string, keep = COMMAND_VISION_MAX_FILES
 /**
  * The previewGame function injected into execute_command's Lua sandbox.
  * It owns the game exclusively, captures 1-3 frames at the requested
- * seconds after startup, saves them under .agent/vision in the project
+ * seconds after runtime readiness, saves them under .agent/vision in the project
  * and returns the project-relative paths. Runs synchronously on the
  * command coroutine; frame callbacks are awaited with sleep() polling.
  */
@@ -168,11 +169,16 @@ export function createPreviewGameInjection(req: {
 		});
 		const files: string[] = [];
 		const frames: CommandPreviewFrame[] = [];
+		let monitor: ((this: void) => LuaMultiReturn<[boolean, string | undefined]>) | undefined;
 		let result: CommandPreviewGameResult = {success: false, message: "previewGame did not complete"};
 		const check = () => {
 			if (cancelled()) error("previewGame cancelled");
 			if (!ownsEntryLease(req.operationId, entry)) error("previewGame lost ownership of the running game");
 			if (App.runningTime - start > PREVIEW_GAME_TIMEOUT_SECONDS) error("previewGame timed out");
+			if (monitor !== undefined) {
+				const [ok, message] = monitor();
+				if (!ok) error(message ?? "Game failed during preview");
+			}
 		};
 		try {
 			interruptedUserRun = acquireEntryLease(req.operationId, entry);
@@ -206,6 +212,19 @@ export function createPreviewGameInjection(req: {
 					debug.sethook();
 				}
 			}
+			const transition = require("Script.Dev.RunTransition") as {
+				waitForFrameAsync(this: void, entry: DevEntryModule, runId: number, expectGodot: boolean, checkPreview: (this: void) => void):
+					LuaMultiReturn<[boolean, string | undefined, ((this: void) => LuaMultiReturn<[boolean, string | undefined]>) | undefined]>;
+			};
+			const runId = entry.getCurrentEntryStatus().runId;
+			if (runId === undefined) error("previewGame entry has no run identity");
+			const [ready, startupError, checkRun] = transition.waitForFrameAsync(entry, runId,
+				findGodotProject(req.workDir, full) !== undefined, () => {
+					check();
+					if (App.runningTime - start > PREVIEW_GAME_STARTUP_TIMEOUT_SECONDS) error("previewGame startup exceeded the startup time budget");
+				});
+			if (!ready) error(startupError ?? "Game did not produce its first frame");
+			monitor = checkRun;
 			const started = App.runningTime;
 			for (const time of times) {
 				while (App.runningTime - started < time) {
@@ -243,15 +262,14 @@ export function createPreviewGameInjection(req: {
 			if (cleanupError) error(cleanupError);
 			result = {success: true, files, frames, interruptedUserRun, visionBudget: reservation?.budget};
 		} catch (e) {
-			result = {success: false, files, message: tostring(e), interruptedUserRun, visionBudget: reservation?.budget};
+			result = {success: false, files, frames, message: tostring(e), interruptedUserRun, visionBudget: reservation?.budget};
 		} finally {
 			if (scope) Director.endGameCapture();
 			if (leased) {
 				const cleanupError = releaseEntryLease(req.operationId, entry);
 				if (cleanupError !== undefined) {
-					result = result.success
-						? {success: false, files, message: cleanupError, interruptedUserRun}
-						: {success: false, files, message: `${result.message ?? "previewGame failed"}; ${cleanupError}`, interruptedUserRun};
+					result = {...result, success: false, files, frames, message: result.success
+						? cleanupError : `${result.message ?? "previewGame failed"}; ${cleanupError}`};
 				}
 			}
 		}

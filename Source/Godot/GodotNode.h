@@ -95,6 +95,10 @@ protected:
         }
     }
     void running(bool value) { if (auto *target = node()) target->_running = value; }
+    // A script error is observable by Agent previews without stopping manual play.
+    void runtimeDiagnostic(const std::string &message) {
+        if (!message.empty()) { if (auto *target = node()) target->_lastError = message; }
+    }
     void error(const std::string &message) {
         if (auto *target = node()) { target->_lastError = message; target->_running = false; }
     }

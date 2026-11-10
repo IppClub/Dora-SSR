@@ -75,7 +75,7 @@ GDExtensionBool extension_init(GDExtensionInterfaceGetProcAddress,GDExtensionCla
     init->initialize=level;init->deinitialize=level;init->userdata=nullptr;return true;
 }
 const char *version() { return "Godot 4.7.2-stable / Dora bridge D3D12 CPU-fence prototype ABI 1"; }
-const char *last_error(void *) { return runtime.error.c_str(); }
+const char *last_error(void *) { return DoraGodotDiagnostics::get(runtime.error); }
 bool valid(void *handle) { return handle==&runtime && runtime.active; }
 #include "runtime_audio.inc"
 

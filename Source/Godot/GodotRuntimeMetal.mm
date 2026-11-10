@@ -180,10 +180,12 @@ class MetalSession final : public GodotSession, public std::enable_shared_from_t
             if (first && !self->_reads.produced(0,first)) { self->fail("invalid initial Godot GPU production"); return; }
             activeSession=self;
             if (audioAPI.read_pcm && !self->_audio.configure(audioAPI,self->_handle)) { self->fail("Godot audio stream configuration failed"); return; }
-            SharedApplication.invokeInLogic([self,width,height,first,initialOutput,initialIME,hasInitialIME] {
+            const std::string diagnostic=api.last_error(self->_handle);
+            SharedApplication.invokeInLogic([self,width,height,first,initialOutput,initialIME,hasInitialIME,diagnostic] {
                 if (self->_closing) return;
                 auto *node=self->node();
                 if (!node) { self->close(); return; }
+                self->runtimeDiagnostic(diagnostic);
                 if (hasInitialIME) self->applyIME(initialIME);
                 bgfx::TextureInfo info{}; bgfx::calcTextureSize(info,width,height,1,false,false,1,bgfx::TextureFormat::RGBA8);
                 for (auto handle:self->_pendingHandles) self->_textures.emplace_back(Texture2D::create(handle,info,BGFX_SAMPLER_U_CLAMP|BGFX_SAMPLER_V_CLAMP));
@@ -267,8 +269,10 @@ public:
                 }
                 if (!self->_reads.produced(reservation.slot,sequence)) { self->fail("invalid Godot GPU publication"); return; }
                 DoraGodotIMEState ime{};const bool imeChanged=self->queryIME(ime);
-                SharedApplication.invokeInLogic([self,reservation,sequence,generation,ime,imeChanged] {
+                const std::string diagnostic=api.last_error(self->_handle);
+                SharedApplication.invokeInLogic([self,reservation,sequence,generation,ime,imeChanged,diagnostic] {
                     if (self->_closing || self->_generation!=generation) return;
+                    self->runtimeDiagnostic(diagnostic);
                     if (imeChanged) self->applyIME(ime);
                     if (!self->_ring.publish(reservation,sequence)) { self->fail("stale Godot producer publication"); return; }
                     if (auto *node=self->node()) node->setTexture(self->_textures[reservation.slot]);

@@ -1,5 +1,6 @@
 // Project lifetime boundary. Engine/renderer/device lifetime is unchanged.
 #pragma once
+#include "runtime_diagnostics.h"
 #include "core/config/engine.h"
 #include "core/core_bind.h"
 #include "core/os/os.h"
@@ -62,6 +63,7 @@ inline void begin_node_boundary() {
     node_boundary_active=true;
 }
 inline bool start(GodotInstance *instance) {
+    DoraGodotDiagnostics::begin();
     // Match GodotInstance::start, but capture after engine setup and before
     // Main::start creates the project SceneTree/autoloads/script instances.
     if (Main::setup2()!=OK) return false;
@@ -139,6 +141,7 @@ inline bool supported(std::string &error) {
     return true;
 }
 inline void unload(GodotInstance *instance) {
+    DoraGodotDiagnostics::end();
     // The host has already joined the PCM producer, drained GPU work, removed
     // direct targets and destroyed its output resolver before reaching here.
     Input::get_singleton()->release_pressed_events();
@@ -185,6 +188,7 @@ inline void unload(GodotInstance *instance) {
     print_line(vformat("DORA_GODOT_PROJECT_CLEAN objects=%d resources=%d nodes=%d", ObjectDB::get_object_count(), ResourceCache::get_cached_resource_count(), orphan_nodes));
 }
 inline bool load(GodotInstance *instance, const char *path, const char *scene, int width, int height, std::string &error, bool start_scene=true) {
+    if (start_scene) DoraGodotDiagnostics::begin();
     begin_node_boundary();
     auto *settings = ProjectSettings::get_singleton();
     const String project = String::utf8(path);

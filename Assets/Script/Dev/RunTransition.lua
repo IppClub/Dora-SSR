@@ -4,7 +4,7 @@ local Dora = require("Dora")
 local App, Director, tolua = Dora.App, Dora.Director, Dora.tolua
 local M = {}
 
-function M.waitForFrameAsync(entry, runId, expectGodot)
+function M.waitForFrameAsync(entry, runId, expectGodot, checkPreview)
 	local started = App.runningTime
 	local nodes, seen = {}, {}
 	local function collect()
@@ -19,7 +19,8 @@ function M.waitForFrameAsync(entry, runId, expectGodot)
 			end)
 		end
 	end
-	local function check()
+	local function check(beforeFirstFrame)
+		if beforeFirstFrame and checkPreview then checkPreview() end
 		local status = entry.getCurrentEntryStatus()
 		if not status.running or status.runId ~= runId then
 			return false, "Run stopped or superseded before its first frame."
@@ -30,7 +31,7 @@ function M.waitForFrameAsync(entry, runId, expectGodot)
 				return false, "Godot node was removed before its first frame."
 			end
 		end
-		if App.runningTime - started >= 60 then
+		if beforeFirstFrame and App.runningTime - started >= 60 then
 			return false, "Godot startup timed out before its first frame."
 		end
 		return true
@@ -45,7 +46,7 @@ function M.waitForFrameAsync(entry, runId, expectGodot)
 	end
 	local readyFrame
 	while true do
-		local ok, err = check()
+		local ok, err = check(true)
 		if not ok then return false, err end
 		local ready = true
 		for _, game in ipairs(nodes) do
@@ -55,7 +56,12 @@ function M.waitForFrameAsync(entry, runId, expectGodot)
 			readyFrame = readyFrame or App.frame
 			-- running becomes true when the texture is published on the logic
 			-- thread. Cross two frame boundaries before allowing native hide.
-			if App.frame - readyFrame >= 2 then return true end
+			if App.frame - readyFrame >= 2 then
+				return true, nil, function()
+					collect()
+					return check(false)
+				end
+			end
 		else
 			readyFrame = nil
 		end

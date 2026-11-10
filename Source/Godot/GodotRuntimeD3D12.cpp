@@ -157,8 +157,10 @@ class D3D12Session final : public GodotSession,public std::enable_shared_from_th
         if (!publishToLogic) return true;
         DoraGodotIMEState ime{};const bool imeChanged=queryIME(ime);
         auto self=shared_from_this();
-        SharedApplication.invokeInLogic([self,slot,ime,imeChanged] {
+        const std::string diagnostic=api.last_error(_handle);
+        SharedApplication.invokeInLogic([self,slot,ime,imeChanged,diagnostic] {
             if (self->_closing || !self->_ready) return;
+            self->runtimeDiagnostic(diagnostic);
             if (imeChanged) self->applyIME(ime);
             if (auto *target=self->node()) target->setTexture(self->_textures[slot]);
         });
@@ -189,9 +191,11 @@ class D3D12Session final : public GodotSession,public std::enable_shared_from_th
         DoraGodotIMEState initialIME{};const bool hasInitialIME=queryIME(initialIME);
         if (audioAPI.read_pcm && !_audio.configure(audioAPI,_handle)) { fail("Godot D3D12 audio configuration failed");return; }
         auto self=shared_from_this();
-        SharedApplication.invokeInLogic([self,initialIME,hasInitialIME] {
+        const std::string diagnostic=api.last_error(_handle);
+        SharedApplication.invokeInLogic([self,initialIME,hasInitialIME,diagnostic] {
             if (self->_closing) return;
             auto *target=self->node();if (!target) { self->close();return; }
+            self->runtimeDiagnostic(diagnostic);
             bgfx::TextureInfo info{};bgfx::calcTextureSize(info,self->_width,self->_height,1,false,false,1,bgfx::TextureFormat::RGBA8);
             for (auto &slot:self->_slots) self->_textures.emplace_back(Texture2D::create(slot.wrapper,info,BGFX_SAMPLER_U_CLAMP|BGFX_SAMPLER_V_CLAMP));
             self->_ready=true;self->_next=1%self->_buffers;

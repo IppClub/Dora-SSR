@@ -115,7 +115,10 @@ const char *version() {
     return "Godot 4.7.2-stable / Dora bridge EGL ABI 1";
 #endif
 }
-const char *last_error(void *) { return runtime.error.empty()?dora_gl_error():runtime.error.c_str(); }
+const char *last_error(void *) {
+    const char *fallback = runtime.error.empty() ? dora_gl_error() : runtime.error.c_str();
+    return DoraGodotDiagnostics::get(fallback ? fallback : "");
+}
 bool valid(void *handle) { return handle==&runtime && runtime.active; }
 #include "runtime_audio.inc"
 bool attach_direct_color(RID target,uint32_t texture) {
