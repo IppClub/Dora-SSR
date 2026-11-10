@@ -181,9 +181,9 @@ When dev-service state is suspect, restore service health first, then rerun the 
 
 Prefer the root xmake tasks over entering third-party subdirectories manually.
 
-- Fast local desktop loop: use `xmake dora-run`. The xmake graph manages tool packages, vendor libraries, generated bindings and runtimes, then launches with repository `Assets`; it does not forcibly terminate other Dora processes.
-- Platform app build without launching: run root `xmake dora-build --platform=macosx|windows|linux|iphoneos --mode=debug|release`; Android uses `xmake dora-package --platform=android`. Use `xmake dora-run` to launch and `xmake dora-package` to package. Tests run through `xmake dora-test`, fetching Dora-Example latest default-branch HEAD only when explicitly requested. Native C++ tests require `xmake dora-build --tests`.
-- Native dependency work: configure the intended platform and build its xmake targets (`SDL2`, `bgfx`, `love`, `dora-rust-runtime`, `dora-wa-runtime`); old `build_lib_*` scripts have been removed. Use `xmake dora-package` for distribution and `xmake dora-ide` for ignored IDE projects under `build/ide/`.
+- Fast local desktop loop: use `xmake run`. The xmake graph manages tool packages, vendor libraries, generated bindings and runtimes, then launches with repository `Assets`; it does not forcibly terminate other Dora processes.
+- Platform app build without launching: configure with `xmake f -p <platform> -a <arch> -m debug|release`, then run `xmake build`; Android uses `xmake app-package --platform=android`. Use `xmake run` to launch and `xmake app-package` to package. Tests run through `xmake test-suite`, fetching Dora-Example latest default-branch HEAD only when explicitly requested. Native C++ tests require configuring `--dora_native_tests=y` (and `--dora_test_repo=PATH` for a local test checkout).
+- Native dependency work: configure the intended platform and build its xmake targets (`SDL2`, `bgfx`, `love`, `dora-rust-runtime`, `dora-wa-runtime`); old `build_lib_*` scripts have been removed. Use `xmake app-package` for distribution and `xmake project-gen` for ignored IDE projects under `build/ide/`.
 - Do not manually build bgfx, SDL2, Wa, or Rust runtime from their nested directories unless the wrapper script is the thing being debugged.
 
 When validating a local engine change, choose the script for the platform actually affected. Do not run expensive cross-platform builds unless the change touches shared build logic or release packaging.

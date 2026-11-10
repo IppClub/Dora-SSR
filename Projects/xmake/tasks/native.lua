@@ -16,34 +16,6 @@ local function settings(option, api)
     return platform, arch, mode
 end
 
-local function run_arguments(root, arguments, api)
-    local os, assert, path = api.os, api.ensure, api.path
-    local args = table.join(arguments or {})
-    local assets
-    for i, arg in ipairs(args) do
-        local value
-        if arg == "--asset" then
-            value = args[i + 1]
-            assert(value and #value > 0 and not value:startswith("--"), "--asset expects a directory")
-            args[i + 1] = path.absolute(value, root)
-        elseif arg:startswith("--asset=") then
-            value = arg:sub(9)
-            assert(#value > 0, "--asset expects a directory")
-            args[i] = "--asset=" .. path.absolute(value, root)
-        end
-        if value then
-            assert(not assets, "--asset may only be specified once")
-            assets = path.absolute(value, root)
-        end
-    end
-    if not assets then
-        assets = path.join(root, "Assets")
-        args = table.join({"--asset", assets}, args)
-    end
-    assert(os.isdir(assets), "asset directory not found: " .. assets)
-    return args, assets
-end
-
 local function configure(platform, arch, mode, envs, appledev, api, tests)
     local os = api.os
     if os.host() == "windows" and os.arch() ~= "arm64"
@@ -57,50 +29,11 @@ local function configure(platform, arch, mode, envs, appledev, api, tests)
     os.execv(os.programfile(), args, {curdir = os.projectdir(), envs = envs})
 end
 
-for _, name in ipairs({"dora-build", "dora-run"}) do
-    task(name)
-        set_category("plugin")
-        set_menu {
-            usage = "xmake " .. name .. " [--platform=macosx|linux|windows] [--mode=debug|release]",
-            description = "Build the native engine from the single xmake graph" .. (name == "dora-run" and " and launch it" or ""),
-            options = {{nil, "platform", "kv", nil, "Native platform"}, {nil, "arch", "kv", nil, "Target architecture"},
-                {nil, "mode", "kv", "debug", "debug or release"}, {nil, "jobs", "kv", "6", "Compilation jobs"},
-                {nil, "appledev", "kv", "simulator", "iOS SDK"}, {nil, "tests", "k", nil, "Include external native tests"},
-                {nil, "arguments", "vs", nil, "Engine arguments (after --)"}}
-        }
-        local run = name == "dora-run"
-        on_run(function ()
-            import("core.base.option")
-            local api = {os = os, ensure = assert, path = path}
-            local platform, arch, mode = settings(option, api)
-            assert(not run or platform == os.host(), "run requires the host platform")
-            local jobs = tonumber(option.get("jobs"))
-            assert(jobs and jobs > 0 and jobs == math.floor(jobs), "jobs must be a positive integer")
-            local root = os.projectdir()
-            local sdk = platform == "iphoneos" and option.get("appledev") or "native"
-            local envs = {XMAKE_CONFIGDIR = path.join(root, "build/native-config", platform, sdk, arch, mode)}
-            local arguments
-            if run then
-                arguments, envs.DORA_NATIVE_RUN_ASSET_DIR = run_arguments(root, option.get("arguments"), api)
-            end
-            local tests = option.get("tests") and import("Projects.xmake.testing.repository", {rootdir = root, anonymous = true})()
-            configure(platform, arch, mode, envs, option.get("appledev"), api, tests)
-            os.execv(os.programfile(), {"build", "-j", tostring(jobs), "Dora"}, {curdir = root, envs = envs})
-            if run then
-                local binary = path.join(root, "build", platform, arch, mode, platform == "windows" and "Dora.exe" or "Dora")
-                if platform == "macosx" then binary = path.join(root, "build/macosx", arch, mode, "Dora.app/Contents/MacOS/Dora") end
-                assert(os.isfile(binary), "missing engine executable: " .. binary)
-                os.execv(binary, arguments, {curdir = root})
-            end
-        end)
-    task_end()
-end
-
-task("dora-ide")
+task("project-gen")
     set_category("plugin")
     set_menu {
-        usage = "xmake dora-ide [--platform=macosx|iphoneos|windows|linux] [--kind=xcode|vsxmake|compile_commands]",
-        description = "Generate disposable IDE projects under build/ide",
+        usage = "xmake project-gen [--platform=macosx|iphoneos|windows|linux] [--kind=xcode|vsxmake|compile_commands]",
+        description = "Generate native Xcode/Visual Studio projects or compile_commands under build/ide (use web-ide to build the Web IDE frontend)",
         options = {{nil, "platform", "kv", nil, "Native platform"}, {nil, "arch", "kv", nil, "Target architecture"},
             {nil, "mode", "kv", "debug", "Initial mode"}, {nil, "kind", "kv", nil, "IDE generator"},
             {nil, "appledev", "kv", "simulator", "iOS SDK"}}

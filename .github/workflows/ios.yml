@@ -50,7 +50,7 @@ jobs:
       - name: iOS build
         run: |
           xmake --version
-          xmake dora-package --platform=ios --appledev=${{ matrix.device }} --mode=${{ matrix.mode }}
+          xmake app-package --platform=ios --appledev=${{ matrix.device }} --mode=${{ matrix.mode }}
 
       - name: Retain failed Godot component build logs
         if: failure()

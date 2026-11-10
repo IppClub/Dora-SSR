@@ -4,8 +4,10 @@ set_xmakever("3.0.0")
 
 set_allowedmodes("debug", "release")
 set_defaultmode("debug")
+set_defaultarchs("windows|x64")
 set_allowedplats("macosx", "iphoneos", "linux", "windows", "android", "wasm", "mingw")
 set_policy("build.fence", true)
+set_policy("run.autobuild", true)
 
 if is_plat("macosx") then
     set_config("target_minver", "12.0")

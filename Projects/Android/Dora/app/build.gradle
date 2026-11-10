@@ -94,7 +94,7 @@ if (!xmakeExecutable || !new File(xmakeExecutable.toString()).isFile()) {
 def doraNdkVersion = godotEnabled ? '29.0.14206865' : '26.1.10909125'
 def prepareXmakeAndroid = tasks.register('prepareXmakeAndroid', Exec) {
 	workingDir rootProject.file('../../..')
-	commandLine xmakeExecutable, 'dora-android-prepare', '-P', rootProject.file('../../..').absolutePath, "--sdk=${android.sdkDirectory}", "--ndk-version=${doraNdkVersion}"
+	commandLine xmakeExecutable, 'android-prepare', '-P', rootProject.file('../../..').absolutePath, "--sdk=${android.sdkDirectory}", "--ndk-version=${doraNdkVersion}"
 }
 
 android {
@@ -199,7 +199,7 @@ if (!waArtifact.isFile()) {
 	logger.lifecycle('Preparing xmake-managed Android Wa runtime for Gradle Sync')
 	project.exec {
 		workingDir rootProject.file('../../..')
-		commandLine xmakeExecutable, 'dora-android-prepare', '-P', rootProject.file('../../..').absolutePath, "--sdk=${android.sdkDirectory}", "--ndk-version=${doraNdkVersion}"
+		commandLine xmakeExecutable, 'android-prepare', '-P', rootProject.file('../../..').absolutePath, "--sdk=${android.sdkDirectory}", "--ndk-version=${doraNdkVersion}"
 	}
 }
 

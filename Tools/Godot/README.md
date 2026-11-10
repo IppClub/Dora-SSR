@@ -3,7 +3,7 @@
 当前升级候选为 Godot **4.7.2-stable**，macOS arm64 Metal、Linux ARM64 EGL Release（virgl）与 x64 EGL Release（QEMU/llvmpipe）最小项目切换验收已通过；新版状态见 [TRACKING.md](TRACKING.md)。下文既有多平台运行记录属于 4.6 基线，不能直接视为 4.7.2 已通过。导入/导出使用匹配的 4.7 编辑器，当前固定 4.7.2。
 
 
-测试、验证与诊断程序已迁至 Dora-Example 的 `Test/Godot`，旧 Metal 原型位于 `Test/LibGodotMetalProbe`。生产构建与包/SDK完整性校验仍由本目录维护。运行本文测试命令前，先从引擎根目录执行 `xmake dora-test-deps --env-file=/path/to/test-env`，或设置 `DORA_TEST_REPO=/absolute/path/to/Dora-Example`；Python/Shell 测试使用 `DORA_ENGINE_ROOT` 指向当前引擎，未设置时从引擎工作目录解析。统一轻量入口为 `xmake dora-test --repo=/path/to/Dora-Example --suite=godot-contract`。
+测试、验证与诊断程序已迁至 Dora-Example 的 `Test/Godot`，旧 Metal 原型位于 `Test/LibGodotMetalProbe`。生产构建与包/SDK完整性校验仍由本目录维护。运行本文测试命令前，先从引擎根目录执行 `xmake test-deps --env-file=/path/to/test-env`，或设置 `DORA_TEST_REPO=/absolute/path/to/Dora-Example`；Python/Shell 测试使用 `DORA_ENGINE_ROOT` 指向当前引擎，未设置时从引擎工作目录解析。统一轻量入口为 `xmake test-suite --repo=/path/to/Dora-Example --suite=godot-contract`。
 
 第三方依赖采用完整独立LibGodot模式：保留Godot各平台原有依赖实现，Dora分别构建自己的版本；库共享开关和codec函数表实验已移除，历史见归档（`history/2026-11-03-library-sharing-removed/README.md`）。
 
@@ -23,9 +23,9 @@ Web PCM 更新（2026-10-29）：宿主与 Godot 运行在同一 window 线程�
 
 ## 默认正式组件（Dora 1.10.0）
 
-Godot 默认参与构建并随产物打包，不需要预先运行独立实验脚本。桌面 `xmake build Dora` 构建匹配模式的运行库；`xmake dora-package --platform=macosx|linux|windows --mode=release` 自动封包。默认 macOS 为 arm64、Windows 为 x64/WGL，Linux 支持 x86_64/arm64。运行库和许可证必须完整，缺失或模式/架构不符会失败，不静默输出缺功能的包。
+Godot 默认参与构建并随产物打包，不需要预先运行独立实验脚本。桌面 `xmake build Dora` 构建匹配模式的运行库；`xmake app-package --platform=macosx|linux|windows --mode=release` 自动封包。默认 macOS 为 arm64、Windows 为 x64/WGL，Linux 支持 x86_64/arm64。运行库和许可证必须完整，缺失或模式/架构不符会失败，不静默输出缺功能的包。
 
-Android 的默认 Gradle APK/AAB包含各选定ABI的Godot运行库及vendor Java AAR；原生库按ABI串行构建，正式库采用Release。`xmake dora-web` 默认包含WebGL2桥接和独立Godot JS/WASM。`xmake dora-studio` 同时生成专用Agent引擎和pthread游戏Player，`Studio/pnpm build`也会执行此步骤。Studio准备、打包和Go静态服务均包含Godot资源及通知；Godot内容要求COOP/COEP，普通Dora离线HTML不初始化Godot。
+Android 的默认 Gradle APK/AAB包含各选定ABI的Godot运行库及vendor Java AAR；原生库按ABI串行构建，正式库采用Release。`xmake web` 默认包含WebGL2桥接和独立Godot JS/WASM。`xmake studio` 同时生成专用Agent引擎和pthread游戏Player，`Studio/pnpm build`也会执行此步骤。Studio准备、打包和Go静态服务均包含Godot资源及通知；Godot内容要求COOP/COEP，普通Dora离线HTML不初始化Godot。
 
 iOS默认arm64包嵌入`DoraGodot.framework`，Dora Apple2/Godot Apple4门槛保持不变；包含运行库不代表已完成iOS正向渲染验收。需要旧架构或明确裁剪时，桌面用`--dora_godot_runtime=n`、打包用`--without-godot`、Android用`-Pdora.godot=false`、Web用`DORA_WEB_GODOT=0`。`--godot-runtime`仅用于显式替换经过验证且模式/架构/后端匹配的包。
 
@@ -272,7 +272,7 @@ GPU 纹理与 fence 协议。`tests/particle_key.py` 单独检查材质键的填
 
 ```sh
 DORA_GODOT_TARGET=template_release Tools/Godot/build_runtime.sh
-xmake dora-package --platform=macosx --arch=arm64 --mode=release \
+xmake app-package --platform=macosx --arch=arm64 --mode=release \
   --godot-runtime="$PWD/build/godot-runtime/release/package"
 ```
 
@@ -1242,7 +1242,7 @@ DORA_WEB_GODOT_RUNTIME_DIR="$PWD/build/godot-web/release/package" \
 DORA_WEB_BUILD_DIR="$PWD/build/godot-web/release-build" \
 DORA_WEB_PACKAGE_DIR="$PWD/build/godot-web/release-probe" \
 DORA_WEB_PLAYER_PACKAGE_DIR="$PWD/build/godot-web/release-player" \
-DORA_WEB_BUILD_LOVE_PROBE=0 xmake dora-web -P "$PWD" --mode=release --profile=dora-preset --jobs=2
+DORA_WEB_BUILD_LOVE_PROBE=0 xmake web -P "$PWD" --mode=release --profile=dora-preset --jobs=2
 ```
 
 `dora-preset`是默认交付配置，包含Dora Demo通常启用的模块。`core`只用于明确需要最小宿主的裁剪场景，不能用其验收结果替代默认配置。
@@ -1259,7 +1259,7 @@ DORA_WEB_GODOT=1 DORA_WEB_GODOT_DIAGNOSTICS=1 \
 DORA_WEB_BUILD_DIR="$PWD/build/godot-web/dora-build" \
 DORA_WEB_PACKAGE_DIR="$PWD/build/godot-web/dora-probe" \
 DORA_WEB_PLAYER_PACKAGE_DIR="$PWD/build/godot-web/dora-player" \
-DORA_WEB_BUILD_LOVE_PROBE=0 xmake dora-web --mode=debug --profile=core --jobs=2
+DORA_WEB_BUILD_LOVE_PROBE=0 xmake web --mode=debug --profile=core --jobs=2
 python3 $DORA_TEST_REPO/Test/Godot/tests/web/run_node_matrix.py
 ```
 

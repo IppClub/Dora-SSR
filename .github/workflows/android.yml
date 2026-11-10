@@ -64,7 +64,7 @@ jobs:
         run: xmake --version
       - name: Build Android
         if: "!startsWith(github.ref, 'refs/tags/')"
-        run: xmake dora-package --platform=android --mode=debug
+        run: xmake app-package --platform=android --mode=debug
       - name: Generate tutorial docs
         if: startsWith(github.ref, 'refs/tags/')
         run: node Docs/scripts/generate-language-docs.js
@@ -82,7 +82,7 @@ jobs:
           DORA_ANDROID_SIGNING_STORE_PASSWORD="$KEYSTORE_PASSWORD" \
           DORA_ANDROID_SIGNING_KEY_ALIAS="$KEY_ALIAS" \
           DORA_ANDROID_SIGNING_KEY_PASSWORD="$KEY_PASSWORD" \
-            xmake dora-package --platform=android --mode=release
+            xmake app-package --platform=android --mode=release
           cd Projects/Android/Dora/app/build/outputs/apk/release
           mv app-release.apk dora-ssr-${{ github.ref_name }}-android.apk
           zip dora-ssr-${{ github.ref_name }}-android.zip dora-ssr-${{ github.ref_name }}-android.apk

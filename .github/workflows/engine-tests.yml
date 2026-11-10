@@ -61,11 +61,11 @@ jobs:
         uses: ./.github/actions/setup-engine-lua
       - name: Resolve Dora-Example tests once
         working-directory: .
-        run: xmake dora-test-deps --env-file="$GITHUB_ENV"
+        run: xmake test-deps --env-file="$GITHUB_ENV"
       - name: Test engine contracts
-        run: xmake dora-test --suite=contract
+        run: xmake test-suite --suite=contract
       - name: Test native networking, shutdown and Lua services
-        run: xmake dora-test --suite=engine
+        run: xmake test-suite --suite=engine
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4

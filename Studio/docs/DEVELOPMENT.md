@@ -1,6 +1,6 @@
 # Studio 开发与验证
 
-2026-10-01 构建入口更新：Web 源清单和 profile 现由 `Projects/xmake/web/targets.lua` 管理，`build_studio_agent_host.sh` 经兼容入口调用 `xmake dora-web`。下文 CMake/旧工具链描述为当时验证记录，当前操作参见 `Projects/xmake/web/README.md`。
+2026-10-01 构建入口更新：Web 源清单和 profile 现由 `Projects/xmake/web/targets.lua` 管理，`build_studio_agent_host.sh` 经兼容入口调用 `xmake web`。下文 CMake/旧工具链描述为当时验证记录，当前操作参见 `Projects/xmake/web/README.md`。
 
 ## Go 后端迁移验证（2026-09-19）
 

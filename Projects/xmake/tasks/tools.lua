@@ -1,8 +1,8 @@
 local scripts = {
-    ["dora-web-game"] = "package_web_game.mjs",
-    ["dora-web-preview"] = "package_web_preview.mjs",
-    ["dora-web-rollback"] = "rollback_web_preview.mjs",
-    ["dora-gallery"] = "build_web_gallery.mjs"
+    ["web-game"] = "package_web_game.mjs",
+    ["web-preview"] = "package_web_preview.mjs",
+    ["web-rollback"] = "rollback_web_preview.mjs",
+    ["gallery"] = "build_web_gallery.mjs"
 }
 for name, script in pairs(scripts) do
     task(name)
@@ -21,9 +21,25 @@ for name, script in pairs(scripts) do
     task_end()
 end
 
-task("dora-studio")
+task("web-ide")
     set_category("plugin")
-    set_menu {usage = "xmake dora-studio", description = "Build Godot-enabled Studio Agent and game Players", options = {}}
+    set_menu {
+        usage = "xmake web-ide",
+        description = "Build only the Web IDE frontend and sync compressed assets; reuse the prepared Web Player runtime",
+        options = {}
+    }
+    on_run(function ()
+        import("lib.detect.find_tool")
+        local root = os.projectdir()
+        local node = assert(find_tool("node"), "Web IDE frontend builds require Node.js")
+        assert(find_tool("pnpm"), "Web IDE frontend builds require pnpm; run pnpm install in Tools/dora-dora first")
+        os.execv(node.program, {"scripts/build-project.js", "--frontend-only"}, {curdir = path.join(root, "Tools/dora-dora")})
+    end)
+task_end()
+
+task("studio")
+    set_category("plugin")
+    set_menu {usage = "xmake studio", description = "Build Godot-enabled Studio Agent and game Players", options = {}}
     on_run(function ()
         local root = os.projectdir()
         import("lib.detect.find_tool")
@@ -36,7 +52,7 @@ task("dora-studio")
         -- build. A clean checkout has no contracts/dist yet.
         os.vrunv(pnpm.program, {"--dir", path.join(root, "Studio"), "--filter", "@dora-studio/contracts", "build"}, {curdir = root})
         local output = path.join(root, "result/dora-studio-agent-engine")
-        os.vrunv(os.programfile(), {"dora-web"}, {curdir = root, envs = {
+        os.vrunv(os.programfile(), {"web"}, {curdir = root, envs = {
             DORA_WEB_STUDIO_AGENT_HOST = "1", DORA_WEB_BUILD_ENGINE = "1", DORA_WEB_LINK_PLAYER = "1",
             DORA_WEB_BUILD_LOVE_PROBE = "0", DORA_WEB_BUILD_LOVE_PTHREAD_PLAYER = "0", DORA_WEB_PTHREADS = "0",
             DORA_WEB_PROFILE = "dora-preset", DORA_WEB_FEATURE_MUSIC = "ON",
@@ -58,7 +74,7 @@ task("dora-studio")
         assert(not runtime:find("Streaming is only supported when FETCH_STREAMING is enabled", 1, true), "Studio host lacks Fetch streaming")
         cprint("${green}Studio Agent engine: %s${clear}", output)
         local player = path.join(root, "result/dora-studio-player")
-        os.vrunv(os.programfile(), {"dora-web"}, {curdir = root, envs = {
+        os.vrunv(os.programfile(), {"web"}, {curdir = root, envs = {
             DORA_WEB_STUDIO_AGENT_HOST = "0", DORA_WEB_BUILD_ENGINE = "1", DORA_WEB_LINK_PLAYER = "1",
             DORA_WEB_BUILD_LOVE_PROBE = "0", DORA_WEB_BUILD_LOVE_PTHREAD_PLAYER = "0", DORA_WEB_PTHREADS = "1",
             DORA_WEB_GODOT = "1", DORA_WEB_PROFILE = "dora-preset", DORA_WEB_FEATURE_YUE = "OFF",

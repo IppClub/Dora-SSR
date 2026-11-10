@@ -28,7 +28,7 @@ end
 local function files(t, c, list, options)
     for _, source in ipairs(list) do
         if source:startswith("@testweb@") then
-            c.ensure(c.testweb, "test targets require xmake dora-web --tests")
+            c.ensure(c.testweb, "test targets require xmake web --tests")
             source = source:gsub("@testweb@", c.testweb)
         end
         t:add("files", path.absolute(source, c.root), options)
@@ -63,7 +63,7 @@ end
 local function linkflag(t, c, flag)
     flag = flag:gsub("@root@", c.root):gsub("@web@", c.web):gsub("@out@", c.out)
     if flag:find("@testweb@", 1, true) then
-        c.ensure(c.testweb, "test assets require xmake dora-web --tests")
+        c.ensure(c.testweb, "test assets require xmake web --tests")
         flag = flag:gsub("@testweb@", c.testweb)
     end
     local option, argument = flag:match("^(%-%-[%w%-]+) (.+)$")

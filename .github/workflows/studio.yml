@@ -74,11 +74,11 @@ jobs:
         uses: ./.github/actions/setup-engine-lua
       - name: Resolve Dora-Example tests once
         working-directory: .
-        run: xmake dora-test-deps --env-file="$GITHUB_ENV"
+        run: xmake test-deps --env-file="$GITHUB_ENV"
       - name: Build default Studio products including Godot
         run: pnpm --dir Studio build
       - name: Test Studio frontend and Go backend with built Agent host
-        run: xmake dora-test --suite=studio
+        run: xmake test-suite --suite=studio
       - name: Retain default Studio products
         uses: actions/upload-artifact@v4
         with:

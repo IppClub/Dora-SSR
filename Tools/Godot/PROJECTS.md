@@ -93,7 +93,7 @@ python3 Tools/Godot/project.py run /path/to/game.dora-game \
 ## 本地验证
 
 ```sh
-xmake dora-test --repo=/path/to/Dora-Example --suite=godot-projects
+xmake test-suite --repo=/path/to/Dora-Example --suite=godot-projects
 python3 "$DORA_TEST_REPO/Test/Godot/run_project_delivery.py" \
   --godot /path/to/Godot-4.7.2 --app /path/to/ordinary/Dora.app \
   --runtime-package /path/to/godot-runtime/package --output /path/to/fresh-results

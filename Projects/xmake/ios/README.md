@@ -3,9 +3,9 @@
 On macOS with Xcode and the required SDK/runtime installed:
 
 ```sh
-xmake dora-package --platform=ios --appledev=simulator --mode=debug
-xmake dora-package --platform=ios --appledev=simulator --mode=release
-xmake dora-package --platform=ios --appledev=device --mode=release
+xmake app-package --platform=ios --appledev=simulator --mode=debug
+xmake app-package --platform=ios --appledev=simulator --mode=release
+xmake app-package --platform=ios --appledev=device --mode=release
 ```
 
 The root native manifest and Apple application rule build the engine, vendor
@@ -24,7 +24,7 @@ For an editable IDE workspace, generate it rather than maintaining a second
 source list:
 
 ```sh
-xmake dora-ide --platform=ios --appledev=simulator
+xmake project-gen --platform=ios --appledev=simulator
 open build/ide/iphoneos/simulator/arm64/Dora-SSR.xcodeproj
 ```
 

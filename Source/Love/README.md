@@ -18,13 +18,14 @@ Build and test entry points are owned by the repository-root xmake project.
 run from the Dora-SSR repository root:
 
 ```sh
-xmake dora-build --platform=macosx --mode=debug
+xmake f -p macosx -m debug
+xmake build
 ```
 
 Web LOVE runtime/support and compile/link/graphics/shader/audio probes are
 specified in `Projects/xmake/web/manifest.lua` and `targets.lua`. Build the
-external fixtures and probes with `xmake dora-web --tests`; build the standalone
-LOVE pthread Player with `xmake dora-web --pthreads`. These are xmake targets,
+external fixtures and probes with `xmake web --tests`; build the standalone
+LOVE pthread Player with `xmake web --pthreads`. These are xmake targets,
 not a standalone CMake project in this directory. Android Studio retains an
 xmake-generated CMake bridge for its Gradle/NDK native model; see
 [the Android integration guide](../../Projects/xmake/android/README.md).
@@ -35,12 +36,12 @@ checks), not under `Source/Love/Tests/`. `Test/manifest.json` and `Test/run.mjs`
 provide the test inventory and runner. For example:
 
 ```sh
-xmake dora-test --suite=web --list
-xmake dora-test --case=check_web_love_capabilities
-xmake dora-test --case=check_web_love_player_output -- result/love-pthread-player
+xmake test-suite --suite=web --list
+xmake test-suite --case=check_web_love_capabilities
+xmake test-suite --case=check_web_love_player_output -- result/love-pthread-player
 ```
 
-`xmake dora-test` resolves the latest remote default-branch HEAD by default and
+`xmake test-suite` resolves the latest remote default-branch HEAD by default and
 runs from a revision-specific snapshot. Use `--repo=/path/to/Dora-Example` for
 an existing local checkout, or set `DORA_TEST_REPO` for both fixture builds and
 test runs; local edits are preserved. Listing tests still requires the test

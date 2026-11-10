@@ -345,10 +345,10 @@ local function package_windows(mode, arch, api)
 
 end
 
-task("dora-package")
+task("app-package")
     set_category("plugin")
     set_menu {
-        usage = "xmake dora-package --platform=android|ios|web|linux|macosx|windows [--mode=debug|release]",
+        usage = "xmake app-package --platform=android|ios|web|linux|macosx|windows [--mode=debug|release]",
         description = "Build and package Dora through the platform-native packager",
         options = {
             {nil, "platform", "kv", nil, "Package platform: android, ios, web, linux, macosx or windows"},
@@ -375,7 +375,7 @@ task("dora-package")
         local godot_override = option.get("godot-runtime") or os.getenv("DORA_GODOT_RUNTIME_DIR")
         assert(not (without_godot and godot_override), "--without-godot cannot select a runtime package")
         if platform == "web" or platform == "wasm" then
-            local args = {"dora-web", "-P", os.projectdir(), "--mode=" .. mode}
+            local args = {"web", "-P", os.projectdir(), "--mode=" .. mode}
             if option.get("profile") then table.insert(args, "--profile=" .. option.get("profile")) end
             if option.get("pthreads") then table.insert(args, "--pthreads") end
             os.vrunv(os.programfile(), args, {curdir = os.projectdir(), envs = {
@@ -401,7 +401,7 @@ task("dora-package")
         if platform == "windows" and godot_runtime and not godot_override then godot_runtime = path.join(os.projectdir(), "build/godot-component/windows", runtime_arch, mode, windows_backend, "package") end
         assert(platform == "android" or platform == "linux" or platform == "macosx"
             or platform == "windows",
-            "dora-package supports android, linux, macosx and windows")
+            "app-package supports android, linux, macosx and windows")
         assert(mode == "debug" or mode == "release", "--mode must be debug or release")
         assert((platform == "windows" and (format == "zip" or format == "msi" or format == "both")) or format == "apk" or (platform == "android" and mode == "release" and format == "aab"),
             "--format=aab is supported for Android release only")

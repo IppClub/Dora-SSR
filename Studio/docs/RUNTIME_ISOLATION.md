@@ -86,7 +86,7 @@ DORA_WEB_EXPERIMENTAL_MAIN_WORKER=1 \
 DORA_WEB_BUILTIN_FONT="$PWD/Assets/Font/sarasa-mono-sc-regular.ttf" \
 DORA_WEB_SDL2_PORT_SOURCE_DIR=/path/to/active-sdk/cache/ports/sdl2/SDL-release-2.32.10 \
 DORA_WEB_FEATURE_MODEL_3D=OFF DORA_WEB_BUILD_LOVE_PROBE=0 \
-DORA_WEB_BUILD_LOVE_PTHREAD_PLAYER=0 xmake dora-web --pthreads
+DORA_WEB_BUILD_LOVE_PTHREAD_PLAYER=0 xmake web --pthreads
 ```
 
 Studio 试玩必须使用 `Assets/Font` 中的完整中文字库；Web preset 目录中的精简字体只覆盖基础字符，会使 Agent 生成游戏里的中文标签显示为方框。

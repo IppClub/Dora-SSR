@@ -36,7 +36,7 @@ jobs:
         with:
           xmake-version: '3.1.1'
       - name: Resolve Dora-Example tests once
-        run: xmake dora-test-deps --env-file="$GITHUB_ENV"
+        run: xmake test-deps --env-file="$GITHUB_ENV"
       - name: ABI, ownership, timing, PCM and embedded shader contracts
         run: bash "$DORA_TEST_REPO/Test/Godot/tests/protocol.sh"
       - name: Runtime package positive and negative checks
@@ -91,7 +91,7 @@ jobs:
         with:
           xmake-version: '3.1.1'
       - name: Resolve Dora-Example tests once
-        run: xmake dora-test-deps --env-file="$GITHUB_ENV"
+        run: xmake test-deps --env-file="$GITHUB_ENV"
       - name: Install build and headless EGL dependencies
         run: |
           sudo apt-get update

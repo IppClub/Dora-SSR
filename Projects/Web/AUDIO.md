@@ -79,26 +79,26 @@ Build `dora-web-player` as usual; it depends on `dora-web-audio-mixer`.
 
 ```sh
 # No browser/GPU; runs in Docs CI after packaging.
-xmake dora-test --case=test_web_audio_worklet -- build/web
+xmake test-suite --case=test_web_audio_worklet -- build/web
 # Optional codec fixtures follow the build-directory argument.
-xmake dora-test --case=test_web_audio_state
+xmake test-suite --case=test_web_audio_state
 
 # Local Chrome only; never added to CI.
-xmake dora-test --case=check_web_audio_worklet -- build/web
-xmake dora-test --case=check_web_audio_worklet -- build/web --fallback
-xmake dora-test --case=check_web_audio_worklet -- build/web --spatial
-xmake dora-test --case=check_web_audio_worklet -- build/web-audio-gallery --gallery
-xmake dora-test --case=check_web_audio_worklet -- build/web-audio-gallery --gallery --fallback
+xmake test-suite --case=check_web_audio_worklet -- build/web
+xmake test-suite --case=check_web_audio_worklet -- build/web --fallback
+xmake test-suite --case=check_web_audio_worklet -- build/web --spatial
+xmake test-suite --case=check_web_audio_worklet -- build/web-audio-gallery --gallery
+xmake test-suite --case=check_web_audio_worklet -- build/web-audio-gallery --gallery --fallback
 # Real AudioSource Lua integration, including AudioEnd, autoRemove and stopAll:
-xmake dora-test --case=stage_web_audio_source_test -- build/web
+xmake test-suite --case=stage_web_audio_source_test -- build/web
 # Pass its printed output directory:
-xmake dora-test --case=check_web_audio_worklet -- <output-directory> --gallery --game=audio-source-test
+xmake test-suite --case=check_web_audio_worklet -- <output-directory> --gallery --game=audio-source-test
 # Build with DORA_WEB_BUILD_LOVE_PROBE=ON; local browser only:
-xmake dora-test --case=check_web_audio_worklet -- build/web --love-probe
-xmake dora-test --case=check_web_audio_worklet -- build/web --love-probe --fallback
+xmake test-suite --case=check_web_audio_worklet -- build/web --love-probe
+xmake test-suite --case=check_web_audio_worklet -- build/web --love-probe --fallback
 # Also set DORA_WEB_LOVE_COMPLEX_PACKAGE to the licensed local Balatro package:
 # Balatro itself requires a pthread build for its save thread, independent of mixing.
-xmake dora-test --case=check_web_audio_worklet -- build/web-pthreads --love-complex --isolated
+xmake test-suite --case=check_web_audio_worklet -- build/web-pthreads --love-complex --isolated
 ```
 
 The browser harness records audio in a second worklet while deliberately

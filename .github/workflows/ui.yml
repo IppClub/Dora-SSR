@@ -68,7 +68,7 @@ jobs:
           xmake-version: latest
       - name: Resolve Dora-Example tests once
         working-directory: .
-        run: xmake dora-test-deps --env-file="$GITHUB_ENV"
+        run: xmake test-deps --env-file="$GITHUB_ENV"
       - name: Install frontend dependencies
         run: |
           pnpm install --frozen-lockfile
@@ -80,7 +80,7 @@ jobs:
           node Studio/packages/agent-contracts/build.mjs
           node Tools/dora-dora/scripts/build-studio-compiler.cjs
       - name: Test Web IDE frontend and development proxy
-        run: xmake dora-test -P ../.. --suite=ui
+        run: xmake test-suite -P ../.. --suite=ui
       - name: Lint (oxlint)
         run: pnpm lint
       - name: Typecheck linked Web IDE UI
@@ -89,7 +89,7 @@ jobs:
         run: pnpm build
       - name: Verify Web export assets
         run: |
-          xmake dora-test -P ../.. --case=test-web-package
+          xmake test-suite -P ../.. --case=test-web-package
           pnpm verify:web-release-assets
       - name: Upload test results
         if: always()

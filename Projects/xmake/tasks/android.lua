@@ -1,7 +1,7 @@
-task("dora-android-prepare")
+task("android-prepare")
     set_category("plugin")
     set_menu {
-        usage = "xmake dora-android-prepare --sdk=ANDROID_SDK",
+        usage = "xmake android-prepare --sdk=ANDROID_SDK",
         description = "Prepare the xmake-managed Wa AAR and Android assets for Gradle",
         options = {{nil, "sdk", "kv", nil, "Android SDK directory"},
             {nil, "ndk-version", "kv", "29.0.14206865", "NDK version selected by the Gradle host"}}

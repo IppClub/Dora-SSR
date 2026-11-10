@@ -5,18 +5,18 @@ Dora-SSR keeps the xmake launcher, build/release validators, and package-local
 Go tests. Do not add a second copy of an external regression test here.
 
 ```sh
-xmake dora-test --suite=contract
-xmake dora-test --suite=engine
-xmake dora-test --suite=ui
-xmake dora-test --suite=studio
-xmake dora-test --case=test_shutdown_watchdog -- --engine /absolute/path/Dora
+xmake test-suite --suite=contract
+xmake test-suite --suite=engine
+xmake test-suite --suite=ui
+xmake test-suite --suite=studio
+xmake test-suite --case=test_shutdown_watchdog -- --engine /absolute/path/Dora
 ```
 
 The default launcher clones/fetches Dora-Example's latest default-branch HEAD,
 then runs an immutable revision checkout. It records both repository revisions
 and dirty states in `build/test-results/`. Local test development uses
 `--repo=/absolute/path/Dora-Example` or `DORA_TEST_REPO`; it never resets that checkout.
-CI resolves once per job with `xmake dora-test-deps --env-file="$GITHUB_ENV"`.
+CI resolves once per job with `xmake test-deps --env-file="$GITHUB_ENV"`.
 Every later test command in the job uses that same test revision.
 
 | Workflow | Responsibility | Dependencies |
@@ -44,12 +44,12 @@ let the next matching engine push/PR resolve the latest tests.
 
 ## Network resource acceptance
 
-`xmake dora-test --case=test_http_resource_limits` runs native HTTP/WebSocket
+`xmake test-suite --case=test_http_resource_limits` runs native HTTP/WebSocket
 wire tests under ASan/UBSan. To also exercise a freshly built desktop engine and
 its real IDE upload/read/save routes (requires unused ports 8866 and 8868):
 
 ```sh
-xmake dora-test --case=test_http_resource_limits -- --engine /absolute/path/Dora
+xmake test-suite --case=test_http_resource_limits -- --engine /absolute/path/Dora
 ```
 
 The server admits 64 HTTP and 16 WebSocket connections. Ordinary request bodies
@@ -71,13 +71,13 @@ Disconnects, rejection and shutdown release body leases and anonymous files.
 
 ## Agent storage maintenance
 
-`xmake dora-test --case=test_agent_storage` runs the production storage Lua
+`xmake test-suite --case=test_agent_storage` runs the production storage Lua
 against real SQLite through a small Dora boundary adapter. The engine suite
 owns this regression; implementations and fixtures remain in Dora-Example.
 For native codec, manual cleanup, HTTP and actual file rollback acceptance:
 
 ```sh
-xmake dora-test --case=test_agent_storage --repo=/path/to/Dora-Example -- --engine /absolute/path/Dora
+xmake test-suite --case=test_agent_storage --repo=/path/to/Dora-Example -- --engine /absolute/path/Dora
 ```
 
 The native test requires free ports 8866/8868 and uses a disposable profile.
@@ -128,14 +128,14 @@ on crashes, and stale macOS IPC endpoints are replaced by the next owner.
 Tests live in Dora-Example. During development, pass its local checkout:
 
 ```sh
-xmake dora-test --case=test_gui_single_instance --repo=/path/to/Dora-Example
+xmake test-suite --case=test_gui_single_instance --repo=/path/to/Dora-Example
 # Desktop integration: duplicate GUI processes and overlapping CLI executions.
-xmake dora-test --case=test_gui_single_instance --repo=/path/to/Dora-Example -- --engine /absolute/path/Dora
+xmake test-suite --case=test_gui_single_instance --repo=/path/to/Dora-Example -- --engine /absolute/path/Dora
 # Native macOS/Windows activation test; use SDL2.lib and a VS developer prompt on Windows.
-xmake dora-test --case=test_gui_single_instance --repo=/path/to/Dora-Example -- --sdl-library /absolute/path/libSDL2.a
+xmake test-suite --case=test_gui_single_instance --repo=/path/to/Dora-Example -- --sdl-library /absolute/path/libSDL2.a
 # Run Linux GUI/CLI acceptance under both SDL backends.
-SDL_VIDEODRIVER=x11 xmake dora-test --case=test_gui_single_instance --repo=/path/to/Dora-Example -- --engine /absolute/path/Dora
-SDL_VIDEODRIVER=wayland xmake dora-test --case=test_gui_single_instance --repo=/path/to/Dora-Example -- --engine /absolute/path/Dora
+SDL_VIDEODRIVER=x11 xmake test-suite --case=test_gui_single_instance --repo=/path/to/Dora-Example -- --engine /absolute/path/Dora
+SDL_VIDEODRIVER=wayland xmake test-suite --case=test_gui_single_instance --repo=/path/to/Dora-Example -- --engine /absolute/path/Dora
 ```
 
 The default test compiles the production instance module and exercises startup

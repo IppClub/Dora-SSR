@@ -27,4 +27,4 @@ macOS 一键开发启停与 Linux 部署包构建使用 `scripts/studio-macos.sh
 
 ## 1.10.0 默认 Godot 组件
 
-`pnpm build`先通过`xmake dora-studio`构建包含Godot的Agent引擎和pthread游戏Player，再构建前端、支持包和Go服务。游戏Player及Agent引擎均保留`godot/`运行库、manifest和许可；准备脚本、Linux服务包与Go资源白名单共同保证这些文件可达。Godot内容继续要求COOP/COEP；源码工程仍须使用Godot4.6导入，默认随包不等于工程仓库浏览/导入界面已实现。
+`pnpm build`先通过`xmake studio`构建包含Godot的Agent引擎和pthread游戏Player，再构建前端、支持包和Go服务。游戏Player及Agent引擎均保留`godot/`运行库、manifest和许可；准备脚本、Linux服务包与Go资源白名单共同保证这些文件可达。Godot内容继续要求COOP/COEP；源码工程仍须使用Godot4.6导入，默认随包不等于工程仓库浏览/导入界面已实现。

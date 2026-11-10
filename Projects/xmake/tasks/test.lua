@@ -1,4 +1,4 @@
-for _, name in ipairs({"dora-test", "dora-test-deps"}) do
+for _, name in ipairs({"test-suite", "test-deps"}) do
     task(name)
         set_category("plugin")
         set_menu {
@@ -8,10 +8,10 @@ for _, name in ipairs({"dora-test", "dora-test-deps"}) do
                 {nil, "case", "kv", nil, "Individual test filename without extension"},
                 {nil, "repo", "kv", nil, "Local Dora-Example checkout (preserves local edits)"},
                 {nil, "list", "k", nil, "List test cases without executing them"},
-                {nil, "env-file", "kv", nil, "Append resolved test checkout to a CI environment file (dora-test-deps)"},
+                {nil, "env-file", "kv", nil, "Append resolved test checkout to a CI environment file (test-deps)"},
                 {nil, "arguments", "vs", nil, "Test arguments after --"}}
         }
-        local deps_only = name == "dora-test-deps"
+        local deps_only = name == "test-deps"
         on_run(function ()
             import("core.base.option")
             import("lib.detect.find_tool")
@@ -27,7 +27,8 @@ for _, name in ipairs({"dora-test", "dora-test-deps"}) do
             end
             if not option.get("list") and (option.get("case") == "test-cli-agent"
                 or (option.get("suite") == "web-ide" and not option.get("case"))) then
-                os.vrunv(os.programfile(), {"dora-build", "--mode=debug"}, {curdir = root})
+                os.vrunv(os.programfile(), {"f", "-y", "-p", os.host(), "-a", os.host() == "windows" and "x64" or os.arch(), "-m", "debug"}, {curdir = root})
+                os.vrunv(os.programfile(), {"build", "Dora"}, {curdir = root})
             end
             if not option.get("list") and option.get("suite") == "web-ide" and not option.get("case") then
                 local pnpm = assert(find_tool("pnpm", {system = true}), "Web IDE acceptance requires pnpm")
@@ -51,7 +52,7 @@ for _, name in ipairs({"dora-test", "dora-test-deps"}) do
                 and not table.contains(option.get("arguments") or {}, "--no-build") then
                 -- Go acceptance serves the real isolated Agent engine assets.
                 -- Do not rely on a developer's previous Web build.
-                os.vrunv(os.programfile(), {"dora-studio"}, {curdir = root})
+                os.vrunv(os.programfile(), {"studio"}, {curdir = root})
                 local directory = path.join(root, "build/studio-tests")
                 test_envs.XMAKE_CONFIGDIR = path.join(directory, ".xmake-config")
                 os.vrunv(os.programfile(), {"f", "-y", "-p", "wasm", "-a", "wasm32", "-m", "release",

@@ -154,7 +154,7 @@ if (process.env.DORA_WEB_RUNTIME_LOCK) {
     const temporary = await fs.mkdtemp(path.join(root, 'build/web-runtime-package-'));
     try {
       const player = path.join(temporary, 'player');
-      execFileSync(process.env.DORA_XMAKE || 'xmake', ['dora-web'], {cwd: root, stdio: 'inherit', env: {
+      execFileSync(process.env.DORA_XMAKE || 'xmake', ['web'], {cwd: root, stdio: 'inherit', env: {
         ...process.env,
         DORA_WEB_BUILD_DIR: process.env.DORA_WEB_BUILD_DIR || path.join(root, 'build/web'),
         DORA_WEB_PACKAGE_DIR: path.join(temporary, 'probe'),

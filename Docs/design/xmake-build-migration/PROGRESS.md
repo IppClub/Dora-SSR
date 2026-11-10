@@ -1,5 +1,8 @@
 # Dora-SSR xmake 单一构建描述迁移进度
 
+> 2026-11-10 命令更新：当前使用内置 `xmake build` / `xmake run`；自定义命令为 `project-gen`、`web-ide`、`web`、`studio`、`app-package`、`test-suite`、`test-deps` 等。下文历史验收记录保留当时的命令名称。
+
+
 > 总体状态：本地构建迁移与旧系统清理收尾完成；桌面、Android、iOS、Web 与生成 IDE 已落地；远端 CI、干净新主机与生产发布门禁独立保留
 > 更新日期：2026-10-01
 > 方案文档：[PLAN.md](./PLAN.md)

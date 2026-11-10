@@ -9,7 +9,7 @@ function run(command, args, env = process.env) {
   if (result.status !== 0) process.exit(result.status || 1);
 }
 const xmake = process.env.DORA_XMAKE || 'xmake';
-run(xmake, ['dora-studio']);
+run(xmake, ['studio']);
 // The engine task installs Emscripten inside xmake's package environment.
 // Load the completed Player configuration so subsequent pnpm builds inherit
 // that same SDK instead of requiring an unrelated system emcc installation.

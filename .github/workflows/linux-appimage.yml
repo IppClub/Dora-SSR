@@ -68,7 +68,7 @@ jobs:
           cache-dependency-path: Tools/dora-dora/pnpm-lock.yaml
 
       - name: Verify Web build tools
-        run: xmake dora-web-env
+        run: xmake web-env
 
       - name: Build and verify Web IDE
         working-directory: Tools/dora-dora
@@ -154,7 +154,7 @@ jobs:
           XMAKE_ARCH: ${{ matrix.xmake_arch }}
         run: |
           filename="dora-ssr-linux-${APPIMAGE_ARCH}.AppImage"
-          xmake dora-package --platform=linux --arch="$XMAKE_ARCH" --mode=release
+          xmake app-package --platform=linux --arch="$XMAKE_ARCH" --mode=release
           cp "build/package/linux/$XMAKE_ARCH/release/$filename" "$GITHUB_WORKSPACE/$filename"
           echo "path=$filename" >> "$GITHUB_OUTPUT"
 

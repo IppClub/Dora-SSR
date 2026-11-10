@@ -1,7 +1,7 @@
-task("dora-web")
+task("web")
     set_category("plugin")
     set_menu {
-        usage = "xmake dora-web [--mode=release] [--profile=dora-preset] [--pthreads]",
+        usage = "xmake web [--mode=release] [--profile=dora-preset] [--pthreads]",
         description = "Build and stage the production Web Player with xmake-managed Emscripten",
         options = {{nil, "mode", "kv", "release", "debug or release"},
             {nil, "profile", "kv", nil, "core, dora-preset or custom"},
@@ -141,9 +141,9 @@ task("dora-web")
     end)
 task_end()
 
-task("dora-web-env")
+task("web-env")
     set_category("plugin")
-    set_menu {usage = "xmake dora-web-env", description = "Install managed Web tools and check the host environment", options = {}}
+    set_menu {usage = "xmake web-env", description = "Install managed Web tools and check the host environment", options = {}}
     on_run(function ()
         local root = os.projectdir()
         local directory = path.join(root, "build/web-env")

@@ -19,7 +19,7 @@ for _, name in ipairs({"web", "sync"}) do
     target_end()
 end
 
-for _, name in ipairs({"dora-wa-web", "dora-wa-sync"}) do
+for _, name in ipairs({"wa-web", "wa-sync"}) do
     task(name)
         set_category("plugin")
         set_menu {usage = "xmake " .. name .. " [--output=PATH] [--source=WA_CHECKOUT] [--dry-run]",
@@ -27,7 +27,7 @@ for _, name in ipairs({"dora-wa-web", "dora-wa-sync"}) do
             options = {{nil, "output", "kv", nil, "Wa Web output directory"},
                 {nil, "source", "kv", nil, "Upstream Wa source checkout"},
                 {nil, "dry-run", "k", nil, "Validate source without replacing vendored code"}}}
-        local sync = name == "dora-wa-sync"
+        local sync = name == "wa-sync"
         on_run(function ()
             import("core.base.option")
             local root = os.projectdir()

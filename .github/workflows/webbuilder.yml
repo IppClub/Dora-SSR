@@ -24,6 +24,6 @@ jobs:
         with:
           xmake-version: latest
       - name: Resolve Dora-Example tests once
-        run: xmake dora-test-deps --env-file="$GITHUB_ENV"
+        run: xmake test-deps --env-file="$GITHUB_ENV"
       - name: Test WebBuilder from Dora-Example
-        run: xmake dora-test --case=test_webbuild
+        run: xmake test-suite --case=test_webbuild

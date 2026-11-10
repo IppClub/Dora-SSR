@@ -140,7 +140,7 @@ main()
 <TabItem value="windows" label="Windows">
 
 ```sh
-xmake dora-package --platform=windows --arch=x86 --mode=release
+xmake app-package --platform=windows --arch=x86 --mode=release
 ```
 
 产物位于 `build/package/` 的对应平台目录；Android 位于 `Projects/Android/Dora/app/build/outputs/`。应用名称、版本、图标与平台资源在 `Projects/` 中修改，构建参数在 `Projects/xmake/` 中修改，不修改生成的 IDE 工程。
@@ -149,7 +149,7 @@ xmake dora-package --platform=windows --arch=x86 --mode=release
 <TabItem value="macos" label="macOS">
 
 ```sh
-xmake dora-package --platform=macosx --mode=release
+xmake app-package --platform=macosx --mode=release
 ```
 
 产物位于 `build/package/` 的对应平台目录；Android 位于 `Projects/Android/Dora/app/build/outputs/`。应用名称、版本、图标与平台资源在 `Projects/` 中修改，构建参数在 `Projects/xmake/` 中修改，不修改生成的 IDE 工程。
@@ -158,7 +158,7 @@ xmake dora-package --platform=macosx --mode=release
 <TabItem value="linux" label="Linux">
 
 ```sh
-xmake dora-package --platform=linux --mode=release
+xmake app-package --platform=linux --mode=release
 ```
 
 产物位于 `build/package/` 的对应平台目录；Android 位于 `Projects/Android/Dora/app/build/outputs/`。应用名称、版本、图标与平台资源在 `Projects/` 中修改，构建参数在 `Projects/xmake/` 中修改，不修改生成的 IDE 工程。
@@ -167,7 +167,7 @@ xmake dora-package --platform=linux --mode=release
 <TabItem value="ios" label="iOS">
 
 ```sh
-xmake dora-package --platform=ios --mode=release --appledev=device
+xmake app-package --platform=ios --mode=release --appledev=device
 ```
 
 产物位于 `build/package/` 的对应平台目录；Android 位于 `Projects/Android/Dora/app/build/outputs/`。应用名称、版本、图标与平台资源在 `Projects/` 中修改，构建参数在 `Projects/xmake/` 中修改，不修改生成的 IDE 工程。
@@ -178,13 +178,13 @@ xmake dora-package --platform=ios --mode=release --appledev=device
 <TabItem value="android" label="Android">
 
 ```sh
-xmake dora-package --platform=android --mode=release
+xmake app-package --platform=android --mode=release
 ```
 
 产物位于 `build/package/` 的对应平台目录；Android 位于 `Projects/Android/Dora/app/build/outputs/`。应用名称、版本、图标与平台资源在 `Projects/` 中修改，构建参数在 `Projects/xmake/` 中修改，不修改生成的 IDE 工程。
 
 ```sh
-xmake dora-package --platform=android --mode=release --format=aab
+xmake app-package --platform=android --mode=release --format=aab
 ```
 
 </TabItem>
@@ -197,15 +197,15 @@ xmake dora-package --platform=android --mode=release --format=aab
 在引擎仓库根目录构建一次 Web Player，xmake 任务会按需安装受管 Emscripten 工具链：
 
 ```bash
-xmake dora-web
+xmake web
 ```
 
-任务会在 `result/dora-web-player` 下生成一个自包含的 Player 包，包含 `index.html`、Player 运行时以及一个内置示例游戏。默认的 `dora-preset` 配置覆盖常见 2D 游戏；可使用 `--profile=core` 或 `--profile=custom`（也可设置 `DORA_WEB_PROFILE`）选择其他配置，并在构建前启用诸如 `DORA_WEB_FEATURE_MODEL_3D=ON` 的可选功能。pthread 版本使用 `xmake dora-web --pthreads`，通过带 COOP/COEP 响应头的服务访问 `result/dora-web-player-pthreads`。
+任务会在 `result/dora-web-player` 下生成一个自包含的 Player 包，包含 `index.html`、Player 运行时以及一个内置示例游戏。默认的 `dora-preset` 配置覆盖常见 2D 游戏；可使用 `--profile=core` 或 `--profile=custom`（也可设置 `DORA_WEB_PROFILE`）选择其他配置，并在构建前启用诸如 `DORA_WEB_FEATURE_MODEL_3D=ON` 的可选功能。pthread 版本使用 `xmake web --pthreads`，通过带 COOP/COEP 响应头的服务访问 `result/dora-web-player-pthreads`。
 
 #### 步骤 2：打包游戏
 
 ```bash
-xmake dora-web-game -- <游戏目录> <输出目录> [入口文件]
+xmake web-game -- <游戏目录> <输出目录> [入口文件]
 ```
 
 `<游戏目录>` 是精简后、包含入口文件（默认为 `init.lua`）的游戏目录。脚本会向 `<输出目录>` 写入 `dora-web-manifest.json` 以及带内容哈希的 `assets/` 文件；每个文件在浏览器加载时都会做 SHA-256 校验。单个游戏包最多包含 4096 个文件、总计 256 MB。

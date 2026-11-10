@@ -38,9 +38,13 @@ target("Dora")
     if is_plat("android") then
         set_basename("main")
     end
-    -- IDE solutions must select the runnable engine for Build/Run; native
-    -- CLI entrypoints still name Dora explicitly rather than build every tool.
-    set_default(os.getenv("XMAKE_IN_PROJECT_GENERATOR") and true or false)
+    -- Native xmake build/run select the engine; auxiliary tools stay opt-in.
+    set_default(true)
+    if is_plat("macosx", "linux", "windows") then
+        on_run(function (target)
+            import("Projects.xmake.tools.native_run", {rootdir = DORA_ROOT, anonymous = true})(target)
+        end)
+    end
     -- The legacy CMake build kept compiler extensions enabled. GNU C11 is
     -- required by genuine C units such as the amalgamated Vorbis sources
     -- (alloca is a compiler extension there); it does not turn them into C++.
@@ -64,6 +68,10 @@ target("Dora")
     add_defines(has_config("dora_native_tests") and "DORA_TEST=1" or "DORA_TEST=0")
 
     on_load(function (target)
+        if os.host() == "windows" and os.arch() ~= "arm64"
+            and (os.getenv("PROCESSOR_IDENTIFIER") or ""):find("ARM", 1, true) then
+            raise("Windows ARM64 requires native ARM64 xmake; install the official ARM64 distribution instead of emulated x64 xmake")
+        end
         assert(not csharp_native or target:is_plat("windows"), "The C# native host currently supports Windows only")
         import("core.project.config")
         local function godot_test(relative)

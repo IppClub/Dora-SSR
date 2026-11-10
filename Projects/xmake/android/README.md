@@ -14,9 +14,9 @@ and platform components remain managed by Android Studio/the SDK manager.
 From the repository root:
 
 ```sh
-xmake dora-package --platform=android --mode=debug
-xmake dora-package --platform=android --mode=release
-xmake dora-package --platform=android --mode=release --format=aab
+xmake app-package --platform=android --mode=debug
+xmake app-package --platform=android --mode=release
+xmake app-package --platform=android --mode=release --format=aab
 ```
 
 Android Studio can open `Projects/Android/Dora` and use Gradle Sync and the

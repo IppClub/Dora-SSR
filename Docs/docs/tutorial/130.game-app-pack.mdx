@@ -140,7 +140,7 @@ Run these commands from the Dora-SSR repository root after installing the [build
 <TabItem value="windows" label="Windows">
 
 ```sh
-xmake dora-package --platform=windows --arch=x86 --mode=release
+xmake app-package --platform=windows --arch=x86 --mode=release
 ```
 
 Outputs are under the platform directory in `build/package/`; Android outputs remain under `Projects/Android/Dora/app/build/outputs/`. Edit app metadata/resources under `Projects/` and build settings under `Projects/xmake/`, not generated IDE projects.
@@ -149,7 +149,7 @@ Outputs are under the platform directory in `build/package/`; Android outputs re
 <TabItem value="macos" label="macOS">
 
 ```sh
-xmake dora-package --platform=macosx --mode=release
+xmake app-package --platform=macosx --mode=release
 ```
 
 Outputs are under the platform directory in `build/package/`; Android outputs remain under `Projects/Android/Dora/app/build/outputs/`. Edit app metadata/resources under `Projects/` and build settings under `Projects/xmake/`, not generated IDE projects.
@@ -158,7 +158,7 @@ Outputs are under the platform directory in `build/package/`; Android outputs re
 <TabItem value="linux" label="Linux">
 
 ```sh
-xmake dora-package --platform=linux --mode=release
+xmake app-package --platform=linux --mode=release
 ```
 
 Outputs are under the platform directory in `build/package/`; Android outputs remain under `Projects/Android/Dora/app/build/outputs/`. Edit app metadata/resources under `Projects/` and build settings under `Projects/xmake/`, not generated IDE projects.
@@ -167,7 +167,7 @@ Outputs are under the platform directory in `build/package/`; Android outputs re
 <TabItem value="ios" label="iOS">
 
 ```sh
-xmake dora-package --platform=ios --mode=release --appledev=device
+xmake app-package --platform=ios --mode=release --appledev=device
 ```
 
 Outputs are under the platform directory in `build/package/`; Android outputs remain under `Projects/Android/Dora/app/build/outputs/`. Edit app metadata/resources under `Projects/` and build settings under `Projects/xmake/`, not generated IDE projects.
@@ -178,13 +178,13 @@ Default iOS device IPA signing is ad-hoc, not installable/distributable. Set ins
 <TabItem value="android" label="Android">
 
 ```sh
-xmake dora-package --platform=android --mode=release
+xmake app-package --platform=android --mode=release
 ```
 
 Outputs are under the platform directory in `build/package/`; Android outputs remain under `Projects/Android/Dora/app/build/outputs/`. Edit app metadata/resources under `Projects/` and build settings under `Projects/xmake/`, not generated IDE projects.
 
 ```sh
-xmake dora-package --platform=android --mode=release --format=aab
+xmake app-package --platform=android --mode=release --format=aab
 ```
 
 </TabItem>
@@ -197,15 +197,15 @@ xmake dora-package --platform=android --mode=release --format=aab
 From the engine repository root, build the Web Player once. The xmake task installs its managed Emscripten toolchain as needed:
 
 ```bash
-xmake dora-web
+xmake web
 ```
 
-The task produces a self-contained Player package in `result/dora-web-player`, containing `index.html`, the Player runtime, and a built-in demo game. The default `dora-preset` profile covers common 2D games; choose another profile with `--profile=core` or `--profile=custom` (or `DORA_WEB_PROFILE`), and enable optional features such as `DORA_WEB_FEATURE_MODEL_3D=ON` before building. For pthreads, use `xmake dora-web --pthreads` and serve `result/dora-web-player-pthreads` with COOP/COEP response headers.
+The task produces a self-contained Player package in `result/dora-web-player`, containing `index.html`, the Player runtime, and a built-in demo game. The default `dora-preset` profile covers common 2D games; choose another profile with `--profile=core` or `--profile=custom` (or `DORA_WEB_PROFILE`), and enable optional features such as `DORA_WEB_FEATURE_MODEL_3D=ON` before building. For pthreads, use `xmake web --pthreads` and serve `result/dora-web-player-pthreads` with COOP/COEP response headers.
 
 #### Step 2: Package the Game
 
 ```bash
-xmake dora-web-game -- <game-dir> <output-dir> [entry]
+xmake web-game -- <game-dir> <output-dir> [entry]
 ```
 
 `<game-dir>` is the streamlined game directory containing the entry file (`init.lua` by default). The script writes a `dora-web-manifest.json` plus content-hashed files under `assets/` into `<output-dir>`; every file is SHA-256 verified when loaded in the browser. A game package holds up to 4096 files and 256 MB in total.

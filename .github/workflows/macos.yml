@@ -54,7 +54,7 @@ jobs:
           xmake-version: latest
       - name: Resolve Dora-Example tests once
         if: "!startsWith(github.ref, 'refs/tags/')"
-        run: xmake dora-test-deps --env-file="$GITHUB_ENV"
+        run: xmake test-deps --env-file="$GITHUB_ENV"
       - name: macOS build
         if: "!startsWith(github.ref, 'refs/tags/')"
         run: |
@@ -63,7 +63,7 @@ jobs:
           xmake build Dora
       - name: Test incremental macOS application identity and resources
         if: "!startsWith(github.ref, 'refs/tags/')"
-        run: xmake dora-test --case=test_macos_bundle -- --bundle "build/macosx/$(uname -m)/debug/Dora.app"
+        run: xmake test-suite --case=test_macos_bundle -- --bundle "build/macosx/$(uname -m)/debug/Dora.app"
       - name: Generate tutorial docs
         if: startsWith(github.ref, 'refs/tags/')
         run: node Docs/scripts/generate-language-docs.js
@@ -75,7 +75,7 @@ jobs:
           cd "$GITHUB_WORKSPACE"
           cp Tools/dora-wa/wa.mod Assets/dora-wa
           cp -r Tools/dora-wa/vendor Assets/dora-wa
-          xmake dora-package --platform=macosx --mode=release
+          xmake app-package --platform=macosx --mode=release
           cp build/package/macosx/arm64/release/dora-ssr-macos-arm64.zip "$GITHUB_WORKSPACE/dora-ssr-${{ github.ref_name }}-macos-arm64.zip"
       - name: Release
         uses: softprops/action-gh-release@v2

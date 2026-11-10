@@ -6,6 +6,22 @@ This project uses [Vite](https://vitejs.dev/) for development and builds. YarnEd
 
 In the project directory, you can run:
 
+### Frontend-only build
+
+From the repository root, run `xmake web-ide`. From this directory, use
+`pnpm build:frontend` instead. Both build the Web IDE and its shared TypeScript
+compiler dependency, minify/version the output, sync it to `Assets/www`, and
+generate compressed distribution assets. They reuse the prepared Web Player
+files and do not build Dora, Godot, or other WASM runtime components.
+
+The similarly named commands serve different purposes:
+
+| Command | Purpose |
+| --- | --- |
+| `xmake web-ide` | Build the Web IDE frontend |
+| `xmake project-gen` | Generate native Xcode/Visual Studio projects or a clangd compilation database |
+| `xmake web` | Build and stage the Web Player runtime |
+
 ### `pnpm dev` / `pnpm start`
 
 Runs the app in development mode.\
@@ -16,7 +32,8 @@ You will also see any lint errors in the console.
 
 ### `pnpm build`
 
-Full production build pipeline for Dora Dora Web IDE. It will:
+Full production build pipeline for Dora Dora Web IDE. It first prepares the Web Player runtime (which may rebuild WASM components) and
+compiles the shared TypeScript compiler dependency, then:
 
 1. Run `vite build`, including the YarnEditor page and assets
 2. Minify generated JavaScript helper outputs
@@ -50,7 +67,7 @@ Use a modern browser with WebAssembly and Web Crypto support. HTML export isolat
 
 The current export uses the single-threaded `dora-preset` Web Player and requires a compiled `init.lua`. It includes browser-compatible Dora gameplay features, including LoveNode, Model3D, Jolt 3D physics, and the Rust bridge. Yue, Teal, and XML compiler support is intentionally omitted because Web IDE exports package their generated Lua. APIs that require native host capabilities, such as the embedded HTTP server, native video playback, and dynamic Wasm loading, also remain unavailable in a standalone browser export. Test the resulting game in a browser because browser security and graphics-driver differences can still affect individual games.
 
-`pnpm build` prepares the export runtime before building the IDE. For `pnpm dev`, first run `pnpm prepare:web-runtime`. If the runtime is missing, fails its size/SHA-256 checks, or lacks the 3D export features, preparation invokes `xmake dora-web` and builds the single-threaded `dora-preset` player from the current local source tree. Later builds reuse the verified local cache. Rust must meet the minimum version in `Projects/Web/toolchain.env`; newer Rust releases are accepted. Drift in other locally installed build tools is reported as a warning so the local IDE build can proceed. It does not depend on a deployed gallery. The generated runtime is excluded from Git and distributed in the IDE's static files; packaging a user's project does not upload game files or contact the gallery.
+`pnpm build` prepares the export runtime before building the IDE. For `pnpm dev`, first run `pnpm prepare:web-runtime`. If the runtime is missing, fails its size/SHA-256 checks, or lacks the 3D export features, preparation invokes `xmake web` and builds the single-threaded `dora-preset` player from the current local source tree. Later builds reuse the verified local cache. Rust must meet the minimum version in `Projects/Web/toolchain.env`; newer Rust releases are accepted. Drift in other locally installed build tools is reported as a warning so the local IDE build can proceed. It does not depend on a deployed gallery. The generated runtime is excluded from Git and distributed in the IDE's static files; packaging a user's project does not upload game files or contact the gallery.
 
 After preparing the runtime, run `pnpm test:web-package` to verify both ZIP formats, independent page generation, the adapter against the actual runtime JS, local resource loading, resource hashes, excluded private files, and invalid/oversized input rejection. Browser smoke tests are still required to verify the real WASM/snapshot and audio lifecycle; the loader unit tests use a simulated DOM.
 
@@ -110,16 +127,16 @@ forwarded headers for authentication exemptions.
 Regression checks (from this directory):
 
 ```sh
-xmake dora-test -P ../.. --case=test_http_origin
-xmake dora-test -P ../.. --case=test_http_origin_wire
-xmake dora-test -P ../.. --suite=ui
+xmake test-suite -P ../.. --case=test_http_origin
+xmake test-suite -P ../.. --case=test_http_origin_wire
+xmake test-suite -P ../.. --suite=ui
 ```
 
 Native acceptance (graphical desktop, ports 8866/8868 free), from the repository root:
 
 ```sh
 xmake build Dora
-xmake dora-test --case=test_http_access_native -- --engine build/macosx/arm64/debug/Dora.app/Contents/MacOS/Dora --require-lan
+xmake test-suite --case=test_http_access_native -- --engine build/macosx/arm64/debug/Dora.app/Contents/MacOS/Dora --require-lan
 ```
 
 This uses isolated assets and exercises real session signatures, preflights,
@@ -168,7 +185,7 @@ forces signing after those changes. It does not grant firewall permission.
 codesign -dv build/macosx/arm64/debug/Dora.app
 /usr/bin/log show --last 5m --style compact \
   --predicate 'process == "socketfilterfw" AND eventMessage CONTAINS "Dora"'
-xmake dora-test --case=test_macos_bundle -- --bundle build/macosx/arm64/debug/Dora.app
+xmake test-suite --case=test_macos_bundle -- --bundle build/macosx/arm64/debug/Dora.app
 ```
 
 The bundle regression deliberately recreates only this generated build output;
@@ -182,7 +199,7 @@ HTTP/WS policy fixture through a non-loopback interface with `--require-lan`.
 
 ### Full native Web IDE service acceptance
 
-`xmake dora-test --case=test_webide_services` discovers every route in the real
+`xmake test-suite --case=test_webide_services` discovers every route in the real
 `WebServer.yue`, verifies its cross-origin authentication gate and empty-input
 contract, then exercises file CRUD, Unicode paths, batch operations, multipart
 upload, ZIP round trips, language services, TS/Wa builds, run/stop, preview,
@@ -202,7 +219,7 @@ printf 'disposable\n' > "$qa_root/home/.dora-webide-acceptance"
 CFFIXED_USER_HOME="$qa_root/home" \
   build/macosx/arm64/debug/Dora.app/Contents/MacOS/Dora --asset "$PWD/Assets"
 # In another terminal, use the exact qa_root printed/created above:
-xmake dora-test --case=test_webide_services -- \
+xmake test-suite --case=test_webide_services -- \
   --app-root "$qa_root/home" --report "$qa_root/services.json"
 ```
 
@@ -212,7 +229,7 @@ scenarios: both correctly require ownership of the same native runtime. Keep
 the profile and report for inspection, then close its IDE tabs and engine.
 
 For explicitly authorized paid-provider acceptance,
-`xmake dora-test --case=test_webide_paid_models -- --allow-paid` reads existing active model
+`xmake test-suite --case=test_webide_paid_models -- --allow-paid` reads existing active model
 configurations from `--config-db` in read-only mode, copies them temporarily into
 the isolated service, and verifies streamed Agent execution, a fixture file edit,
 message persistence, task completion and the resulting change set. `--model-id`

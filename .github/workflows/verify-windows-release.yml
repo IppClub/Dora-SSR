@@ -28,7 +28,7 @@ jobs:
         with:
           xmake-version: latest
       - name: Resolve installer tests
-        run: xmake dora-test-deps --env-file="$env:GITHUB_ENV"
+        run: xmake test-deps --env-file="$env:GITHUB_ENV"
       - name: Download published Windows packages
         env:
           GH_TOKEN: ${{ github.token }}

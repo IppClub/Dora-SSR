@@ -5,9 +5,9 @@ support/probes, AudioWorklet mixer, generated features, fixtures and staging.
 Android's generated CMake bridge is unrelated to this Web pipeline.
 
 ```sh
-xmake dora-web
-xmake dora-web --pthreads
-xmake dora-package --platform=web --mode=release
+xmake web
+xmake web --pthreads
+xmake app-package --platform=web --mode=release
 ```
 
 Emscripten (including its Node runtime), Go and Rust/rustup are xmake-managed
@@ -63,20 +63,20 @@ callbacks and must never be distributed as public game Players.
 
 Serve packages over HTTP. Pthread packages require COOP/COEP response headers.
 Static checkers and real-browser fixtures live in Dora-Example latest default-branch HEAD.
-The complete `xmake dora-test --suite=web-ide` acceptance run first builds the
+The complete `xmake test-suite --suite=web-ide` acceptance run first builds the
 native CLI and runs `pnpm build` in `Tools/dora-dora` to prepare the Web runtime
 and Vite assets. Install the package dependencies before that run. Individual
 `--case` checks retain their explicit prerequisites. From a nested directory,
-put the task first: `xmake dora-test -P ../.. --case=check_web_loader`;
+put the task first: `xmake test-suite -P ../.. --case=check_web_loader`;
 putting `-P` first selects xmake's default build command instead.
-Use `xmake dora-web --tests` to build with those fixtures, and
+Use `xmake web --tests` to build with those fixtures, and
 `DORA_TEST_REPO=/path/to/Dora-Example` for local test development:
 
 ```sh
-xmake dora-test --case=check_web_player_output -- result/dora-web-player
-xmake dora-test --case=check_web_forbidden_deps -- result/dora-web-player
-xmake dora-test --case=check_web_browser -- result/dora-web-player
-xmake dora-test --case=check_web_love_player_output -- result/love-pthread-player
+xmake test-suite --case=check_web_player_output -- result/dora-web-player
+xmake test-suite --case=check_web_forbidden_deps -- result/dora-web-player
+xmake test-suite --case=check_web_browser -- result/dora-web-player
+xmake test-suite --case=check_web_love_player_output -- result/love-pthread-player
 ```
 
 Pre-JS, shell and preload input changes invalidate the executable link; fixture
@@ -116,7 +116,7 @@ LibGodot Web package by default. `DORA_WEB_GODOT_RUNTIME_DIR` selects an explici
 verified package; `DORA_WEB_GODOT=0` is an explicit Dora-only build. Standard output
 contains `godot/` with JS/WASM, bridge modules, manifest and upstream notices.
 
-The documentation gallery (`xmake dora-gallery`) always builds a Dora-only
+The documentation gallery (`xmake gallery`) always builds a Dora-only
 Player with `DORA_WEB_GODOT=0`; its deployment gate rejects enabled Godot or a
 packaged `godot/` runtime. The Docs website uses Node.js 20 or newer.
 

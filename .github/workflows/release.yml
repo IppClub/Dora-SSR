@@ -62,7 +62,7 @@ jobs:
 
 
       - name: Resolve Dora-Example tests once
-        run: xmake dora-test-deps --env-file="$GITHUB_ENV"
+        run: xmake test-deps --env-file="$GITHUB_ENV"
       - name: Build and verify Web IDE
         working-directory: Tools/dora-dora
         run: |
@@ -125,7 +125,7 @@ jobs:
         run: |
           cp Tools/dora-wa/wa.mod Assets/dora-wa
           cp -r Tools/dora-wa/vendor Assets/dora-wa
-          xmake dora-package --platform=macosx --mode=release
+          xmake app-package --platform=macosx --mode=release
           cp build/package/macosx/arm64/release/dora-ssr-macos-arm64.zip "$GITHUB_WORKSPACE/dora-ssr-${{ needs.web-assets.outputs.version }}-macos-arm64.zip"
 
       - name: Upload macOS package
@@ -196,7 +196,7 @@ jobs:
       - name: Package Windows ZIP and MSI
         run: |
           Remove-Item Env:MSYSTEM -ErrorAction SilentlyContinue
-          xmake dora-package --platform=windows --arch=x64 --mode=release --windows-backend=${{ matrix.backend }} --format=both
+          xmake app-package --platform=windows --arch=x64 --mode=release --windows-backend=${{ matrix.backend }} --format=both
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Upload Windows packages
         uses: actions/upload-artifact@v4
@@ -275,7 +275,7 @@ jobs:
           DORA_ANDROID_SIGNING_STORE_PASSWORD="$KEYSTORE_PASSWORD" \
           DORA_ANDROID_SIGNING_KEY_ALIAS="$KEY_ALIAS" \
           DORA_ANDROID_SIGNING_KEY_PASSWORD="$KEY_PASSWORD" \
-            xmake dora-package --platform=android --mode=release
+            xmake app-package --platform=android --mode=release
           cd Projects/Android/Dora/app/build/outputs/apk/release
           mv app-release.apk dora-ssr-${{ needs.web-assets.outputs.version }}-android.apk
           unzip -l dora-ssr-${{ needs.web-assets.outputs.version }}-android.apk | grep -F 'assets/www/web-player/runtime.json'
@@ -350,7 +350,7 @@ jobs:
           APPIMAGE_ARCH: ${{ matrix.arch }}
           XMAKE_ARCH: ${{ matrix.xmake_arch }}
         run: |
-          xmake dora-package --platform=linux --arch="$XMAKE_ARCH" --mode=release
+          xmake app-package --platform=linux --arch="$XMAKE_ARCH" --mode=release
           cp "build/package/linux/$XMAKE_ARCH/release/dora-ssr-linux-${APPIMAGE_ARCH}.AppImage" \
             "$GITHUB_WORKSPACE/dora-ssr-${{ needs.web-assets.outputs.version }}-linux-${APPIMAGE_ARCH}.AppImage"
 
