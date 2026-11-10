@@ -17,17 +17,17 @@ macOS Release 运行库：在仓库根目录执行：
 
 ```sh
 DORA_GODOT_TARGET=template_release Tools/Godot/build_runtime.sh
-python3 Tools/Godot/verify_package.py build/godot-runtime/release/package
+xmake lua Tools/Godot/verify_package.lua build/godot-runtime/release/package
 ```
 
-Linux 使用 `build_linux_runtime.sh`，Windows 使用 `build_windows_runtime.py`。具体工具链、构建参数和包路径见 [构建说明](../README.md)。运行库与宿主必须采用相同架构。
+Linux 使用 `build_linux_runtime.sh`，Windows 使用 `build_windows_runtime.lua`。具体工具链、构建参数和包路径见 [构建说明](../README.md)。运行库与宿主必须采用相同架构。
 
 ## macOS 直接运行
 
 已有普通 `Dora.app` 后，在仓库根目录执行：
 
 ```sh
-python3 Tools/Godot/examples/stage_native.py \
+xmake lua Tools/Godot/examples/stage_native.lua \
   --example 2d --app /absolute/path/to/Dora.app \
   --runtime-package build/godot-runtime/release/package \
   --output build/godot-example-2d
@@ -43,7 +43,7 @@ build/godot-example-2d/Dora.app/Contents/MacOS/Dora
 使用普通可执行文件及其已有依赖，并提供 Dora 资源目录：
 
 ```sh
-python3 Tools/Godot/examples/stage_native.py \
+xmake lua Tools/Godot/examples/stage_native.lua \
   --example 3d --binary /absolute/path/to/Dora --asset-source Assets \
   --runtime-package /absolute/path/to/runtime/package \
   --output build/godot-example-3d
@@ -77,7 +77,7 @@ Rust/Wa 对应接口、PCK、输入和音频说明见 [完整用法](../README.m
 
 ## Web / Android / iOS 边界
 
-这两个 Godot 项目的源代码可作为移动/Web 工程的起点；`stage_native.py` 仅准备桌面目录和 macOS 应用，不生成 APK 或 Web Player。
+这两个 Godot 项目的源代码可作为移动/Web 工程的起点；`stage_native.lua` 仅准备桌面目录和 macOS 应用，不生成 APK 或 Web Player。
 
 - Web：使用包含 Godot 的 Player，并将项目纳入游戏资源清单；Godot 项目文件必须预加载并复制到 Godot WASM 的 VFS，不能只上传 HTML。部署、资源打包和浏览器要求见 [Web 用法](../README.md)。
 - Android：APK 内需要匹配的 Java/JNI/运行库及 R8 keep 规则。Godot 读取真实沙箱目录或 PCK；先将项目复制到可写目录，再把绝对路径传给 GodotNode，不能直接把 APK asset 路径当作普通磁盘目录。

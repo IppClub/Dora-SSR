@@ -17,7 +17,6 @@ def godotRuntimePackages = godotRuntimeOverride ? [rootProject.file(godotRuntime
     rootProject.file("../../../build/godot-component/android/${godotArch[it]}/release/package")
 }
 def godotRuntimePackage = godotRuntimePackages.first()
-def pythonExecutable = project.findProperty('dora.python') ?: (System.getProperty('os.name').startsWith('Windows') ? 'python' : 'python3')
 // Keep source assets intact when packaging a standalone Godot-enabled game.
 def godotAssets = rootProject.file(godotEnabled && project.findProperty('dora.godot.assets')
     ? project.findProperty('dora.godot.assets')
@@ -174,7 +173,7 @@ def prepareProductionGodot = godotEnabled ? tasks.register('prepareProductionGod
             project.exec {
                 workingDir engineRoot
                 environment 'DORA_XMAKE', xmakeExecutable
-                commandLine pythonExecutable, new File(engineRoot, 'Tools/Godot/build_component.py'),
+                commandLine xmakeExecutable, 'lua', new File(engineRoot, 'Tools/Godot/build_component.lua'),
                     '--platform', 'android', '--arch', godotArch[abi], '--mode', 'release',
                     '--sdk', android.sdkDirectory, '--jobs', nativeJobs ?: '2'
             }
@@ -182,12 +181,12 @@ def prepareProductionGodot = godotEnabled ? tasks.register('prepareProductionGod
         godotRuntimePackages.each { runtime ->
             project.exec {
                 workingDir engineRoot
-                commandLine pythonExecutable, new File(engineRoot, 'Tools/Godot/verify_package.py'), runtime
+                commandLine xmakeExecutable, 'lua', new File(engineRoot, 'Tools/Godot/verify_package.lua'), runtime
             }
         }
         if (!project.findProperty('dora.godot.javaAar')) project.exec {
             workingDir engineRoot
-            commandLine pythonExecutable, new File(engineRoot, 'Tools/Godot/prepare_android_aar.py'), '--sdk', android.sdkDirectory
+            commandLine xmakeExecutable, 'lua', new File(engineRoot, 'Tools/Godot/prepare_android_aar.lua'), '--sdk', android.sdkDirectory
         }
     }
 } : null
@@ -239,7 +238,7 @@ tasks.configureEach {
 		dependsOn prepareXmakeAndroid
         if (godotEnabled) dependsOn prepareProductionGodot
         if (godotEnabled) doFirst {
-            if (!godotJava.isFile()) throw new GradleException('Run Tools/Godot/prepare_android_aar.py first')
+            if (!godotJava.isFile()) throw new GradleException('Run xmake lua Tools/Godot/prepare_android_aar.lua first')
 
         }
 	}

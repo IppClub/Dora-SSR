@@ -126,14 +126,12 @@ task("web")
         stage(probe_dir, "dora-player")
         if player then stage(player_dir, "dora-player-runtime", {"dora-player-runtime.data", "dora-web-manifest.json", "dora-web-features.json", "dora-audio-mixer.wasm", "audio-worklet.js", "assets"}) end
         if player and godot then
-            import("lib.detect.find_tool")
-            local python = assert(find_tool("python3") or find_tool("python"), "Godot requires Python 3")
             local destination=path.join(player_dir,"godot")
-            local component_args = {path.join(root,"Tools/Godot/build_component.py"), "--platform", "web", "--arch", "wasm32", "--mode", mode,
+            local component_args = {"lua", path.join(root,"Tools/Godot/build_component.lua"), "--platform", "web", "--arch", "wasm32", "--mode", mode,
                 "--jobs", jobs, "--stage", destination}
             local runtime = env("GODOT_RUNTIME_DIR", "")
             if runtime ~= "" then table.join2(component_args, {"--runtime-package", runtime}) end
-            os.vrunv(python.program, component_args, {curdir = root, envs = {DORA_XMAKE = os.programfile()}})
+            os.vrunv(os.programfile(), component_args, {curdir = root, envs = {DORA_XMAKE = os.programfile()}})
         elseif player then
             os.tryrm(path.join(player_dir,"godot"))
         end

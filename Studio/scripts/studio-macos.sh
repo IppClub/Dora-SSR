@@ -176,7 +176,7 @@ dev_logs() {
 valid_runtime() {
 	local directory=$1
 	[[ -s "$directory/godot/manifest.json" && -s "$directory/godot/dora-godot.wasm" ]] || return 1
-	python3 "$ROOT_DIR/Tools/Godot/verify_package.py" "$directory/godot" >/dev/null || return 1
+	xmake lua "$ROOT_DIR/Tools/Godot/verify_package.lua" "$directory/godot" >/dev/null || return 1
 	[[ -s "$directory/studio-runtime.json" && -s "$directory/dora-web-features.json" && -s "$directory/index.html" \
 		&& -s "$directory/dora-player-runtime.js" && -s "$directory/dora-player-runtime.wasm" && -s "$directory/dora-player-runtime.data" ]] || return 1
 	node -e 'const f=JSON.parse(require("node:fs").readFileSync(process.argv[1],"utf8"));if(f.profile!=="dora-preset"||f.godot!==true||f.engineVersion!==require(process.argv[2]).version||!f.engineBuild)process.exit(1)' "$directory/studio-runtime.json" "$STUDIO_DIR/package.json"
@@ -188,7 +188,7 @@ valid_runtime() {
 valid_agent_engine() {
 	local directory=$1
 	[[ -s "$directory/godot/manifest.json" && -s "$directory/godot/dora-godot.wasm" ]] || return 1
-	python3 "$ROOT_DIR/Tools/Godot/verify_package.py" "$directory/godot" >/dev/null || return 1
+	xmake lua "$ROOT_DIR/Tools/Godot/verify_package.lua" "$directory/godot" >/dev/null || return 1
 	[[ -s "$directory/dora-web-features.json" && -s "$directory/dora-player-runtime.js" && -s "$directory/dora-player-runtime.wasm" ]] || return 1
 	node -e 'const f=JSON.parse(require("node:fs").readFileSync(process.argv[1],"utf8"));if(f.studioAgentHost!==true||f.activeProfile!=="dora-preset"||f.modules?.godotNode!==true||f.modules?.musicGenerator!==true||f.modules?.rustBridge!==true)process.exit(1)' "$directory/dora-web-features.json"
 	node -e 'const b=require("node:fs").readFileSync(process.argv[1]);if(!b.includes(Buffer.from("Audio.renderMusicAsync should be run in a thread")))process.exit(1)' "$directory/dora-player-runtime.wasm"

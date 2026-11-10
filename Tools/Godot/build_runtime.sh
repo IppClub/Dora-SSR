@@ -16,7 +16,7 @@ mkdir -p "$BUILD"
     exit 2
 }
 SOURCE="$ROOT/Source/3rdParty/Godot"
-python3 "$ROOT/Tools/Godot/prepare.py" "$SOURCE"
+"${DORA_GODOT_XMAKE:-${DORA_XMAKE:-xmake}}" lua "$ROOT/Tools/Godot/prepare.lua" "$SOURCE"
 build_arch() {
     local build_arch="$1" build_log="$2"
     local mode=debug suffix=/debug
@@ -33,6 +33,6 @@ build_arch() {
 build_arch "$ARCH" "$LOG"
 printf 'Runtime: %s\n' "$LIBRARY"
 
-python3 "$ROOT/Tools/Godot/package_runtime.py" --source "$SOURCE" \
+"${DORA_GODOT_XMAKE:-${DORA_XMAKE:-xmake}}" lua "$ROOT/Tools/Godot/package_runtime.lua" --source "$SOURCE" \
     --library "$LIBRARY" --output "$PACKAGE" --build-target "$TARGET" --architecture "$ARCH" \
     --graphics-backend metal

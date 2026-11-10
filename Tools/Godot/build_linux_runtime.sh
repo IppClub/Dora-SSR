@@ -18,7 +18,7 @@ case "$ARCH" in
 esac
 [[ "$(uname -s)" == Linux ]] || { echo 'Linux host required' >&2; exit 1; }
 mkdir -p "$BUILD"
-python3 "$ROOT/Tools/Godot/prepare.py" "$SOURCE"
+"$XMAKE" lua "$ROOT/Tools/Godot/prepare.lua" "$SOURCE"
 command -v "$XMAKE" >/dev/null 2>&1 || {
     echo "Configured xmake executable is missing: $XMAKE" >&2
     exit 1
@@ -46,5 +46,5 @@ LIBRARY="$ROOT/build/godot-xmake/linux/$PACKAGE_ARCH${SUFFIX}/lib/libdora_godot.
 printf 'Runtime: %s\n' "$LIBRARY"
 
 [[ -n "$LIBRARY" ]] || { echo "Missing $TARGET runtime library" >&2; exit 1; }
-python3 "$ROOT/Tools/Godot/package_runtime.py" --source "$SOURCE" --library "$LIBRARY" \
+"$XMAKE" lua "$ROOT/Tools/Godot/package_runtime.lua" --source "$SOURCE" --library "$LIBRARY" \
     --output "$BUILD/package" --build-target "$TARGET" --architecture "$PACKAGE_ARCH" --graphics-backend egl --static-accesskit-sdk linux

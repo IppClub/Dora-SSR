@@ -183,8 +183,8 @@ export function validateAgentToolInput(tool: AgentToolName, input: Record<string
 			value.offset = clampInteger(value.offset, 0, 0);
 		} else {
 			const docType = typeof value.docType === "string" ? value.docType : "dora-api";
-			if (docType !== "dora-api" && docType !== "dora-tutorial" && docType !== "love-api" && docType !== "tic80-api") {
-				return { success: false, message: "search_dora_doc requires docType: dora-tutorial, dora-api, love-api, or tic80-api" };
+			if (docType !== "dora-api" && docType !== "dora-tutorial" && docType !== "love-api" && docType !== "tic80-api" && docType !== "godot-api") {
+				return { success: false, message: "search_dora_doc requires docType: dora-tutorial, dora-api, love-api, tic80-api, or godot-api" };
 			}
 			value.docType = docType;
 			value.limit = clampInteger(value.limit, 8, 1, AgentConfig.AGENT_LIMITS.searchDoraDocLimitMax);

@@ -91,18 +91,14 @@ target("godot-codegen")
             "Godot xmake requires clean vendor inputs. Archive SCons generated files " ..
             "and caches outside Source/3rdParty/Godot, and use a separate checkout " ..
             "for SCons comparisons. First conflict: " .. tostring(conflicts[1]))
-        import("lib.detect.find_tool")
-        local python = find_tool("python3") or find_tool("python")
-        assert(python, "Python 3 is required for Godot source generation")
         if is_plat("mingw") and windows_backend == "d3d12" then
-            os.vrunv(python.program, {"-B", path.join(os.projectdir(), "Tools/Godot/verify_d3d12_sdk.py"),
+            os.vrunv(os.programfile(), {"lua", path.join(os.projectdir(), "Tools/Godot/verify_d3d12_sdk.lua"),
                 "--sdk", assert(get_config("dora_godot_mesa_libs")),
                 "--architecture", get_config("arch"),
                 "--output", path.join(platform_output_root, "sdk-verification.json")})
         end
         local arguments = {
-            "-B", -- Upstream Python imports must not write bytecode into vendor.
-            path.join(os.projectdir(), "Tools/Godot/generate_xmake_sources.py"),
+            "lua", path.join(os.projectdir(), "Tools/Godot/generate_xmake_sources.lua"),
             "--output", generated_root
         }
         if is_plat("macosx") then
@@ -121,7 +117,7 @@ target("godot-codegen")
         if is_plat("android") and is_arch("armeabi-v7a") then
             table.join2(arguments, {"--disable-module", "raycast"})
         end
-        os.vrunv(python.program, arguments)
+        os.vrunv(os.programfile(), arguments)
     end)
 target_end()
 
@@ -237,10 +233,8 @@ if is_plat("macosx") and is_arch("arm64") and has_config("dora_godot_runtime") t
     includes(path.join(os.projectdir(), "Projects/xmake/godot/macos_arm64_sources.lua"))
     target("godot-runtime")
         on_config(function (target)
-            import("lib.detect.find_tool")
-            local python = assert(find_tool("python3") or find_tool("python"))
             local sdk = path.join(os.projectdir(), "build/godot-sdk/accesskit-0.22.3-macos-arm64")
-            os.vrunv(python.program, {"-B", path.join(os.projectdir(), "Tools/Godot/ensure_accesskit_sdk.py"), "--output", sdk})
+            os.vrunv(os.programfile(), {"lua", path.join(os.projectdir(), "Tools/Godot/ensure_accesskit_sdk.lua"), "--output", sdk})
             target:add("linkdirs", path.join(sdk, "lib/macos/arm64/static"))
             target:add("syslinks", "accesskit")
             target:data_add("linkdepfiles", path.join(sdk, "lib/macos/arm64/static/libaccesskit.a"))
@@ -425,10 +419,8 @@ if is_plat("linux") and (is_arch("arm64") or is_arch("x86_64")) and has_config("
         if not debug_runtime then add_shflags("-s", {force = true}) end
         add_syslinks("pthread", "dl", "EGL", "GLESv2")
         on_config(function (target)
-            import("lib.detect.find_tool")
-            local python = assert(find_tool("python3") or find_tool("python"))
             local sdk = path.join(os.projectdir(), "build/godot-sdk/accesskit-0.22.3-linux")
-            os.vrunv(python.program, {"-B", path.join(os.projectdir(), "Tools/Godot/ensure_accesskit_sdk.py"),
+            os.vrunv(os.programfile(), {"lua", path.join(os.projectdir(), "Tools/Godot/ensure_accesskit_sdk.lua"),
                 "--spec", path.join(os.projectdir(), "Projects/xmake/godot/linux_accesskit_sdk.json"), "--output", sdk})
             local library = path.join(sdk, "lib/linux", get_config("arch"), "static/libaccesskit.a")
             target:add("linkdirs", path.directory(library))

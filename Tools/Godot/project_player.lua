@@ -1,4 +1,4 @@
--- Ordinary Dora player used by project.py; placeholders are replaced once.
+-- Ordinary Dora player used by project.lua; placeholders are replaced once.
 local D = Dora
 local function play()
 D.App.devMode = false

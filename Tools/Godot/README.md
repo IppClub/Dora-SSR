@@ -117,7 +117,7 @@ python3 $DORA_TEST_REPO/Test/Godot/tests/with_weston.py --logs /absolute/path/to
 运行库部署包校验：
 
 ```sh
-python3 Tools/Godot/verify_package.py /absolute/path/to/runtime-package
+xmake lua Tools/Godot/verify_package.lua /absolute/path/to/runtime-package
 python3 $DORA_TEST_REPO/Test/Godot/tests/package_integrity.py
 ```
 
@@ -140,7 +140,7 @@ $DORA_TEST_REPO/Test/Godot/test_macos.sh
 $DORA_TEST_REPO/Test/LibGodotMetalProbe/test_matrix.sh
 ```
 
-需要 Xcode、xmake、Python 3 和 Pillow。运行库从 `Source/3rdParty/Godot` 的固定 vendor 源码构建，prepare 入口只读校验；构建依赖缓存、动态库和测试包位于 `build/`（外部 SDK/工具链保持原安装位置）。第一个命令构建完整标准模块的 Godot 运行时和可选 Dora 测试入口，开启 Metal API Validation，检查动画、暂停/恢复、输入、场景重载和节点移除后重建。第二个命令对原始条码原型执行 2/3/4 缓冲的真实 GPU 回归，包含消费者积压。
+构建需要 Xcode 和 xmake 3.x；下面 Dora-Example 的外部验收程序另需 Python 3 和 Pillow。运行库从 `Source/3rdParty/Godot` 的固定 vendor 源码构建，prepare 入口只读校验；构建依赖缓存、动态库和测试包位于 `build/`（外部 SDK/工具链保持原安装位置）。第一个命令构建完整标准模块的 Godot 运行时和可选 Dora 测试入口，开启 Metal API Validation，检查动画、暂停/恢复、输入、场景重载和节点移除后重建。第二个命令对原始条码原型执行 2/3/4 缓冲的真实 GPU 回归，包含消费者积压。
 
 报告分别位于：
 
@@ -278,7 +278,7 @@ xmake app-package --platform=macosx --arch=arm64 --mode=release \
 
 macOS Godot整合1.0限定Apple Silicon，默认输出arm64包；显式`--without-godot --arch=universal`可构建原有Dora-only universal包。Windows Godot包使用`--arch=x64`，Linux使用与运行库清单一致的`--arch=x86_64`或`--arch=arm64`。未传`--godot-runtime`时，自动构建并打包正式Godot组件。
 
-Windows优化运行库使用`python Tools/Godot/build_windows_runtime.py --target template_release --arch x86_64`；Linux使用`DORA_GODOT_TARGET=template_release Tools/Godot/build_linux_runtime.sh`。Debug仍是两个入口的默认值，Release应使用独立build目录，避免把旧目标的产物误当成当前包。
+Windows优化运行库使用`xmake lua Tools/Godot/build_windows_runtime.lua --target template_release --arch x86_64`；Linux使用`DORA_GODOT_TARGET=template_release Tools/Godot/build_linux_runtime.sh`。Debug仍是两个入口的默认值，Release应使用独立build目录，避免把旧目标的产物误当成当前包。
 
 Linux在隔离或离线构建机上可用`DORA_APPIMAGETOOL=/absolute/path/to/appimagetool-<host-arch>.AppImage`显式指定已校验的主机架构工具，并用`DORA_APPIMAGE_RUNTIME=/absolute/path/to/runtime-<target-arch>`固定目标架构的AppImage runtime；未设置时仍由工具使用缓存或网络获取缺失项。交叉打包时工具自身架构必须匹配构建主机，输出架构由`--arch`决定。普通Linux随包测试可重复传`--runner`为目标二进制增加执行前缀；报告会保留该前缀，转译或模拟执行不能冒充原生硬件验收。
 
@@ -345,13 +345,13 @@ DORA_GODOT_TEST_AUDIO=1 DORA_GODOT_TEST_ALIASES=1 $DORA_TEST_REPO/Test/Godot/tes
 Android 优化运行库使用独立输出，不覆盖默认 Debug 包：
 
 ```sh
-python3 Tools/Godot/build_android_runtime.py --sdk "$ANDROID_HOME" --target template_release --arch arm64 --jobs 2
+xmake lua Tools/Godot/build_android_runtime.lua --sdk "$ANDROID_HOME" --target template_release --arch arm64 --jobs 2
 ```
 
 Android arm64 Release 默认使用原生 xmake；可隔离原生包与日志：
 
 ```sh
-python3 Tools/Godot/build_android_runtime.py --sdk "$ANDROID_HOME" \
+xmake lua Tools/Godot/build_android_runtime.lua --sdk "$ANDROID_HOME" \
   --target template_release --arch arm64 --jobs 4 \
   --build-dir build/godot-android-xmake/release-arm64
 ```
@@ -365,7 +365,7 @@ Debug / Release 和 arm64、arm32、x86_64 均使用原生 xmake；`auto` 仅为
 Java/resources 默认从 vendor 源码构建，使用固定上游 Gradle/AGP/Kotlin 配置，不触发 SCons 或原生编译：
 
 ```sh
-python3 Tools/Godot/prepare_android_aar.py --sdk "$ANDROID_HOME" \
+xmake lua Tools/Godot/prepare_android_aar.lua --sdk "$ANDROID_HOME" \
   --vendor-build-dir build/godot-android-xmake/vendor-java \
   --output build/godot-android-xmake/java
 ```
@@ -501,7 +501,7 @@ Godot 对象泄漏警告。Linux EGL 与 Windows WGL 的音频 ABI 2 实际运�
 
 ## Linux EGL 验证
 
-在 Linux 主机安装 C++20 编译器、EGL/GLES3 开发头文件和 Python 3/venv 后运行：
+在 Linux 主机安装 C++20 编译器、EGL/GLES3 开发头文件和 xmake 3.x 后运行；Dora-Example 的外部验收程序另需 Python：
 
 ```sh
 $DORA_TEST_REPO/Test/Godot/tests/gl/run.sh
@@ -625,10 +625,10 @@ Metal 驱动提供。Windows Dora 节点的源码项目与导入 PCK 两组测�
 以编译节点的透明度处理着色器及其他自定义效果。GLSL 优化器的 C 源文件按 C11
 编译，以保留与 C++ 调用方匹配的 C 符号。渲染器不匹配时，节点构造会直接失败。
 
-在具备 Visual C++ / Python / xmake 环境的 Windows 主机上：
+在具备 Visual C++ / xmake 3.x 环境的 Windows 主机上（外部 Python 验收工具按需安装）：
 
 ```powershell
-python Tools/Godot/build_windows_runtime.py
+xmake lua Tools/Godot/build_windows_runtime.lua
 python $DORA_TEST_REPO/Test/Godot/test_windows.py --skip-build
 ```
 
@@ -636,7 +636,7 @@ WGL x64 Release 默认选择原生 xmake 构建入口。
 Linux 交叉构建示例（需要 xmake 3.x 和 MinGW-w64 SDK；旧版 xmake 会在配置前被明确拒绝，可用 `--xmake /path/to/xmake` 指定工具）：
 
 ```sh
-python3 Tools/Godot/build_windows_runtime.py \
+xmake lua Tools/Godot/build_windows_runtime.lua \
   --target template_release --backend WGL --arch x86_64 \
   --xmake-sdk /usr --xmake-cross x86_64-w64-mingw32-
 ```
@@ -688,14 +688,14 @@ Windows宿主按构建环境只编入一种Godot桥接。默认是WGL；设置
 Godot D3D12运行库需要Godot NIR依赖；先按上游脚本安装，再显式给出目录：
 
 ```powershell
-python Tools/Godot/build_windows_runtime.py --backend D3D12 `
+xmake lua Tools/Godot/build_windows_runtime.lua --backend D3D12 `
   --mesa-libs C:\path\to\godot-nir --arch x86_64
 ```
 
 D3D12 也只通过原生 xmake 构建；本轮不做 D3D12 动态渲染验收：
 
 ```powershell
-python Tools/Godot/build_windows_runtime.py --backend D3D12 `
+xmake lua Tools/Godot/build_windows_runtime.lua --backend D3D12 `
   --builder xmake --target template_release --arch x86_64 `
   --mesa-libs C:\path\to\godot-nir
 ```
@@ -770,7 +770,7 @@ ARM 虚拟机没有为窗口暴露传统 IMM32 context，因此这证明自动�
 Linux 上可用 MinGW 交叉编译运行库：
 
 ```sh
-python3 Tools/Godot/build_windows_runtime.py --jobs 2
+xmake lua Tools/Godot/build_windows_runtime.lua --jobs 2
 python3 $DORA_TEST_REPO/Test/Godot/tests/wgl/build.py --godot-source Source/3rdParty/Godot --dora-objects
 ```
 
@@ -944,9 +944,9 @@ SDL/EGL、主循环和音频设备。Godot 不创建 Android 渲染视图，双�
 准备 xmake 3.x 与上述工具链后执行（不需要 SCons/venv）：
 
 ```sh
-python3 Tools/Godot/prepare_android_aar.py
+xmake lua Tools/Godot/prepare_android_aar.lua
 python3 $DORA_TEST_REPO/Test/Godot/prepare_android_test_assets.py
-python3 Tools/Godot/build_android_runtime.py --sdk "$ANDROID_HOME" --jobs 2
+xmake lua Tools/Godot/build_android_runtime.lua --sdk "$ANDROID_HOME" --jobs 2
 Projects/Android/Dora/gradlew -p Projects/Android/Dora :app:assembleDebug \
   -Pdora.godot=true -Pandroid.experimental.lint.version=8.9.3 -Pdora.godot.test=true -Pdora.android.abis=arm64-v8a \
   -Pdora.android.jobs=2 --max-workers=2 --no-daemon
@@ -1078,9 +1078,9 @@ Dora ABI。标准 Godot 模块保持启用；当前包没有额外的 iOS 原生
 iOS Debug / Release 均使用原生 xmake，不把 archive/framework 构建成功作为动态渲染通过：
 
 ```sh
-python3 Tools/Godot/build_ios_runtime.py --device simulator --target template_release \
+xmake lua Tools/Godot/build_ios_runtime.lua --device simulator --target template_release \
   --builder xmake --jobs 4 --build-dir build/godot-ios-xmake/simulator
-python3 Tools/Godot/link_ios_runtime.py --device simulator \
+xmake lua Tools/Godot/link_ios_runtime.lua --device simulator \
   --build-dir build/godot-ios-xmake/simulator
 ```
 
@@ -1099,8 +1099,8 @@ SDK 路径逐文件展开，重复 include 保留首次位置；该检查不代�
 xmake Debug 构建和宿主用例：
 
 ```sh
-python3 Tools/Godot/build_ios_runtime.py --device simulator --jobs 2
-python3 Tools/Godot/link_ios_runtime.py --device simulator
+xmake lua Tools/Godot/build_ios_runtime.lua --device simulator --jobs 2
+xmake lua Tools/Godot/link_ios_runtime.lua --device simulator
 python3 $DORA_TEST_REPO/Test/Godot/build_ios_host.py --device simulator --jobs 2
 # 从 xcrun simctl list 中选择已启动的专用测试模拟器 UDID。
 python3 $DORA_TEST_REPO/Test/Godot/tests/ios/run_node.py --udid YOUR_TEST_SIMULATOR_UDID \
@@ -1174,13 +1174,13 @@ Godot 双引擎上验收。该全量状态探针也未做性能验收。
 Debug / Release 均使用原生 xmake；不安装或调用 SCons：
 
 ```sh
-python3 Tools/Godot/build_web_runtime.py --target template_release \
+xmake lua Tools/Godot/build_web_runtime.lua --target template_release \
   --jobs 4 --build-dir build/godot-web-xmake/release
 ```
 
 该入口要求 xmake 3.x；使用 Dora 管理的 Emscripten SDK，报告记录目标实际编译器，
 不采用调用端 PATH 的版本推测。对象/生成物/JS/WASM 位于独立 `build/godot-xmake/web/wasm32`，
-封包放在指定目录的 `package`。允许上游 Python 生成器，不调用 SCons 编译。
+封包放在指定目录的 `package`。自有构建与代码生成入口均使用 Lua，不调用 SCons 编译；Emscripten 等三方工具内部的 Python 保持原样。
 当前源码及链接已接入，构建和浏览器验收状态以 [TRACKING.md](TRACKING.md) 为准。
 排查原生 Wasm trap 时可设置 `DORA_GODOT_WEB_PROFILE_FUNCTIONS=1` 保留函数名；
 这会使用诊断链接设置。正常构建不设置该变量，诊断包与验收候选分开保存。
@@ -1191,7 +1191,7 @@ python3 Tools/Godot/build_web_runtime.py --target template_release \
 以下为 xmake Debug 构建和独立消费端用例：
 
 ```sh
-python3 Tools/Godot/build_web_runtime.py --jobs 2
+xmake lua Tools/Godot/build_web_runtime.lua --jobs 2
 python3 $DORA_TEST_REPO/Test/Godot/tests/web/run_runtime.py --buffers 2 --output build/godot-web/runtime-matrix-2
 python3 $DORA_TEST_REPO/Test/Godot/tests/web/run_runtime.py --buffers 3 --output build/godot-web/runtime-matrix-3
 python3 $DORA_TEST_REPO/Test/Godot/tests/web/run_runtime.py --buffers 4 --output build/godot-web/runtime-matrix-4
@@ -1236,7 +1236,7 @@ Emscripten 的主线程阻塞诊断原文保留在 `browser_errors` / `browser_d
 Godot与Dora的Release分别构建，运行库默认仍输出Debug包；Release不会覆盖该包：
 
 ```sh
-python3 Tools/Godot/build_web_runtime.py --target template_release --jobs 2
+xmake lua Tools/Godot/build_web_runtime.lua --target template_release --jobs 2
 DORA_WEB_GODOT=1 DORA_WEB_GODOT_DIAGNOSTICS=0 \
 DORA_WEB_GODOT_RUNTIME_DIR="$PWD/build/godot-web/release/package" \
 DORA_WEB_BUILD_DIR="$PWD/build/godot-web/release-build" \
@@ -1254,7 +1254,7 @@ DORA_WEB_BUILD_LOVE_PROBE=0 xmake web -P "$PWD" --mode=release --profile=dora-pr
 原Debug实验命令保留如下：
 
 ```sh
-python3 Tools/Godot/build_web_runtime.py --jobs 2
+xmake lua Tools/Godot/build_web_runtime.lua --jobs 2
 DORA_WEB_GODOT=1 DORA_WEB_GODOT_DIAGNOSTICS=1 \
 DORA_WEB_BUILD_DIR="$PWD/build/godot-web/dora-build" \
 DORA_WEB_PACKAGE_DIR="$PWD/build/godot-web/dora-probe" \
@@ -1434,7 +1434,7 @@ python3 $DORA_TEST_REPO/Test/Godot/tests/bindings/run_ownership_failure_macos.py
 
 预期模块失败码为2，必须完成原生生命周期清理且无对象泄漏、GPU错误或pending；GUI既有实例激活、崩溃或缺少预期故障均不算通过。Wa用例故意将Sprite转换导入改为缺失名称，触发创建节点之后的懒链接失败。
 
-macOS嵌入运行库对dora-metal显示后端固定使用Godot已有的lazy着色器库加载：首次使用时同步编译，避免初始化故障快速退出后仍遗留Metal库编译回调。iOS本来采用该策略。渲染能力不减少，首次使用着色器的耗时可能改变；这不是修复Godot所有异步编译路径的声明。prepare.py与包清单记录该配置及实际驱动源码哈希。
+macOS嵌入运行库对dora-metal显示后端固定使用Godot已有的lazy着色器库加载：首次使用时同步编译，避免初始化故障快速退出后仍遗留Metal库编译回调。iOS本来采用该策略。渲染能力不减少，首次使用着色器的耗时可能改变；这不是修复Godot所有异步编译路径的声明。prepare.lua与包清单记录该配置及实际驱动源码哈希。
 
 ### Linux 显式转译下的功能回归
 

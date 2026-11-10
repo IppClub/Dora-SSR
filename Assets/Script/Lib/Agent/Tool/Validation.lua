@@ -230,8 +230,8 @@ function ____exports.validateAgentToolInput(tool, input) -- 91
 			value.offset = clampInteger(value.offset, 0, 0) -- 183
 		else -- 183
 			local docType = type(value.docType) == "string" and value.docType or "dora-api" -- 185
-			if docType ~= "dora-api" and docType ~= "dora-tutorial" and docType ~= "love-api" and docType ~= "tic80-api" then -- 185
-				return {success = false, message = "search_dora_doc requires docType: dora-tutorial, dora-api, love-api, or tic80-api"} -- 187
+			if docType ~= "dora-api" and docType ~= "dora-tutorial" and docType ~= "love-api" and docType ~= "tic80-api" and docType ~= "godot-api" then -- 185
+				return {success = false, message = "search_dora_doc requires docType: dora-tutorial, dora-api, love-api, tic80-api, or godot-api"} -- 187
 			end -- 187
 			value.docType = docType -- 189
 			value.limit = clampInteger(value.limit, 8, 1, AgentConfig.AGENT_LIMITS.searchDoraDocLimitMax) -- 190

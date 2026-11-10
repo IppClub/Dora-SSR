@@ -4,11 +4,10 @@
 
 ## 重建
 
-需要 Python 3 与 Pillow（本次 Pillow 12.3.0）。在仓库根目录运行：
+需要 xmake 3.x 与 ImageMagick 7（`magick`）。Lua 负责连通区域、脚底和像素矩形计算，ImageMagick 只负责图像编解码及预览。在仓库根目录运行：
 
 ```sh
-python3 -m pip install -r Tools/Art/Mobile/requirements.txt
-python3 Tools/Art/Mobile/rebuild_mascot.py --evidence /tmp/dora-mascot-evidence
+xmake lua Tools/Art/Mobile/rebuild_mascot.lua --evidence /tmp/dora-mascot-evidence
 xmake test-suite --suite=art
 ```
 
@@ -24,6 +23,6 @@ xmake test-suite --suite=art
 
 `Mascot.tsx` 在换帧时同时更新裁切区域和逐帧 anchor；保留 Point 采样与减少动态效果时固定首帧。缩放恢复为请求尺寸除以帧格尺寸，不再约束为旧版大像素网格的整数倍。
 
-Python 测试检查原图哈希、24 个原始矩形逐字节 RGBA 一致、平移与生成布局一致，以及 PNG/TS 重建字节一致性。`MascotTest.tsx` 在真实 Dora 引擎内检查四种显示尺寸、全部 24 帧裁切与 anchor、脚底世界坐标变化小于 0.001，以及采样模式读回与减少动态效果模型。截图/GIF 仅供预览，不是运行时图集。
+Dora-Example 的 Python/Pillow 测试检查原图哈希、24 个原始矩形逐字节 RGBA 一致、平移与生成布局一致，以及重复生成的 PNG 字节一致和 TS 布局一致；与既有 PNG 比较解码后的 RGBA，不要求不同编码器输出相同文件字节。`MascotTest.tsx` 在真实 Dora 引擎内检查四种显示尺寸、全部 24 帧裁切与 anchor、脚底世界坐标变化小于 0.001，以及采样模式读回与减少动态效果模型。截图/GIF 仅供预览，不是运行时图集。
 
 旧像素化结果只作为历史证据保留于 `docs/kanban/todo/16-dora-mobile-game-feed-remix/evidence/mascot-pixel-2026-08-30/`，不再代表当前美术方案。

@@ -32,7 +32,7 @@
 
 | 产物 | 必需内容 / 使用方式 |
 | --- | --- |
-| LibGodot 运行库包 | 平台库、`manifest.json`、声明的依赖和全部许可证；使用 `python3 Tools/Godot/verify_package.py /path/to/package` 校验 |
+| LibGodot 运行库包 | 平台库、`manifest.json`、声明的依赖和全部许可证；使用 `xmake lua Tools/Godot/verify_package.lua /path/to/package` 校验 |
 | Dora 应用 | 对应架构/后端宿主、运行库及通知；桌面可通过 `xmake app-package --platform=macosx --arch=arm64 --mode=release --godot-runtime=/path/to/package` 显式选包；Linux/Windows按维护指南选择平台与架构；Android/Web/iOS 使用各自配置，见维护指南 |
 | 游戏试玩数据 | 已由 Godot4.6 导入的工程目录，或目标平台 PCK / `.dora-game`；不重复携带 LibGodot；流程见 [PROJECTS.md](PROJECTS.md) |
 

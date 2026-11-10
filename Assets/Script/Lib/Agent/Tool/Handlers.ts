@@ -101,7 +101,7 @@ const searchDoraDoc: AgentToolHandler = async (context, input) => {
 		pattern: (input.pattern as string) ?? "",
 		docType: ((input.docType as string) ?? "dora-api") as Tools.DoraDocSearchType,
 		docLanguage: (context.useChineseResponse ? "zh" : "en") as Tools.DoraDocLanguage,
-		programmingLanguage: ((input.programmingLanguage as string) ?? "ts") as Tools.DoraDocProgrammingLanguage,
+		programmingLanguage: ((input.programmingLanguage as string) ?? (input.docType === "godot-api" ? "gdscript" : "ts")) as Tools.DoraDocProgrammingLanguage,
 		limit: math.min(AgentConfig.AGENT_LIMITS.searchDoraDocLimitMax, math.max(1, Number(input.limit ?? 8))),
 		useRegex: input.useRegex as boolean | undefined,
 		caseSensitive: false,

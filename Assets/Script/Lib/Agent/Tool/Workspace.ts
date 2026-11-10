@@ -69,8 +69,8 @@ export type SearchFilesToolResult = {
 };
 
 export type DoraDocLanguage = "zh" | "en";
-export type DoraDocSearchType = "dora-tutorial" | "dora-api" | "love-api" | "tic80-api";
-export type DoraDocProgrammingLanguage = "ts" | "tsx" | "lua" | "yue" | "teal" | "tl" | "wa";
+export type DoraDocSearchType = "dora-tutorial" | "dora-api" | "love-api" | "tic80-api" | "godot-api";
+export type DoraDocProgrammingLanguage = "ts" | "tsx" | "lua" | "yue" | "teal" | "tl" | "wa" | "gdscript";
 
 export interface DoraDocSearchHit {
 	file: string;
@@ -90,6 +90,7 @@ export type DoraDocSearchResult = {
 	truncated?: boolean;
 	limit?: number;
 	fallbackPatterns?: string[];
+	sourceVersion?: string;
 } | {
 	success: false;
 	message: string;
@@ -139,6 +140,7 @@ export function getDoraDocSearchTarget(
 	docLanguage: DoraDocLanguage,
 	programmingLanguage: DoraDocProgrammingLanguage
 ): { root: string; exts: string[]; globs: string[] } {
+	if (docType === "godot-api") return {root: getDoraDocResultBaseRoot(docType, docLanguage), exts: ["md"], globs: ["**/*.md"]};
 	if (docType === "dora-tutorial") {
 		const tutorialRoot = getDoraTutorialDocRoot(docLanguage);
 		const langDir = getTutorialProgrammingLanguageDir(programmingLanguage);
@@ -169,6 +171,7 @@ export function getDoraDocSearchTarget(
 }
 
 export function getDoraDocResultBaseRoot(docType: DoraDocSearchType, docLanguage: DoraDocLanguage): string {
+	if (docType === "godot-api") return Path(Content.assetPath, "Doc", "godot-api");
 	if (docType === "dora-tutorial") {
 		return getDoraTutorialDocRoot(docLanguage);
 	}
@@ -179,6 +182,7 @@ export function isDoraDocFileInScope(docType: DoraDocSearchType, file: string): 
 	const normalized = file.split("\\").join("/").toLowerCase();
 	const segments = normalized.split("/");
 	const baseName = segments[segments.length - 1] ?? normalized;
+	if (docType === "godot-api") return normalized === "readme.md" || (segments.length === 2 && segments[0] === "classes" && normalized.endsWith(".md"));
 	if (docType === "dora-tutorial") return normalized.endsWith(".md");
 	if (docType === "love-api") return normalized === "love.d.ts" || normalized === "love.d.tl";
 	if (docType === "tic80-api") return normalized === "tic80.d.ts" || normalized === "tic80.d.tl";
@@ -293,6 +297,9 @@ function resolveAgentDoraDocFilePath(path: string, docLanguage?: DoraDocLanguage
 		if (namespaced.startsWith("dora-api/")) {
 			docType = "dora-api";
 			relative = namespaced.slice(9);
+		} else if (namespaced.startsWith("godot-api/")) {
+			docType = "godot-api";
+			relative = namespaced.slice(10);
 		} else if (namespaced.startsWith("love-api/")) {
 			docType = "love-api";
 			relative = namespaced.slice(9);

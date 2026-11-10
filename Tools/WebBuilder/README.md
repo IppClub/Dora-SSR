@@ -13,7 +13,7 @@ makes Web packaging a one-command, automatable operation.
 
 The engine part of a Web package (engine chunks, HTML loader, licenses,
 `index.html`) is identical for every project built against the same engine
-build. `webbuild.py` therefore takes one **official Web IDE export as a
+build. `webbuild.lua` therefore takes one **official Web IDE export as a
 template** (any of your own exports works), keeps its engine parts, and
 regenerates only the project parts:
 
@@ -33,7 +33,7 @@ template (official IDE export)     project inputs
 ## Usage
 
 ```bash
-python3 Tools/WebBuilder/webbuild.py \
+xmake lua Tools/WebBuilder/webbuild.lua \
     --template official-export.zip \
     --entry init.lua \
     --entry-src Script/Game/init.lua \
@@ -117,5 +117,5 @@ engine and audio chunks.
 
 ## Requirements
 
-- Python 3.7+ (standard library only).
+- xmake 3.x (`xmake lua`); ZIP operations use xmake's platform archive tools.
 - One official Web IDE export of the same engine version as the template.

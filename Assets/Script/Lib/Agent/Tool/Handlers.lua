@@ -173,7 +173,7 @@ local function searchDoraDoc(context, input) -- 98
 		local ____temp_29 = input.pattern or "" -- 101
 		local ____temp_30 = input.docType or "dora-api" -- 102
 		local ____temp_31 = context.useChineseResponse and "zh" or "en" -- 103
-		local ____temp_32 = input.programmingLanguage or "ts" -- 104
+		local ____temp_32 = input.programmingLanguage or (input.docType == "godot-api" and "gdscript" or "ts") -- 104
 		local ____math_min_28 = math.min -- 105
 		local ____AgentConfig_AGENT_LIMITS_searchDoraDocLimitMax_27 = AgentConfig.AGENT_LIMITS.searchDoraDocLimitMax -- 105
 		local ____math_max_26 = math.max -- 105

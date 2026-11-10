@@ -102,6 +102,7 @@ Tools/tolua++/**/*.so
 # Ignore generated docs in assets
 Assets/Doc/zh-Hans
 Assets/Doc/en
+Assets/Doc/godot-api
 
 # xmake build cache
 .xmake/

@@ -17,7 +17,7 @@ function main(target, staging, stage_directory)
         if bundle and changed then os.tryrm(target:dependfile(path.absolute(bundle))) end
         return
     end
-    local args = {path.join(root, "Tools/Godot/build_component.py"),
+    local args = {"lua", path.join(root, "Tools/Godot/build_component.lua"),
         "--platform", platform, "--arch", target:arch(), "--mode", config.mode()}
     local runtime = os.getenv("DORA_GODOT_RUNTIME_DIR")
     if runtime and runtime ~= "" then table.join2(args, {"--runtime-package", runtime}) end
@@ -36,7 +36,7 @@ function main(target, staging, stage_directory)
         local assets = stage_directory or (bundle and target:data("xcode.bundle.resourcesdir") or path.join(target:targetdir(), "Assets"))
         table.join2(args, {"--stage-only", "--stage", path.absolute(assets)})
     end
-    os.vrunv(assert(find_tool("python3") or find_tool("python"), "Godot requires Python 3").program,
+    os.vrunv(os.programfile(),
         args, {curdir = root, envs = {DORA_XMAKE = os.programfile()}})
     local receipt = json.loadfile(output)
     if staging and not stage_directory and receipt.staged_changed and target:data("xcode.bundle.rootdir") then

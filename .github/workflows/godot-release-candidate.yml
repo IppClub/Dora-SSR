@@ -93,19 +93,18 @@ jobs:
             libdrm2 libgbm1 libwayland-client0 libwayland-cursor0 libwayland-egl1 libxkbcommon0 libdecor-0-0
           python3 -m pip install Pillow==12.1.0
 
+      - uses: xmake-io/github-action-setup-xmake@v1
+        with:
+          xmake-version: '3.1.1'
+
       - name: Check whether the source runtime is Release
         id: runtime
         run: |
           runtime="$PWD/candidate-artifact/godot-component/linux/x86_64/release/package"
           if [ ! -f "$runtime/manifest.json" ]; then runtime="$PWD/candidate-artifact/godot-linux/package"; fi
-          python3 Tools/Godot/verify_package.py "$runtime"
+          xmake lua Tools/Godot/verify_package.lua "$runtime"
           echo "directory=$runtime" >> "$GITHUB_OUTPUT"
-          python3 -c 'import json,sys; from pathlib import Path; m=json.loads((Path(sys.argv[1])/"manifest.json").read_text()); print("release="+str(m.get("build_target")=="template_release").lower())' "$runtime" >> "$GITHUB_OUTPUT"
-
-      - uses: xmake-io/github-action-setup-xmake@v1
-        if: steps.runtime.outputs.release != 'true'
-        with:
-          xmake-version: '3.1.1'
+          xmake lua Projects/xmake/tools/ci.lua runtime-release "$runtime" >> "$GITHUB_OUTPUT"
 
       - name: Build only the missing LibGodot Release package
         if: steps.runtime.outputs.release != 'true'
@@ -135,7 +134,7 @@ jobs:
           SOURCE_ARTIFACT_DIGEST: ${{ steps.source.outputs.artifact_digest }}
         run: |
           mkdir -p build/godot-candidate-release
-          python3 -c 'import json,os; from pathlib import Path; Path("build/godot-candidate-release/source.json").write_text(json.dumps({k:os.environ[k] for k in ["ENGINE_SHA","SOURCE_RUN_ID","SOURCE_ARTIFACT_ID","SOURCE_ARTIFACT_DIGEST"]},indent=2)+"\n")'
+          xmake lua Projects/xmake/tools/ci.lua candidate-receipt
           python3 "$DORA_TEST_REPO/Test/Godot/tests/run_candidate_release_switch.py" \
             --artifact "$PWD/candidate-artifact" --output "$PWD/build/godot-candidate-release/acceptance" \
             --engine-sha "$ENGINE_SHA" --run-id "$SOURCE_RUN_ID" --runtime-package "$CANDIDATE_RUNTIME"

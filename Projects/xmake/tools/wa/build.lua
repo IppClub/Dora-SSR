@@ -6,7 +6,6 @@ function main(target, sync)
     envs.PATH = (envs.PATH or "") .. path.envsep() .. os.getenv("PATH")
     envs.GOPROXY = os.getenv("GOPROXY") or "https://proxy.golang.org,direct"
     local go = assert(find_tool("go", {envs = envs}), "managed Go toolchain not found")
-    local python = sync and assert(find_tool(os.host() == "windows" and "python" or "python3"), "Wa source sync requires Python")
     local source = sync and path.absolute(assert(config.get("dora_wa_sync_source"), "--source is required"), root)
         or path.join(root, "Source/3rdParty/Wa/Source")
     assert(os.isfile(path.join(source, "go.mod")), "Wa source repository not found: " .. source)
@@ -20,9 +19,9 @@ function main(target, sync)
     local stage = os.tmpfile() .. "-dora-wa"
     try {function ()
         if sync then
-            os.execv(python.program, {path.join(root, "Projects/xmake/tools/wa/collect_source.py"), source, stage, "wa-lang.org/wa"}, {envs = envs})
+            os.execv(os.programfile(), {"lua", path.join(root, "Projects/xmake/tools/wa/collect_source.lua"), source, stage, "wa-lang.org/wa"}, {envs = envs})
             os.execv(go.program, {"mod", "vendor"}, {curdir = stage, envs = envs})
-            os.execv(python.program, {path.join(root, "Projects/xmake/tools/wa/collect_vendor.py")}, {curdir = stage, envs = envs})
+            os.execv(os.programfile(), {"lua", path.join(root, "Projects/xmake/tools/wa/collect_vendor.lua")}, {curdir = stage, envs = envs})
             local destination = path.join(root, "Source/3rdParty/Wa/Source")
             local backup = path.join(root, "build/wa-sync-backups", os.date("%Y%m%d-%H%M%S"))
             assert(not os.exists(backup), "Wa backup already exists: " .. backup)
@@ -47,5 +46,8 @@ function main(target, sync)
             os.cp(runtime, path.join(output, "wasm_exec.js"))
             cprint("${green}Wa Web module: %s${clear}", output)
         end
-    end, finally = function () os.tryrm(stage) end}
+    end, finally {function (ok, errors)
+        os.tryrm(stage)
+        if not ok then raise(errors) end
+    end}}
 end

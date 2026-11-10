@@ -9,10 +9,8 @@ local function stage_godot_runtime(runtime_dir, asset_root, expected_library, re
     local manifest_file = path.join(runtime, "manifest.json")
     ensure(os.isdir(runtime) and os.isfile(manifest_file),
         "Godot runtime package must contain manifest.json: " .. runtime)
-    local python = ensure(api.find_tool("python3") or api.find_tool("python"),
-        "Godot runtime packaging requires Python")
-    os.vrunv(python.program, {
-        path.join(projectdir, "Tools/Godot/verify_package.py"), runtime
+    os.vrunv(os.programfile(), {
+        "lua", path.join(projectdir, "Tools/Godot/verify_package.lua"), runtime
     }, {curdir = projectdir})
 
     local manifest = json.loadfile(manifest_file)
@@ -339,8 +337,7 @@ local function package_windows(mode, arch, api)
     os.cp(wa_mod, path.join(stage, "dora-wa/wa.mod"))
     os.cp(wa_vendor, path.join(stage, "dora-wa/vendor"))
 
-    local python = ensure(find_tool("python3") or find_tool("python"), "Windows packaging requires Python")
-    os.vrunv(python.program, {path.join(projectdir, "Tools/WindowsPackage/package_windows.py"),
+    os.vrunv(os.programfile(), {"lua", path.join(projectdir, "Tools/WindowsPackage/package_windows.lua"),
         "--stage", stage, "--output", package_dir, "--backend", backend, "--format", api.format, "--mode", mode}, {curdir = projectdir})
 
 end

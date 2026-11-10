@@ -29,25 +29,19 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Resolve and validate release version
-        id: version
-        run: |
-          python3 - <<'PYVERSION'
-          import os, re
-          from pathlib import Path
-          version = 'v' + re.search(r'#define DORA_VERSION "([0-9.]+)"', Path('Source/Basic/Application.cpp').read_text()).group(1)
-          if os.environ['GITHUB_REF'].startswith('refs/tags/'):
-              assert os.environ['GITHUB_REF_NAME'] == version, 'Tag and engine version differ'
-          with open(os.environ['GITHUB_OUTPUT'], 'a') as out: out.write('version=' + version + '\n')
-          PYVERSION
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.13'
       - name: Setup xmake
         uses: xmake-io/github-action-setup-xmake@v1
         with:
           xmake-version: latest
+
+      - name: Resolve and validate release version
+        id: version
+        run: |
+          xmake lua Projects/xmake/tools/ci.lua release-version
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
       - name: Setup pnpm
         uses: pnpm/action-setup@v6
         with:

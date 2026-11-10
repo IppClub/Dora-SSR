@@ -12,7 +12,7 @@ D3D12 包自动附带 `GODOT-NIR-THIRD-PARTY-NOTICES.txt` 与 `GODOT-NIR-PROVENA
 用已下载的官方归档及固定 SDK 复现（从仓库根目录）：
 
 ```sh
-python3 Tools/Godot/generate_nir_notices.py \
+xmake lua Tools/Godot/generate_nir_notices.lua \
   --mesa-source /path/to/mesa-exact-commit.tar.gz \
   --nir-source /path/to/godot-nir-source-25.3.1-1.tar.gz \
   --sdk-root /path/to/mesa-x86_64-gcc \

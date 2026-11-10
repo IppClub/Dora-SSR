@@ -4,25 +4,27 @@
 
 ## 源码与构建入口
 
-Dora 1.10.0默认构建完整LibGodot组件，详见[默认正式组件](README.md#默认正式组件dora-1100)。`Tools/Godot/build_component.py`负责模式/架构/后端匹配及部署，沿用下表的独立原生xmake构建器；不会静默取用Debug库满足Release。macOS默认arm64、Windows默认x64/WGL；iOS门槛和既有动态验收缺口保持不变。Godot的三方依赖仍独立维护，不新增共享库方案。
+Dora 1.10.0默认构建完整LibGodot组件，详见[默认正式组件](README.md#默认正式组件dora-1100)。`Tools/Godot/build_component.lua`负责模式/架构/后端匹配及部署，沿用下表的独立原生xmake构建器；不会静默取用Debug库满足Release。macOS默认arm64、Windows默认x64/WGL；iOS门槛和既有动态验收缺口保持不变。Godot的三方依赖仍独立维护，不新增共享库方案。
 
 Godot 完整源码位于 `Source/3rdParty/Godot`，不是 submodule。固定版本与导入来源见 [UPSTREAM.json](../../Source/3rdParty/Godot/UPSTREAM.json)；该文件描述上游导入基线，不是当前带 Dora 修改的整棵源码树摘要。桥接实现位于其中的 `modules/dora_bridge`，宿主实现和协议位于 `Source/Godot`。
 
-`prepare.py`、`prepare_android.py`、`prepare_ios.py`、`prepare_web.py` 目前是只读检查入口，不再下载或给源码打补丁。`vendor_source.py` 检查固定来源、关键修改标记及双端协议头一致性；它不是完整源码完整性校验。需要证明构建不改源码时，应分别保存构建前后所有源码文件的清单和哈希。
+`prepare.lua`、`prepare_android.lua`、`prepare_ios.lua`、`prepare_web.lua` 目前是只读检查入口，不再下载或给源码打补丁。`vendor_source.lua` 检查固定来源、关键修改标记及双端协议头一致性；它不是完整源码完整性校验。需要证明构建不改源码时，应分别保存构建前后所有源码文件的清单和哈希。
 
 完整来源与当前Dora差异另由 [源码审计工具](https://github.com/IppClub/Dora-Example/blob/master/Test/Godot/audit_vendor_provenance.py) 和 [登记清单](vendor/SOURCE_DELTA.json) 校验；[复查及更新流程](vendor/README.md)说明固定归档/上游Git树/首次导入提交、Git换行政策和零fuzz补丁重建。它是独立维护审计，不给普通构建新增下载或历史依赖。当前50个修改文件、44个新增文件均显式登记；后续源码修改需同步该清单并重验，不能仅靠标记检查。该范围包含登记及未忽略源码，忽略的SCons缓存和构建产物另行处理。
 
-从仓库根目录构建。先准备 xmake 3.x、Python 3.11+ 和平台工具链；Android 另需 SDK/NDK 29.0.14206865，Web 使用 Dora 管理的 Emscripten。不要用 PATH 中另一个 SDK 的版本代替实际编译器证据。
+从仓库根目录构建。先准备 xmake 3.x 和平台工具链；自有工具通过 `xmake lua` 执行。Android 另需 SDK/NDK 29.0.14206865，Web 使用 Dora 管理的 Emscripten；Emscripten 等三方工具内部的 Python 保持不变。不要用 PATH 中另一个 SDK 的版本代替实际编译器证据。
+
+代码生成器在 Lua 中展开上游静态文本模板，不执行上游 `.py`；Deflate 压缩使用 `gzip` 或 `7z`，ZIP 解包使用 xmake 的平台归档工具。可独立运行 `xmake lua Tools/Godot/generate_xmake_sources.lua --output=/path/to/generated`，也可在全新目录生成 `xmake lua Tools/Godot/generate_api_docs.lua --output=/path/to/docs`。重复生成保留未变化文件的时间戳。外部 Dora-Example 测试可继续使用 Python；测试中的旧 Python API 适配层仅传递 JSON 到 Lua，不实现构建逻辑。
 
 | 配置 | 当前入口 | 默认构建器与范围 |
 | --- | --- | --- |
 | macOS arm64 Metal | `DORA_GODOT_TARGET=template_release Tools/Godot/build_runtime.sh` | Debug / Release 均为原生 xmake |
 | Linux ARM64/x86_64 EGL | Linux 上运行 `DORA_GODOT_TARGET=template_release Tools/Godot/build_linux_runtime.sh` | 原生 xmake；`DORA_GODOT_LINUX_ARCH` 选架构，支持 Debug / Release |
-| Windows x64/ARM64 WGL | `python3 Tools/Godot/build_windows_runtime.py --target template_release --backend WGL --arch x86_64` | 原生 xmake / MinGW；ARM64 用 `--arch arm64` 及对应 SDK/prefix |
+| Windows x64/ARM64 WGL | `xmake lua Tools/Godot/build_windows_runtime.lua --target template_release --backend WGL --arch x86_64` | 原生 xmake / MinGW；ARM64 用 `--arch arm64` 及对应 SDK/prefix |
 | Windows x64/ARM64 D3D12 | 同一脚本指定 `--backend D3D12 --target template_release --mesa-libs /path/to/sdk` | 原生 xmake；NIR SDK 须匹配架构及 GNU/LLVM 工具链；本轮不做动态 GPU 验收 |
-| Android ARM64/ARM32/x86_64 EGL | `python3 Tools/Godot/build_android_runtime.py --sdk /path/to/android-sdk --arch arm64 --target template_release` | 原生 xmake，API28；架构参数为 arm64 / arm32 / x86_64 |
-| Web wasm32 | `python3 Tools/Godot/build_web_runtime.py --target template_release` | 原生 xmake 与 Dora 管理的 Emscripten，支持 Debug / Release |
-| iOS ARM64 Metal | `python3 Tools/Godot/build_ios_runtime.py --device simulator --target template_release --build-dir /path/to/fresh-build` | 原生 xmake；随后以同一 device/build-dir 运行 `link_ios_runtime.py`；设备构建选 device，支持 Debug / Release |
+| Android ARM64/ARM32/x86_64 EGL | `xmake lua Tools/Godot/build_android_runtime.lua --sdk /path/to/android-sdk --arch arm64 --target template_release` | 原生 xmake，API28；架构参数为 arm64 / arm32 / x86_64 |
+| Web wasm32 | `xmake lua Tools/Godot/build_web_runtime.lua --target template_release` | 原生 xmake 与 Dora 管理的 Emscripten，支持 Debug / Release |
+| iOS ARM64 Metal | `xmake lua Tools/Godot/build_ios_runtime.lua --device simulator --target template_release --build-dir /path/to/fresh-build` | 原生 xmake；随后以同一 device/build-dir 运行 `link_ios_runtime.lua`；设备构建选 device，支持 Debug / Release |
 
 Python 构建入口可用 `--build-dir` 隔离报告/封包，是否支持其他参数以各脚本 `--help` 为准。Linux、Android、Windows、Web、iOS入口默认关闭编译缓存，避免共享目录中的大型预处理文件I/O；已完成对象仍可按依赖增量复用。独立报告目录不等于独立编译目录：部分入口共享仓库内固定对象路径，同平台同架构配置切换时不要并行写同一输出树。
 
@@ -54,7 +56,7 @@ Android Java/AAR 默认从 vendor 构建，`--builder maven` 仅为显式参考�
 桌面/移动端原生加载器支持 `DORA_GODOT_LIBRARY` 覆盖路径，仅用于明确指定运行库；普通随包验收应取消该覆盖，验证默认查找。Android Gradle 通过 `dora.godot.runtimePackage` 和 `dora.godot.javaAar` 选包，默认启用Godot并构建vendor Java及匹配ABI原生库；只有显式`dora.godot=false`才裁剪Godot。
 
 ```sh
-python3 Tools/Godot/verify_package.py /absolute/path/to/package
+xmake lua Tools/Godot/verify_package.lua /absolute/path/to/package
 ```
 
 校验器核对清单身份、文件和许可摘要；它不加载库，不证明 ABI、签名或 GPU 工作。平台封包完成后执行相应 ABI 与动态测试。桌面用 `tests/verify_desktop_package.py` 检查随包文件，并以普通宿主验证随包加载及缺库退化，命令见 README。Android 验证最终 APK，iOS 验证实际 framework 和应用，Web 验证实际部署响应头、MIME 和浏览器行为。
@@ -72,9 +74,9 @@ python3 Tools/Godot/verify_package.py /absolute/path/to/package
 1. 先封存当前源码状态、各平台工具链/flags、运行库包、摘要及运行报告；保留可复现的旧基线。上游导入与 Dora 修改分开提交，避免混淆来源。
 2. 选择固定上游 commit/ref，从官方归档取得源码并核对摘要；更新 `UPSTREAM.json`。完整保留上游文件与许可证，核对 thirdparty 版本、补丁和通知差异。
 3. 对照旧上游基线与当前 vendor 差异，重新应用桥接与平台修改，逐项记录冲突和处理；同步 `Source/Godot` 与 `modules/dora_bridge` 的协议头及导出表。
-4. 同步 `vendor_source.py`、`audit_vendor_provenance.py`、`vendor/SOURCE_DELTA.json`、`package_manifest.py`、`package_runtime.py`、平台构建脚本、profile 中的固定身份与哈希。只改 `UPSTREAM.json` 不足以完成升级；检查 tests/CI/许可证材料中的旧版本引用，不能绕过固定身份校验。
-5. 使用封存的同配置编译数据库或在独立上游 checkout 建立参考。Dora 不提供 SCons 构建入口。用 `import_compile_db.py`（macOS 可用专用 importer）更新源码清单及原生变体目标，核对架构、工具链实参、宏、SIMD、生成文件与逐文件 include 顺序。此过程会写维护文件，先检查输出路径和差异。
-6. 更新生成 profile 与 `generate_xmake_sources.py`，对比代码生成结果。运行相应 codegen、清单和 include 顺序检查；干净原生构建不得读取旧 SCons 输出或写 vendor。
+4. 同步 `vendor_source.lua`、`audit_vendor_provenance.py`、`vendor/SOURCE_DELTA.json`、`package_manifest.lua`、`package_runtime.lua`、平台构建脚本、profile 中的固定身份与哈希。只改 `UPSTREAM.json` 不足以完成升级；检查 tests/CI/许可证材料中的旧版本引用，不能绕过固定身份校验。
+5. 使用封存的同配置编译数据库或在独立上游 checkout 建立参考。Dora 不提供 SCons 构建入口。用 `import_compile_db.lua`（macOS 可用专用 importer）更新源码清单及原生变体目标，核对架构、工具链实参、宏、SIMD、生成文件与逐文件 include 顺序。此过程会写维护文件，先检查输出路径和差异。
+6. 更新生成 profile 与 `generate_xmake_sources.lua`，对比代码生成结果。运行相应 codegen、清单和 include 顺序检查；干净原生构建不得读取旧 SCons 输出或写 vendor。
 7. 逐平台检查最终导出/依赖、封包/许可/ABI，并执行跟踪页规定的2/3/4缓冲、音频/输入、生命周期与未修改真实项目验收。软件渲染、VM、模拟器、物理 GPU 分开记录。
 8. 所有支持配置保持 xmake 唯一入口；尚未通过动态验收的项目继续明确留待办，不添加 SCons 回退。更新跟踪清单，过程、失败和证据按约定另存；本次暂存 `build/godot-xmake-only-v1/PROGRESS-DRAFT.md`，不重建已移除的 history。签名/发布仍按实际授权执行。
 

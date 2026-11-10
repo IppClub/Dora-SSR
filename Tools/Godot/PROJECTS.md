@@ -1,6 +1,6 @@
 # Godot 工程与试玩包
 
-`project.py` 提供本地分发流程：仓库/源码 ZIP → 识别工程 → 独立副本导入 → Dora 试玩，或导出 PCK → 归档 → 校验安装 → Dora 试玩。生产逻辑位于 `project_delivery.py`，回归程序位于 Dora-Example `Test/Godot`。
+`project.lua` 提供本地分发流程：仓库/源码 ZIP → 识别工程 → 独立副本导入 → Dora 试玩，或导出 PCK → 归档 → 校验安装 → Dora 试玩。生产逻辑位于 `project_delivery.lua`，回归程序位于 Dora-Example `Test/Godot`。
 
 ## Web IDE 新建工程与 Agent 开发
 
@@ -12,7 +12,7 @@ Web IDE 的“新建工程目录 → 创建为项目”提供 `Godot 2D` 和 `Go
 
 着色器使用 Godot 原生预处理器和 ShaderLanguage 检查语法、类型、内置函数、uniform 与 include，错误定位到实际文件和行号；全局 uniform 类型从工程设置读取，不修改渲染服务器。`.gdshaderinc` 独立检查使用 Godot include 模式，引用方 shader 展开后再检查完整上下文；独立检查不能证明所有引用上下文均有效。GDScript 使用 Godot 自身的解析器与语义分析器，场景和文本资源使用 Godot 文本资源扫描器检查语法、类型和外部资源路径。检查不启动主场景、不实例化游戏节点、不运行 Autoload、不覆写源文件。运行中的 Godot 工程只能检查该工程，检查另一工程时需要先停止当前工程。当前原生检查桥接已接入 macOS Metal；其它宿主后端明确返回能力缺失，不回退到外部命令。新接口需要同时更新 Dora 宿主和内置运行库。
 
-Agent 的 `build` 以工程目录检查全部 `.gd`、`.tscn`、`.tres`、`.gdshader`、`.gdshaderinc` 后，再构建 Dora 宿主脚本。即使目标为 `init.ts`，也不会跳过 Godot 检查。Godot 3、C#/Mono 和原生 GDExtension sidecar 不在支持范围。该检查不生成资源导入缓存、不进行 GPU 后端着色器或管线编译，也不等于游戏运行和 GPU 画面验收。下方 `project.py` 的独立副本导入/打包是单独的资源准备流程，不会被代码检查隐式调用。
+Agent 的 `build` 以工程目录检查全部 `.gd`、`.tscn`、`.tres`、`.gdshader`、`.gdshaderinc` 后，再构建 Dora 宿主脚本。即使目标为 `init.ts`，也不会跳过 Godot 检查。Godot 3、C#/Mono 和原生 GDExtension sidecar 不在支持范围。该检查不生成资源导入缓存、不进行 GPU 后端着色器或管线编译，也不等于游戏运行和 GPU 画面验收。下方 `project.lua` 的独立副本导入/打包是单独的资源准备流程，不会被代码检查隐式调用。
 
 构建错误可在日志中定位；编辑 Godot 文件时，“运行”和“运行当前文件”均定位所属工程并启动 Dora 宿主 `init`，不会将 GDScript 当作 Lua 执行，也不会自动替换项目主场景。
 
@@ -25,11 +25,11 @@ Godot 开发面向桌面 Dora 的 Web IDE。Dora Studio 面向轻量的浏览器
 可指定工程目录、`project.godot`，或只包含一个工程的仓库。多工程仓库用 `--project` 选择相对目录。Git URL 会 clone 到本次工作目录；源码 ZIP 会先解包，省略 `.git` 和 `.godot`，再重新导入。
 
 ```sh
-python3 Tools/Godot/project.py inspect /path/to/repository
-python3 Tools/Godot/project.py import /path/to/repository.zip --output /path/to/new-repository
-python3 Tools/Godot/project.py clone https://example.org/game.git --output /path/to/new-clone
+xmake lua Tools/Godot/project.lua inspect /path/to/repository
+xmake lua Tools/Godot/project.lua import /path/to/repository.zip --output /path/to/new-repository
+xmake lua Tools/Godot/project.lua clone https://example.org/game.git --output /path/to/new-clone
 
-python3 Tools/Godot/project.py run /path/to/repository \
+xmake lua Tools/Godot/project.lua run /path/to/repository \
   --project path/to/game \
   --godot /path/to/Godot-4.7.2 \
   --app /path/to/ordinary/Dora.app \
@@ -44,7 +44,7 @@ python3 Tools/Godot/project.py run /path/to/repository \
 已有导入缓存也会在独立副本中重新生成，避免携带其他 Godot 版本或平台的旧缓存。仅准备工程、不启动 Dora：
 
 ```sh
-python3 Tools/Godot/project.py prepare /path/to/repository \
+xmake lua Tools/Godot/project.lua prepare /path/to/repository \
   --godot /path/to/Godot-4.7.2 --output /path/to/new-prepared
 ```
 
@@ -55,16 +55,16 @@ python3 Tools/Godot/project.py prepare /path/to/repository \
 PCK 由 Godot 的标准 `--export-pack` 生成，保留导出后的资源、脚本和 remap。已有导出配置时指定 `--preset`；只有一个 preset 时自动选取。没有导出配置时，使用 `--platform` 在独立副本中生成基础配置。
 
 ```sh
-python3 Tools/Godot/project.py export /path/to/repository \
+xmake lua Tools/Godot/project.lua export /path/to/repository \
   --godot /path/to/Godot-4.7.2 --id org.example.game --version 1.0.0 \
   --platform macOS --work-dir /path/to/new-build --output /path/to/new-game
 
-python3 Tools/Godot/project.py archive /path/to/new-game \
+xmake lua Tools/Godot/project.lua archive /path/to/new-game \
   --output /path/to/game.dora-game
-python3 Tools/Godot/project.py install /path/to/game.dora-game \
+xmake lua Tools/Godot/project.lua install /path/to/game.dora-game \
   --output /path/to/new-installed-game
 
-python3 Tools/Godot/project.py run /path/to/game.dora-game \
+xmake lua Tools/Godot/project.lua run /path/to/game.dora-game \
   --app /path/to/ordinary/Dora.app \
   --runtime-package /path/to/godot-runtime/package \
   --work-dir /path/to/new-package-preview

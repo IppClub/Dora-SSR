@@ -32,6 +32,17 @@ if is_plat("windows") then
     add_requires("dora-webview2 1.0.2903.40")
 end
 
+-- The source corpus is generated, not checked in as a second Godot snapshot.
+-- Build it before native bundles/package staging enumerate Assets/Doc.
+target("dora-godot-docs")
+    set_kind("phony")
+    set_default(false)
+    on_build(function ()
+        import("Tools.Godot.generate_api_docs", {rootdir = DORA_ROOT}).generate(
+            rootpath("Source/3rdParty/Godot"), rootpath("Assets/Doc/godot-api"))
+    end)
+target_end()
+
 target("Dora")
     local csharp_native = os.getenv("DORA_BUILD_CSHARP_NATIVE") == "1"
     set_kind((is_plat("android") or csharp_native) and "shared" or "binary")
@@ -40,6 +51,7 @@ target("Dora")
     end
     -- Native xmake build/run select the engine; auxiliary tools stay opt-in.
     set_default(true)
+    if has_config("dora_godot_runtime") then add_deps("dora-godot-docs", {inherit = false}) end
     if is_plat("macosx", "linux", "windows") then
         on_run(function (target)
             import("Projects.xmake.tools.native_run", {rootdir = DORA_ROOT, anonymous = true})(target)
