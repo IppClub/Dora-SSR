@@ -1717,6 +1717,10 @@ unless App.platform == "Emscripten"
 	moduleCache = []
 	webStatus = oldRequire "Script.Dev.WebServer"
 	moduleCache = sceneModuleCache
+	if (App.platform == "Windows" or App.platform == "macOS") and App.webIDEEnabled
+		thread ->
+			wait -> webStatus.url ~= nil or not App.webIDEEnabled
+			emit "AppWebView", "/ide/show", true if App.webIDEEnabled
 
 startMobileUI = ->
 	mobileFeed = oldRequire "Script.Dev.Mobile.Feed"

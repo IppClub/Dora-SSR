@@ -2796,282 +2796,292 @@ if not (App.platform == "Emscripten") then -- 1715
 	moduleCache = { } -- 1717
 	webStatus = oldRequire("Script.Dev.WebServer") -- 1718
 	moduleCache = sceneModuleCache -- 1719
+	if (App.platform == "Windows" or App.platform == "macOS") and App.webIDEEnabled then -- 1720
+		thread(function() -- 1721
+			wait(function() -- 1722
+				return webStatus.url ~= nil or not App.webIDEEnabled -- 1722
+			end) -- 1722
+			if App.webIDEEnabled then -- 1723
+				return emit("AppWebView", "/ide/show", true) -- 1723
+			end -- 1723
+		end) -- 1721
+	end -- 1720
 end -- 1715
-local _anon_func_7 = function(saved) -- 1742
-	local _val_0 = saved.kind -- 1742
-	return "local" == _val_0 or "discover" == _val_0 -- 1742
-end -- 1742
-local _anon_func_8 = function(saved) -- 1746
-	local _val_0 = saved.activeTab -- 1746
+local _anon_func_7 = function(saved) -- 1746
+	local _val_0 = saved.kind -- 1746
 	return "local" == _val_0 or "discover" == _val_0 -- 1746
 end -- 1746
-startMobileUI = function() -- 1721
-	local mobileFeed = oldRequire("Script.Dev.Mobile.Feed") -- 1722
-	local mobileCatalog = oldRequire("Script.Dev.Mobile.MobileCatalog") -- 1723
-	local projectCreate = oldRequire("Script.Dev.Mobile.ProjectCreate") -- 1724
-	local getMobileFeedResources -- 1725
-	do -- 1725
-		local _obj_0 = require("Script.Tools.ResourceDownloader.Catalog") -- 1725
-		getMobileFeedResources = _obj_0.getMobileFeedResources -- 1725
-	end -- 1725
-	local loadCachedCatalog -- 1726
-	do -- 1726
-		local _obj_0 = require("Script.Tools.ResourceDownloader.CatalogSync") -- 1726
-		loadCachedCatalog = _obj_0.loadCachedCatalog -- 1726
-	end -- 1726
-	local getResourceInstallPath, getInstalledCatalogResource -- 1727
-	do -- 1727
-		local _obj_0 = require("Script.Tools.ResourceDownloader.GitInstaller") -- 1727
-		getResourceInstallPath, getInstalledCatalogResource = _obj_0.getResourceInstallPath, _obj_0.getInstalledCatalogResource -- 1727
-	end -- 1727
-	local lifecycle = oldRequire("Script.Dev.Mobile.Lifecycle") -- 1728
-	local playOverlay = oldRequire("Script.Dev.Mobile.PlayOverlay") -- 1729
-	local feedOptions = nil -- 1730
-	local mobileLaunchErrors = { } -- 1731
-	local withMobileLaunchErrors -- 1732
-	withMobileLaunchErrors = function(items) -- 1732
-		for _index_0 = 1, #items do -- 1733
-			local item = items[_index_0] -- 1733
-			item.launchError = mobileLaunchErrors[item.id] -- 1734
-		end -- 1733
-		return items -- 1735
-	end -- 1732
-	local rememberedMobileFeedData = config.mobileFeedCurrentCard -- 1736
-	local loadRememberedMobileFeedState -- 1737
-	loadRememberedMobileFeedState = function() -- 1737
-		local raw = rememberedMobileFeedData -- 1738
-		if not (type(raw) == "string" and raw ~= "") then -- 1739
-			return -- 1739
-		end -- 1739
-		local ok, saved = pcall(json.decode, raw) -- 1740
-		if not (ok and type(saved) == "table") then -- 1741
-			return -- 1741
-		end -- 1741
-		if type(saved.id) == "string" and _anon_func_7(saved) then -- 1742
-			local state = { -- 1743
-				activeTab = saved.kind -- 1743
-			} -- 1743
-			state[saved.kind] = saved -- 1744
-			return state -- 1745
-		end -- 1742
-		local state = { -- 1746
-			activeTab = _anon_func_8(saved) and saved.activeTab or "local" -- 1746
-		} -- 1746
-		local _list_0 = { -- 1747
-			"local", -- 1747
-			"discover" -- 1747
-		} -- 1747
-		for _index_0 = 1, #_list_0 do -- 1747
-			local kind = _list_0[_index_0] -- 1747
-			local entry = saved[kind] -- 1748
-			if type(entry) == "table" and type(entry.id) == "string" and entry.kind == kind then -- 1749
-				state[kind] = entry -- 1749
-			end -- 1749
-		end -- 1747
-		return state -- 1750
-	end -- 1737
-	local rememberedMobileFeedState = loadRememberedMobileFeedState() or { -- 1751
-		activeTab = "local" -- 1751
-	} -- 1751
-	local rememberMobileFeedEntry -- 1752
-	rememberMobileFeedEntry = function(entry) -- 1752
-		rememberedMobileFeedState.activeTab = entry.kind -- 1753
-		rememberedMobileFeedState[entry.kind] = { -- 1755
-			id = entry.id, -- 1755
-			kind = entry.kind, -- 1756
-			workDir = entry.workDir, -- 1757
-			fileName = entry.fileName -- 1758
-		} -- 1754
-		rememberedMobileFeedData = json.encode(rememberedMobileFeedState) -- 1760
-		rawset(config, getmetatable(config).mobileFeedCurrentCard, rememberedMobileFeedData) -- 1761
-		return DB:exec("insert or replace into Config(name, value_num, value_str, value_bool) values('mobileFeedCurrentCard', NULL, ?, NULL)", { -- 1762
-			rememberedMobileFeedData -- 1762
-		}) -- 1762
-	end -- 1752
-	local restartMobileFeed -- 1763
-	restartMobileFeed = function(entry) -- 1763
-		if feedHost then -- 1764
-			feedHost:removeFromParent(true) -- 1764
-		end -- 1764
-		feedOptions.initialEntry = entry or rememberedMobileFeedState[rememberedMobileFeedState.activeTab] -- 1765
-		local initialEntries = { } -- 1766
-		initialEntries["local"] = rememberedMobileFeedState["local"] -- 1767
-		initialEntries["discover"] = rememberedMobileFeedState["discover"] -- 1768
-		feedOptions.initialEntries = initialEntries -- 1769
-		feedHost = trackMobileHost(mobileFeed.startMobileFeed(feedOptions)) -- 1770
-	end -- 1763
-	local startMobilePlay -- 1771
-	startMobilePlay = function(entry) -- 1771
-		if HttpServer.wsConnectionCount > 0 then -- 1772
-			return -- 1772
-		end -- 1772
-		local originFeed = feedHost -- 1773
-		if remixHost then -- 1774
-			remixHost:removeFromParent(true) -- 1774
-		end -- 1774
-		remixHost = nil -- 1775
-		mobileLaunchErrors[entry.id] = nil -- 1776
-		entry.launchError = nil -- 1777
-		local playActive = true -- 1778
-		local restoreMobileFeed -- 1779
-		restoreMobileFeed = function() -- 1779
-			if not playActive then -- 1780
-				return -- 1780
-			end -- 1780
-			playActive = false -- 1781
-			allClear() -- 1782
-			isInEntry = true -- 1783
-			currentEntry = nil -- 1784
-			return restartMobileFeed(entry) -- 1785
-		end -- 1779
-		trackMobileHost(playOverlay.startMobilePlayOverlay({ -- 1787
-			onExit = function() -- 1787
-				return restoreMobileFeed() -- 1787
-			end, -- 1787
-			onRuntimeError = function() -- 1788
-				mobileLaunchErrors[entry.id] = useChinese and "作品运行异常，已安全返回作品卡，请修改后重试。" or "The game stopped after a runtime error. Fix it and try again." -- 1789
-				return restoreMobileFeed() -- 1790
-			end -- 1788
-		})) -- 1786
-		return thread(function() -- 1792
-			local success, err = enterEntryAsync(lifecycle.resolveMobileLaunchEntry(entry)) -- 1796
-			if not playActive then -- 1797
-				return -- 1797
-			end -- 1797
-			if success then -- 1798
-				if originFeed and originFeed.parent then -- 1799
-					originFeed.visible = false -- 1799
-				end -- 1799
-				return -- 1800
-			end -- 1798
-			mobileLaunchErrors[entry.id] = useChinese and "作品启动失败，已返回作品卡，请修改后重试。" or "The game failed to start. Fix it and try again." -- 1801
-			return restoreMobileFeed() -- 1802
-		end) -- 1792
-	end -- 1771
-	feedOptions = { -- 1804
-		takeReceivedFile = function() -- 1804
-			if allEntries.pendingPackagePath then -- 1805
-				local path = allEntries.pendingPackagePath -- 1806
-				allEntries.pendingPackagePath = nil -- 1807
-				return path -- 1808
-			end -- 1805
-			return App:takeReceivedFile() -- 1809
-		end, -- 1804
-		onSwitchMode = function() -- 1810
-			if HttpServer.wsConnectionCount == 0 then -- 1810
-				pendingUIMode = false -- 1810
-			end -- 1810
-		end, -- 1810
-		onCurrentEntryChanged = rememberMobileFeedEntry, -- 1811
-		getLocalEntries = function(importedProjectPath) -- 1812
-			local dirtyProjectPath = importedProjectPath or feedOptions.dirtyProjectPath -- 1813
-			feedOptions.dirtyProjectPath = nil -- 1814
-			local items = withMobileLaunchErrors(getMobileFeedEntries(false, dirtyProjectPath)) -- 1815
-			local cached = loadCachedCatalog() -- 1816
-			if cached.success and cached.snapshot then -- 1817
-				for _index_0 = 1, #items do -- 1818
-					local entry = items[_index_0] -- 1818
-					local resource = getInstalledCatalogResource(entry.workDir, cached.snapshot.catalog.resources) -- 1819
-					if resource then -- 1820
-						entry.resource = resource -- 1821
-						entry.catalogCommit = cached.snapshot.commit -- 1822
-					end -- 1820
-				end -- 1818
-			end -- 1817
-			return items -- 1823
-		end, -- 1812
-		syncDiscover = function(onProgress, onDone, force) -- 1824
-			return mobileCatalog.syncMobileCatalog(onProgress, onDone, nil, force) -- 1824
-		end, -- 1824
-		getDiscoverEntries = function() -- 1825
-			local cached = loadCachedCatalog() -- 1826
-			if not (cached.success and cached.snapshot) then -- 1827
-				return { } -- 1827
-			end -- 1827
-			local items = { } -- 1828
-			local _list_0 = getMobileFeedResources(cached.snapshot.catalog.resources) -- 1829
-			for _index_0 = 1, #_list_0 do -- 1829
-				local resource = _list_0[_index_0] -- 1829
-				local installed = lifecycle.isMobileResourceReady(resource) -- 1830
-				local installPath = getResourceInstallPath(resource.id) -- 1831
-				items[#items + 1] = { -- 1833
-					id = resource.id, -- 1833
-					title = resource.title[useChinese and "zh-Hans" or "en"], -- 1834
-					description = resource.description[useChinese and "zh-Hans" or "en"], -- 1835
-					kind = "discover", -- 1836
-					bannerFile = resource.bannerPath, -- 1837
-					webPlayUrl = not (resource.runnable and #resource.entrypoints > 0) and resource.playUrl or nil, -- 1838
-					sourceUrl = resource.versions[1].sources[1].url, -- 1839
-					workDir = installed and installPath or nil, -- 1840
-					fileName = installed and Path(installPath, Path:replaceExt(resource.entrypoints[1].path, "")) or nil, -- 1841
-					installed = installed, -- 1842
-					resource = resource, -- 1843
-					catalogCommit = cached.snapshot.commit, -- 1844
-					launchError = mobileLaunchErrors[resource.id] -- 1845
-				} -- 1832
-			end -- 1829
-			return items -- 1847
-		end, -- 1825
-		prepare = function(entry, repairIncomplete, onProgress, onDone, isCanceled) -- 1848
-			return lifecycle.prepareMobileResource(entry.resource, entry.catalogCommit, onProgress, (function(result) -- 1849
-				return onDone(result.success, result.entry, result.message, result.repairable) -- 1850
-			end), repairIncomplete, isCanceled) -- 1849
-		end, -- 1848
-		sync = function(entry, force, onProgress, onDone, isCanceled) -- 1852
-			return lifecycle.syncMobileResource(entry.resource.id, force, onProgress, (function(result) -- 1853
-				return onDone(result.success, result.entry, result.message, result.forceable) -- 1854
-			end), isCanceled) -- 1853
+local _anon_func_8 = function(saved) -- 1750
+	local _val_0 = saved.activeTab -- 1750
+	return "local" == _val_0 or "discover" == _val_0 -- 1750
+end -- 1750
+startMobileUI = function() -- 1725
+	local mobileFeed = oldRequire("Script.Dev.Mobile.Feed") -- 1726
+	local mobileCatalog = oldRequire("Script.Dev.Mobile.MobileCatalog") -- 1727
+	local projectCreate = oldRequire("Script.Dev.Mobile.ProjectCreate") -- 1728
+	local getMobileFeedResources -- 1729
+	do -- 1729
+		local _obj_0 = require("Script.Tools.ResourceDownloader.Catalog") -- 1729
+		getMobileFeedResources = _obj_0.getMobileFeedResources -- 1729
+	end -- 1729
+	local loadCachedCatalog -- 1730
+	do -- 1730
+		local _obj_0 = require("Script.Tools.ResourceDownloader.CatalogSync") -- 1730
+		loadCachedCatalog = _obj_0.loadCachedCatalog -- 1730
+	end -- 1730
+	local getResourceInstallPath, getInstalledCatalogResource -- 1731
+	do -- 1731
+		local _obj_0 = require("Script.Tools.ResourceDownloader.GitInstaller") -- 1731
+		getResourceInstallPath, getInstalledCatalogResource = _obj_0.getResourceInstallPath, _obj_0.getInstalledCatalogResource -- 1731
+	end -- 1731
+	local lifecycle = oldRequire("Script.Dev.Mobile.Lifecycle") -- 1732
+	local playOverlay = oldRequire("Script.Dev.Mobile.PlayOverlay") -- 1733
+	local feedOptions = nil -- 1734
+	local mobileLaunchErrors = { } -- 1735
+	local withMobileLaunchErrors -- 1736
+	withMobileLaunchErrors = function(items) -- 1736
+		for _index_0 = 1, #items do -- 1737
+			local item = items[_index_0] -- 1737
+			item.launchError = mobileLaunchErrors[item.id] -- 1738
+		end -- 1737
+		return items -- 1739
+	end -- 1736
+	local rememberedMobileFeedData = config.mobileFeedCurrentCard -- 1740
+	local loadRememberedMobileFeedState -- 1741
+	loadRememberedMobileFeedState = function() -- 1741
+		local raw = rememberedMobileFeedData -- 1742
+		if not (type(raw) == "string" and raw ~= "") then -- 1743
+			return -- 1743
+		end -- 1743
+		local ok, saved = pcall(json.decode, raw) -- 1744
+		if not (ok and type(saved) == "table") then -- 1745
+			return -- 1745
+		end -- 1745
+		if type(saved.id) == "string" and _anon_func_7(saved) then -- 1746
+			local state = { -- 1747
+				activeTab = saved.kind -- 1747
+			} -- 1747
+			state[saved.kind] = saved -- 1748
+			return state -- 1749
+		end -- 1746
+		local state = { -- 1750
+			activeTab = _anon_func_8(saved) and saved.activeTab or "local" -- 1750
+		} -- 1750
+		local _list_0 = { -- 1751
+			"local", -- 1751
+			"discover" -- 1751
+		} -- 1751
+		for _index_0 = 1, #_list_0 do -- 1751
+			local kind = _list_0[_index_0] -- 1751
+			local entry = saved[kind] -- 1752
+			if type(entry) == "table" and type(entry.id) == "string" and entry.kind == kind then -- 1753
+				state[kind] = entry -- 1753
+			end -- 1753
+		end -- 1751
+		return state -- 1754
+	end -- 1741
+	local rememberedMobileFeedState = loadRememberedMobileFeedState() or { -- 1755
+		activeTab = "local" -- 1755
+	} -- 1755
+	local rememberMobileFeedEntry -- 1756
+	rememberMobileFeedEntry = function(entry) -- 1756
+		rememberedMobileFeedState.activeTab = entry.kind -- 1757
+		rememberedMobileFeedState[entry.kind] = { -- 1759
+			id = entry.id, -- 1759
+			kind = entry.kind, -- 1760
+			workDir = entry.workDir, -- 1761
+			fileName = entry.fileName -- 1762
+		} -- 1758
+		rememberedMobileFeedData = json.encode(rememberedMobileFeedState) -- 1764
+		rawset(config, getmetatable(config).mobileFeedCurrentCard, rememberedMobileFeedData) -- 1765
+		return DB:exec("insert or replace into Config(name, value_num, value_str, value_bool) values('mobileFeedCurrentCard', NULL, ?, NULL)", { -- 1766
+			rememberedMobileFeedData -- 1766
+		}) -- 1766
+	end -- 1756
+	local restartMobileFeed -- 1767
+	restartMobileFeed = function(entry) -- 1767
+		if feedHost then -- 1768
+			feedHost:removeFromParent(true) -- 1768
+		end -- 1768
+		feedOptions.initialEntry = entry or rememberedMobileFeedState[rememberedMobileFeedState.activeTab] -- 1769
+		local initialEntries = { } -- 1770
+		initialEntries["local"] = rememberedMobileFeedState["local"] -- 1771
+		initialEntries["discover"] = rememberedMobileFeedState["discover"] -- 1772
+		feedOptions.initialEntries = initialEntries -- 1773
+		feedHost = trackMobileHost(mobileFeed.startMobileFeed(feedOptions)) -- 1774
+	end -- 1767
+	local startMobilePlay -- 1775
+	startMobilePlay = function(entry) -- 1775
+		if HttpServer.wsConnectionCount > 0 then -- 1776
+			return -- 1776
+		end -- 1776
+		local originFeed = feedHost -- 1777
+		if remixHost then -- 1778
+			remixHost:removeFromParent(true) -- 1778
+		end -- 1778
+		remixHost = nil -- 1779
+		mobileLaunchErrors[entry.id] = nil -- 1780
+		entry.launchError = nil -- 1781
+		local playActive = true -- 1782
+		local restoreMobileFeed -- 1783
+		restoreMobileFeed = function() -- 1783
+			if not playActive then -- 1784
+				return -- 1784
+			end -- 1784
+			playActive = false -- 1785
+			allClear() -- 1786
+			isInEntry = true -- 1787
+			currentEntry = nil -- 1788
+			return restartMobileFeed(entry) -- 1789
+		end -- 1783
+		trackMobileHost(playOverlay.startMobilePlayOverlay({ -- 1791
+			onExit = function() -- 1791
+				return restoreMobileFeed() -- 1791
+			end, -- 1791
+			onRuntimeError = function() -- 1792
+				mobileLaunchErrors[entry.id] = useChinese and "作品运行异常，已安全返回作品卡，请修改后重试。" or "The game stopped after a runtime error. Fix it and try again." -- 1793
+				return restoreMobileFeed() -- 1794
+			end -- 1792
+		})) -- 1790
+		return thread(function() -- 1796
+			local success, err = enterEntryAsync(lifecycle.resolveMobileLaunchEntry(entry)) -- 1800
+			if not playActive then -- 1801
+				return -- 1801
+			end -- 1801
+			if success then -- 1802
+				if originFeed and originFeed.parent then -- 1803
+					originFeed.visible = false -- 1803
+				end -- 1803
+				return -- 1804
+			end -- 1802
+			mobileLaunchErrors[entry.id] = useChinese and "作品启动失败，已返回作品卡，请修改后重试。" or "The game failed to start. Fix it and try again." -- 1805
+			return restoreMobileFeed() -- 1806
+		end) -- 1796
+	end -- 1775
+	feedOptions = { -- 1808
+		takeReceivedFile = function() -- 1808
+			if allEntries.pendingPackagePath then -- 1809
+				local path = allEntries.pendingPackagePath -- 1810
+				allEntries.pendingPackagePath = nil -- 1811
+				return path -- 1812
+			end -- 1809
+			return App:takeReceivedFile() -- 1813
+		end, -- 1808
+		onSwitchMode = function() -- 1814
+			if HttpServer.wsConnectionCount == 0 then -- 1814
+				pendingUIMode = false -- 1814
+			end -- 1814
+		end, -- 1814
+		onCurrentEntryChanged = rememberMobileFeedEntry, -- 1815
+		getLocalEntries = function(importedProjectPath) -- 1816
+			local dirtyProjectPath = importedProjectPath or feedOptions.dirtyProjectPath -- 1817
+			feedOptions.dirtyProjectPath = nil -- 1818
+			local items = withMobileLaunchErrors(getMobileFeedEntries(false, dirtyProjectPath)) -- 1819
+			local cached = loadCachedCatalog() -- 1820
+			if cached.success and cached.snapshot then -- 1821
+				for _index_0 = 1, #items do -- 1822
+					local entry = items[_index_0] -- 1822
+					local resource = getInstalledCatalogResource(entry.workDir, cached.snapshot.catalog.resources) -- 1823
+					if resource then -- 1824
+						entry.resource = resource -- 1825
+						entry.catalogCommit = cached.snapshot.commit -- 1826
+					end -- 1824
+				end -- 1822
+			end -- 1821
+			return items -- 1827
+		end, -- 1816
+		syncDiscover = function(onProgress, onDone, force) -- 1828
+			return mobileCatalog.syncMobileCatalog(onProgress, onDone, nil, force) -- 1828
+		end, -- 1828
+		getDiscoverEntries = function() -- 1829
+			local cached = loadCachedCatalog() -- 1830
+			if not (cached.success and cached.snapshot) then -- 1831
+				return { } -- 1831
+			end -- 1831
+			local items = { } -- 1832
+			local _list_0 = getMobileFeedResources(cached.snapshot.catalog.resources) -- 1833
+			for _index_0 = 1, #_list_0 do -- 1833
+				local resource = _list_0[_index_0] -- 1833
+				local installed = lifecycle.isMobileResourceReady(resource) -- 1834
+				local installPath = getResourceInstallPath(resource.id) -- 1835
+				items[#items + 1] = { -- 1837
+					id = resource.id, -- 1837
+					title = resource.title[useChinese and "zh-Hans" or "en"], -- 1838
+					description = resource.description[useChinese and "zh-Hans" or "en"], -- 1839
+					kind = "discover", -- 1840
+					bannerFile = resource.bannerPath, -- 1841
+					webPlayUrl = not (resource.runnable and #resource.entrypoints > 0) and resource.playUrl or nil, -- 1842
+					sourceUrl = resource.versions[1].sources[1].url, -- 1843
+					workDir = installed and installPath or nil, -- 1844
+					fileName = installed and Path(installPath, Path:replaceExt(resource.entrypoints[1].path, "")) or nil, -- 1845
+					installed = installed, -- 1846
+					resource = resource, -- 1847
+					catalogCommit = cached.snapshot.commit, -- 1848
+					launchError = mobileLaunchErrors[resource.id] -- 1849
+				} -- 1836
+			end -- 1833
+			return items -- 1851
+		end, -- 1829
+		prepare = function(entry, repairIncomplete, onProgress, onDone, isCanceled) -- 1852
+			return lifecycle.prepareMobileResource(entry.resource, entry.catalogCommit, onProgress, (function(result) -- 1853
+				return onDone(result.success, result.entry, result.message, result.repairable) -- 1854
+			end), repairIncomplete, isCanceled) -- 1853
 		end, -- 1852
-		createProject = function(name, language) -- 1856
-			local result = projectCreate.createMobileProject(name, language) -- 1857
-			if not result.success then -- 1858
-				return result -- 1858
-			end -- 1858
-			local _list_0 = getMobileFeedEntries(false, result.workDir) -- 1859
-			for _index_0 = 1, #_list_0 do -- 1859
-				local entry = _list_0[_index_0] -- 1859
-				if entry.workDir == result.workDir then -- 1860
-					return { -- 1861
-						success = true, -- 1861
-						entry = entry -- 1861
-					} -- 1861
-				end -- 1860
-			end -- 1859
-			return { -- 1862
-				success = false, -- 1862
-				error = "created-project-not-found" -- 1862
-			} -- 1862
+		sync = function(entry, force, onProgress, onDone, isCanceled) -- 1856
+			return lifecycle.syncMobileResource(entry.resource.id, force, onProgress, (function(result) -- 1857
+				return onDone(result.success, result.entry, result.message, result.forceable) -- 1858
+			end), isCanceled) -- 1857
 		end, -- 1856
-		onPlay = function(entry) -- 1863
-			return startMobilePlay(entry) -- 1863
-		end, -- 1863
-		onRemix = function(entry) -- 1864
-			if HttpServer.wsConnectionCount > 0 then -- 1865
-				return -- 1865
-			end -- 1865
-			local remix = oldRequire("Script.Dev.Mobile.Remix") -- 1866
-			local originFeed = feedHost -- 1867
-			feedHost.visible = false -- 1868
-			remixHost = trackMobileHost(remix.startMobileRemix({ -- 1870
-				entry = entry, -- 1870
-				onProjectChanged = function(current) -- 1871
-					feedOptions.dirtyProjectPath = current.workDir -- 1871
-				end, -- 1871
-				onBack = function() -- 1872
-					if mobileMode and feedHost == originFeed and originFeed.parent then -- 1873
-						originFeed:emit("RestoreFeedEntry", entry) -- 1874
-						originFeed.visible = true -- 1875
-					end -- 1873
-				end, -- 1872
-				onPlay = function(current) -- 1876
-					return startMobilePlay(current) -- 1876
-				end -- 1876
-			})) -- 1869
-		end -- 1864
-	} -- 1803
-	return restartMobileFeed() -- 1879
-end -- 1721
-if mobileMode then -- 1881
-	applyUIMode(true) -- 1881
-end -- 1881
+		createProject = function(name, language) -- 1860
+			local result = projectCreate.createMobileProject(name, language) -- 1861
+			if not result.success then -- 1862
+				return result -- 1862
+			end -- 1862
+			local _list_0 = getMobileFeedEntries(false, result.workDir) -- 1863
+			for _index_0 = 1, #_list_0 do -- 1863
+				local entry = _list_0[_index_0] -- 1863
+				if entry.workDir == result.workDir then -- 1864
+					return { -- 1865
+						success = true, -- 1865
+						entry = entry -- 1865
+					} -- 1865
+				end -- 1864
+			end -- 1863
+			return { -- 1866
+				success = false, -- 1866
+				error = "created-project-not-found" -- 1866
+			} -- 1866
+		end, -- 1860
+		onPlay = function(entry) -- 1867
+			return startMobilePlay(entry) -- 1867
+		end, -- 1867
+		onRemix = function(entry) -- 1868
+			if HttpServer.wsConnectionCount > 0 then -- 1869
+				return -- 1869
+			end -- 1869
+			local remix = oldRequire("Script.Dev.Mobile.Remix") -- 1870
+			local originFeed = feedHost -- 1871
+			feedHost.visible = false -- 1872
+			remixHost = trackMobileHost(remix.startMobileRemix({ -- 1874
+				entry = entry, -- 1874
+				onProjectChanged = function(current) -- 1875
+					feedOptions.dirtyProjectPath = current.workDir -- 1875
+				end, -- 1875
+				onBack = function() -- 1876
+					if mobileMode and feedHost == originFeed and originFeed.parent then -- 1877
+						originFeed:emit("RestoreFeedEntry", entry) -- 1878
+						originFeed.visible = true -- 1879
+					end -- 1877
+				end, -- 1876
+				onPlay = function(current) -- 1880
+					return startMobilePlay(current) -- 1880
+				end -- 1880
+			})) -- 1873
+		end -- 1868
+	} -- 1807
+	return restartMobileFeed() -- 1883
+end -- 1725
+if mobileMode then -- 1885
+	applyUIMode(true) -- 1885
+end -- 1885
 return _module_0 -- 1
