@@ -1,5 +1,6 @@
 // Runtime-only desktop importers: no EditorNode, user scripts or external process.
 #pragma once
+#include "runtime_diagnostics.h"
 #include "GodotBridgeImport.h"
 
 #include "core/io/config_file.h"
@@ -246,6 +247,7 @@ inline const char *convert(const char *project, const char *file, const char *op
 }
 template <class Runtime, class Boot>
 inline const char *import_asset(Runtime &runtime, const DoraGodotConfig *config, const char *file, const char *options, Boot boot) {
+    DoraGodotDiagnostics::ScopedMetadataQuery diagnostics;
 #if defined(MACOS_ENABLED) || defined(WINDOWS_ENABLED) || defined(LINUXBSD_ENABLED)
 	if (!config || config->size < sizeof(*config) || !config->project_path || !file) {
 		return reply("", "failed", "Invalid import request");

@@ -59,6 +59,7 @@ void uninitialize_dora_bridge_module(ModuleInitializationLevel) {}
 #include "runtime_check.h"
 #include "runtime_import.h"
 #include "runtime_scene.h"
+#include "runtime_log.h"
 #include "runtime_check_boot.h"
 
 namespace {

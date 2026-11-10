@@ -2,6 +2,7 @@
 #include "Const/Header.h"
 #include "Godot/GodotNode.h"
 #include "Godot/GodotRuntimeServices.h"
+#include "Godot/GodotRuntimeLog.h"
 #include "Godot/GodotAudio.h"
 #include "Godot/GodotBridgeOutput.h"
 #include "Godot/GodotBridgeProject.h"
@@ -43,6 +44,7 @@ DoraGodotMetalTargetsAPI metalTargetsAPI{};
 void *library = nullptr, *activeHandle = nullptr;
 std::atomic<bool> clientReserved{false};
 std::string loaderError;
+GodotRuntimeLog runtimeLog;
 void encodeFrame(bgfx::RendererType::Enum, uint32_t, void *, bool, void *);
 bool loadAPI() {
     if (api.open) return true;
@@ -116,6 +118,7 @@ bool loadAPI() {
         }
     }
     api = candidate;
+    runtimeLog.connect([](const char *name) {return dlsym(library,name);});
     bgfx::setNativeFrameCallback(encodeFrame, nullptr);
     return true;
 }
@@ -142,10 +145,11 @@ class MetalSession final : public GodotSession, public std::enable_shared_from_t
     }
     void fail(std::string message) {
         if (message.empty()) message="Godot operation failed without a runtime diagnostic";
+        auto unreported=runtimeLog.failureText(message);
         auto self=shared_from_this();
-        SharedApplication.invokeInLogic([self,message=std::move(message)] {
+        SharedApplication.invokeInLogic([self,message=std::move(message),unreported=std::move(unreported)] {
             self->error(message);
-            Error("GodotNode: {}",message);
+            if (!unreported.empty()) Error("GodotNode: {}",unreported);
             self->close();
         });
     }
@@ -156,6 +160,7 @@ class MetalSession final : public GodotSession, public std::enable_shared_from_t
             if (self->_closing) return;
             DoraGodotConfig config{sizeof(config),DORA_GODOT_METAL,(uint32_t)width,(uint32_t)height,(uint32_t)buffers,
                 project.c_str(),scene.c_str(),bgfx::getInternalData()->context};
+            runtimeLog.beginProject();
             self->_handle=api.open(&config);
             if (!self->_handle) { self->fail(api.last_error(nullptr)); return; }
             activeHandle=self->_handle;
@@ -453,6 +458,7 @@ void encodeFrame(bgfx::RendererType::Enum renderer,uint32_t frame,void *native,b
     if (renderer!=bgfx::RendererType::Metal) return;
     if (!end) bootQueue.drain(frame);
     if (activeSession) activeSession->encode(native,frame,end);
+    runtimeLog.pump();
 }
 }
 std::shared_ptr<GodotSession> createGodotMetalSession(GodotNode *node) { return std::make_shared<MetalSession>(node); }
@@ -475,6 +481,7 @@ void shutdownGodotMetalRuntime() {
             activeHandle=nullptr;
         }
         api.shutdown();
+        runtimeLog.disconnect();
         activeSession.reset();
     }
     clientReserved=false;

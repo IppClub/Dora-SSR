@@ -5,7 +5,7 @@
   "attributes_baseline_commit": "199c2c69c0e707808ad189200922bf71d04057b8",
   "policy": "Canonical Git text/EOL content using attributes from the fixed initial import; no other content normalization",
   "upstream_files": 13989,
-  "registered_current_files": 14042,
+  "registered_current_files": 14044,
   "archive_crlf_to_git_lf_files": [
     "misc/msvs/nmake.substitution.props",
     "misc/msvs/props.template",
@@ -33,7 +33,7 @@
     "modules/mono/glue/GodotSharp/GodotSharpEditor/GodotSharpEditor.csproj",
     "platform/android/java/gradlew.bat"
   ],
-  "delta_patch_sha256": "99005900b56df10e2a88f5edd216350f648648887d13c8d0ee027bce41a16d16",
+  "delta_patch_sha256": "d1dc6a2e3e5cd1291599e38191952cc095490e450e1c5639d282b0f12ff10acf",
   "files": [
     {
       "path": "UPSTREAM.json",
@@ -102,7 +102,7 @@
       "path": "dora_bridge.exports",
       "status": "added",
       "mode": "100644",
-      "canonical_sha256": "9cef37665fb8d21dcbd6f4e9a922ada2641336e2be045e1315310d941aeb3598",
+      "canonical_sha256": "6430c600e8ac0ac1912bbad21c8c7b3351d0cea6308932caba94ebf5dddd31e2",
       "upstream_canonical_sha256": null
     },
     {
@@ -267,6 +267,13 @@
       "upstream_canonical_sha256": null
     },
     {
+      "path": "modules/dora_bridge/GodotBridgeLog.h",
+      "status": "added",
+      "mode": "100644",
+      "canonical_sha256": "07bc68d071168a4a968059c24100bc0f016ce238792043b5c6990eb9b09bb9c3",
+      "upstream_canonical_sha256": null
+    },
+    {
       "path": "modules/dora_bridge/GodotBridgeMetalTargets.h",
       "status": "added",
       "mode": "100644",
@@ -410,21 +417,21 @@
       "path": "modules/dora_bridge/register_types.mm",
       "status": "added",
       "mode": "100644",
-      "canonical_sha256": "7da0953502eada15780ab079b489e41e95db96acc2d1b031bd2487f0334dda43",
+      "canonical_sha256": "020bafa95e262e697e57141323be2953290602116f7039bb7abf03cabaad8dbd",
       "upstream_canonical_sha256": null
     },
     {
       "path": "modules/dora_bridge/register_types_d3d12.cpp",
       "status": "added",
       "mode": "100644",
-      "canonical_sha256": "d2d96af438ea3d9888c6ad4694d318bfffe92536a4e328fd5ffcb4ed886e86b0",
+      "canonical_sha256": "0e23fbdf18113267f50e0db26b15558f455d6ab83aae04d907a8930443bc3580",
       "upstream_canonical_sha256": null
     },
     {
       "path": "modules/dora_bridge/register_types_gl.cpp",
       "status": "added",
       "mode": "100644",
-      "canonical_sha256": "6bf3a33cb56c169b0493b7ae48b85ddb143243534496139e0491b1d45895479f",
+      "canonical_sha256": "e5228c4031cb1a64c426bc869a8395af772fb44ee36a2da82b15dd4dd2d66da4",
       "upstream_canonical_sha256": null
     },
     {
@@ -438,7 +445,7 @@
       "path": "modules/dora_bridge/runtime_check.h",
       "status": "added",
       "mode": "100644",
-      "canonical_sha256": "3d7e387198ee88b8d539ba31218f1d9821a8e4b88c170427faebe48560f0ac74",
+      "canonical_sha256": "185b8fb7eb27c420be00fabbdf0248f7892488ac017ab0dea13f57675d152be1",
       "upstream_canonical_sha256": null
     },
     {
@@ -466,7 +473,7 @@
       "path": "modules/dora_bridge/runtime_import.h",
       "status": "added",
       "mode": "100644",
-      "canonical_sha256": "1f231752b4ee3ccdabbf0477913cafe7d7d5e965978f4562c8ab17c8d7cef7b8",
+      "canonical_sha256": "2a7ca92fd4e07083afe6899a468e0e8e37dc7a365764a1c34fef476a268c192d",
       "upstream_canonical_sha256": null
     },
     {
@@ -474,6 +481,13 @@
       "status": "added",
       "mode": "100644",
       "canonical_sha256": "3c0c78ff7a59386c8eec8c8a575f5401136ac0cd97b3c13dca737930db02a3f3",
+      "upstream_canonical_sha256": null
+    },
+    {
+      "path": "modules/dora_bridge/runtime_log.h",
+      "status": "added",
+      "mode": "100644",
+      "canonical_sha256": "3288fb7139f2e948f6d7f9f820469c444136cd32a2a3286544799936e1ade99a",
       "upstream_canonical_sha256": null
     },
     {
@@ -522,7 +536,7 @@
       "path": "modules/dora_bridge/web/web_api.cpp",
       "status": "added",
       "mode": "100644",
-      "canonical_sha256": "9a5771efe8e152c43824f24778e1bfe216e1a7e838f303bf4034dd0fd66b89a8",
+      "canonical_sha256": "c775435e1ffd12447d8518e0672fe5047eaa6c819ef2fe076bd69571ad46e322",
       "upstream_canonical_sha256": null
     },
     {

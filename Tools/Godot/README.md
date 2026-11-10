@@ -1617,3 +1617,13 @@ local player = inspectGodotScene({path="main.tscn", nodePath="Player", maxNodes=
 Web 桥接为查询建立独立的临时元数据镜像，只复制当前场景／工程配置正文，其他文件仅建立存在标记，不覆盖运行中工程的文件；查询结束或失败后回收镜像。不会跟随源符号链接。桌面版在原路径上只读查询，拒绝越出工程的目标路径。
 
 Dora-Example 测试：`Test/Godot/tests/services/run_scene_macos.py` 验证真实 runtime 查询、类型值／引用／连接、限制、源码保持、脚本与 Autoload 不执行，以及查询其他工程时活动工程不变；`Test/Agent/test_godot_scene_runtime.py` 验证真实编译器及注入函数、失败传递、工具集合不变；`Test/Godot/tests/web/test_scene_bridge.mjs` 验证 Web 独立堆与活动文件隔离、部分写入回滚。跨平台桥接仍需在目标平台运行验收。
+
+## Godot 错误日志转发
+
+内置 runtime 的错误、警告以及 GDScript `printerr()` 通过可选的 `GodotBridgeLog` API 接入 Dora 原有日志通道，以 `[Godot]` 为前缀。原生日志窗口、Web IDE 和 `cli agent log` 读取同一份 Dora 日志；不新增 Agent tool。Godot 错误回调提供的文件、行号、函数名会保留，`printerr()` 仅包含原始文本；普通 `print()` 和完整脚本堆栈不在本次转发范围内。
+
+各后端共用 `runtime_log.h` 和宿主 `GodotRuntimeLog.h`。Godot 回调只写线程安全的有界队列，宿主在渲染线程取出后调用 Dora 日志入口，不在 Godot 全局日志锁内回调宿主。队列最多保留 128 条、每条最多 8192 字节，UTF-8 截断不拆字符；溢出后输出丢弃条数。每帧最多取出 129 条，防止持续输出阻塞宿主。警告不会改变 `lastError`，错误继续遵循原有首错记录和停止行为；已转发的错误摘要不再由 `GodotNode` 重复输出。
+
+日志捕获覆盖工程启动、运行及卸载。编译／导入／静态场景查询的调用线程诊断保留在服务结果中，其他线程上的真实运行错误仍可转发。Web 通过标量入口复制独立 WASM 堆之间的日志文本和级别；原生桥接头不传递 Godot／STL 对象。旧库缺少扩展时仍保持原有 `lastError` 行为，重新构建宿主和运行库后启用新日志流。
+
+Dora-Example 测试：`Test/Godot/test_runtime_logs.py` 覆盖生产队列和宿主转发的并发、隔离、级别、UTF-8／容量限制、去重和旧库回退；`Test/Godot/tests/web/test_log_bridge.mjs` 覆盖跨堆复制及关闭后的取出；二者已接入协议 CI。`Test/Godot/test_native_runtime_logs.py --engine /path/to/Dora --library /path/to/libdora_godot.dylib --output /fresh/output` 在临时用户目录启动真实宿主，通过内置 runtime 触发错误／警告／stderr／卸载输出，再从 Web IDE 使用的 `/log` 接口核对内容、级别和去重。真实运行验收需要目标系统的图形环境，交叉语法检查不能替代设备运行。

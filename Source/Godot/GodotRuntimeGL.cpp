@@ -2,6 +2,7 @@
 #include "Const/Header.h"
 #include "Godot/GodotNode.h"
 #include "Godot/GodotRuntimeServices.h"
+#include "Godot/GodotRuntimeLog.h"
 #include "Godot/GodotAudio.h"
 #include "Godot/GodotBridgeOutput.h"
 #include "Godot/GodotBridgeIME.h"
@@ -49,6 +50,7 @@ DoraGodotProjectAPI projectAPI{};
 void *library=nullptr,*activeHandle=nullptr;
 std::atomic<bool> clientReserved{false};
 std::string loaderError;
+GodotRuntimeLog runtimeLog;
 void encodeFrame(bgfx::RendererType::Enum,uint32_t,void *,bool,void *);
 void shutdownInterop(bgfx::RendererType::Enum,void *);
 bool loadAPI() {
@@ -181,6 +183,13 @@ bool loadAPI() {
 #endif
     api=candidate; glAPI=extension;
 #endif // !BX_PLATFORM_EMSCRIPTEN
+#if BX_PLATFORM_EMSCRIPTEN
+    runtimeLog.connect(godotWebLogAPI());
+#elif BX_PLATFORM_WINDOWS
+    runtimeLog.connect([](const char *name) {return GetProcAddress((HMODULE)library,name);});
+#else
+    runtimeLog.connect([](const char *name) {return dlsym(library,name);});
+#endif
     bgfx::setNativeFrameCallback(encodeFrame,nullptr);
     bgfx::setNativeShutdownCallback(shutdownInterop,nullptr);
     return true;
@@ -204,9 +213,10 @@ class GLSession final : public GodotSession,public std::enable_shared_from_this<
     }
     void fail(std::string message) {
         if (message.empty()) message="Godot operation failed without a runtime diagnostic";
+        auto unreported=runtimeLog.failureText(message);
         auto self=shared_from_this();
-        SharedApplication.invokeInLogic([self,message=std::move(message)] {
-            self->error(message); Error("GodotNode: {}",message); self->close();
+        SharedApplication.invokeInLogic([self,message=std::move(message),unreported=std::move(unreported)] {
+            self->error(message); if (!unreported.empty()) Error("GodotNode: {}",unreported); self->close();
         });
     }
     bool bindTargets(const std::vector<bgfx::TextureHandle> &handles,int width,int height) {
@@ -237,6 +247,7 @@ class GLSession final : public GodotSession,public std::enable_shared_from_this<
 #endif
             (uint32_t)width,(uint32_t)height,(uint32_t)buffers,
             project.c_str(),scene.c_str(),bgfx::getInternalData()->context};
+        runtimeLog.beginProject();
         self->_handle=api.open(&config);
         if (!self->_handle) { self->fail(api.last_error(nullptr)); return; }
         activeHandle=self->_handle;
@@ -496,6 +507,7 @@ void encodeFrame(bgfx::RendererType::Enum renderer,uint32_t frame,void *,bool en
     // Closing at consumer-end can release activeSession. Keep the callback
     // receiver alive until it has dispatched the unload acknowledgement.
     if (auto session=activeSession) session->encode(frame,end);
+    runtimeLog.pump();
 }
 void shutdownInterop(bgfx::RendererType::Enum,void *) {
     bootQueue.clear();
@@ -510,7 +522,8 @@ void shutdownInterop(bgfx::RendererType::Enum,void *) {
             Info("GodotRuntime shutdown: produced={}, completed={}, gpuErrors={}",stats.produced,stats.completed,stats.gpu_errors);
             activeHandle=nullptr;
         }
-        api.shutdown(); api={}; glAPI={};
+        api.shutdown();
+        runtimeLog.disconnect(); api={}; glAPI={};
         activeSession.reset(); audioAPI={}; targetsAPI={}; outputAPI={}; imeAPI={};
 #if BX_PLATFORM_LINUX || BX_PLATFORM_WINDOWS || BX_PLATFORM_ANDROID || BX_PLATFORM_EMSCRIPTEN
         projectAPI={};

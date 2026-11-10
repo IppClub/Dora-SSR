@@ -10,7 +10,7 @@ Godot 完整源码位于 `Source/3rdParty/Godot`，不是 submodule。固定版�
 
 `prepare.lua`、`prepare_android.lua`、`prepare_ios.lua`、`prepare_web.lua` 目前是只读检查入口，不再下载或给源码打补丁。`vendor_source.lua` 检查固定来源、关键修改标记及双端协议头一致性；它不是完整源码完整性校验。需要证明构建不改源码时，应分别保存构建前后所有源码文件的清单和哈希。
 
-完整来源与当前Dora差异另由 [源码审计工具](https://github.com/IppClub/Dora-Example/blob/master/Test/Godot/audit_vendor_provenance.py) 和 [登记清单](vendor/SOURCE_DELTA.json) 校验；[复查及更新流程](vendor/README.md)说明固定归档/上游Git树/首次导入提交、Git换行政策和零fuzz补丁重建。它是独立维护审计，不给普通构建新增下载或历史依赖。当前50个修改文件、44个新增文件均显式登记；后续源码修改需同步该清单并重验，不能仅靠标记检查。该范围包含登记及未忽略源码，忽略的SCons缓存和构建产物另行处理。
+完整来源与当前Dora差异另由 [源码审计工具](https://github.com/IppClub/Dora-Example/blob/master/Test/Godot/audit_vendor_provenance.py) 和 [登记清单](vendor/SOURCE_DELTA.json) 校验；[复查及更新流程](vendor/README.md)说明固定归档/上游Git树/首次导入提交、Git换行政策和零fuzz补丁重建。它是独立维护审计，不给普通构建新增下载或历史依赖。当前57个修改文件、55个新增文件均显式登记；后续源码修改需同步该清单并重验，不能仅靠标记检查。该范围包含登记及未忽略源码，忽略的SCons缓存和构建产物另行处理。
 
 从仓库根目录构建。先准备 xmake 3.x 和平台工具链；自有工具通过 `xmake lua` 执行。Android 另需 SDK/NDK 29.0.14206865，Web 使用 Dora 管理的 Emscripten；Emscripten 等三方工具内部的 Python 保持不变。不要用 PATH 中另一个 SDK 的版本代替实际编译器证据。
 

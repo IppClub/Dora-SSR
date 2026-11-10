@@ -8,6 +8,7 @@
 #include "../GodotBridgeProject.h"
 #include "../GodotBridgeCheck.h"
 #include "../GodotBridgeScene.h"
+#include "../GodotBridgeLog.h"
 #include <emscripten.h>
 #include <emscripten/html5.h>
 #include <cstdlib>
@@ -26,6 +27,14 @@ bool load(){
 }
 }
 extern "C" {
+EMSCRIPTEN_KEEPALIVE void dora_web_log_enable(int enabled){
+    DoraGodotLogAPI logs{};logs.size=sizeof(logs);
+    if(dora_godot_get_log_api(DORA_GODOT_LOG_ABI_VERSION,&logs))logs.set_enabled(enabled);
+}
+EMSCRIPTEN_KEEPALIVE const char *dora_web_log_pop(uint32_t *level){
+    DoraGodotLogAPI logs{};logs.size=sizeof(logs);
+    return dora_godot_get_log_api(DORA_GODOT_LOG_ABI_VERSION,&logs)?logs.pop(level):nullptr;
+}
 EMSCRIPTEN_KEEPALIVE int dora_web_context(){
     EmscriptenWebGLContextAttributes attributes;emscripten_webgl_init_context_attributes(&attributes);
     attributes.majorVersion=2;attributes.minorVersion=0;attributes.antialias=false;attributes.alpha=false;

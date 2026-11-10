@@ -10,13 +10,20 @@ static_assert(sizeof(DoraGodotInput)==56 && offsetof(DoraGodotInput,text)==32);
 static_assert(sizeof(DoraGodotSlot)==28 && sizeof(DoraGodotStats)==40);
 static_assert(sizeof(DoraGodotAudioStats)==40 && sizeof(DoraGodotOutputSize)==16);
 static_assert(sizeof(DoraGodotIMEState)==24 && offsetof(DoraGodotIMEState,revision)==16);
-enum Operation {Init,Version,Error,Open,Slot,Advance,Input,Pause,Restart,Close,Shutdown,CanProduce,ConsumerBegin,ConsumerEnd,CanAdvance,BindTargets,Output,AudioFormat,AudioStart,AudioRead,AudioStats,IME,ProjectState};
+enum Operation {Init,Version,Error,Open,Slot,Advance,Input,Pause,Restart,Close,Shutdown,CanProduce,ConsumerBegin,ConsumerEnd,CanAdvance,BindTargets,Output,AudioFormat,AudioStart,AudioRead,AudioStats,IME,ProjectState,LogEnable,LogPop};
 EM_JS(int,dispatch,(int operation,void *data,uint32_t a,uint32_t b,uint32_t c,uint32_t d),{
     const bridge=Module['doraGodotBridge'];
     if(!bridge)return 0;
     return bridge.dispatch(operation,data>>>0,a>>>0,b>>>0,c>>>0,d>>>0);
 });
 uint32_t projectState(){return uint32_t(dispatch(ProjectState,nullptr,0,0,0,0));}
+void enableLogs(int enabled){dispatch(LogEnable,nullptr,enabled,0,0,0);}
+const char *popLog(uint32_t *level){
+    if(!level)return nullptr;
+    static struct {uint32_t level;char text[8193];} record{};
+    if(!dispatch(LogPop,&record,sizeof(record.text),0,0,0))return nullptr;
+    *level=record.level;return record.text;
+}
 bool opened=false;
 char versionText[256]{},errorText[4096]{};
 bool valid(void *handle){return opened && handle==(void*)1;}
@@ -45,6 +52,7 @@ int audioStart(void *handle){return valid(handle)&&dispatch(AudioStart,nullptr,0
 uint32_t audioRead(void *handle,float *samples,uint32_t frames){return valid(handle)&&samples&&frames&&frames<=DORA_GODOT_AUDIO_MAX_FRAMES?dispatch(AudioRead,samples,frames,0,0,0):0;}
 int audioStats(void *handle,DoraGodotAudioStats *value){return valid(handle)&&value&&value->size>=sizeof(*value)&&dispatch(AudioStats,value,0,0,0,0);}
 }
+DoraGodotLogAPI godotWebLogAPI(){return {sizeof(DoraGodotLogAPI),DORA_GODOT_LOG_ABI_VERSION,enableLogs,popLog};}
 EM_JS(char *,checkService,(int operation,const char *project,const char *file,const char *source),{
     const bridge=Module['doraGodotBridge'];
     const method=operation===2?'inspectScene':'checkCode';

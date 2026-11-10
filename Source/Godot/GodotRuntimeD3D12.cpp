@@ -3,6 +3,7 @@
 #include "Const/Header.h"
 #include "Godot/GodotNode.h"
 #include "Godot/GodotRuntimeServices.h"
+#include "Godot/GodotRuntimeLog.h"
 #include "Godot/GodotAudio.h"
 #include "Godot/GodotBridgeD3D12.h"
 #include "Godot/GodotBridgeOutput.h"
@@ -30,6 +31,7 @@ HMODULE library=nullptr;
 void *activeHandle=nullptr;
 std::atomic<bool> clientReserved{false};
 std::string loaderError;
+GodotRuntimeLog runtimeLog;
 std::vector<ID3D12Resource *> retiredResources;
 
 void encodeFrame(bgfx::RendererType::Enum,uint32_t,void *,bool,void *);
@@ -71,6 +73,7 @@ bool loadAPI() {
     loadExtension(library,"dora_godot_get_audio_api",DORA_GODOT_AUDIO_ABI_VERSION,audioAPI);
     loadExtension(library,"dora_godot_get_output_api",DORA_GODOT_OUTPUT_ABI_VERSION,outputAPI);
     loadExtension(library,"dora_godot_get_ime_api",DORA_GODOT_IME_ABI_VERSION,imeAPI);
+    runtimeLog.connect([](const char *name) {return GetProcAddress(library,name);});
     bgfx::setNativeFrameCallback(encodeFrame,nullptr);
     bgfx::setNativeShutdownCallback(shutdownInterop,nullptr);
     return true;
@@ -93,9 +96,10 @@ class D3D12Session final : public GodotSession,public std::enable_shared_from_th
 
     void fail(std::string message) {
         if (message.empty()) message="Godot D3D12 operation failed without a runtime diagnostic";
+        auto unreported=runtimeLog.failureText(message);
         auto self=shared_from_this();
-        SharedApplication.invokeInLogic([self,message=std::move(message)] {
-            self->error(message);Error("GodotNode: {}",message);self->close();
+        SharedApplication.invokeInLogic([self,message=std::move(message),unreported=std::move(unreported)] {
+            self->error(message);if (!unreported.empty()) Error("GodotNode: {}",unreported);self->close();
         });
     }
     bool allocateShared(ID3D12Device *device,std::vector<SharedSlot> &slots,uint32_t width,uint32_t height) {
@@ -179,6 +183,7 @@ class D3D12Session final : public GodotSession,public std::enable_shared_from_th
         }
         DoraGodotConfig config{sizeof(config),DORA_GODOT_D3D12,_width,_height,_buffers,
             project.c_str(),scene.c_str(),device};
+        runtimeLog.beginProject();
         _handle=api.open(&config);
         if (!_handle) { fail(api.last_error(nullptr));return; }
         activeHandle=_handle;
@@ -338,6 +343,7 @@ void encodeFrame(bgfx::RendererType::Enum renderer,uint32_t frame,void *,bool en
     if (!end) bootQueue.drain(frame);
     auto session=activeSession;
     if (session) session->encode(end);
+    runtimeLog.pump();
 }
 void shutdownInterop(bgfx::RendererType::Enum renderer,void *) {
     if (renderer!=bgfx::RendererType::Direct3D12) return;
@@ -349,6 +355,7 @@ void shutdownInterop(bgfx::RendererType::Enum renderer,void *) {
         }
         if (activeSession) activeSession->retireForShutdown();
         api.shutdown();
+        runtimeLog.disconnect();
     }
     activeSession.reset();api={};targetsAPI={};audioAPI={};outputAPI={};imeAPI={};clientReserved=false;
     for (auto *resource:retiredResources) resource->Release();

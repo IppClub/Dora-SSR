@@ -1,5 +1,6 @@
 // In-process compiler checks. No executable, game loop, autoload or scene instance.
 #pragma once
+#include "runtime_diagnostics.h"
 #include "GodotBridgeCheck.h"
 #include "core/io/file_access_memory.h"
 #include "core/io/config_file.h"
@@ -113,6 +114,7 @@ inline void shader(const String &file,const String &source,bool include,Array &i
 // An active game is checked only in its own project; it is never stopped/reset.
 template<class Runtime,class Boot>
 inline const char *check(Runtime &runtime,const DoraGodotConfig *config,const char *file,const char *source,Boot boot) {
+    DoraGodotDiagnostics::ScopedMetadataQuery diagnostics;
     if(!config || config->size<sizeof(*config) || !config->project_path || !file || !source)
         return failure(file,"Invalid embedded Godot check request");
     if(runtime.terminated) return failure(file,"Godot runtime has terminated; restart Dora");

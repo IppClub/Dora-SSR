@@ -178,6 +178,17 @@ GodotWebBridge.prototype.dispatch=function(operation,data,a,b,c,d) {
       // Never acknowledge an unloaded client while its borrowed names or
       // copied resource bytes are still owned by this bridge.
       return state===2 && (this.targets.length||this.projectCopies?.length)?3:state;}
+    case 23:if(typeof g._dora_web_log_enable==='function')g._dora_web_log_enable(a);return 1;
+    case 24:{
+      if(typeof g._dora_web_log_pop!=='function')return 0;
+      const level=g._malloc(4);if(!level)return 0;
+      try {
+        const pointer=g._dora_web_log_pop(level);if(!pointer)return 0;
+        // Copy both fields before another pop invalidates the Godot pointer.
+        new DataView(h.HEAPU8.buffer).setUint32(data,g.HEAPU32[level/4],true);
+        writeString(h,data+4,a,g.UTF8ToString(pointer));return 1;
+      }finally{g._free(level);}
+    }
     default:throw new Error('Unknown Dora/Godot Web operation '+operation);
   }
 };
