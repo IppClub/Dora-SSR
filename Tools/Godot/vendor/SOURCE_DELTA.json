@@ -5,7 +5,7 @@
   "attributes_baseline_commit": "199c2c69c0e707808ad189200922bf71d04057b8",
   "policy": "Canonical Git text/EOL content using attributes from the fixed initial import; no other content normalization",
   "upstream_files": 13989,
-  "registered_current_files": 14044,
+  "registered_current_files": 14046,
   "archive_crlf_to_git_lf_files": [
     "misc/msvs/nmake.substitution.props",
     "misc/msvs/props.template",
@@ -33,7 +33,7 @@
     "modules/mono/glue/GodotSharp/GodotSharpEditor/GodotSharpEditor.csproj",
     "platform/android/java/gradlew.bat"
   ],
-  "delta_patch_sha256": "296b7a967252581d89e9ddb32d0b14e4d33061a1754369ae0305538e4dfd1b2b",
+  "delta_patch_sha256": "13cd2dc3fb7c368804545452ecae486bfea5967f82b38ef0d62db93d26a881df",
   "files": [
     {
       "path": "UPSTREAM.json",
@@ -102,7 +102,7 @@
       "path": "dora_bridge.exports",
       "status": "added",
       "mode": "100644",
-      "canonical_sha256": "6430c600e8ac0ac1912bbad21c8c7b3351d0cea6308932caba94ebf5dddd31e2",
+      "canonical_sha256": "0ef51c84af4038255eb9c44ae4b623fa0701a6f53db7108aa8d0fd3a4c69a5ee",
       "upstream_canonical_sha256": null
     },
     {
@@ -295,6 +295,13 @@
       "upstream_canonical_sha256": null
     },
     {
+      "path": "modules/dora_bridge/GodotBridgeRuntimeScene.h",
+      "status": "added",
+      "mode": "100644",
+      "canonical_sha256": "eb13eeaa9f0d5f8b0869ca123c4316db00e0b3f7c573e58d0d9dbf68d6a0d9b8",
+      "upstream_canonical_sha256": null
+    },
+    {
       "path": "modules/dora_bridge/GodotBridgeScene.h",
       "status": "added",
       "mode": "100644",
@@ -484,6 +491,13 @@
       "upstream_canonical_sha256": null
     },
     {
+      "path": "modules/dora_bridge/runtime_live_scene.h",
+      "status": "added",
+      "mode": "100644",
+      "canonical_sha256": "ee48862cd924e2bc6f3863eb9e60d0b4af717961af7df83d718b75c0c5b57eaf",
+      "upstream_canonical_sha256": null
+    },
+    {
       "path": "modules/dora_bridge/runtime_log.h",
       "status": "added",
       "mode": "100644",
@@ -508,14 +522,14 @@
       "path": "modules/dora_bridge/runtime_scene.h",
       "status": "added",
       "mode": "100644",
-      "canonical_sha256": "a47c1247492a5782ec01c43ce68657249e68977faa4d66677507042aa092f37d",
+      "canonical_sha256": "8fe0d411680ec49190751b3ea012ef4e5de63f376ff2dbe79a4a6ac48a611129",
       "upstream_canonical_sha256": null
     },
     {
       "path": "modules/dora_bridge/runtime_service_api.inc",
       "status": "added",
       "mode": "100644",
-      "canonical_sha256": "ad4e3d9c2734890f432f2b57d94422e4b11f9cdd9fe8984377db679374c1388d",
+      "canonical_sha256": "b68b2e543334274d111990d6befe455b58a70ab00917508c1da861cc0e787cca",
       "upstream_canonical_sha256": null
     },
     {
@@ -536,7 +550,7 @@
       "path": "modules/dora_bridge/web/web_api.cpp",
       "status": "added",
       "mode": "100644",
-      "canonical_sha256": "c775435e1ffd12447d8518e0672fe5047eaa6c819ef2fe076bd69571ad46e322",
+      "canonical_sha256": "665e614b41afb2e2857dbd28993940039dd615bf1c7434db356b806c5adfc795",
       "upstream_canonical_sha256": null
     },
     {

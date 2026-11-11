@@ -2,16 +2,23 @@
 #include "GodotBridgeCheck.h"
 #include "GodotBridgeImport.h"
 #include "GodotBridgeScene.h"
+#include "GodotBridgeRuntimeScene.h"
 #include <string>
 #include <utility>
 namespace GodotRuntimeServices {
 enum Operation { Check = 0,
 	Import = 1,
-	InspectScene = 2 };
+	InspectScene = 2, InspectRuntimeScene = 3 };
 template <class Resolve>
 inline std::pair<bool, std::string> call(int operation, const DoraGodotConfig& config, const std::string& file, const std::string& content, Resolve resolve) {
 	const char* reply = nullptr;
-	if (operation == InspectScene) {
+	if (operation == InspectRuntimeScene) {
+        const auto getter = reinterpret_cast<DoraGodotGetRuntimeSceneAPI>(resolve("dora_godot_get_runtime_scene_api"));
+        DoraGodotRuntimeSceneAPI api{};api.size=sizeof(api);
+        if(!getter || !getter(DORA_GODOT_RUNTIME_SCENE_ABI_VERSION,&api) || api.size<sizeof(api) || api.abi_version!=DORA_GODOT_RUNTIME_SCENE_ABI_VERSION || !api.inspect)
+            return {false,"Bundled Godot runtime has no live scene inspection API; rebuild the runtime library"};
+        reply=api.inspect(&config,content.c_str());
+    } else if (operation == InspectScene) {
 		const auto getter = reinterpret_cast<DoraGodotGetSceneAPI>(resolve("dora_godot_get_scene_api"));
 		DoraGodotSceneAPI api{};
 		api.size = sizeof(api);

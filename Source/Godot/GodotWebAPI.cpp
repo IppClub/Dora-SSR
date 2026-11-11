@@ -55,7 +55,7 @@ int audioStats(void *handle,DoraGodotAudioStats *value){return valid(handle)&&va
 DoraGodotLogAPI godotWebLogAPI(){return {sizeof(DoraGodotLogAPI),DORA_GODOT_LOG_ABI_VERSION,enableLogs,popLog};}
 EM_JS(char *,checkService,(int operation,const char *project,const char *file,const char *source),{
     const bridge=Module['doraGodotBridge'];
-    const method=operation===2?'inspectScene':'checkCode';
+    const method=operation===3?'inspectRuntimeScene':operation===2?'inspectScene':'checkCode';
     if(!bridge || typeof bridge[method]!=='function')return 0;
     try {return stringToNewUTF8(bridge[method](UTF8ToString(project),UTF8ToString(file),UTF8ToString(source)));}
     catch(error) {return stringToNewUTF8(JSON.stringify({success:false,message:String(error),info:[['tool',UTF8ToString(file),1,0,String(error)]]}));}

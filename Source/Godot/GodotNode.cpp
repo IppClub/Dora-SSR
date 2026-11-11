@@ -101,6 +101,9 @@ void GodotNode::importAssetAsync(String project,String file,String options,const
 #endif
 }
 
+void GodotNode::inspectRuntimeSceneAsync(String project,String options,const std::function<void(bool,std::string)> &callback) {
+    callGodotService(GodotRuntimeServices::InspectRuntimeScene,project,"",options,callback);
+}
 void GodotNode::inspectSceneAsync(String project,String file,String options,const std::function<void(bool,std::string)> &callback) {
     callGodotService(GodotRuntimeServices::InspectScene,project,file,options,callback);
 }

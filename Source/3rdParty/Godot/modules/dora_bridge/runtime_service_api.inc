@@ -18,3 +18,10 @@ extern "C" DORA_GODOT_EXPORT int dora_godot_get_scene_api(uint32_t requested,Dor
     if(requested!=DORA_GODOT_SCENE_ABI_VERSION || !api || api->size<sizeof(*api))return 0;
     *api={sizeof(*api),DORA_GODOT_SCENE_ABI_VERSION,inspect_scene};return 1;
 }
+
+extern "C" DORA_GODOT_EXPORT int dora_godot_get_runtime_scene_api(uint32_t requested,DoraGodotRuntimeSceneAPI *api) {
+    if(requested!=DORA_GODOT_RUNTIME_SCENE_ABI_VERSION || !api || api->size<sizeof(*api))return 0;
+    *api={sizeof(*api),DORA_GODOT_RUNTIME_SCENE_ABI_VERSION,[](const DoraGodotConfig *config,const char *options) {
+        return DoraGodotRuntimeScene::inspect(runtime,config,options);
+    }};return 1;
+}

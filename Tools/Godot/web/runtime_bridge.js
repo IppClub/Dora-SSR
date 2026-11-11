@@ -67,7 +67,10 @@ export function installDoraGodot(host,godot,canvas,Boundary) {
     }
     return gl;
   };
-  const facade={lastError:'',dispatch(...args) {
+  const facade={lastError:'',inspectRuntimeScene(project,_file,options) {
+    if(!bridge)return JSON.stringify({success:false,message:'No running Godot project'});
+    return bridge.inspectRuntimeScene(project,options);
+  },dispatch(...args) {
     try {
       const operation=args[0];
       // The canvas event is delivered before Dora's next native frame. Reject
@@ -259,4 +262,20 @@ GodotWebBridge.prototype.inspectScene=function(project,file,options) {
   }catch(error){cleanupError??=error;}
   if(cleanupError&&!bodyFailed)throw cleanupError;
 }
+};
+
+// Live queries inspect only the already active heap: no source copies or boot.
+GodotWebBridge.prototype.inspectRuntimeScene=function(project,options) {
+  const g=this.godot;
+  if(typeof g._dora_web_inspect_runtime_scene!=='function')throw new Error('Bundled Web runtime has no live scene inspection API');
+  let p=0,o=0;
+  try {
+    this.boundary.activate('godot');
+    p=g.stringToNewUTF8(project);o=g.stringToNewUTF8(options);
+    const result=g._dora_web_inspect_runtime_scene(p,o);
+    if(!result)throw new Error('Godot live scene inspection returned no report');
+    return g.UTF8ToString(result);
+  } finally {
+    if(p)g._free(p);if(o)g._free(o);this.boundary.activate('host');
+  }
 };

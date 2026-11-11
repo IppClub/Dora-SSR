@@ -1648,3 +1648,24 @@ assert(result.success)
 有效设置附加在逐文件结果的 `settings` 中，同时保存在 `.import` 的 `[dora]` 区域，并同步相应的标准 `[params]` 参数；不修改已有编辑器管理的 `.import`。部分设置与历史值合并，发送默认值可将某一项恢复默认。设置变化会使缓存失效，即使源文件未变也重新导入；相同设置或省略设置可命中缓存。旧 Dora 产物尚无设置记录时按原来的默认行为处理。
 
 宿主请求导入 API v2，以防旧 runtime 静默忽略设置；缺少该版本时要求重建 runtime，不启动外部编辑器。新版 runtime 仍接受旧的 v1 调用，保留默认导入调用兼容性。测试新增了设置缓存／合并／force、非法参数保留原产物和元数据、实际资源重载后的 mipmap／WAV／MP3／Ogg 循环属性，以及真实 execute_command 注入函数的设置结果与失败传递。
+
+### Read-only live scene snapshots
+
+`GodotNode.inspectRuntimeSceneAsync(project, optionsJson, callback)` uses the optional
+`dora_godot_get_runtime_scene_api` ABI v1, shared across renderer backends. It runs
+on the runtime owner/render thread and only inspects an already active matching
+project. Old libraries report a capability error. No external Godot process,
+resource loading, project switch, input injection or script invocation is used.
+
+Agent Lua exposes `inspectGodotRuntimeScene({project=".", nodePath="Main",
+properties={"position", "script:hp", "script:won"}, maxNodes=128})` inside
+`execute_command`; results also populate `godotRuntimeScenes`. Native state uses
+an explicit type/property allowlist. Optional nodeType filters exact native class
+names while retaining the traversal bound. GDScript instance backing storage is read
+without `Object::get`, `_get`, script getters, property-list hooks or expression
+evaluation. Static/computed members, objects and containers are unavailable.
+Reports include typed values and explicit truncation. Query/node/property/string,
+traversal and response limits are enforced in the native runtime, not only Lua.
+
+Native regression: `Dora-Example/Test/Godot/tests/services/run_live_scene_macos.py`.
+Registered Agent injection regression: `Test/Agent/test_godot_live_scene_runtime.py`.

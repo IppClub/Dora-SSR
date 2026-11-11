@@ -1,6 +1,7 @@
 // Static .tscn metadata, parsed by Godot without ResourceLoader or SceneState.
 #pragma once
 #include "GodotBridgeScene.h"
+#include "runtime_live_scene.h"
 #include "runtime_diagnostics.h"
 
 #include "core/io/file_access.h"
