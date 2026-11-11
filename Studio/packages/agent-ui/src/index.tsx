@@ -1,3 +1,5 @@
+import {AgentReasoning, hasAgentStepCard} from './AgentReasoning';
+export {AgentReasoning, hasAgentStepCard} from './AgentReasoning';
 import React, {useMemo, useState} from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -50,14 +52,16 @@ export function SharedAgentMarkdown({content,className=''}:{content:string;class
   }}>{content}</ReactMarkdown></div>;
 }
 function StepCodeBlock({title,content}:{title:string;content:string}){return <details className="dora-agent-step-block"><summary>{title}</summary><pre>{content||'无输出'}</pre></details>;}
-export function SharedAgentStepList({steps,onOpenFile}:{steps:readonly AgentSessionStep[];onOpenFile?:(path:string)=>void}){
+export function SharedAgentStepList({steps,onOpenFile,running=false}:{steps:readonly AgentSessionStep[];running?:boolean;onOpenFile?:(path:string)=>void}){
   return <div className="dora-agent-step-list">{steps.map(step=>{
+    if (!hasAgentStepCard(step)) return <AgentReasoning key={step.id} content={step.reasoningContent} active={running && step.status==='RUNNING' && step===steps[steps.length-1]}/>;
     const params=summarizeStepParams(step),buildItems=step.tool==='build'?buildResults(step):[],result=step.result??{},failure=step.status==='FAILED'&&result.success===false?stringValue(result.message):'',progress=step.status==='RUNNING'?numberValue(result.progress):undefined;
     const commandCode=step.tool==='execute_command'&&step.params?.mode==='lua'?stringValue(step.params.code):'',commandOutput=step.tool==='execute_command'?stringValue(result.output):'';
     const answer=step.tool==='questionnaire_answer'?stringValue(result.displayText):'';
     return <article key={step.id} className={`dora-agent-step ${step.status.toLowerCase()}`} data-agent-step-id={step.id}>
       <header><span className="dora-agent-step-number">{step.step}</span><span className="dora-agent-step-tool">{stepToolNames[step.tool]??step.tool}</span>{step.status!=='DONE'&&<span className="dora-agent-step-status">{stepStatuses[step.status]??step.status}</span>}</header>
-      {answer?<SharedAgentMarkdown className="dora-agent-step-answer" content={answer}/>:<>{(step.reason||step.reasoningContent)&&<SharedAgentMarkdown className="dora-agent-step-reason" content={step.reason||step.reasoningContent}/>}</>}
+      {step.reasoningContent.trim()&&<AgentReasoning content={step.reasoningContent}/>}
+      {answer?<SharedAgentMarkdown className="dora-agent-step-answer" content={answer}/>:<>{step.reason&&<SharedAgentMarkdown className="dora-agent-step-reason" content={step.reason}/>}</>}
       {params.length>0&&<dl className="dora-agent-step-params">{params.map((item,index)=><React.Fragment key={`${item.label}:${item.value}:${index}`}><dt>{item.label}</dt><dd>{item.value}</dd></React.Fragment>)}</dl>}
       {progress!==undefined&&<div className="dora-agent-step-progress" aria-label={`进度 ${Math.round(Math.max(0,Math.min(1,progress))*100)}%`}><i style={{width:`${Math.round(Math.max(0,Math.min(1,progress))*100)}%`}}/></div>}
       {commandCode&&<StepCodeBlock title="脚本代码" content={commandCode}/>}{commandOutput&&<StepCodeBlock title="输出结果" content={commandOutput}/>}

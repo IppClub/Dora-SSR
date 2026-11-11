@@ -1,3 +1,4 @@
+import {AgentReasoning, hasAgentStepCard} from '@dora-studio/agent-ui';
 import React from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -546,7 +547,7 @@ function AgentStepListBody(props: AgentStepListProps) {
 				const toolProgress = getToolProgress(step);
 				const executeCommandDetails = getExecuteCommandDetails(step);
 				const hasReasoning = step.reasoningContent.trim() !== "";
-				const primaryContent = step.reason || (hasReasoning ? step.reasoningContent : "");
+				const primaryContent = step.reason;
 				const handoffMeta = getSubAgentHandoffMeta(step);
 				const visiblePrimaryContent = step.tool === "sub_agent_handoff" ? "" : primaryContent;
 					// A completed visual answer replaces the agent's reasoning text.
@@ -598,15 +599,16 @@ function AgentStepListBody(props: AgentStepListProps) {
 								<Chip size="small" label={step.status} variant="outlined" sx={{ borderColor: Color.Line, color: Color.TextSecondary }} />
 							) : null}
 						</Stack>
+						{hasReasoning ? <AgentReasoning content={step.reasoningContent} label={t("agent.reasoning")} /> : null}
 						{questionnaireSummary ? (
-							<Typography sx={{ color: Color.TextPrimary, fontSize: 16, lineHeight: 1.65, mt: 1 }}>
+							<Typography sx={{ color: Color.TextPrimary, fontSize: 16, lineHeight: 1.65, mt: hasReasoning ? 0.25 : 1 }}>
 								{questionnaireSummary.title}
 							</Typography>
 						) : null}
 						{suppressedPrimaryContent !== "" ? (
 							<Box
 								sx={{
-									mt: 1,
+									mt: hasReasoning ? 0.25 : 1,
 									padding: 0,
 									width: '100%',
 									maxWidth: '100%',
@@ -1091,6 +1093,8 @@ function LocalAgentEventRows({step}: {step: AgentSessionStep}) {
 const AgentStepRow = React.memo(function AgentStepRow(props: AgentStepRowProps) {
 	const { step, ...listProps } = props;
 	const renderCount = recordAgentRowRender("step", step.id);
+	const {t} = useTranslation();
+	if (!hasAgentStepCard(step)) return <AgentReasoning content={step.reasoningContent} label={t("agent.reasoning")} />;
 	const localAgentEvents = getLocalAgentDisplayEvents(step);
 	return (
 		<Box

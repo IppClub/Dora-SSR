@@ -1,3 +1,4 @@
+import {AgentReasoning, hasAgentStepCard} from '@dora-studio/agent-ui';
 import React, { useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -642,6 +643,9 @@ export default function AgentPanel(props: AgentPanelProps) {
 		if (!taskId) return steps;
 		return steps.filter(step => step.taskId === taskId);
 	}, [session?.currentTaskId, steps]);
+	const tailStep = latestSteps[latestSteps.length - 1];
+	const activeReasoningStep = session?.currentTaskStatus === "RUNNING" && tailStep?.status === "RUNNING" && !hasAgentStepCard(tailStep) ? tailStep : undefined;
+	const displaySteps = useMemo(() => latestSteps.filter(step => step !== activeReasoningStep && (hasAgentStepCard(step) || step.reasoningContent.trim() !== "")), [latestSteps, activeReasoningStep]);
 	const currentTaskUsesLocalAgent = useMemo(
 		() => latestSteps.some(step => step.tool === "local_agent_message"),
 		[latestSteps],
@@ -772,11 +776,11 @@ export default function AgentPanel(props: AgentPanelProps) {
 
 	const currentStepWindow = useMemo(() => {
 		return getAgentTailRenderWindow(
-			latestSteps,
+			displaySteps,
 			visibleCurrentStepCount,
 			CURRENT_STEPS_VISIBLE_COUNT,
 		);
-	}, [latestSteps, visibleCurrentStepCount]);
+	}, [displaySteps, visibleCurrentStepCount]);
 
 	const currentTaskChangeSet = useMemo<Service.AgentChangeSetSummary | null>(() => {
 		if (!activeTaskId || checkpoints.length === 0) return null;
@@ -1469,7 +1473,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 								/>
 							</Box>
 						) : null}
-						{latestSteps.length > 0 ? (
+						{displaySteps.length > 0 ? (
 							<Box>
 								<Typography variant="overline" sx={{ color: Color.TextSecondary, letterSpacing: "0.08em", display: "block", mb: 1.25 }}>{t("agent.steps")}</Typography>
 								{currentStepWindow.hiddenCount > 0 ? (
@@ -1619,28 +1623,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 									</Stack>
 								) : null}
 								{showSummaryShimmer ? (
-									<Typography
-										data-agent-thinking="true"
-										variant="body1"
-										sx={{
-											mt: visibleSummaryMessages.length > 0 ? 1.5 : 0,
-											color: "rgba(255,255,255,0.45)",
-											display: "inline-block",
-											fontWeight: 500,
-											backgroundImage: "linear-gradient(90deg, rgba(255,255,255,0.28) 0%, rgba(255,255,255,0.92) 45%, rgba(255,255,255,0.28) 100%)",
-											backgroundSize: "200% 100%",
-											backgroundClip: "text",
-											WebkitBackgroundClip: "text",
-											WebkitTextFillColor: "transparent",
-											animation: "agent-summary-shimmer 5s linear infinite",
-											"@keyframes agent-summary-shimmer": {
-												"0%": { backgroundPosition: "200% 0" },
-												"100%": { backgroundPosition: "-200% 0" },
-											},
-										}}
-									>
-										{t("agent.thinking")}
-									</Typography>
+									<AgentReasoning key={activeReasoningStep?.id ?? "waiting"} active content={activeReasoningStep?.reasoningContent ?? ""} thinkingLabel={t("agent.thinking")} label={t("agent.reasoning")} />
 								) : null}
 								{workMode === "plan" && hasActivePlan && session?.kind === "main" && visibleSummaryMessages.length > 0 && !showSummaryShimmer && !continuableTaskId ? (
 									<Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 1.5 }}>

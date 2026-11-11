@@ -1,0 +1,18 @@
+.dora-agent-thinking-label {
+  color: rgba(255, 255, 255, 0.45);
+  background-image: linear-gradient(90deg, rgba(255, 255, 255, 0.28) 0%, rgba(255, 255, 255, 0.92) 45%, rgba(255, 255, 255, 0.28) 100%);
+  background-size: 200% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: agent-summary-shimmer 5s linear infinite;
+}
+
+@keyframes agent-summary-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dora-agent-thinking-label { animation: none; }
+}
