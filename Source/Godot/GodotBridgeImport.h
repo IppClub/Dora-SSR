@@ -4,10 +4,11 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#define DORA_GODOT_IMPORT_ABI_VERSION 1u
+#define DORA_GODOT_IMPORT_ABI_VERSION 2u
 typedef struct DoraGodotImportAPI {
 	uint32_t size, abi_version;
-	// options is JSON: {"force":false}. Returned JSON is library-owned.
+	// v2 requires per-file settings support; v1 callers remain compatible.
+	// options: {"force":false,"settings":{"mipmaps":true}}. JSON is library-owned.
 	const char* (*import_asset)(const DoraGodotConfig*, const char* file, const char* options);
 } DoraGodotImportAPI;
 typedef int (*DoraGodotGetImportAPI)(uint32_t, DoraGodotImportAPI*);

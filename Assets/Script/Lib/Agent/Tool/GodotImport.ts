@@ -4,12 +4,18 @@ import { safeJsonDecode, safeJsonEncode } from 'Agent/Utils';
 import { resolveWorkspaceDirectoryPath, resolveWorkspaceFilePath } from 'Agent/Tool/Workspace';
 
 declare const _studio_agent_tool_begin: unknown;
+export interface GodotAssetImportSettings {
+	mipmaps?: boolean;
+	loop?: boolean;
+	loopOffsetSeconds?: number;
+}
 export interface GodotImportResult {
 	success: boolean;
 	path: string;
 	status: 'imported' | 'skipped' | 'failed';
 	message: string;
 	output?: string;
+	settings?: GodotAssetImportSettings;
 }
 
 export interface GodotImportBatchResult {
@@ -28,7 +34,7 @@ function batchFailure(message: string): GodotImportBatchResult {
 }
 
 export async function importGodotAssets(workDir: string, project: string, paths: string[], force = false,
-	isCancelled: () => boolean = () => false): Promise<GodotImportBatchResult> {
+	isCancelled: () => boolean = () => false, settings: Record<string, GodotAssetImportSettings> = {}): Promise<GodotImportBatchResult> {
 	const results: GodotImportResult[] = [];
 	const failed = (path: string, message: string): GodotImportResult => ({success: false, path, status: 'failed', message});
 	const directory = resolveWorkspaceDirectoryPath(workDir, project);
@@ -39,8 +45,8 @@ export async function importGodotAssets(workDir: string, project: string, paths:
 	else if (!Content.exist(Path(directory.path, 'project.godot'))) unavailable = 'project must identify a Godot source project directory.';
 	else if (GodotNode === undefined || typeof GodotNode.importAssetAsync !== 'function') unavailable = 'Rebuild Dora with the embedded Godot asset-import bridge.';
 	if (unavailable !== undefined || directory.success === false) return batchFailure(unavailable ?? 'Invalid Godot project directory.');
-	const settings = Content.load(Path(directory.path, 'project.godot')) ?? '';
-	const [version] = string.match(settings, 'config_version%s*=%s*(%d+)');
+	const projectSettings = Content.load(Path(directory.path, 'project.godot')) ?? '';
+	const [version] = string.match(projectSettings, 'config_version%s*=%s*(%d+)');
 	if (version !== '5') return batchFailure('Only Godot 4 source projects are supported.');
 	for (const path of paths) {
 		if (isCancelled()) break;
@@ -54,7 +60,9 @@ export async function importGodotAssets(workDir: string, project: string, paths:
 			Director.systemScheduler.schedule(once(() => {
 				let result: GodotImportResult | undefined;
 				try {
-					GodotNode.importAssetAsync(directory.path, file, force ? '{"force":true}' : '{}', (available, text) => {
+					const [options] = safeJsonEncode({force, ...(settings[path] !== undefined ? {settings: settings[path]} : {})}, false, false);
+					if (!options) {resolve(failed(path, 'Cannot encode asset import settings.')); return;}
+					GodotNode.importAssetAsync(directory.path, file, options, (available, text) => {
 						if (!available) { result = failed(path, text); return; }
 						const [decoded] = safeJsonDecode(text);
 						const value = decoded as GodotImportResult;
@@ -94,7 +102,7 @@ export function createGodotImportInjection(req: {
 			req.onResult(result);
 			return result;
 		};
-		if (type(options) !== 'table') return complete(batchFailure('importGodotAssets expects {project, paths, force?}.'));
+		if (type(options) !== 'table') return complete(batchFailure('importGodotAssets expects {project, paths, force?, settings?}.'));
 		const opts = options as Record<string, unknown>;
 		const project = typeof opts.project === 'string' ? opts.project.trim() : '.';
 		const paths = opts.paths;
@@ -103,8 +111,26 @@ export function createGodotImportInjection(req: {
 			return complete(batchFailure('Supply a project and 1 to 64 explicit workspace-relative asset paths.'));
 		}
 		if (opts.force !== undefined && typeof opts.force !== 'boolean') return complete(batchFailure('force must be boolean.'));
+		const settings: Record<string, GodotAssetImportSettings> = {};
+		if (opts.settings !== undefined) {
+			if (type(opts.settings) !== 'table') return complete(batchFailure('settings must map requested asset paths to setting objects.'));
+			const supplied = opts.settings as Record<string, unknown>;
+			for (const path of Object.keys(supplied)) {
+				if (!(paths as string[]).includes(path) || type(supplied[path]) !== 'table') return complete(batchFailure('Each settings key must be an exact path in paths, with a setting object.'));
+				const values = supplied[path] as Record<string, unknown>;
+				for (const key of Object.keys(values)) {
+					const value = values[key];
+					if (key === 'mipmaps' || key === 'loop') {
+						if (typeof value !== 'boolean') return complete(batchFailure(`${key} must be boolean.`));
+					} else if (key === 'loopOffsetSeconds') {
+						if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) return complete(batchFailure('loopOffsetSeconds must be a finite non-negative number.'));
+					} else return complete(batchFailure(`Unknown import setting: ${key}.`));
+				}
+				settings[path] = values as GodotAssetImportSettings;
+			}
+		}
 		let result: GodotImportBatchResult | undefined;
-		importGodotAssets(req.workDir, project, paths as string[], opts.force === true, () => req.isCancelled())
+		importGodotAssets(req.workDir, project, paths as string[], opts.force === true, () => req.isCancelled(), settings)
 			.then(value => {result = value;}, error => {result = batchFailure(tostring(error));});
 		while (result === undefined) sleep();
 		return complete(result);

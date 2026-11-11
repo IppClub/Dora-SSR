@@ -23,7 +23,7 @@ inline std::pair<bool, std::string> call(int operation, const DoraGodotConfig& c
 		DoraGodotImportAPI api{};
 		api.size = sizeof(api);
 		if (!getter || !getter(DORA_GODOT_IMPORT_ABI_VERSION, &api) || api.size < sizeof(api) || api.abi_version != DORA_GODOT_IMPORT_ABI_VERSION || !api.import_asset)
-			return {false, "Bundled Godot runtime has no asset-import API; rebuild the runtime library"};
+			return {false, "Bundled Godot runtime has no asset-import settings API; rebuild the runtime library"};
 		reply = api.import_asset(&config, file.c_str(), content.c_str());
 	} else {
 		const auto getter = reinterpret_cast<DoraGodotGetCheckAPI>(resolve("dora_godot_get_check_api"));

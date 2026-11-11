@@ -33,7 +33,7 @@
     "modules/mono/glue/GodotSharp/GodotSharpEditor/GodotSharpEditor.csproj",
     "platform/android/java/gradlew.bat"
   ],
-  "delta_patch_sha256": "d1dc6a2e3e5cd1291599e38191952cc095490e450e1c5639d282b0f12ff10acf",
+  "delta_patch_sha256": "296b7a967252581d89e9ddb32d0b14e4d33061a1754369ae0305538e4dfd1b2b",
   "files": [
     {
       "path": "UPSTREAM.json",
@@ -263,7 +263,7 @@
       "path": "modules/dora_bridge/GodotBridgeImport.h",
       "status": "added",
       "mode": "100644",
-      "canonical_sha256": "9b52b0e30a09302eab962dd4cc90731cbc5dcf19ed629eb5f2228921c3a229ee",
+      "canonical_sha256": "36896f72f17f25c16049908158bc1142536e9772ff4e9a4d126258dbd0576476",
       "upstream_canonical_sha256": null
     },
     {
@@ -473,7 +473,7 @@
       "path": "modules/dora_bridge/runtime_import.h",
       "status": "added",
       "mode": "100644",
-      "canonical_sha256": "2a7ca92fd4e07083afe6899a468e0e8e37dc7a365764a1c34fef476a268c192d",
+      "canonical_sha256": "b260c57b6a6a8a301ea89c42520149208820fe713fc0f78d1446e8e82438cbbc",
       "upstream_canonical_sha256": null
     },
     {
@@ -515,7 +515,7 @@
       "path": "modules/dora_bridge/runtime_service_api.inc",
       "status": "added",
       "mode": "100644",
-      "canonical_sha256": "ced67076990badee56a20e22e6fe9e5781ae3613ed310b0038a06123d83cfa20",
+      "canonical_sha256": "ad4e3d9c2734890f432f2b57d94422e4b11f9cdd9fe8984377db679374c1388d",
       "upstream_canonical_sha256": null
     },
     {

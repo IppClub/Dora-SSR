@@ -1590,9 +1590,9 @@ local result = importGodotAssets({project=".", paths={"art/player.png", "audio/j
 assert(result.success)
 ```
 
-路径相对于 Agent 工作区，素材必须位于所选 Godot 工程内。首批支持 PNG/JPEG/WebP/SVG/BMP/TGA、WAV/MP3/Ogg Vorbis、TTF/OTF/WOFF/WOFF2 和 glTF/GLB，采用默认导入设置。图片保存为无损 PortableCompressedTexture2D，音频和字体保存为 Godot 原生资源，模型保存为 PackedScene。模型始终重新导入，以覆盖外部纹理／buffer 的变化。其他模型格式、自定义编辑器导入插件及已有编辑器导入配置暂不支持；明确返回失败并保留原配置。
+路径相对于 Agent 工作区，素材必须位于所选 Godot 工程内。首批支持 PNG/JPEG/WebP/SVG/BMP/TGA、WAV/MP3/Ogg Vorbis、TTF/OTF/WOFF/WOFF2 和 glTF/GLB，支持按文件设置图片 mipmap、WAV 循环和 MP3/Ogg 循环及起点（见下文）。字体、模型保持默认导入设置。图片保存为无损 PortableCompressedTexture2D，音频和字体保存为 Godot 原生资源，模型保存为 PackedScene。模型始终重新导入，以覆盖外部纹理／buffer 的变化。其他模型格式、自定义编辑器导入插件及已有编辑器导入配置暂不支持；明确返回失败并保留原配置。
 
-函数返回并打印批量结果，也附加到 `execute_command.godotImports`；任一批次失败会使命令失败，没有新增独立 Agent tool。每个文件返回 `success/status/path/output/message`。服务写入 `.godot/imported`、原素材旁的 `.import` 及 UID 缓存，不改原素材。普通素材按源文件与产物 SHA-256 判定缓存；`force` 可重新导入。`.import` 使用标准 Godot importer 标识，附加 `[dora]` 区域记录缓存所有权，官方编辑器可以从原素材重新导入。版本管理保留 `.import`，忽略 `.godot`。成功导入后仍需 `build` 和预览，导入不代表代码或画面验证成功。
+函数返回并打印批量结果，也附加到 `execute_command.godotImports`；任一批次失败会使命令失败，没有新增独立 Agent tool。每个文件返回 `success/status/path/output/message`。服务写入 `.godot/imported`、原素材旁的 `.import` 及 UID 缓存，不改原素材。普通素材按源文件、产物 SHA-256 及有效设置的规范化哈希判定缓存；`force` 可按保留的设置重新导入。`.import` 使用标准 Godot importer 标识，附加 `[dora]` 区域记录缓存所有权，官方编辑器可以从原素材重新导入。版本管理保留 `.import`，忽略 `.godot`。成功导入后仍需 `build` 和预览，导入不代表代码或画面验证成功。
 
 公共实现位于 `runtime_check.h`、`runtime_import.h`、`runtime_check_boot.h` 和 `runtime_service_api.inc`。宿主的线程调度统一在 `GodotNode.cpp`，ABI 加载与结果复制统一在 `GodotRuntimeServices.h`。Metal、WGL/EGL/GLES、D3D12 只提供设备／上下文及符号解析适配；Web 另外复制独立 WASM 堆之间的字符串和工程资源。检查入口覆盖 macOS/iOS、Windows WGL/D3D12、Linux/Android GL 和 WebGL；素材导入只开放 macOS、Windows、Linux。旧 runtime 缺少扩展时报告能力错误，不回退外部进程。Dora Studio 不提供 Godot 开发支持。
 
@@ -1627,3 +1627,24 @@ Dora-Example 测试：`Test/Godot/tests/services/run_scene_macos.py` 验证真�
 日志捕获覆盖工程启动、运行及卸载。编译／导入／静态场景查询的调用线程诊断保留在服务结果中，其他线程上的真实运行错误仍可转发。Web 通过标量入口复制独立 WASM 堆之间的日志文本和级别；原生桥接头不传递 Godot／STL 对象。旧库缺少扩展时仍保持原有 `lastError` 行为，重新构建宿主和运行库后启用新日志流。
 
 Dora-Example 测试：`Test/Godot/test_runtime_logs.py` 覆盖生产队列和宿主转发的并发、隔离、级别、UTF-8／容量限制、去重和旧库回退；`Test/Godot/tests/web/test_log_bridge.mjs` 覆盖跨堆复制及关闭后的取出；二者已接入协议 CI。`Test/Godot/test_native_runtime_logs.py --engine /path/to/Dora --library /path/to/libdora_godot.dylib --output /fresh/output` 在临时用户目录启动真实宿主，通过内置 runtime 触发错误／警告／stderr／卸载输出，再从 Web IDE 使用的 `/log` 接口核对内容、级别和去重。真实运行验收需要目标系统的图形环境，交叉语法检查不能替代设备运行。
+
+## 按文件指定导入设置
+
+```lua
+local result = importGodotAssets({
+	project=".",
+	paths={"art/player.png", "audio/music.ogg", "audio/jump.wav"},
+	settings={
+		["art/player.png"]={mipmaps=true},
+		["audio/music.ogg"]={loop=true, loopOffsetSeconds=0.5},
+		["audio/jump.wav"]={loop=false},
+	},
+})
+assert(result.success)
+```
+
+`settings` 的键必须与 `paths` 中的路径完全一致；每个值是该文件的增量设置，不传时沿用此前由 Dora 保存的设置。图片支持 `mipmaps` 布尔值（默认 false）；WAV 支持 `loop` 布尔值，不指定时保留 WAV 内嵌循环点，显式 true 使用整段向前循环。MP3/Ogg 支持 `loop`（默认 false）与 `loopOffsetSeconds`（默认 0，有限非负秒数；启用循环时必须小于音频长度）。字体和模型暂无可配置项。未知字段、错误类型和不适用于文件类型的设置明确失败，不忽略。Godot 4 的纹理过滤／重复由节点、材质或项目的采样设置控制，不属于图片导入参数。
+
+有效设置附加在逐文件结果的 `settings` 中，同时保存在 `.import` 的 `[dora]` 区域，并同步相应的标准 `[params]` 参数；不修改已有编辑器管理的 `.import`。部分设置与历史值合并，发送默认值可将某一项恢复默认。设置变化会使缓存失效，即使源文件未变也重新导入；相同设置或省略设置可命中缓存。旧 Dora 产物尚无设置记录时按原来的默认行为处理。
+
+宿主请求导入 API v2，以防旧 runtime 静默忽略设置；缺少该版本时要求重建 runtime，不启动外部编辑器。新版 runtime 仍接受旧的 v1 调用，保留默认导入调用兼容性。测试新增了设置缓存／合并／force、非法参数保留原产物和元数据、实际资源重载后的 mipmap／WAV／MP3／Ogg 循环属性，以及真实 execute_command 注入函数的设置结果与失败传递。

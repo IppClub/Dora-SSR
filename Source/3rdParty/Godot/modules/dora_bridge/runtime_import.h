@@ -22,13 +22,14 @@ Ref<ResourceImporter> dora_godot_ogg_importer();
 
 namespace DoraGodotAssetImport {
 inline std::string result;
-inline const char *reply(const String &file, const String &status, const String &message, const String &output = String()) {
+inline const char *reply(const String &file, const String &status, const String &message, const String &output = String(), const Dictionary &settings = Dictionary()) {
 	Dictionary value;
 	value["success"] = status != "failed";
 	value["path"] = file;
 	value["status"] = status;
 	value["message"] = message;
 	value["output"] = output;
+	value["settings"] = settings;
 	result = JSON::stringify(value).utf8().get_data();
 	return result.c_str();
 }
@@ -73,10 +74,14 @@ inline const char *convert(const char *project, const char *file, const char *op
 		return reply(source, "failed", "Import options must be a JSON object");
 	}
 	const Dictionary opts = request.get_data();
+	for (const Variant &key : opts.keys()) {
+		if (key != Variant("force") && key != Variant("settings")) return reply(source, "failed", "Unknown import option: " + String(key));
+	}
 	if (opts.has("force") && opts["force"].get_type() != Variant::BOOL) {
 		return reply(source, "failed", "force must be boolean");
 	}
 	const bool force = opts.get("force", false);
+	if (opts.has("settings") && opts["settings"].get_type() != Variant::DICTIONARY) return reply(source, "failed", "settings must be an object");
 	const String local = ProjectSettings::get_singleton()->localize_path(source);
 	if (!local.begins_with("res://") || local.begins_with("res://.godot/")) {
 		return reply(source, "failed", "Invalid source asset path");
@@ -110,12 +115,40 @@ inline const char *convert(const char *project, const char *file, const char *op
 	if (existing && int(metadata.get_value("dora", "import_version", 0)) != 1) {
 		return reply(source, "failed", "Existing editor import settings are preserved. Embedded reimport of editor-managed assets is not supported yet");
 	}
+	// Settings are per source asset, merged with the last Dora-owned settings.
+	// Omitting them must not silently reset an earlier non-default import.
+	Dictionary defaults;
+	if (image) defaults["mipmaps"] = false;
+	if (importer.is_valid()) { defaults["loop"] = false; defaults["loopOffsetSeconds"] = 0.0; }
+	const Variant saved = metadata.get_value("dora", "settings", Dictionary());
+	if (saved.get_type() != Variant::DICTIONARY) return reply(source, "failed", "Stored import settings are invalid; metadata was preserved");
+	Dictionary settings = defaults.duplicate();
+	settings.merge(saved, true);
+	const Dictionary changes = opts.get("settings", Dictionary());
+	settings.merge(changes, true);
+	for (const Variant &key : settings.keys()) {
+		if (key.get_type() != Variant::STRING) return reply(source, "failed", "Import setting names must be strings");
+		const String name = key;
+		const Variant value = settings[key];
+		if (name == "mipmaps" && image) {
+			if (value.get_type() != Variant::BOOL) return reply(source, "failed", "mipmaps must be boolean");
+		} else if (name == "loop" && (ext == "wav" || importer.is_valid())) {
+			if (value.get_type() != Variant::BOOL) return reply(source, "failed", "loop must be boolean");
+		} else if (name == "loopOffsetSeconds" && importer.is_valid()) {
+			if ((value.get_type() != Variant::FLOAT && value.get_type() != Variant::INT) || !Math::is_finite(double(value)) || !Math::is_finite(float(double(value))) || double(value) < 0)
+				return reply(source, "failed", "loopOffsetSeconds must be a finite non-negative number");
+			settings[key] = double(value);
+		} else return reply(source, "failed", "Unsupported import setting for ." + ext + ": " + name);
+	}
+	const String settings_hash = JSON::stringify(settings, "", true, true).sha256_text();
+	const String defaults_hash = JSON::stringify(defaults, "", true, true).sha256_text();
 	const String output = base + "." + (importer.is_valid() ? importer->get_save_extension() : String("res"));
 	const auto output_path = std::filesystem::weakly_canonical(std::filesystem::u8path(ProjectSettings::get_singleton()->globalize_path(output).utf8().get_data()), error);
 	if (error || !inside(root, output_path)) {
 		return reply(source, "failed", "Imported resource destination escapes the project");
 	}
 	if (!force && !model && existing && String(metadata.get_value("dora", "source_sha256", String())) == hash &&
+			String(metadata.get_value("dora", "settings_sha256", defaults_hash)) == settings_hash &&
 			String(metadata.get_value("remap", "path", String())) == output && int(metadata.get_value("dora", "import_version", 0)) == 1 && FileAccess::exists(output) &&
 			String(metadata.get_value("dora", "output_sha256", String())) == FileAccess::get_sha256(output)) {
 		// Restore the UID cache too: a user may have deleted only uid_cache.bin.
@@ -129,7 +162,7 @@ inline const char *convert(const char *project, const char *file, const char *op
 			if (ResourceUID::get_singleton()->save_to_cache() != OK) {
 				return reply(source, "failed", "Cannot persist imported resource UID cache");
 			}
-			return reply(source, "skipped", "Imported asset is up to date", output);
+			return reply(source, "skipped", "Imported asset is up to date", output, settings);
 		}
 	}
 	if (DirAccess::make_dir_recursive_absolute("res://.godot/imported") != OK) {
@@ -154,6 +187,8 @@ inline const char *convert(const char *project, const char *file, const char *op
 		for (const auto &option : defaults) {
 			parameters[option.option.name] = option.default_value;
 		}
+		parameters["loop"] = settings["loop"];
+		parameters["loop_offset"] = settings["loopOffsetSeconds"];
 		List<String> variants, generated;
 		Variant details;
 		imported = importer->import(uid, local, temporary, parameters, &variants, &generated, &details);
@@ -163,6 +198,7 @@ inline const char *convert(const char *project, const char *file, const char *op
 			Ref<Image> pixels;
 			pixels.instantiate();
 			imported = ImageLoader::load_image(local, pixels);
+			if (imported == OK && bool(settings["mipmaps"])) imported = pixels->generate_mipmaps();
 			if (imported == OK && !pixels->is_empty()) {
 				Ref<PortableCompressedTexture2D> texture;
 				texture.instantiate();
@@ -198,7 +234,13 @@ inline const char *convert(const char *project, const char *file, const char *op
 			resource = value;
 			type = "FontFile";
 		} else {
-			resource = AudioStreamWAV::load_from_file(local, Dictionary());
+			Dictionary parameters;
+			if (settings.has("loop")) {
+				parameters["edit/loop_mode"] = bool(settings["loop"]) ? 2 : 1;
+				parameters["edit/loop_begin"] = 0;
+				parameters["edit/loop_end"] = -1;
+			}
+			resource = AudioStreamWAV::load_from_file(local, parameters);
 			type = "AudioStreamWAV";
 			imported = resource.is_valid() ? OK : ERR_FILE_CORRUPT;
 		}
@@ -210,6 +252,13 @@ inline const char *convert(const char *project, const char *file, const char *op
 	if (imported != OK || !FileAccess::exists(pending)) {
 		DirAccess::remove_absolute(pending);
 		return reply(source, "failed", String::utf8(DoraGodotDiagnostics::get("Godot importer failed: " + std::to_string(imported))));
+	}
+	if (importer.is_valid() && bool(settings["loop"])) {
+		Ref<AudioStream> stream = ResourceLoader::load(pending, "", ResourceFormatLoader::CACHE_MODE_IGNORE);
+		if (stream.is_null() || stream->get_length() <= double(settings["loopOffsetSeconds"])) {
+			DirAccess::remove_absolute(pending);
+			return reply(source, "failed", "loopOffsetSeconds must be less than the audio duration");
+		}
 	}
 	if (DirAccess::rename_absolute(pending, output) != OK) {
 		DirAccess::remove_absolute(pending);
@@ -229,6 +278,18 @@ inline const char *convert(const char *project, const char *file, const char *op
 	metadata.set_value("dora", "source_sha256", hash);
 	metadata.set_value("dora", "import_version", 1);
 	metadata.set_value("dora", "output_sha256", FileAccess::get_sha256(output));
+	metadata.set_value("dora", "settings", settings);
+	metadata.set_value("dora", "settings_sha256", settings_hash);
+	if (image) metadata.set_value("params", "mipmaps/generate", settings["mipmaps"]);
+	if (importer.is_valid()) {
+		metadata.set_value("params", "loop", settings["loop"]);
+		metadata.set_value("params", "loop_offset", settings["loopOffsetSeconds"]);
+	}
+	if (ext == "wav" && settings.has("loop")) {
+		metadata.set_value("params", "edit/loop_mode", bool(settings["loop"]) ? 2 : 1);
+		metadata.set_value("params", "edit/loop_begin", 0);
+		metadata.set_value("params", "edit/loop_end", -1);
+	}
 
 	const String pending_metadata = source + ".import.pending";
 	if (metadata.save(pending_metadata) != OK || DirAccess::rename_absolute(pending_metadata, source + ".import") != OK) {
@@ -243,7 +304,7 @@ inline const char *convert(const char *project, const char *file, const char *op
 	if (ResourceUID::get_singleton()->save_to_cache() != OK) {
 		return reply(source, "failed", "Cannot persist imported resource UID cache");
 	}
-	return reply(source, "imported", "Imported with bundled Godot runtime (default settings)", output);
+	return reply(source, "imported", "Imported with bundled Godot runtime", output, settings);
 }
 template <class Runtime, class Boot>
 inline const char *import_asset(Runtime &runtime, const DoraGodotConfig *config, const char *file, const char *options, Boot boot) {
