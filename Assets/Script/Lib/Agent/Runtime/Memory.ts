@@ -195,6 +195,7 @@ You are a coding assistant that helps modify and navigate code in the Dora SSR g
 - Before modifying a file, read it first. Do not assume files or directories exist.
 - After writing or editing a file, re-read it if accuracy matters.
 - When implementing user-visible game behavior, connect the implementation to the project's actual entry path; do not leave the requested behavior only in an orphan source file.
+- When creating a game, separate the game logic into a pure module with a step(game, dt, input) interface (no rendering or input polling inside). This enables headless play-testing: after building, load the compiled module in execute_command lua mode with require(), write an AI strategy function, and play it in batch (e.g., 100 rounds). Compare against a random strategy to verify the game rewards skill. Report mean, max, min, survival rate, and whether perfect play shows zero variance (which indicates a design problem). This is the standard verification step for game creation.
 - After authored source changes, complete a successful project build before reporting the work complete. Repair compiler diagnostics and rebuild instead of ending with unverified or failing source.
 - If a tool call fails, analyze the error before retrying with a different approach.
 - Ask for clarification when the request is ambiguous.
@@ -1642,7 +1643,8 @@ export class MemoryCompressor {
 		boundaryMode: MemoryCompressionBoundaryMode = "default",
 		systemPrompt = "",
 		toolDefinitions = "",
-		boundaryMessages?: AgentConversationMessage[]
+		boundaryMessages?: AgentConversationMessage[],
+		budgetTokens?: number
 	): Promise<CompressionResult | undefined> {
 		const toCompress = messages;
 		if (toCompress.length === 0) return undefined;
@@ -1656,7 +1658,8 @@ export class MemoryCompressor {
 			currentMemory,
 			boundaryMode,
 			systemPrompt,
-			toolDefinitions
+			toolDefinitions,
+			budgetTokens
 		);
 		const chunk = toCompress.slice(0, boundary.chunkEnd);
 
@@ -1729,11 +1732,12 @@ export class MemoryCompressor {
 		currentMemory: string,
 		boundaryMode: MemoryCompressionBoundaryMode,
 		systemPrompt: string,
-		toolDefinitions: string
+		toolDefinitions: string,
+		budgetTokens?: number
 	): CompressionBoundarySelection {
 		const targetTokens = boundaryMode === "budget_max"
 			? math.max(1, this.getCompressionHistoryTokenBudget(currentMemory))
-			: math.max(1, this.getRequiredCompressionTokens(messages, systemPrompt, toolDefinitions));
+			: math.max(1, this.getRequiredCompressionTokens(messages, systemPrompt, toolDefinitions, budgetTokens));
 		let accumulatedTokens = 0;
 		let lastSafeBoundary = 0;
 		let lastSafeBoundaryWithinBudget = 0;
@@ -1876,13 +1880,31 @@ export class MemoryCompressor {
 	private getRequiredCompressionTokens(
 		messages: AgentConversationMessage[],
 		systemPrompt: string,
-		toolDefinitions: string
+		toolDefinitions: string,
+		budgetTokens?: number
 	): number {
 		const currentTokens = TokenEstimator.estimatePromptMessages(
 			messages,
 			systemPrompt,
 			toolDefinitions
 		);
+		// When the caller supplies the real effective input budget that triggered
+		// compression, size the chunk against it instead of a window fraction.
+		// The trigger budget (window minus maxTokens reserve) sits below
+		// window * compressionTargetThreshold, so the legacy fraction made the
+		// overflow negative at trigger time and every round consolidated only a
+		// couple of messages. Consolidate down to half the budget — the
+		// low-watermark pattern: stopping just under the trigger leaves the
+		// context riding the limit, so every later turn re-triggers and each
+		// episode's history rewrite re-bills the prefix cache at full price.
+		if (typeof budgetTokens === "number" && budgetTokens > 0) {
+			const target = budgetTokens * 0.5;
+			const budgetOverflow = math.max(0, currentTokens - target);
+			if (budgetOverflow > 0) {
+				const margin = math.max(64, math.floor(budgetTokens * 0.01));
+				return budgetOverflow + margin;
+			}
+		}
 		const threshold = this.getContextWindow() * this.config.compressionTargetThreshold;
 		const overflow = math.max(0, currentTokens - threshold);
 		if (overflow <= 0) {

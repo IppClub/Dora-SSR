@@ -893,7 +893,7 @@ async function maybeCompressHistory(
 	for (let round = 0; round < maxRounds; round++) {
 		const systemPrompt = buildAgentSystemPrompt(shared);
 		const normalizedActiveMessages = sanitizeMessagesForLLMInput(getActiveConversationMessages(shared));
-		const decisionActiveMessages = projectMessagesForLLMContext(normalizedActiveMessages);
+		const decisionActiveMessages = projectMessagesForLLMContext(normalizedActiveMessages, getHistoryCharBudget(shared));
 		const activeMessages = projectMessagesForCompression(normalizedActiveMessages);
 		// Keep the projected uncovered count for diagnostics. The trigger itself is
 		// based on the exact next decision request below, including any carried prompt.
@@ -927,10 +927,14 @@ async function maybeCompressHistory(
 			}),
 		};
 		const fitted = AgentUtils.fitMessagesToContext(triggerMessages, triggerOptions, shared.llmConfig);
-		// Trigger at 100% of the exact effective input budget used by the normal
-		// request path. The compression payload below remains independently projected.
+		// Trigger proactively at 90% of the exact effective input budget used by
+		// the normal request path. Waiting for 100% leaves the context riding the
+		// limit: the request is already unsendable when compression starts, and
+		// the sawtooth only buys (budget - target) of runway per episode. The 10%
+		// headroom lets the next request still go out while compression runs.
+		const COMPRESSION_TRIGGER_BUDGET_FRACTION = 0.9;
 		const thresholdReached = getActiveRealMessageCount(shared) > 0
-			&& fitted.originalTokens >= fitted.budgetTokens;
+			&& fitted.originalTokens >= fitted.budgetTokens * COMPRESSION_TRIGGER_BUDGET_FRACTION;
 		if (!thresholdReached) {
 			if (changed) {
 				persistHistoryState(shared);
@@ -979,7 +983,8 @@ async function maybeCompressHistory(
 			"default",
 			systemPrompt,
 			toolDefinitions,
-			decisionActiveMessages
+			decisionActiveMessages,
+			fitted.budgetTokens
 		);
 		if (!(result && result.success && result.compressedCount > 0)) {
 			emitAgentEvent(shared, {
@@ -1367,29 +1372,67 @@ function ensureToolCallId(toolCallId?: string): string {
 	return AgentUtils.createLocalToolCallId();
 }
 
-function imageBlocksForToolResult(shared: AgentShared, action: AgentActionRecord): unknown[] | undefined {
-	// Images read via read_file become inline image blocks for image-capable
-	// models (Codex-style modality metadata); text-only models keep metadata text.
-	if (action.tool !== "read_file" || !action.result) return undefined;
-	const result = action.result as Record<string, unknown>;
-	if (result.kind !== "image") return undefined;
+function imageBlocksForSingleImage(shared: AgentShared, path: string, mime: string): unknown[] | undefined {
 	const modalities = shared.llmConfig.modalities;
 	if (Array.isArray(modalities) && !modalities.includes("image")) return undefined;
-	const imgPath = Path(shared.workingDir, tostring(result.path));
-	if (!Content.exist(imgPath)) return undefined;
-	const imgData = Content.load(imgPath);
+	const fullPath = tostring(Path(shared.workingDir, path));
+	const imgData = Content.load(fullPath);
 	if (imgData === undefined || imgData === "") return undefined;
 	const mimeMod = require("mime") as { b64(this: void, value: string): LuaMultiReturn<[string | undefined, string | undefined]> };
-	const [encoded] = mimeMod.b64(imgData as string);
+	const [encoded] = mimeMod.b64(imgData);
 	if (encoded === undefined || encoded === "") return undefined;
-	const mime = result.mime === "image/jpeg" ? "image/jpeg" : "image/png";
+	const mimeType = mime === "image/jpeg" ? "image/jpeg" : "image/png";
 	return [
-		{ type: "text", text: `[image ${tostring(result.path)}]` },
-		{ type: "image_url", image_url: { url: `data:${mime};base64,${encoded}` } },
+		{ type: "text", text: "[image " + path + "]" },
+		{ type: "image_url", image_url: { url: "data:" + mimeType + ";base64," + encoded } },
 	];
 }
 
+function imageBlocksForToolResult(shared: AgentShared, action: AgentActionRecord): unknown[] | undefined {
+	if (action.tool !== "read_file" || !action.result) return undefined;
+	const result = action.result as Record<string, unknown>;
+	if (result.kind === "image") {
+		return imageBlocksForSingleImage(shared, tostring(result.path), result.mime as string);
+	}
+	const batchResults = result.results;
+	if (Array.isArray(batchResults) && batchResults.length === 1) {
+		const first = batchResults[0] as Record<string, unknown>;
+		if (first.kind === "image") {
+			return imageBlocksForSingleImage(shared, tostring(first.path), first.mime as string);
+		}
+	}
+	return undefined;
+}
+
+const EXECUTED_SCRIPT_ELIDE_HEAD = 140;
+
+/**
+ * Old execute_command scripts are dead weight once their result is in: the
+ * model only needs the outcome to keep working, and a probe that has to be
+ * iterated can be rewritten from the result. Shrink the stored arguments to
+ * a stub right after the run so they stop counting toward the context budget.
+ */
+function elideExecutedScriptArguments(shared: AgentShared, action: AgentActionRecord): void {
+	if (action.tool !== "execute_command") return;
+	for (let i = shared.messages.length - 1; i >= 0; i--) {
+		const message = shared.messages[i];
+		if (message.role !== "assistant" || !message.tool_calls) continue;
+		for (let j = 0; j < message.tool_calls.length; j++) {
+			const call = message.tool_calls[j];
+			if (call.id !== action.toolCallId || call.function === undefined) continue;
+			const original = call.function.arguments ?? "";
+			if (original.indexOf("scriptElided") >= 0) return;
+			call.function.arguments = toJson({
+				scriptElided: `${original.length} chars removed after run`,
+				head: original.slice(0, EXECUTED_SCRIPT_ELIDE_HEAD),
+			}, false);
+			return;
+		}
+	}
+}
+
 function appendToolResultMessage(shared: AgentShared, action: AgentActionRecord): void {
+	elideExecutedScriptArguments(shared, action);
 	const imageBlocks = imageBlocksForToolResult(shared, action);
 	if (imageBlocks !== undefined) {
 		shared.messages.push({
@@ -1545,9 +1588,20 @@ function buildSkillsSection(shared: AgentShared): string {
 }
 
 
+function getHistoryCharBudget(shared: AgentShared): number | undefined {
+	const config = shared.llmConfig;
+	const contextWindow = math.floor(config.contextWindow > 0 ? config.contextWindow : 0);
+	const maxTokens = math.floor(config.maxTokens > 0 ? config.maxTokens : 0);
+	if (contextWindow <= 0 || maxTokens <= 0 || maxTokens >= contextWindow) return undefined;
+	// Effective input budget measures ~85% of (window - output reserve); ~2
+	// chars per token keeps the estimate conservative for CJK-heavy traffic.
+	return math.floor((contextWindow - maxTokens) * 0.85 * 2);
+}
+
 function getUnconsolidatedMessages(shared: AgentShared): Message[] {
 	return projectMessagesForLLMContext(
-		sanitizeMessagesForLLMInput(getActiveConversationMessages(shared))
+		sanitizeMessagesForLLMInput(getActiveConversationMessages(shared)),
+		getHistoryCharBudget(shared)
 	);
 }
 
