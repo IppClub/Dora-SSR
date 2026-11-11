@@ -100,6 +100,14 @@ static void ideState(NSString* state, NSString* message = @"") {
 }
 @end
 
+// A run-log dialog may request DOM focus after the native view has switched.
+@interface DoraIDEWebView : WKWebView
+@end
+@implementation DoraIDEWebView
+- (BOOL)acceptsFirstResponder { return !self.hidden && [super acceptsFirstResponder]; }
+- (BOOL)becomeFirstResponder { return !self.hidden && [super becomeFirstResponder]; }
+@end
+
 @interface DoraIDEHost : NSObject <WKNavigationDelegate, WKUIDelegate, WKDownloadDelegate, WKScriptMessageHandler>
 @property(weak) NSWindow* window;
 @property(strong) WKWebView* view;
@@ -122,6 +130,7 @@ static void ideState(NSString* state, NSString* message = @"") {
 - (void)releaseView;
 - (void)reload;
 - (void)detach;
+- (void)focusEngine;
 @end
 
 @implementation DoraIDEHost
@@ -196,6 +205,9 @@ static void ideState(NSString* state, NSString* message = @"") {
  NSEvent*(^keyHandler)(NSEvent*) = ^NSEvent*(NSEvent* event) {
   DoraIDEHost* host = weakSelf;
   if (!host || !Dora::Singleton<Dora::Application>::shared().isWebIDEEnabled() || event.window != host.window) return event;
+  // Repair a late focus request from a WebKit descendant before SDL decides
+  // whether the browser or the game owns this key.
+  if (!host.visible) [host focusEngine];
   if (host.toggleKeyHeld && event.keyCode == host.toggleKeyCode) {
    if (event.type == NSEventTypeKeyUp) host.toggleKeyHeld = NO;
    return nil;
@@ -244,7 +256,19 @@ static void ideState(NSString* state, NSString* message = @"") {
  [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(collapseMenu) object:nil];
  _menu.hidden = YES;
  if (_visible) [_window makeFirstResponder:_view];
- else [_window makeFirstResponder:_window.contentView];
+ else [self focusEngine];
+}
+- (void)focusEngine {
+  NSResponder* responder = _window.firstResponder;
+  if ([responder isKindOfClass:[NSView class]]) {
+   NSView* focused = (NSView*)responder;
+   if ((_view && [focused isDescendantOf:_view]) || (_overlay && [focused isDescendantOf:_overlay])) {
+    // SDLView rejects first responder. Clear WebKit/control focus explicitly:
+    // a hidden IDE must not consume game keys (Escape closes its run log and
+    // sends /stop). Preserve SDL's native IME responder when already focused.
+    [_window makeFirstResponder:nil];
+   }
+  }
 }
 - (void)toggleMenu {
  if (!_visible) { [self show]; return; }
@@ -260,7 +284,7 @@ static void ideState(NSString* state, NSString* message = @"") {
  [config.userContentController addScriptMessageHandler:self name:@"doraIDERun"];
  if (@available(macOS 14.0, *)) config.preferences.inactiveSchedulingPolicy = WKInactiveSchedulingPolicyNone;
  NSView* root = _window.contentView;
- _view = [[WKWebView alloc] initWithFrame:root.bounds configuration:config];
+ _view = [[DoraIDEWebView alloc] initWithFrame:root.bounds configuration:config];
  _view.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
  _view.identifier = @"DoraNativeUI";
  _view.navigationDelegate = self; _view.UIDelegate = self;
