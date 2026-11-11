@@ -1,0 +1,7 @@
+set_project("self-updater-regression")
+set_languages("cxx17")
+target("windows-update-restart")
+    set_kind("binary")
+    add_files("windows_restart.cpp")
+    add_includedirs("../../../Source")
+    add_syslinks("advapi32", "user32")

@@ -31,6 +31,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "SDL_syswm.h"
 #if (BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX || BX_PLATFORM_LINUX) && !defined(DORA_AS_LIB)
 #include "Basic/GuiInstance.h"
+#if BX_PLATFORM_WINDOWS
+#include "Basic/WindowsUpdate.h"
+#endif
 #if BX_PLATFORM_OSX
 namespace Dora {
 void activateGuiWindowMac(SDL_Window* window);
@@ -2254,43 +2257,14 @@ void Application::install(String path) {
 		if (!install(file)) return;
 	}
 
-	STARTUPINFOW si;
-	PROCESS_INFORMATION pi;
-	ZeroMemory(&si, sizeof(si));
-	si.cb = sizeof(si);
-	ZeroMemory(&pi, sizeof(pi));
-
-	auto getCommand = [&]() -> std::wstring {
-		std::string command = '"' + Path::concat({assetPath, "Dora.exe"}) + '"';
-		if (command.empty()) return {};
-		int len = MultiByteToWideChar(CP_UTF8, 0, command.c_str(), -1, NULL, 0);
-		if (len == 0) return {};
-		std::wstring wideStr(len, L'0');
-		if (MultiByteToWideChar(CP_UTF8, 0, command.c_str(), -1, &wideStr[0], len) == 0) {
-			wideStr.clear();
-			return wideStr;
-		}
-		return wideStr;
-	};
-
-	auto command = getCommand();
-	if (command.empty() || !CreateProcessW(NULL,
-			command.data(),
-			NULL,
-			NULL,
-			FALSE,
-			0,
-			NULL,
-			NULL,
-			&si,
-			&pi)) {
-		Error("Application.install() failed to start the updated Windows application, error code: {}", GetLastError());
+	if (!launchWindowsUpdateRestart(
+			fs::u8path(Path::concat({assetPath, "Dora.exe"})).wstring(),
+			fs::u8path(assetPath).wstring(), GetCurrentProcessId())) {
+		Error("Application.install() failed to schedule the updated Windows application, error code: {}", GetLastError());
 		rollbackInstalled();
 		restoreBackup();
 		return;
 	}
-	CloseHandle(pi.hProcess);
-	CloseHandle(pi.hThread);
 	Application::setDevMode(false);
 	Application::shutdown();
 #elif BX_PLATFORM_OSX && !defined(DORA_AS_LIB)

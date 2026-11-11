@@ -21,11 +21,13 @@ let serial = 0;
 let extractedPath = "";
 interface PreparedInstallation { snapshot: UpdateSnapshot; platform: UpdatePlatform; update: PreparedUpdate; installPath?: string }
 let prepared: PreparedInstallation | undefined;
+let ignoredVersion: string | undefined;
 // Entry owns the public state; the service only performs the update task.
 let readEntryState: ((this: void) => ReturnType<typeof buildState>) | undefined;
 let publishEntryState: ((this: void, state: ReturnType<typeof buildState>) => void) | undefined;
-export const bindEntryState = (read: (this: void) => ReturnType<typeof buildState>, publish: (this: void, state: ReturnType<typeof buildState>) => void) => {
+export const bindEntryState = (read: (this: void) => ReturnType<typeof buildState>, publish: (this: void, state: ReturnType<typeof buildState>) => void, ignored?: string) => {
  readEntryState = read; publishEntryState = publish;
+ ignoredVersion = ignored;
 };
 const changed = () => { serial++; publishEntryState?.(buildState()); Director.postNode.emit("EngineUpdateChanged"); };
 const fail = (title: string, detail: string) => { phase = "error"; message = `${title}: ${detail}`; progress = undefined; changed(); };
@@ -42,12 +44,15 @@ const buildState = () => {
  const platform = updatePlatformForApp();
  const item = snapshot && platform ? packageFor(snapshot, platform) : undefined;
  const comparison = snapshot ? compareSnapshotWithCurrent(snapshot) : undefined;
+ const ignored = snapshot !== undefined && snapshotDisplayVersion(snapshot) === ignoredVersion;
+ const newer = checkedAt > 0 && !usedCache && comparison === -1 && (!platform || item !== undefined);
  return {
   serial, phase, source, currentVersion: `${currentVersion}-${currentRevision}`,
   targetVersion: snapshot ? snapshotDisplayVersion(snapshot) : undefined,
   publishedAt: snapshot ? snapshot.source === "AtomGit" ? snapshot.manifest.publishedAt : snapshot.publishedAt : undefined,
   releaseUrl: snapshot ? `https://github.com/IppClub/Dora-SSR/releases/tag/${snapshotVersion(snapshot)}` : undefined,
-  available: checkedAt > 0 && !usedCache && comparison === -1 && phase !== "checking" && phase !== "error" && phase !== "canceling" && (!platform || item !== undefined),
+  available: newer && !ignored && phase !== "checking" && phase !== "error" && phase !== "canceling",
+  ignored, ignoredVersion, canIgnore: newer && !ignored && !busy() && !prepared,
   comparison, platform: App.platform, packagePlatform: platform, packageSize: item?.size,
   installSupported: item !== undefined && App.platform !== PlatformType.Linux,
   canDownload: item !== undefined && comparison !== undefined && comparison <= 0 && !busy() && !prepared,
@@ -56,6 +61,10 @@ const buildState = () => {
  };
 };
 export const getState = () => readEntryState ? readEntryState() : buildState();
+export const ignoreUpdate = () => {
+ if (!buildState().canIgnore || !snapshot) return false;
+ ignoredVersion = snapshotDisplayVersion(snapshot); changed(); return true;
+};
 export const checkForUpdates = (selected: UpdateSource = source) => {
  if (busy() || prepared) return false;
  source = selected; snapshot = undefined; checkedAt = 0; usedCache = false; message = ""; canceled = false; phase = "checking"; progress = undefined; changed();
@@ -87,15 +96,13 @@ const installPreparedPackage = (pending: PreparedInstallation) => {
 	if (pending.installPath && Content.exist(pending.installPath)) {
 		progress = { progress: 1, message: zh ? "正在启动安装程序…" : "Starting installer…", source: value.source };
 		App.install(pending.installPath);
-		phase = "ready"; changed();
-		progress = undefined;
+		phase = "ready"; progress = undefined; changed();
 		return;
 	}
     if (platform.endsWith("-msi")) {
         pending.installPath = value.file;
         App.install(value.file);
-        phase = "ready"; changed();
-        progress = undefined;
+        phase = "ready"; progress = undefined; changed();
         return;
     }
 	progress = { progress: 0.94, message: zh ? "正在解压更新…" : "Extracting update…", source: value.source };
@@ -136,8 +143,7 @@ const installPreparedPackage = (pending: PreparedInstallation) => {
 		}
 		pending.installPath = installPath;
 		App.install(installPath);
-		phase = "ready"; changed();
-		progress = undefined;
+		phase = "ready"; progress = undefined; changed();
 	});
 };
 

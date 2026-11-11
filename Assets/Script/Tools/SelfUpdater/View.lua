@@ -61,142 +61,150 @@ ____exports.createUpdaterPanel = function() -- 8
 								"UpdateContent", -- 26
 								Vec2(0, -62), -- 26
 								function() -- 26
-									local title = state.phase == "checking" and (zh and "正在检查更新…" or "Checking for updates…") or (state.phase == "ready" and (zh and "更新已准备好" or "Update ready") or (state.available and (zh and "有可用更新" or "Update available") or (state.comparison == 1 and (zh and "当前版本高于稳定版" or "Newer than stable") or (state.comparison == 0 and (zh and "版本相同" or "Matching release version") or (zh and "检查引擎更新" or "Check engine updates"))))) -- 27
-									ImGui.TextColored(App.themeColor, title) -- 33
-									if state.targetVersion then -- 33
-										ImGui.Text(state.targetVersion) -- 34
-									end -- 34
-									ImGui.TextDisabled(((zh and "当前版本" or "Installed") .. " ") .. state.currentVersion) -- 35
-									ImGui.Dummy(Vec2(0, 10)) -- 36
-									ImGui.Text(state.platform .. (state.packagePlatform and " · " .. state.packagePlatform or "")) -- 37
-									local disabled = state.prepared or state.phase == "checking" or state.phase == "downloading" or state.phase == "canceling" or state.phase == "installing" -- 38
-									local function sources() -- 39
-										local changed, index = ImGui.Combo(zh and "更新源" or "Source", state.source == "AtomGit" and 1 or 2, {"AtomGit", "GitHub"}) -- 40
-										if changed then -- 40
-											Updater.checkForUpdates(index == 1 and "AtomGit" or "GitHub") -- 41
-										end -- 41
-									end -- 39
-									if disabled then -- 39
-										ImGui.BeginDisabled(sources) -- 43
-									else -- 43
-										sources() -- 43
-									end -- 43
-									if state.publishedAt then -- 43
-										ImGui.TextWrapped(((zh and "发布时间" or "Published") .. ": ") .. state.publishedAt) -- 44
+									local title = state.phase == "checking" and (zh and "正在检查更新…" or "Checking for updates…") or (state.phase == "ready" and (zh and "更新已准备好" or "Update ready") or (state.ignored and (zh and "已忽略此版本" or "This version is ignored") or (state.available and (zh and "有可用更新" or "Update available") or (state.comparison == 1 and (zh and "当前版本高于稳定版" or "Newer than stable") or (state.comparison == 0 and (zh and "版本相同" or "Matching release version") or (zh and "检查引擎更新" or "Check engine updates")))))) -- 27
+									ImGui.TextColored(App.themeColor, title) -- 34
+									if state.targetVersion then -- 34
+										ImGui.Text(state.targetVersion) -- 35
+									end -- 35
+									ImGui.TextDisabled(((zh and "当前版本" or "Installed") .. " ") .. state.currentVersion) -- 36
+									ImGui.Dummy(Vec2(0, 10)) -- 37
+									ImGui.Text(state.platform .. (state.packagePlatform and " · " .. state.packagePlatform or "")) -- 38
+									local disabled = state.prepared or state.phase == "checking" or state.phase == "downloading" or state.phase == "canceling" or state.phase == "installing" -- 39
+									local function sources() -- 40
+										local changed, index = ImGui.Combo(zh and "更新源" or "Source", state.source == "AtomGit" and 1 or 2, {"AtomGit", "GitHub"}) -- 41
+										if changed then -- 41
+											Updater.checkForUpdates(index == 1 and "AtomGit" or "GitHub") -- 42
+										end -- 42
+									end -- 40
+									if disabled then -- 40
+										ImGui.BeginDisabled(sources) -- 44
+									else -- 44
+										sources() -- 44
 									end -- 44
-									if state.packageSize then -- 44
-										ImGui.TextDisabled(string.format("%.1f", state.packageSize / 1048576) .. " MiB") -- 45
+									if state.publishedAt then -- 44
+										ImGui.TextWrapped(((zh and "发布时间" or "Published") .. ": ") .. state.publishedAt) -- 45
 									end -- 45
-									if state.usedCache then -- 45
-										ImGui.TextWrapped(zh and "离线缓存结果，不作为新版本提示。请联网重新检查。" or "Offline cached result. Check again online to confirm availability.") -- 46
+									if state.packageSize then -- 45
+										ImGui.TextDisabled(string.format("%.1f", state.packageSize / 1048576) .. " MiB") -- 46
 									end -- 46
-									if state.source == "GitHub" and state.comparison == 0 then -- 46
-										ImGui.TextWrapped(zh and "GitHub 无法判断发布修订；如需修复，可在安装选项中重新下载。" or "GitHub cannot compare release revisions. Redownload under installation options.") -- 47
+									if state.usedCache then -- 46
+										ImGui.TextWrapped(zh and "离线缓存结果，不作为新版本提示。请联网重新检查。" or "Offline cached result. Check again online to confirm availability.") -- 47
 									end -- 47
-									if state.message ~= "" then -- 47
-										ImGui.TextWrapped(state.message) -- 48
+									if state.source == "GitHub" and state.comparison == 0 then -- 47
+										ImGui.TextWrapped(zh and "GitHub 无法判断发布修订；如需修复，可在安装选项中重新下载。" or "GitHub cannot compare release revisions. Redownload under installation options.") -- 48
 									end -- 48
-									if state.progress then -- 48
-										ImGui.TextWrapped(state.progress.message) -- 50
-										ImGui.ProgressBar( -- 51
-											state.progress.progress, -- 51
-											Vec2(-1, 22) -- 51
-										) -- 51
+									if state.message ~= "" then -- 48
+										ImGui.TextWrapped(state.message) -- 49
+									end -- 49
+									if state.canIgnore and ImGui.Button( -- 49
+										zh and "忽略此版本" or "Ignore this version", -- 50
+										Vec2(-1, 32) -- 50
+									) then -- 50
+										if Updater.ignoreUpdate() then -- 50
+											node:removeFromParent(true) -- 51
+										end -- 51
 									end -- 51
-									if state.releaseUrl and ImGui.Button( -- 51
-										zh and "查看发布说明" or "Release notes", -- 53
-										Vec2(-1, 32) -- 53
-									) then -- 53
-										App:openURL(state.releaseUrl) -- 53
-									end -- 53
-									if state.platform == "Linux" then -- 53
+									if state.progress then -- 51
+										ImGui.TextWrapped(state.progress.message) -- 54
+										ImGui.ProgressBar( -- 55
+											state.progress.progress, -- 55
+											Vec2(-1, 22) -- 55
+										) -- 55
+									end -- 55
+									if state.releaseUrl and ImGui.Button( -- 55
+										zh and "查看发布说明" or "Release notes", -- 57
+										Vec2(-1, 32) -- 57
+									) then -- 57
+										App:openURL(state.releaseUrl) -- 57
+									end -- 57
+									if state.platform == "Linux" then -- 57
 										ImGui.TextWrapped(zh and "请在引擎所在设备通过 PPA / apt 更新：\nsudo apt update\nsudo apt install --only-upgrade dora-ssr" or "Update on the engine device via PPA / apt:\nsudo apt update\nsudo apt install --only-upgrade dora-ssr")
-									end -- 54
-									if ImGui.CollapsingHeader(zh and "安装选项与校验信息" or "Installation and verification") then -- 54
-										ImGui.TextWrapped(zh and "保留项目与设置。安装前验证文件大小和 SHA-256；AtomGit 同时验证发布签名。" or "Projects and settings are preserved. Size and SHA-256 are checked; AtomGit also verifies release signatures.") -- 56
-										if state.platform == "macOS" then -- 56
-											ImGui.TextWrapped(zh and "Homebrew 用户也可继续使用 brew upgrade。" or "Homebrew installations can also use brew upgrade.") -- 57
-										end -- 57
-										if state.windows and state.packagePlatform and not disabled then -- 57
-											local changed, choice = ImGui.Combo(zh and "图形后端" or "Graphics backend", backend, {"D3D12", "OpenGL"}) -- 59
-											if changed then -- 59
-												backend = choice -- 60
-											end -- 60
-											local target = windowsUpdatePlatform( -- 61
-												backend == 2 and "wgl" or "d3d12", -- 61
-												__TS__StringEndsWith(state.packagePlatform, "-msi") -- 61
-											) -- 61
-											if target ~= state.packagePlatform and state.canDownload and ImGui.Button(zh and "下载切换版本" or "Download selected backend") then -- 61
-												Updater.downloadUpdate(target) -- 62
-											end -- 62
-										end -- 62
-										if state.canDownload and state.comparison == 0 and ImGui.Button(zh and "重新下载安装包" or "Redownload package") then -- 62
-											Updater.downloadUpdate() -- 64
-										end -- 64
-										if state.prepared and state.phase ~= "installing" and ImGui.Button(zh and "丢弃安装包" or "Discard package") then -- 64
-											confirm = false -- 65
-											Updater.discardPrepared() -- 65
-										end -- 65
-									end -- 65
-									if confirm then -- 65
-										ImGui.TextWrapped(zh and "请先保存作品。确认后将退出并重启引擎，Android 将打开系统安装器。" or "Save your work first. Installation exits and restarts the engine, or opens the Android installer.") -- 67
-									end -- 67
+									end -- 58
+									if ImGui.CollapsingHeader(zh and "安装选项与校验信息" or "Installation and verification") then -- 58
+										ImGui.TextWrapped(zh and "保留项目与设置。安装前验证文件大小和 SHA-256；AtomGit 同时验证发布签名。" or "Projects and settings are preserved. Size and SHA-256 are checked; AtomGit also verifies release signatures.") -- 60
+										if state.platform == "macOS" then -- 60
+											ImGui.TextWrapped(zh and "Homebrew 用户也可继续使用 brew upgrade。" or "Homebrew installations can also use brew upgrade.") -- 61
+										end -- 61
+										if state.windows and state.packagePlatform and not disabled then -- 61
+											local changed, choice = ImGui.Combo(zh and "图形后端" or "Graphics backend", backend, {"D3D12", "OpenGL"}) -- 63
+											if changed then -- 63
+												backend = choice -- 64
+											end -- 64
+											local target = windowsUpdatePlatform( -- 65
+												backend == 2 and "wgl" or "d3d12", -- 65
+												__TS__StringEndsWith(state.packagePlatform, "-msi") -- 65
+											) -- 65
+											if target ~= state.packagePlatform and state.canDownload and ImGui.Button(zh and "下载切换版本" or "Download selected backend") then -- 65
+												Updater.downloadUpdate(target) -- 66
+											end -- 66
+										end -- 66
+										if state.canDownload and state.comparison == 0 and ImGui.Button(zh and "重新下载安装包" or "Redownload package") then -- 66
+											Updater.downloadUpdate() -- 68
+										end -- 68
+										if state.prepared and state.phase ~= "installing" and ImGui.Button(zh and "丢弃安装包" or "Discard package") then -- 68
+											confirm = false -- 69
+											Updater.discardPrepared() -- 69
+										end -- 69
+									end -- 69
+									if confirm then -- 69
+										ImGui.TextWrapped(zh and "请先保存作品。确认后将退出并重启引擎，Android 将打开系统安装器。" or "Save your work first. Installation exits and restarts the engine, or opens the Android installer.") -- 71
+									end -- 71
 								end -- 26
 							) -- 26
-							ImGui.Separator() -- 69
-							local cancelable = state.phase == "checking" or state.phase == "downloading" -- 70
-							if ImGui.Button( -- 70
-								confirm and (zh and "返回" or "Back") or (cancelable and (zh and "取消" or "Cancel") or (state.prepared and (zh and "稍后安装" or "Later") or (zh and "重新检查" or "Check again"))), -- 71
-								Vec2((width - 52) / 2, 40) -- 71
-							) then -- 71
-								if confirm then -- 71
-									confirm = false -- 72
-								elseif cancelable then -- 72
-									Updater.cancelOperation() -- 73
-								elseif state.prepared then -- 73
-									node:removeFromParent(true) -- 74
-								else -- 74
-									Updater.checkForUpdates() -- 75
-								end -- 75
-							end -- 75
-							ImGui.SameLine() -- 77
-							local function action() -- 78
-								if ImGui.Button( -- 78
-									state.prepared and (confirm and (zh and "确认安装" or "Confirm install") or (zh and "安装并重启" or "Install and restart")) or (zh and "下载更新" or "Download update"), -- 79
-									Vec2((width - 52) / 2, 40) -- 79
-								) then -- 79
-									if state.prepared then -- 79
-										if confirm then -- 79
-											confirm = false -- 80
-											Updater.installUpdate(true) -- 80
-										else -- 80
-											confirm = true -- 80
-										end -- 80
-									else -- 80
-										Updater.downloadUpdate() -- 81
-									end -- 81
-								end -- 81
-							end -- 78
-							if state.available and state.canDownload or state.phase == "ready" then -- 78
-								ImGui.PushStyleColor( -- 84
-									"Button", -- 84
-									App.themeColor, -- 84
-									function() return ImGui.PushStyleColor( -- 84
-										"Text", -- 84
-										Color(4279702282), -- 84
-										action -- 84
-									) end -- 84
-								) -- 84
-							else -- 84
-								ImGui.BeginDisabled(action) -- 85
-							end -- 85
+							ImGui.Separator() -- 73
+							local cancelable = state.phase == "checking" or state.phase == "downloading" -- 74
+							if ImGui.Button( -- 74
+								confirm and (zh and "返回" or "Back") or (cancelable and (zh and "取消" or "Cancel") or (state.prepared and (zh and "稍后安装" or "Later") or (zh and "重新检查" or "Check again"))), -- 75
+								Vec2((width - 52) / 2, 40) -- 75
+							) then -- 75
+								if confirm then -- 75
+									confirm = false -- 76
+								elseif cancelable then -- 76
+									Updater.cancelOperation() -- 77
+								elseif state.prepared then -- 77
+									node:removeFromParent(true) -- 78
+								else -- 78
+									Updater.checkForUpdates() -- 79
+								end -- 79
+							end -- 79
+							ImGui.SameLine() -- 81
+							local function action() -- 82
+								if ImGui.Button( -- 82
+									state.prepared and (confirm and (zh and "确认安装" or "Confirm install") or (zh and "安装并重启" or "Install and restart")) or (zh and "下载更新" or "Download update"), -- 83
+									Vec2((width - 52) / 2, 40) -- 83
+								) then -- 83
+									if state.prepared then -- 83
+										if confirm then -- 83
+											confirm = false -- 84
+											Updater.installUpdate(true) -- 84
+										else -- 84
+											confirm = true -- 84
+										end -- 84
+									else -- 84
+										Updater.downloadUpdate() -- 85
+									end -- 85
+								end -- 85
+							end -- 82
+							if state.comparison == -1 and state.canDownload or state.phase == "ready" then -- 82
+								ImGui.PushStyleColor( -- 88
+									"Button", -- 88
+									App.themeColor, -- 88
+									function() return ImGui.PushStyleColor( -- 88
+										"Text", -- 88
+										Color(4279702282), -- 88
+										action -- 88
+									) end -- 88
+								) -- 88
+							else -- 88
+								ImGui.BeginDisabled(action) -- 89
+							end -- 89
 						end -- 21
 					) -- 21
 				end -- 20
 			) end -- 20
 		) -- 20
-		return false -- 88
+		return false -- 92
 	end) -- 14
-	return node -- 90
+	return node -- 94
 end -- 8
 return ____exports -- 8

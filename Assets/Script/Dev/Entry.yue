@@ -82,6 +82,8 @@ config = Config(
 	"drawerWidth"
 	"lastUpdateCheck"
 	"updateNotification"
+	"updateNotificationVersion"
+	"ignoredUpdateVersion"
 	"writablePath"
 	"webIDEConnected"
 	"webIDETourCompleted"
@@ -235,12 +237,20 @@ updater = oldRequire "Tools.SelfUpdater.Service"
 moduleCache = updateSceneCache
 -- Entry is the shared public state owner, including the persisted notification.
 updateState = updater.getState!
+-- A notification belongs to the installed build that detected it. Do not
+-- restore an older build's badge after an upgrade, even within seven days.
+if config.updateNotificationVersion ~= App.version
+	config.updateNotification = false
+config.updateNotificationVersion = App.version
 updateState.available = config.updateNotification == true
-updater.bindEntryState (-> updateState), (state) ->
+publishUpdateState = (state) ->
 	updateState = state
 	config.updateNotification = state.available
+	config.updateNotificationVersion = App.version
+	config.ignoredUpdateVersion = state.ignoredVersion
 	if state.checkedAt > 0 and not state.usedCache and state.checkedAt ~= config.lastUpdateCheck
 		config.lastUpdateCheck = state.checkedAt
+updater.bindEntryState (-> updateState), publishUpdateState, config.ignoredUpdateVersion
 export.getUpdateState = -> updateState
 export checkForUpdates = (manual = true, source = nil) ->
 	unless manual

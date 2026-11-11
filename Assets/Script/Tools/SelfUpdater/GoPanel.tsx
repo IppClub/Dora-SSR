@@ -57,7 +57,7 @@ export const createGoUpdaterPanel = (onClosed: (this: void) => void) => {
   // ScrollArea paints its 10px scrollbar inside the viewport. Keep an 8px gap
   // between that track and every label/button, including expanded options.
   const contentWidth = viewportWidth - 18;
-  const title = state.phase === "ready" ? (zh ? "更新已准备好" : "Update ready") : state.available ? (zh ? "有可用更新" : "Update available") : state.phase === "checking" ? (zh ? "正在检查更新…" : "Checking for updates…") : state.comparison === 1 ? (zh ? "当前版本高于稳定版" : "Newer than stable") : (zh ? "引擎更新" : "Engine update");
+  const title = state.phase === "ready" ? (zh ? "更新已准备好" : "Update ready") : state.ignored ? (zh ? "已忽略此版本" : "This version is ignored") : state.available ? (zh ? "有可用更新" : "Update available") : state.phase === "checking" ? (zh ? "正在检查更新…" : "Checking for updates…") : state.comparison === 1 ? (zh ? "当前版本高于稳定版" : "Newer than stable") : (zh ? "引擎更新" : "Engine update");
   const text = (value: string, top: number, size = 14, color = 0xf4f1e8) => <label x={0} y={contentHeight - top} anchorX={0} anchorY={1} fontName="sarasa-mono-sc-regular" fontSize={size} renderOrder={0} text={value} textWidth={contentWidth} alignment={TextAlign.Left} color3={color} />;
   const click = (action: (this: void) => void) => () => { action(); if (host.parent) render(); };
   const message = confirm ? (zh ? "请先保存作品。确认后安装并重启；Android 将打开系统安装器。" : "Save your work first. Installation restarts the engine or opens the Android installer.") : state.usedCache ? (zh ? "当前为离线缓存结果，请联网重新检查。" : "Offline cached result. Check again online.") : state.progress?.message ?? state.message;
@@ -66,6 +66,7 @@ export const createGoUpdaterPanel = (onClosed: (this: void) => void) => {
   let contentHeight = 180 + messageHeight;
   if (state.releaseUrl) contentHeight += 48;
   contentHeight += 46;
+  if (state.canIgnore) contentHeight += 46;
   if (details) contentHeight += 120 + (state.windows && state.canDownload ? 100 : 0) + (state.prepared || state.canDownload ? 50 : 0);
   const scrollNode = () => {
    scroll = ScrollArea({width: viewportWidth, height: viewHeight, viewWidth: viewportWidth, viewHeight: contentHeight, paddingX: 0, paddingY: 0, scrollBar: true}) as Scroll;
@@ -75,6 +76,7 @@ export const createGoUpdaterPanel = (onClosed: (this: void) => void) => {
    let top = 180 + messageHeight;
    const notesTop = top; if (state.releaseUrl) top += 48;
    const detailTop = top; top += 46;
+   const ignoreTop = top; if (state.canIgnore) top += 46;
    const descriptionTop = top; top += 120;
    const graphicsTop = top;
    if (state.windows && state.canDownload) top += 100;
@@ -89,6 +91,7 @@ export const createGoUpdaterPanel = (onClosed: (this: void) => void) => {
     {messageHeight > 0 ? text(message, 180, 12, 0xa8afbd) : undefined}
     {state.releaseUrl ? <MobileButton renderOrder={0} tag="engine-update-notes" x={0} y={contentHeight - notesTop - 36} width={contentWidth} height={36} fontSize={13} text={zh ? "查看发布说明" : "Release notes"} onTapped={() => App.openURL(state.releaseUrl!)} /> : undefined}
     <MobileButton renderOrder={0} tag="engine-update-details" x={0} y={contentHeight - detailTop - 34} width={contentWidth} height={34} fontSize={12} text={details ? (zh ? "收起安装信息" : "Hide installation info") : (zh ? "安装选项与校验信息" : "Installation and verification")} onTapped={click(() => { details = !details; })} />
+    {state.canIgnore ? <MobileButton renderOrder={0} tag="engine-update-ignore" x={0} y={contentHeight - ignoreTop - 34} width={contentWidth} height={34} fontSize={12} text={zh ? "忽略此版本" : "Ignore this version"} onTapped={() => { if (Updater.ignoreUpdate()) close(); }} /> : undefined}
     {details ? text(state.platform === "Linux" ? "sudo apt update\nsudo apt install --only-upgrade dora-ssr" : (zh ? "项目和设置保留。安装前校验大小、SHA-256；AtomGit 另验证发布签名。\nmacOS 的 Homebrew 用户也可使用 brew upgrade。" : "Projects and settings are preserved. Package size, SHA-256 and AtomGit signatures are verified.\nHomebrew users can also use brew upgrade."), descriptionTop, 12, 0xa8afbd) : undefined}
     {details && state.windows && state.canDownload && state.packagePlatform ? <node>
      <MobileButton renderOrder={0} tag="engine-update-d3d12" x={0} y={contentHeight - graphicsTop - 40} width={contentWidth} height={40} fontSize={13} text={zh ? "下载 D3D12 图形版本" : "Download D3D12 backend"} onTapped={click(() => { Updater.downloadUpdate(windowsUpdatePlatform("d3d12", state.packagePlatform!.endsWith("-msi"))); })} />
@@ -109,7 +112,7 @@ export const createGoUpdaterPanel = (onClosed: (this: void) => void) => {
     <MobileButton renderOrder={0} tag="engine-update-close" x={width - 64} y={height - 62} width={44} height={40} text="×" onTapped={close} />
     <custom-node x={width / 2} y={86 + viewHeight / 2} onCreate={scrollNode} />
     <MobileButton renderOrder={0} tag="engine-update-secondary" x={22} y={24} width={(width - 56) / 2} height={48} fontSize={14} text={confirm ? (zh ? "返回" : "Back") : state.prepared ? (zh ? "稍后安装" : "Later") : busy ? (zh ? "取消" : "Cancel") : (zh ? "重新检查" : "Check again")} onTapped={click(() => { if (confirm) confirm = false; else if (state.prepared) close(); else if (busy) Updater.cancelOperation(); else Updater.checkForUpdates(); })} />
-    {(state.available && state.canDownload) || state.phase === "ready" ? <MobileButton renderOrder={0} tag="engine-update-primary" x={34 + (width - 56) / 2} y={24} width={(width - 56) / 2} height={48} primary={true} fontSize={14} text={state.prepared ? confirm ? (zh ? "确认安装" : "Confirm install") : state.platform === "Android" ? (zh ? "打开安装器" : "Open installer") : (zh ? "安装并重启" : "Install & restart") : (zh ? "下载更新" : "Download update")} onTapped={click(() => { if (state.prepared) { if (confirm) { confirm = false; Updater.installUpdate(true); } else confirm = true; } else Updater.downloadUpdate(); })} /> : undefined}
+    {(state.comparison === -1 && state.canDownload) || state.phase === "ready" ? <MobileButton renderOrder={0} tag="engine-update-primary" x={34 + (width - 56) / 2} y={24} width={(width - 56) / 2} height={48} primary={true} fontSize={14} text={state.prepared ? confirm ? (zh ? "确认安装" : "Confirm install") : state.platform === "Android" ? (zh ? "打开安装器" : "Open installer") : (zh ? "安装并重启" : "Install & restart") : (zh ? "下载更新" : "Download update")} onTapped={click(() => { if (state.prepared) { if (confirm) { confirm = false; Updater.installUpdate(true); } else confirm = true; } else Updater.downloadUpdate(); })} /> : undefined}
    </node>
   </node>);
   scene?.addTo(host);

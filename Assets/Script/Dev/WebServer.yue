@@ -1488,6 +1488,7 @@ HttpServer\post "/engine-update/download", (req) ->
 	success: updater.downloadUpdate target
 HttpServer\post "/engine-update/cancel", -> success: updater.cancelOperation!
 HttpServer\post "/engine-update/discard", -> success: updater.discardPrepared!
+HttpServer\post "/engine-update/ignore", -> success: updater.ignoreUpdate!
 HttpServer\post "/engine-update/install", (req) -> success: updater.installUpdate(req.body and req.body.confirmed == true)
 
 HttpServer\post "/info", (req) ->

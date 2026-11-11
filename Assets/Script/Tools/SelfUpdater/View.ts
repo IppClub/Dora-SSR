@@ -26,6 +26,7 @@ export const createUpdaterPanel = () => {
     ImGui.BeginChild("UpdateContent", Vec2(0, -62), () => {
      const title = state.phase === "checking" ? (zh ? "正在检查更新…" : "Checking for updates…")
       : state.phase === "ready" ? (zh ? "更新已准备好" : "Update ready")
+      : state.ignored ? (zh ? "已忽略此版本" : "This version is ignored")
       : state.available ? (zh ? "有可用更新" : "Update available")
       : state.comparison === 1 ? (zh ? "当前版本高于稳定版" : "Newer than stable")
       : state.comparison === 0 ? (zh ? "版本相同" : "Matching release version")
@@ -46,6 +47,9 @@ export const createUpdaterPanel = () => {
      if (state.usedCache) ImGui.TextWrapped(zh ? "离线缓存结果，不作为新版本提示。请联网重新检查。" : "Offline cached result. Check again online to confirm availability.");
      if (state.source === "GitHub" && state.comparison === 0) ImGui.TextWrapped(zh ? "GitHub 无法判断发布修订；如需修复，可在安装选项中重新下载。" : "GitHub cannot compare release revisions. Redownload under installation options.");
      if (state.message !== "") ImGui.TextWrapped(state.message);
+     if (state.canIgnore && ImGui.Button(zh ? "忽略此版本" : "Ignore this version", Vec2(-1, 32))) {
+      if (Updater.ignoreUpdate()) node.removeFromParent(true);
+     }
      if (state.progress) {
       ImGui.TextWrapped(state.progress.message);
       ImGui.ProgressBar(state.progress.progress, Vec2(-1, 22));
@@ -81,7 +85,7 @@ export const createUpdaterPanel = () => {
       else Updater.downloadUpdate();
      }
     };
-    if ((state.available && state.canDownload) || state.phase === "ready") ImGui.PushStyleColor(StyleColor.Button, App.themeColor, () => ImGui.PushStyleColor(StyleColor.Text, Color(0xff17130a), action));
+    if ((state.comparison === -1 && state.canDownload) || state.phase === "ready") ImGui.PushStyleColor(StyleColor.Button, App.themeColor, () => ImGui.PushStyleColor(StyleColor.Text, Color(0xff17130a), action));
     else ImGui.BeginDisabled(action);
    });
   }));

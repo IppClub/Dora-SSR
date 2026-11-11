@@ -1917,6 +1917,9 @@ export interface EngineUpdateState {
  publishedAt?: string;
  releaseUrl?: string;
  available: boolean;
+ ignored: boolean;
+ canIgnore: boolean;
+ ignoredVersion?: string;
  comparison?: number;
  platform: string;
  packagePlatform?: string;
@@ -1931,4 +1934,4 @@ export interface EngineUpdateState {
  progress?: {progress: number; message: string; source?: string};
 }
 export const engineUpdateState = () => post<EngineUpdateState>('/engine-update/state');
-export const engineUpdateAction = (action: 'check' | 'download' | 'cancel' | 'discard' | 'install', data: {source?: EngineUpdateState['source']; platform?: string; confirmed?: boolean} = {}) => post<{success: boolean}>(`/engine-update/${action}`, data);
+export const engineUpdateAction = (action: 'check' | 'download' | 'cancel' | 'discard' | 'ignore' | 'install', data: {source?: EngineUpdateState['source']; platform?: string; confirmed?: boolean} = {}) => post<{success: boolean}>(`/engine-update/${action}`, data);

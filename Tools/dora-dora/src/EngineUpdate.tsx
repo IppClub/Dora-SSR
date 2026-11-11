@@ -46,6 +46,7 @@ export default function EngineUpdate({children, open, onOpen, onClose, saveBefor
    if (!result.success) { setError(tr('当前状态不允许此操作，请刷新后重试。', 'This action is unavailable in the current state. Refresh and retry.')); return; }
    setConfirm(false);
    await refresh();
+   if (name === 'ignore') onClose();
   } catch { setError(tr('无法完成操作，请检查引擎连接后重试。', 'Action failed. Check the engine connection and retry.')); }
   finally { setActing(false); }
  };
@@ -53,6 +54,7 @@ export default function EngineUpdate({children, open, onOpen, onClose, saveBefor
  const canCancel = state?.phase === 'checking' || state?.phase === 'downloading';
  const status = state?.phase === 'ready' ? tr('更新已准备好', 'Update ready')
   : state?.phase === 'checking' ? tr('正在检查更新…', 'Checking for updates…')
+  : state?.ignored ? tr('已忽略此版本', 'This version is ignored')
   : state?.available ? tr('有可用更新', 'Update available')
   : state?.comparison === 1 ? tr('当前版本高于稳定版', 'Newer than stable')
   : state?.comparison === 0 ? tr('版本相同', 'Matching release version') : tr('检查引擎更新', 'Check engine updates');
@@ -95,6 +97,7 @@ export default function EngineUpdate({children, open, onOpen, onClose, saveBefor
       {state.source === 'GitHub' && state.comparison === 0 ? <Typography variant="body2" color="text.secondary">{tr('GitHub 无法判断发布修订。如需修复，可在安装选项中重新下载。','GitHub cannot compare release revisions. Redownload under installation options if needed.')}</Typography> : null}
       {state.message ? <Alert severity={state.phase === 'error' ? 'error' : 'info'}>{state.message}</Alert> : null}
       {busy ? <Box><Typography variant="body2">{state.progress?.message ?? tr('处理中…','Working…')}</Typography><LinearProgress sx={{mt:1}} variant={state.progress ? 'determinate' : 'indeterminate'} value={Math.max(0,Math.min(100,(state.progress?.progress ?? 0)*100))} /></Box> : null}
+      {state.canIgnore ? <Button disabled={acting} onClick={()=>void action('ignore')}>{tr('忽略此版本','Ignore this version')}</Button> : null}
       {state.releaseUrl ? <Button component="a" href={state.releaseUrl} target="_blank" rel="noreferrer" variant="outlined">{tr('查看发布说明','Release notes')}</Button> : null}
       {state.platform === 'Linux' ? <Alert severity="info">{tr('请在引擎所在设备通过 PPA / apt 更新：','Update on the engine device using PPA / apt:')}<Box component="pre" sx={{whiteSpace:'pre-wrap', mb:0}}>sudo apt update{'\n'}sudo apt install --only-upgrade dora-ssr</Box></Alert> : null}
       <Box><Button size="small" onClick={() => setDetails(!details)} aria-expanded={details}>{tr('安装选项与校验信息','Installation and verification')}</Button><Collapse in={details}><Stack spacing={1.5} sx={{pt:1}}>
@@ -111,7 +114,7 @@ export default function EngineUpdate({children, open, onOpen, onClose, saveBefor
    </DialogContent>
    <DialogActions sx={{px:3, py:2, justifyContent:'space-between'}}>
     <Button disabled={acting || state?.phase === 'canceling' || state?.phase === 'installing'} onClick={()=>{ if(confirm) setConfirm(false); else if(canCancel) void action('cancel'); else if(state?.prepared) onClose(); else void action('check'); }}>{confirm ? tr('返回','Back') : canCancel ? tr('取消','Cancel') : state?.prepared ? tr('稍后安装','Later') : tr('重新检查','Check again')}</Button>
-    <Button variant="contained" disabled={acting || !!connectionError || !(state?.phase === 'ready' || (state?.available && state.canDownload))} onClick={()=>{ if(state?.phase === 'ready') { if(confirm) void action('install',{confirmed:true}); else setConfirm(true); } else void action('download'); }} sx={{bgcolor:Color.Theme,color:'#17130a','&:hover':{bgcolor:Color.Theme}}}>{state?.phase === 'ready' ? confirm ? tr('保存并确认安装','Save and install') : state.platform === 'Android' ? tr('打开系统安装器','Open system installer') : tr('安装并重启','Install and restart') : tr('下载更新','Download update')}</Button>
+    <Button variant="contained" disabled={acting || !!connectionError || !(state?.phase === 'ready' || (state?.comparison === -1 && state.canDownload))} onClick={()=>{ if(state?.phase === 'ready') { if(confirm) void action('install',{confirmed:true}); else setConfirm(true); } else void action('download'); }} sx={{bgcolor:Color.Theme,color:'#17130a','&:hover':{bgcolor:Color.Theme}}}>{state?.phase === 'ready' ? confirm ? tr('保存并确认安装','Save and install') : state.platform === 'Android' ? tr('打开系统安装器','Open system installer') : tr('安装并重启','Install and restart') : tr('下载更新','Download update')}</Button>
    </DialogActions>
   </Dialog>
  </>;
