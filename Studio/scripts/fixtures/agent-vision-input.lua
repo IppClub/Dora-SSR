@@ -30,6 +30,34 @@ package.preload['Agent.Tool.VisionBudget']=function()return {VISION_MAX_ANALYSIS
 local Parsing=require('Agent.Runtime.DecisionParsing')
 local Registry=require('Agent.Tool.Registry')
 local Validation=require('Agent.Tool.Validation')
+local Binding=require('Agent.Tool.VisionBinding')
+-- Capability routing must agree with the schema without broadening credential reuse.
+local routes={
+ {'https://api.deepseek.com/chat/completions','deepseek'},
+ {' https://api.deepseek.com/v1/chat/completions/ ','deepseek'},
+ {'https://open.bigmodel.cn/api/coding/paas/v4/chat/completions','glm-coding-cn'},
+ {'https://open.bigmodel.cn/api/paas/v4/chat/completions'},
+ {'https://relay.invalid/v1/chat/completions'},
+ {'https://api.deepseek.com.relay.invalid/chat/completions'},
+}
+for _,route in ipairs(routes)do
+ local binding=Binding.resolveVisionBinding({url=route[1],apiKey='test-only',model='text-model'})
+ assert((binding and binding.provider)==route[2],'unexpected vision route: '..route[1])
+ for _,role in ipairs({'main','sub'})do for _,mode in ipairs({'code','plan'})do
+  local tools=Registry.getAllowedToolsForRole(role,{workMode=mode,disabledAgentTools=binding and {} or {'analyze_image'}})
+  local found=false;for _,name in ipairs(tools)do if name=='analyze_image'then found=true end end
+  assert(found==(binding~=nil),'vision schema disagrees with route capability')
+ end end
+end
+assert(not Binding.resolveVisionBinding({url=routes[1][1],apiKey=' ',model='text-model'}),'empty credential enabled vision')
+local gateway={url='https://studio.invalid/agent-host/chat',apiKey='studio-agent',model='text-model',studioGateway=true,
+ studioVision={provider='deepseek',model='deepseek-flash',url='https://studio.invalid/agent-host/1/vision/deepseek'}}
+assert(Binding.resolveVisionBinding(gateway).studioGateway,'valid Studio route rejected')
+gateway.studioVision.model='unregistered-model'
+assert(not Binding.resolveVisionBinding(gateway),'unregistered Studio model enabled vision')
+gateway.studioVision=nil
+assert(not Binding.resolveVisionBinding(gateway),'missing Studio route enabled vision')
+print('PASS: vision route and role/mode capability matrix; unsupported endpoints and empty credentials stay disabled; Studio route validation.')
 local question='Describe ["gold"] literally; do not reinterpret this text.'
 local function validate(paths)
  local args=Parsing.parseToolCallArguments('analyze_image',J.encode({paths=paths,question=question}))

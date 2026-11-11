@@ -4,6 +4,8 @@ import type { LLMConfig } from 'Agent/Utils';
 /** Increment when a fixed vision route or its request profile changes. */
 export const VISION_PROFILE_VERSION = 6;
 
+export const VISION_UNAVAILABLE_MESSAGE = "当前大模型服务没有可用视觉通道。请检查 Agent 设置中的模型服务与 API 接口地址。";
+
 export interface VisionBinding {
 	provider: "deepseek" | "glm-coding-cn";
 	model: string;

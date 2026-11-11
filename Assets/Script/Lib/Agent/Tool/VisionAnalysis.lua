@@ -21,6 +21,7 @@ local createStudioModelRequestId = ____Utils.createStudioModelRequestId -- 4
 local safeJsonEncode = ____Utils.safeJsonEncode -- 4
 local ____VisionBinding = require("Agent.Tool.VisionBinding") -- 5
 local VISION_PROFILE_VERSION = ____VisionBinding.VISION_PROFILE_VERSION -- 5
+local VISION_UNAVAILABLE_MESSAGE = ____VisionBinding.VISION_UNAVAILABLE_MESSAGE -- 5
 local ____VisionAssets = require("Agent.Tool.VisionAssets") -- 6
 local inspectImage = ____VisionAssets.inspectImage -- 6
 local ____Workspace = require("Agent.Tool.Workspace") -- 7
@@ -65,7 +66,7 @@ function ____exports.analyzeImage(req) -- 50
 	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 50
 		local binding = req.binding -- 51
 		if not binding then -- 51
-			return ____awaiter_resolve(nil, {success = false, message = "No default vision route is registered for the current Agent service"}) -- 51
+			return ____awaiter_resolve(nil, {success = false, message = VISION_UNAVAILABLE_MESSAGE}) -- 51
 		end -- 51
 		local validation = validateAgentToolInput("analyze_image", {paths = req.paths, question = req.question, criteria = req.criteria, context = req.context}) -- 53
 		if not validation.success then -- 53

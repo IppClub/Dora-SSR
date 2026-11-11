@@ -1,5 +1,5 @@
 // @preview-file off clear
-import { resolveVisionBinding } from 'Agent/Tool/VisionBinding';
+import { resolveVisionBinding, VISION_UNAVAILABLE_MESSAGE } from 'Agent/Tool/VisionBinding';
 import { getVisionTaskUsage, type VisionTaskUsage } from 'Agent/Tool/VisionAnalysis';
 import { Path, Content } from 'Dora';
 import { Flow, Node } from 'Agent/Runtime/Flow';
@@ -1470,6 +1470,11 @@ function validateDecisionForShared(
 			: { success: false, message: "the final main-agent turn must return a plain-text completion instead of calling another tool" };
 	}
 	if (!isToolAllowedForRole(shared, tool)) {
+		if (getDecisionDisabledAgentTools(shared).indexOf(tool) >= 0) {
+			return { success: false, message: tool === "analyze_image" && !resolveVisionBinding(shared.llmConfig)
+				? VISION_UNAVAILABLE_MESSAGE
+				: `${tool} is disabled for this task. Retrying will not enable it; check the task's tool settings.` };
+		}
 		return { success: false, message: `${tool} is not allowed in ${shared.workMode} mode for role ${shared.role}` };
 	}
 	return { success: true };
@@ -1485,6 +1490,11 @@ function buildAgentSystemPrompt(shared: AgentShared): string {
 		rolePrompt,
 		getReplyLanguageDirective(shared),
 	];
+	if (getDecisionDisabledAgentTools(shared).indexOf("analyze_image") >= 0) {
+		sections.push(!resolveVisionBinding(shared.llmConfig)
+			? VISION_UNAVAILABLE_MESSAGE
+			: "analyze_image is disabled for this task. Do not attempt image analysis or claim to have inspected images; explain the limitation when visual inspection is needed.");
+	}
 	if (shared.role === "main") {
 		const planPath = Path(shared.workingDir, AgentRuntimePolicy.AGENT_PLAN_FILE);
 		const progressPath = Path(shared.workingDir, AgentRuntimePolicy.AGENT_PROGRESS_FILE);

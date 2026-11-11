@@ -2,7 +2,7 @@
 import { App, Content, Director, HttpClient, once } from 'Dora';
 const mime = require("mime") as { b64(this: void, value: string): LuaMultiReturn<[string | undefined, string | undefined]> };
 import { createStudioModelRequestId, safeJsonEncode } from 'Agent/Utils';
-import { VISION_PROFILE_VERSION, type VisionBinding } from 'Agent/Tool/VisionBinding';
+import { VISION_PROFILE_VERSION, VISION_UNAVAILABLE_MESSAGE, type VisionBinding } from 'Agent/Tool/VisionBinding';
 import { inspectImage } from 'Agent/Tool/VisionAssets';
 import { resolveWorkspaceFilePath } from 'Agent/Tool/Workspace';
 import { ANALYZE_IMAGE_HTTP_TIMEOUT_SECONDS } from 'Agent/Tool/ToolBudgets';
@@ -49,7 +49,7 @@ export function buildVisionInspectionBrief(context: string | undefined, question
 
 export async function analyzeImage(req: AnalyzeImageRequest): Promise<Record<string, unknown>> {
 	const binding=req.binding;
-	if (!binding) return {success:false, message:"No default vision route is registered for the current Agent service"};
+	if (!binding) return {success:false, message:VISION_UNAVAILABLE_MESSAGE};
 	const validation = validateAgentToolInput("analyze_image", {paths:req.paths, question:req.question, criteria:req.criteria, context:req.context});
 	if (!validation.success) return {success:false,message:validation.message};
 	const paths = validation.value.paths as string[];
