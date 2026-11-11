@@ -3,13 +3,13 @@ import type {AgentSessionConnection} from './agent-session-controller';
 import './agent-panel.css';
 import {useLayoutEffect,useRef,useState,type ReactNode} from 'react';
 import {ModelAllowance} from './ModelAllowance';
-import {SharedAgentComposer,SharedAgentMarkdown,SharedAgentQuestionnaire,SharedAgentStepList,useAgentTimeline,type AgentQuestionnaireAnswer} from '@dora-studio/agent-ui';
+import {SharedAgentComposer,SharedAgentMarkdown,SharedAgentQuestionnaire,SharedAgentStepList,useAgentTimeline,type AgentQuestionnaireAnswer,type AgentInputControls,type AgentInputDelivery} from '@dora-studio/agent-ui';
 import '@dora-studio/agent-ui/style.css';
 import type {AgentModelQueueState} from './agent-model-queue';
 
 const statuses: Record<string, string> = {IDLE:'就绪', RUNNING:'进行中', WAITING_USER:'等待回答', DONE:'已完成', FAILED:'失败', STOPPED:'已停止', PENDING:'等待中'};
-export interface AgentComposer {
-  value:string;onChange:(value:string)=>void;onSubmit:()=>void;disabled:boolean;busy:boolean;placeholder?:string;submitLabel?:string;
+export interface AgentComposer extends AgentInputControls {
+  value:string;onChange:(value:string)=>void;onSubmit:(delivery?:AgentInputDelivery)=>void;disabled:boolean;busy:boolean;placeholder?:string;submitLabel?:string;
 	status?:string;
   stopping?:boolean;onStop?:()=>void;
   planMode?:boolean;fetchUrlEnabled?:boolean;executeCommandEnabled?:boolean;
@@ -66,7 +66,7 @@ export function AgentPanel({state, onLoadHistory, loadingHistory = false, connec
         {timeline.unboundSteps.length>0&&<section className="agent-activity" aria-label="执行步骤"><SharedAgentStepList steps={timeline.unboundSteps}/></section>}
         {timeline.unboundMessages.filter(message=>message.role!=='user').map(messageView)}
         {timeline.tasks.map(task=>{
-          return <section key={task.taskId} className={`agent-task${task.current?' current':''}`} aria-label={task.current?'当前 Agent 任务':`Agent 任务 ${task.taskId}`}><h3><span>{task.current?'当前任务':`任务 #${task.taskId}`}</span>{task.current&&<small>{statuses[state.session.currentTaskStatus??state.session.status]??state.session.currentTaskStatus??state.session.status}</small>}</h3>{task.messages.filter(message=>message.role==='user').map(messageView)}{task.steps.length>0&&<div className="agent-activity" aria-label={task.current?'当前任务执行步骤':`任务 ${task.taskId} 执行步骤`}><SharedAgentStepList steps={task.steps} running={task.current&&state.session.currentTaskStatus==='RUNNING'}/></div>}{task.current&&state.session.currentTaskStatus==='RUNNING'&&modelQueue?.state==='queued'&&<div className="agent-task-waiting model-queue" role="status"><i/>共享模型繁忙，正在自动排队等待（前方 {modelQueue.position-1} 个请求）…</div>}{task.current&&state.session.currentTaskStatus==='RUNNING'&&task.steps.length===0&&modelQueue?.state!=='queued'&&<div className="agent-task-waiting" role="status"><i/>正在准备上下文并请求模型…</div>}{task.messages.filter(message=>message.role!=='user').map(messageView)}</section>;
+          return <section key={task.taskId} className={`agent-task${task.current?' current':''}`} aria-label={task.current?'当前 Agent 任务':`Agent 任务 ${task.taskId}`}><h3><span>{task.current?'当前任务':`任务 #${task.taskId}`}</span>{task.current&&<small>{statuses[state.session.currentTaskStatus??state.session.status]??state.session.currentTaskStatus??state.session.status}</small>}</h3>{task.messages.filter(message=>message.role==='user'&&message.inputKind!=='steer').map(messageView)}{(task.steps.length>0||task.messages.some(message=>message.inputKind==='steer'))&&<div className="agent-activity" aria-label={task.current?'当前任务执行步骤':`任务 ${task.taskId} 执行步骤`}><SharedAgentStepList steps={task.steps} steeringMessages={task.messages.filter(message=>message.inputKind==='steer')} running={task.current&&state.session.currentTaskStatus==='RUNNING'}/></div>}{task.current&&state.session.currentTaskStatus==='RUNNING'&&modelQueue?.state==='queued'&&<div className="agent-task-waiting model-queue" role="status"><i/>共享模型繁忙，正在自动排队等待（前方 {modelQueue.position-1} 个请求）…</div>}{task.current&&state.session.currentTaskStatus==='RUNNING'&&task.steps.length===0&&modelQueue?.state!=='queued'&&<div className="agent-task-waiting" role="status"><i/>正在准备上下文并请求模型…</div>}{task.messages.filter(message=>message.role!=='user').map(messageView)}</section>;
         })}
         {state.checkpoints.orderedIds.length > 0 && <details className="agent-activity"><summary>修改检查点 · {state.checkpoints.orderedIds.length}</summary>{state.checkpoints.orderedIds.map(id => <p key={id}>{state.checkpoints.byId.get(id)!.summary}</p>)}</details>}
         {(state.session.metrics?.usage||modelGrantId)&&<div className="agent-usage"><span>累计 Token {state.session.metrics?.usage?.totalTokens ?? '未报告'}</span>{modelGrantId&&<ModelAllowance compact grantId={modelGrantId} refreshSignal={`${state.session.currentTaskId??''}:${state.session.currentTaskStatus??state.session.status}:${state.session.metrics?.usage?.requestCount??0}:${state.session.metrics?.usage?.totalTokens??0}`}/>}</div>}
@@ -78,7 +78,9 @@ export function AgentPanel({state, onLoadHistory, loadingHistory = false, connec
       {...(state?.session.metrics?.usage?{actualUsage:{inputTokens:state.session.metrics.usage.inputTokens,outputTokens:state.session.metrics.usage.outputTokens,...(state.session.metrics.usage.cachedInputTokens===undefined?{}:{cachedInputTokens:state.session.metrics.usage.cachedInputTokens}),requestCount:state.session.metrics.usage.requestCount}}:{})}
       labels={{promptPlaceholder:composer?.placeholder??(composer?'继续描述你希望修改的玩法…':'连接 Agent 后可继续描述修改…'),send:composer?.submitLabel??'发送 ↑'}}
 	  {...(composer?.status?{status:composer.status}:{})}
-      onPromptChange={value=>composer?.onChange(value)} onSend={()=>composer?.onSubmit()}
+      onPromptChange={value=>composer?.onChange(value)} onSend={delivery=>composer?.onSubmit(delivery)}
+      pendingInputs={state?.session.pendingInputs??[]} canSteer={composer?.canSteer!==false}
+      {...(composer?.onInputAction?{onInputAction:composer.onInputAction}:{})}
       {...(composer?.onStop?{onStop:composer.onStop}:{})}
       {...(composer?.onPlanModeChange?{onPlanModeChange:composer.onPlanModeChange}:{})}
       {...(composer?.onFetchUrlEnabledChange?{onFetchUrlEnabledChange:composer.onFetchUrlEnabledChange}:{})}

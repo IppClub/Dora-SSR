@@ -417,6 +417,22 @@ pnpm --filter @dora-studio/web preview --port 8898 --strictPort
 真实 Dora Player 的 iframe 隔离测试已完成第一轮，结果未通过故障恢复门槛；详见 [运行隔离验证](RUNTIME_ISOLATION.md)。因此不将现有 Player 直接嵌入工作室冒充可恢复试玩，后续继续运行 Worker/主线程桥接与 GPU 故障验证。编译 Worker 的成功不能证明游戏运行 Worker 已实现。
 # Agent 宿主支持产物
 
+## 图片分析参数回归
+
+`pnpm test:agent-vision-input` 编译生产 Agent 并在 Lua 中检查 `analyze_image` 的原生参数解析、注册表校验及视觉请求执行器。需要 `lua` 和 `dkjson`。`paths` 严格要求数组，不接受 JSON 编码的数组字符串；工具描述只提供原生函数调用示例。测试同时覆盖数量、路径范围、PNG/JPEG 内容与大小、中文文本边界、路径去空格后的实际读取、三图附件顺序、响应失败/截断/模型不匹配、持久化预算、超时及取消时序。特别检查响应已到达时取消仍保留已发出请求的计数和 usage，但不发布分析正文；无效参数不会读取文件或发出视觉请求。回归日志写入仓库 `build/agent-vision-input-qa/regression.log`。
+
+## 运行中的后续消息
+
+原生 Web IDE 与 Studio 共用排队/引导输入组件。默认 Enter 排队，Cmd/Ctrl+Enter 对单条消息使用相反的投递方式，Shift+Enter 换行，输入框内 Esc 停止当前任务。输入框菜单可保存默认投递方式及 Enter/修饰键发送偏好；停止按钮始终独立。外部 CLI Agent 目前只支持排队。
+
+排队消息在当前任务完全收尾后依次启动新任务；引导消息在完整工具调用批次结束、下一次模型请求前进入当前任务，生成最终答复期间收到的引导也会触发同一任务继续。引导不重置任务预算。队列按发送顺序先进先出，支持编辑、删除和转为引导，编辑期间锁定该条消息。停止、失败、等待用户回答或宿主重启会保留并暂停队列，须显式继续。
+
+后端 `AgentSessionInput` 保存接收、投递及暂停状态，按会话和 requestId 去重；已投递消息以带 inputId/inputKind 元数据的 user 消息进入会话历史，调用模型时仅投影受支持字段。数据库 v1→v2 采用增量迁移。修改数据库模块后须重启原生 Dora 进程。
+
+`pnpm test:agent-followup` 使用专用 `build/studio-agent-host` 引擎、隔离浏览器存储和本地模型桩，覆盖真实 Lua/WASM 的工具批次边界引导、最终答复引导、FIFO、去重、编辑、停止保留、重启恢复及桌面/手机视口的输入交互。需要 Playwright 与 Chromium，可用 `STUDIO_PLAYWRIGHT_MODULE`、`STUDIO_CHROMIUM_EXECUTABLE` 指定本机路径；结果与截图位于仓库 `build/agent-followup-qa/`。
+
+`pnpm test:agent-followup:user` 用浏览器点击和键盘操作正式共享输入组件，经测试专用传输连接真实 Lua/WASM Session。覆盖运行中排队、编辑保存/取消、删除、转引导、停止/继续、中文组合输入保护、快捷键设置、刷新保留偏好及窄屏操作；本地模型桩避免依赖外部密钥。此测试使用隔离宿主页面，不替代完整原生 Web IDE、已部署 Studio 或真实手机/输入法的验收。生成 `user-test-report.json` 和 `user-test-*.png`。
+
 `node tests/agent-host-page.browser.mjs` 验证构建后页面的配置 401/超大响应/重定向和资源缺失处理，不加载实际 WASM；实际引擎链路仍由 `agent-host-callback.browser.mjs` 验证。两者都使用 Playwright/Chrome，自动化通过不等于人工验收。
 
 支持包现包含独立 `index.html` 与 `page.js`。部署目录须提供固定的 `host-config.json`、`host-manifest.json`、`dora-web-features.json` 和 `dora-player-runtime.js`/WASM 及其依赖；清单仅允许可信宿主入口、原 Agent 库和启动配置，不得混入用户游戏脚本。服务端须按当前账号/项目授权配置与清单请求，正确提供 COOP/COEP/CORP，并与工作台使用独立来源。当前测试服务只验证这些接口形状，不提供实际认证。

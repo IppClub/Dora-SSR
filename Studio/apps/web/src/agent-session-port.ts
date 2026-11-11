@@ -75,7 +75,7 @@ export function connectAgentSessionPort(port: MessagePort, binding: {projectId:s
       try{port.postMessage({type:'capture-live-project',version:1,...expected,requestId:id});}catch(error){fail(error);}
     });
     const sendPrompt=(prompt:string,grantId:string,requestId:string,options:AgentPromptOptions):Promise<number>=>new Promise((resolve,reject)=>{
-      if(retired||!controller||!canSendPrompt||operation||typeof prompt!=='string'||!prompt.trim()||prompt.length>5000||!/^[A-Za-z0-9_-]{1,128}$/.test(grantId)||!/^[0-9a-f-]{36}$/i.test(requestId)||!isAgentPromptOptions(options)){reject(new Error('Agent prompt unavailable or invalid'));return;}
+      if(retired||!controller||!canSendPrompt||operation||typeof prompt!=='string'||(!prompt.trim()&&!(isAgentPromptOptions(options)&&options.submission?.action))||prompt.length>5000||!/^[A-Za-z0-9_-]{1,128}$/.test(grantId)||!/^[0-9a-f-]{36}$/i.test(requestId)||!isAgentPromptOptions(options)){reject(new Error('Agent prompt unavailable or invalid'));return;}
       operation={id:requestId,type:'prompt-sent',resolve:value=>typeof value==='number'?resolve(value):reject(new Error('Missing Agent task acknowledgement')),reject,timer:setTimeout(()=>fail(new Error('Agent prompt acknowledgement timed out; inspect session before retrying')),20000)};
       try{port.postMessage({type:'send-prompt',version:1,...expected,requestId,prompt,grantId,options});}catch(error){fail(error);}
     });

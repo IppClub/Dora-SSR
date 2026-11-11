@@ -3,6 +3,8 @@ import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
 import IconButton from '@mui/material/IconButton';
+import Menu from '@mui/material/Menu';
+import {AgentFollowupQueue,type AgentInputControls,type AgentInputDelivery} from './AgentFollowup';
 import MenuItem from '@mui/material/MenuItem';
 import Select from '@mui/material/Select';
 import Stack from '@mui/material/Stack';
@@ -32,12 +34,13 @@ const defaultLabels:AgentComposerLabels={
   actualUsage:usage=>`实际用量：输入 ${formatCompactNumber(usage.inputTokens)}，输出 ${formatCompactNumber(usage.outputTokens)}${usage.cachedInputTokens===undefined?'':`，缓存 ${formatCompactNumber(usage.cachedInputTokens)}`}`,
 };
 
-export interface SharedAgentComposerProps{
+export interface SharedAgentComposerProps extends AgentInputControls{
   compact?:boolean;prompt:string;loading:boolean;running:boolean;stopping?:boolean;canStop?:boolean;disabled?:boolean;status?:string;
+  leadingAction?:React.ReactNode;
   contextRatio?:number;usedTokens?:number;maxTokens?:number;actualUsage?:AgentActualUsage;
   fetchUrlEnabled?:boolean;executeCommandEnabled?:boolean;planMode?:boolean;models?:AgentModelChoice[];modelId?:string|number;
   labels?:Partial<AgentComposerLabels>;ariaLabel?:string;maxLength?:number;
-  onPromptChange:(value:string)=>void;onSend:()=>void;onStop?:()=>void;
+  onPromptChange:(value:string)=>void;onSend:(delivery?:AgentInputDelivery)=>void;onStop?:()=>void;
   onFetchUrlEnabledChange?:(value:boolean)=>void;onExecuteCommandEnabledChange?:(value:boolean)=>void;
   onPlanModeChange?:(value:boolean)=>void;onModelChange?:(value:string|number)=>void;
 }
@@ -74,17 +77,40 @@ function ComposerContent(props:SharedAgentComposerProps){
   const models=props.models??[],selectedModel=models.find(item=>String(item.id)===String(props.modelId));
 	// A temporarily unavailable send action must not lock the draft. Users may
 	// continue typing while the workspace saves/synchronizes in the background.
-	const disabledInput=loading||running,actionDisabled=running?!canStop:disabled||loading||prompt.trim()==='',toolToggleDisabled=disabled||loading||running;
+	const disabledInput=false,actionDisabled=disabled||loading||stopping||prompt.trim()==='',toolToggleDisabled=disabled||loading||running;
+ const [settingsAnchor,setSettingsAnchor]=React.useState<HTMLElement|null>(null);
+ const [preferences,setPreferences]=React.useState<{delivery:AgentInputDelivery;sendKey:string}>(()=>{try{const saved=JSON.parse(localStorage.getItem('dora-agent-followup')??'{}');return{delivery:saved.delivery==='steer'?'steer':'queue',sendKey:saved.sendKey==='modifier'?'modifier':'enter'};}catch{return{delivery:'queue',sendKey:'enter'};}});
+ const [modifierHeld,setModifierHeld]=React.useState(false);
+ const isMac=typeof navigator!=='undefined'&&/Mac|iPhone|iPad/.test(navigator.platform);
+ const modifierLabel=isMac?'⌘':'Ctrl';
+ const opposite:AgentInputDelivery=preferences.delivery==='queue'&&props.canSteer!==false?'steer':'queue';
+ const delivery:AgentInputDelivery=props.canSteer===false?'queue':preferences.delivery;
+ const modifierDelivery=preferences.sendKey==='modifier'?delivery:opposite;
+ const sendLabel=running?(delivery==='queue'?'加入队列':'引导当前任务'):copy.send;
+ const savePreferences=(next:typeof preferences)=>{setPreferences(next);setSettingsAnchor(null);try{localStorage.setItem('dora-agent-followup',JSON.stringify(next));}catch{/* A storage-disabled browser still supports the current preference. */}};
+ React.useEffect(()=>{const down=(event:KeyboardEvent)=>setModifierHeld(!!textAreaRef.current?.getClientRects().length&&(isMac?event.metaKey:event.ctrlKey)),clear=()=>setModifierHeld(false);window.addEventListener('keydown',down);window.addEventListener('keyup',down);window.addEventListener('blur',clear);return()=>{window.removeEventListener('keydown',down);window.removeEventListener('keyup',down);window.removeEventListener('blur',clear);};},[isMac]);
   const textAreaRef=React.useRef<HTMLTextAreaElement|null>(null),isComposingRef=React.useRef(false);
   const [modelMenuOpen,setModelMenuOpen]=React.useState(false),[modelTooltipOpen,setModelTooltipOpen]=React.useState(false),[inputFocused,setInputFocused]=React.useState(false);
   React.useLayoutEffect(()=>{const textarea=textAreaRef.current;if(!textarea)return;textarea.style.height='0px';const maxHeight=compact?160:220;textarea.style.height=`${Math.max(compact?44:64,Math.min(textarea.scrollHeight,maxHeight))}px`;textarea.style.overflowY=textarea.scrollHeight>maxHeight?'auto':'hidden';},[compact,prompt]);
   const toolButtonSx=(enabled:boolean)=>({height:compact?28:30,minWidth:0,px:1,borderRadius:1.5,backgroundColor:enabled?Color.ThemeMuted:'transparent',color:enabled?Color.Theme:Color.TextSecondary,'&:hover':{backgroundColor:enabled?`${Color.Theme}2a`:Color.SurfaceHover},'&.Mui-disabled':{backgroundColor:enabled?Color.ThemeMuted:'transparent',color:enabled?`${Color.Theme}aa`:'rgba(255,255,255,0.3)',opacity:1}});
-  const submit=()=>{if(actionDisabled)return;if(running)props.onStop?.();else props.onSend();};
+  const submit=(inverse=false)=>{if(actionDisabled)return;setModifierHeld(false);props.onSend(running?(inverse?opposite:delivery):undefined);};
   return <Box data-agent-composer-compact={compact?'true':'false'} sx={{px:compact?1.25:2,pt:compact?0.5:1,pb:compact?0.75:2,backgroundColor:Color.Background,flexShrink:0}}>
+    <AgentFollowupQueue {...(props.pendingInputs?{pendingInputs:props.pendingInputs}:{})} {...(props.onInputAction?{onInputAction:props.onInputAction}:{})} canSteer={props.canSteer!==false}/>
     <Box sx={{width:'100%',maxWidth:980,mx:'auto',border:`1px solid ${inputFocused?`${Color.Theme}88`:Color.Line}`,borderRadius:compact?2:3,backgroundColor:Color.BackgroundDark,overflow:'hidden',transition:'border-color 140ms ease'}}>
-      <textarea ref={textAreaRef} aria-label={props.ariaLabel??'Agent 描述'} value={prompt} maxLength={maxLength} disabled={disabledInput} onFocus={()=>setInputFocused(true)} onBlur={()=>setInputFocused(false)} onChange={event=>props.onPromptChange(event.target.value.slice(0,maxLength))} onCompositionStart={()=>{isComposingRef.current=true;}} onCompositionEnd={event=>{isComposingRef.current=false;props.onPromptChange(event.currentTarget.value);}} onKeyDown={event=>{if(isComposingRef.current||event.nativeEvent.isComposing)return;if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();submit();}}} placeholder={planMode?copy.planPromptPlaceholder:copy.promptPlaceholder} style={{display:'block',width:'100%',minHeight:compact?44:64,maxHeight:compact?160:220,padding:compact?'8px 10px 4px':'14px 16px 8px',border:'none',outline:'none',resize:'none',overflow:'hidden',backgroundColor:'transparent',color:Color.TextPrimary,font:'inherit',lineHeight:'1.65',boxSizing:'border-box'}}/>
+      <textarea ref={textAreaRef} aria-label={props.ariaLabel??'Agent 描述'} value={prompt} maxLength={maxLength} disabled={disabledInput} onFocus={()=>setInputFocused(true)} onBlur={()=>setInputFocused(false)} onChange={event=>props.onPromptChange(event.target.value.slice(0,maxLength))} onCompositionStart={()=>{isComposingRef.current=true;}} onCompositionEnd={event=>{isComposingRef.current=false;props.onPromptChange(event.currentTarget.value);}} onKeyDown={event=>{if(isComposingRef.current||event.nativeEvent.isComposing)return;if(event.key==='Escape'&&running&&canStop&&!stopping){event.preventDefault();props.onStop?.();return;}if(event.key==='Enter'&&!event.shiftKey&&!event.altKey){event.preventDefault();const modified=isMac?event.metaKey:event.ctrlKey;submit(preferences.sendKey==='modifier'?!modified:modified);}}} placeholder={planMode?copy.planPromptPlaceholder:copy.promptPlaceholder} style={{display:'block',width:'100%',minHeight:compact?44:64,maxHeight:compact?160:220,padding:compact?'8px 10px 4px':'14px 16px 8px',border:'none',outline:'none',resize:'none',overflow:'hidden',backgroundColor:'transparent',color:Color.TextPrimary,font:'inherit',lineHeight:'1.65',boxSizing:'border-box'}}/>
       <Stack direction="row" spacing={1} alignItems="center" justifyContent="space-between" sx={{px:compact?0.75:1,pb:compact?0.5:1,minHeight:compact?32:38,flexWrap:'wrap',rowGap:compact?0.25:0.75}}>
         <Stack direction="row" spacing={0.25} alignItems="center" sx={{minWidth:0,flexShrink:0,flexWrap:'wrap',rowGap:0.25,'& .MuiButton-root':{whiteSpace:'nowrap'}}}>
+          {props.leadingAction}
+          <Tooltip title="后续消息处理方式与快捷键"><Button size="small" aria-label="后续消息设置" aria-haspopup="menu" onClick={event=>setSettingsAnchor(event.currentTarget)} sx={toolButtonSx(running)}>{delivery==='queue'?'排队':'引导'} ▾</Button></Tooltip>
+          <Menu anchorEl={settingsAnchor} open={!!settingsAnchor} onClose={()=>setSettingsAnchor(null)} slotProps={{paper:{sx:{maxWidth:'calc(100vw - 32px)','& .MuiMenuItem-root':{whiteSpace:'normal',fontSize:13}}}}}>
+            <Box sx={{px:2,py:.75,fontSize:12,color:Color.TextSecondary}}>后续消息处理方式</Box>
+            <MenuItem selected={preferences.delivery==='queue'} onClick={()=>savePreferences({...preferences,delivery:'queue'})}>排队 · 当前任务完成后处理</MenuItem>
+            <MenuItem disabled={props.canSteer===false} selected={preferences.delivery==='steer'} onClick={()=>savePreferences({...preferences,delivery:'steer'})}>引导 · 补充当前任务的要求</MenuItem>
+            <Box sx={{px:2,pt:1.25,pb:.5,fontSize:12,color:Color.TextSecondary}}>发送快捷键</Box>
+            <MenuItem selected={preferences.sendKey==='enter'} onClick={()=>savePreferences({...preferences,sendKey:'enter'})}>Enter 发送，{modifierLabel}+Enter 切换本条行为</MenuItem>
+            <MenuItem selected={preferences.sendKey==='modifier'} onClick={()=>savePreferences({...preferences,sendKey:'modifier'})}>{modifierLabel}+Enter 发送，Enter 切换本条行为</MenuItem>
+            <Box sx={{px:2,py:1,fontSize:11,color:Color.TextSecondary}}>Shift+Enter 换行 · Esc 停止当前任务</Box>
+          </Menu>
           {props.onPlanModeChange?<Tooltip title={copy.planModeToggle}><span><Button size="small" startIcon={<ChecklistIcon sx={{fontSize:'16px !important'}}/>} onClick={()=>props.onPlanModeChange?.(!planMode)} disabled={toolToggleDisabled} aria-pressed={planMode} sx={toolButtonSx(planMode)}>{planMode?copy.planMode:copy.planModeInactive}</Button></span></Tooltip>:null}
           {props.onFetchUrlEnabledChange&&!planMode?<Tooltip title={copy.networkToolsToggle}><span><Button size="small" startIcon={<DownloadIcon sx={{fontSize:'16px !important'}}/>} onClick={()=>props.onFetchUrlEnabledChange?.(!fetchUrlEnabled)} disabled={toolToggleDisabled} aria-pressed={fetchUrlEnabled} sx={toolButtonSx(fetchUrlEnabled)}>{copy.networkAccess}</Button></span></Tooltip>:null}
           {props.onExecuteCommandEnabledChange&&!planMode?<Tooltip title={copy.executeCommandToggle}><span><Button size="small" startIcon={<TerminalIcon sx={{fontSize:'16px !important'}}/>} onClick={()=>props.onExecuteCommandEnabledChange?.(!executeCommandEnabled)} disabled={toolToggleDisabled} aria-pressed={executeCommandEnabled} sx={toolButtonSx(executeCommandEnabled)}>{copy.executeCommand}</Button></span></Tooltip>:null}
@@ -93,7 +119,8 @@ function ComposerContent(props:SharedAgentComposerProps){
           {props.status?<Box component="span" sx={{maxWidth:220,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',color:'#888',fontSize:10}}>{props.status}</Box>:null}
           <ContextUsageRing compact={compact} {...(props.contextRatio===undefined?{}:{contextRatio:props.contextRatio})} {...(props.usedTokens===undefined?{}:{usedTokens:props.usedTokens})} {...(props.maxTokens===undefined?{}:{maxTokens:props.maxTokens})} {...(props.actualUsage===undefined?{}:{actualUsage:props.actualUsage})} {...(props.labels===undefined?{}:{labels:props.labels})}/>
           <Tooltip title={copy.modelForNextRun} disableFocusListener open={modelTooltipOpen&&!modelMenuOpen} onOpen={()=>{if(!modelMenuOpen)setModelTooltipOpen(true);}} onClose={()=>setModelTooltipOpen(false)}><Select value={selectedModel?String(selectedModel.id):''} displayEmpty disabled={!models.length||!props.onModelChange} onOpen={()=>{setModelTooltipOpen(false);setModelMenuOpen(true);}} onClose={()=>setModelMenuOpen(false)} onChange={event=>{const item=models.find(model=>String(model.id)===String(event.target.value));if(item)props.onModelChange?.(item.id);}} renderValue={()=>selectedModel?.name??copy.selectModel} variant="standard" disableUnderline size="small" MenuProps={{PaperProps:{sx:{minWidth:120,borderRadius:'6px',backgroundColor:Color.Background,backgroundImage:'none',border:`1px solid ${Color.Line}`}}}} inputProps={{'aria-label':copy.modelForNextRun}} sx={{maxWidth:compact?140:180,minWidth:compact?76:96,fontSize:12,color:Color.TextSecondary,'& .MuiSelect-select':{py:0.25,pr:'22px !important'},'& .MuiSelect-icon':{color:Color.TextSecondary}}}>{models.map(item=><MenuItem key={String(item.id)} value={String(item.id)}>{item.name}</MenuItem>)}</Select></Tooltip>
-          <Tooltip title={stopping?copy.stopping:running?copy.stop:copy.send}><span><IconButton aria-label={stopping?copy.stopping:running?copy.stop:copy.send} onClick={submit} disabled={actionDisabled} sx={{width:compact?30:32,height:compact?30:32,borderRadius:1.75,backgroundColor:running?`${Color.Warning}20`:Color.Theme,color:running?Color.Warning:Color.BackgroundDark,'&:hover':{backgroundColor:running?`${Color.Warning}32`:'#ffd15f'},'&.Mui-disabled':{backgroundColor:stopping?`${Color.Theme}14`:Color.DisabledBackground,color:stopping?Color.Theme:Color.DisabledText}}}>{stopping?<CircularProgress color="inherit" size={18} thickness={5}/>:running?<BsStopFill size={18}/>:<BsFillSendFill size={16}/>}</IconButton></span></Tooltip>
+          {running&&<Tooltip title={`${copy.stop} · Esc`}><span><IconButton aria-label={stopping?copy.stopping:copy.stop} onClick={()=>props.onStop?.()} disabled={!canStop||stopping} sx={{color:Color.Warning}}>{stopping?<CircularProgress size={18}/>:<BsStopFill size={18}/>}</IconButton></span></Tooltip>}
+          <Tooltip title={running&&modifierHeld?`${modifierDelivery==='steer'?'引导当前任务':'加入队列'} · ${modifierLabel}+Enter`:`${sendLabel} · ${preferences.sendKey==='modifier'?modifierLabel+'+':''}Enter`} {...(running&&modifierHeld&&!actionDisabled?{open:true}:{})}><span><IconButton aria-label={sendLabel} onClick={event=>submit(preferences.sendKey==='enter'&&(isMac?event.metaKey:event.ctrlKey))} disabled={actionDisabled} sx={{width:compact?30:32,height:compact?30:32,borderRadius:1.75,backgroundColor:Color.Theme,color:Color.BackgroundDark,'&:hover':{backgroundColor:'#ffd15f'}}}><BsFillSendFill size={16}/></IconButton></span></Tooltip>
         </Stack>
       </Stack>
     </Box>

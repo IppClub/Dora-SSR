@@ -1,9 +1,9 @@
 // @preview-file off clear
 import { App, Content, Path } from 'Dora';
 import { AGENT_DEFAULTS } from 'Agent/Config/Defaults';
-import { Message, applyCustomLLMOptions, callLLM, Log, clipTextToTokenBudget, extractLLMTokenUsage, parseXMLObjectFromText, safeJsonDecode, safeJsonEncode, sanitizeUTF8 } from 'Agent/Utils';
+import { Message, applyCustomLLMOptions, callLLM, Log, getInputTokenBudget, fitMessagesToContext, clipTextToTokenBudget, extractLLMTokenUsage, parseXMLObjectFromText, safeJsonDecode, safeJsonEncode, sanitizeUTF8 } from 'Agent/Utils';
 import { getActiveLLMConfig } from 'Agent/Utils';
-import type { LLMConfig, LLMTokenUsage, ToolCall, StopToken } from 'Agent/Utils';
+import type { LLMConfig, LLMTokenUsage, StopToken } from 'Agent/Utils';
 import { sendWebIDEFileUpdate } from 'Agent/Tool/WebIDESync';
 import { AGENT_TOOL_DEFINITIONS_DETAILED, MAIN_AGENT_TOOL_DEFINITIONS_DETAILED } from 'Agent/Tool/Registry';
 
@@ -11,19 +11,39 @@ const MEMORY_DEFAULT_LLM_TEMPERATURE = 0.1;
 const MEMORY_DEFAULT_CONTEXT_WINDOW = 64000;
 const AGENT_MEMORY_CONTEXT_MIN_TOKENS = 1200;
 const AGENT_MEMORY_CONTEXT_WINDOW_RATIO = 0.08;
-const COMPRESSION_RESERVED_OUTPUT_MIN_TOKENS = 2048;
-const COMPRESSION_HISTORY_MIN_TOKENS = 1200;
-const COMPRESSION_HISTORY_AVAILABLE_RATIO = 0.9;
-const COMPRESSION_HISTORY_TRUNCATED_MIN_CHARS = 2000;
-const COMPRESSION_HISTORY_TRUNCATED_HEAD_RATIO = 0.35;
-const COMPRESSION_DYNAMIC_MIN_TOKENS = 1600;
-const COMPRESSION_DYNAMIC_PROMPT_OVERHEAD_TOKENS = 256;
-const COMPRESSION_SECTION_MEMORY_MIN_TOKENS = 320;
 const COMPRESSION_SECTION_MEMORY_RATIO = 0.2;
-const COMPRESSION_SECTION_SESSION_MIN_TOKENS = 240;
 const COMPRESSION_SECTION_SESSION_RATIO = 0.15;
-const COMPRESSION_SECTION_HISTORY_MIN_TOKENS = 800;
-const COMPRESSION_SECTION_HISTORY_RATIO = 0.45;
+
+const MEMORY_COMPRESSION_TOOLS = [{
+	type: "function" as const,
+	function: {
+		name: "save_memory",
+		description: "Save the memory consolidation result to persistent storage.",
+		parameters: {
+			type: "object",
+			properties: {
+				history_entry: {
+					type: "string",
+					description: "A paragraph summarizing key events/decisions/topics. " +
+						"Include detail useful for grep search."
+				},
+				memory_update: {
+					type: "string",
+					description: "Full updated MEMORY.md as markdown. Core memory only: user preferences, stable facts, decisions, known issues."
+				},
+				project_memory_update: {
+					type: "string",
+					description: "Full updated PROJECT_MEMORY.md as markdown. Project facts, build/run, files/architecture, project decisions and issues."
+				},
+				session_summary_update: {
+					type: "string",
+					description: "Full updated SESSION_SUMMARY.md as markdown. Current goal, recent progress, open issues, and an Active Checkpoint with the exact next tool action when work is unfinished."
+				},
+			},
+			required: ["history_entry", "memory_update"],
+		},
+	},
+}];
 
 function buildMemoryLLMOptions(llmConfig: LLMConfig, overrides?: Record<string, unknown>): Record<string, unknown> {
 	const options: Record<string, unknown> = {
@@ -56,12 +76,6 @@ function getAuxiliaryLLMOptions(llmConfig: LLMConfig): Record<string, unknown> {
 	return options;
 }
 
-function getSharedOutputTokenLimit(llmConfig: LLMConfig): number {
-	const options = applyCustomLLMOptions(buildMemoryLLMOptions(llmConfig), llmConfig.customOptions);
-	const value = options.max_tokens ?? options.max_completion_tokens;
-	return typeof value === "number" && value > 0 ? math.floor(value) : AGENT_DEFAULTS.llmMaxTokens;
-}
-
 function buildCompressionLLMConfig(llmConfig: LLMConfig): LLMConfig {
 	// All provider options were resolved before retries. Applying them again at
 	// the HTTP boundary can restore fields intentionally removed by compression.
@@ -81,6 +95,10 @@ function isArray(value: unknown): value is unknown[] {
 const optStr = (str: string, def: string) => str === '' ? def : str;
 
 export interface AgentConversationMessage extends Message {
+	inputId?: number;
+	afterStep?: number;
+	inputKind?: "prompt" | "steer";
+	taskId?: number;
 	timestamp?: string;
 }
 
@@ -702,7 +720,11 @@ export interface CompressionResult {
 	fallbackArchived?: boolean;
 }
 
+class MemoryCompressionBudgetError extends Error {}
+
 export interface MemoryCompressionContext {
+	/** Tokens to remove from the effective decision request, including pending input. */
+	targetTokens?: number;
 	stopToken?: StopToken;
 	onInput?: (phase: string, messages: Message[], options: Record<string, unknown>) => void;
 	onOutput?: (phase: string, text: string, meta?: Record<string, unknown>) => void;
@@ -1167,6 +1189,10 @@ export class DualLayerStorage {
 		const role = typeof row.role === "string" ? row.role : "";
 		if (role === "") return undefined;
 		const message: AgentConversationMessage = { role };
+		if (typeof row.inputId === "number") message.inputId = row.inputId;
+		if (typeof row.afterStep === "number") message.afterStep = row.afterStep;
+		if (typeof row.taskId === "number") message.taskId = row.taskId;
+		if (row.inputKind === "steer" || row.inputKind === "prompt") message.inputKind = row.inputKind;
 		if (typeof row.content === "string") message.content = sanitizeUTF8(row.content);
 		if (typeof row.name === "string") message.name = sanitizeUTF8(row.name);
 		if (typeof row.tool_call_id === "string") message.tool_call_id = sanitizeUTF8(row.tool_call_id);
@@ -1585,7 +1611,7 @@ export class DualLayerStorage {
 			}
 		}
 		const content = lines.length > 0 ? `${lines.join("\n")}\n` : "";
-		Content.save(this.sessionPath, content);
+		if (!Content.save(this.sessionPath, content)) throw new Error("failed to persist Agent conversation");
 		sendWebIDEFileUpdate(this.sessionPath, true, content);
 	}
 }
@@ -1647,30 +1673,25 @@ export class MemoryCompressor {
 		const toCompress = messages;
 		if (toCompress.length === 0) return undefined;
 		const currentMemory = this.storage.readMemory();
-		const messagesForBoundary = boundaryMessages && boundaryMessages.length === toCompress.length
-			? boundaryMessages
-			: toCompress;
-
-		const boundary = this.findCompressionBoundary(
-			messagesForBoundary,
-			currentMemory,
-			boundaryMode,
-			systemPrompt,
-			toolDefinitions
-		);
-		const chunk = toCompress.slice(0, boundary.chunkEnd);
-
-		if (chunk.length === 0) return undefined;
-		const historyText = this.formatMessagesForCompression(chunk);
-
+		const compressionLLMOptions = applyCustomLLMOptions({
+			...applyCustomLLMOptions(llmOptions, this.config.llmConfig.customOptions),
+			reasoning_effort: "minimal",
+		}, getAuxiliaryLLMOptions(this.config.llmConfig));
+		let chunk: AgentConversationMessage[] = [];
 		try {
-			// Share the main request's effective output budget. Compression can
-			// still override reasoning independently, including explicit null removal.
-			const auxiliaryOptions = getAuxiliaryLLMOptions(this.config.llmConfig);
-			const compressionLLMOptions = applyCustomLLMOptions({
-				...applyCustomLLMOptions(llmOptions, this.config.llmConfig.customOptions),
-				reasoning_effort: "minimal",
-			}, auxiliaryOptions);
+			const historyBudget = this.buildBoundedCompressionSections(currentMemory, "", compressionLLMOptions).historyBudget;
+			const boundary = this.findCompressionBoundary(
+				boundaryMessages && boundaryMessages.length === toCompress.length ? boundaryMessages : toCompress,
+				toCompress,
+				historyBudget,
+				boundaryMode === "budget_max" ? undefined : context?.targetTokens
+			);
+			chunk = toCompress.slice(0, boundary.chunkEnd);
+			if (chunk.length === 0) throw new MemoryCompressionBudgetError(
+				"No complete historical action fits the memory compression input budget. Reduce the output limit or increase contextWindow."
+			);
+			const historyText = this.formatMessagesForCompression(chunk);
+
 			if (context?.stopToken?.stopped) throw new Error("Memory compression cancelled");
 			const result = await this.callLLMForCompression(
 				currentMemory,
@@ -1713,6 +1734,7 @@ export class MemoryCompressor {
 			// Cancellation must not be treated as a summarization failure: no
 			// fallback archive or memory mutation after the user stops the task.
 			if (context?.stopToken?.stopped) return { success: false, memoryUpdate: currentMemory, compressedCount: 0, error: context.stopToken.reason ?? "Memory compression cancelled" };
+			if (error instanceof MemoryCompressionBudgetError) return { success: false, memoryUpdate: currentMemory, compressedCount: 0, error: error.message };
 			return this.handleCompressionFailure(chunk, error instanceof Error ? error.message : "Unknown error");
 		}
 	}
@@ -1725,115 +1747,62 @@ export class MemoryCompressor {
 	 * 完成的 spawn/build/edit 一并压缩，丢失恢复时最重要的近期状态。
 	 */
 	private findCompressionBoundary(
-		messages: AgentConversationMessage[],
-		currentMemory: string,
-		boundaryMode: MemoryCompressionBoundaryMode,
-		systemPrompt: string,
-		toolDefinitions: string
+		boundaryMessages: AgentConversationMessage[],
+		compressionMessages: AgentConversationMessage[],
+		historyBudget: number,
+		targetTokens?: number
 	): CompressionBoundarySelection {
-		const targetTokens = boundaryMode === "budget_max"
-			? math.max(1, this.getCompressionHistoryTokenBudget(currentMemory))
-			: math.max(1, this.getRequiredCompressionTokens(messages, systemPrompt, toolDefinitions));
-		let accumulatedTokens = 0;
-		let lastSafeBoundary = 0;
-		let lastSafeBoundaryWithinBudget = 0;
-		let lastClosedBoundary = 0;
-		let lastClosedBoundaryWithinBudget = 0;
+		let historyTokens = 0;
+		let removedTokens = 0;
+		let carriedInstructionTokens = 0;
+		let lastBoundary = 0;
 		const pendingToolCalls: Record<string, boolean> = {};
-		let pendingToolCallCount = 0;
-		let exceededBudget = false;
-
-		for (let i = 0; i < messages.length; i++) {
-			const message = messages[i];
-			const tokens = this.estimateCompressionMessageTokens(message, i);
-			accumulatedTokens += tokens;
-
-			// A non-tool message after pending tool calls means the historical tool
-			// chain was interrupted; do not let stale calls block later boundaries.
-			if (message.role !== "tool" && pendingToolCallCount > 0) {
-				for (const id in pendingToolCalls) {
-					pendingToolCalls[id] = false;
-				}
-				pendingToolCallCount = 0;
+		let pendingCount = 0;
+		for (let i = 0; i < compressionMessages.length; i++) {
+			const message = compressionMessages[i];
+			historyTokens += this.estimateCompressionMessageTokens(message, i);
+			if (historyTokens > historyBudget) break;
+			const decisionTokens = this.estimateCompressionMessageTokens(boundaryMessages[i], i);
+			removedTokens += decisionTokens;
+			if (message.role === "user" && message.inputKind !== "steer") carriedInstructionTokens = decisionTokens;
+			if (message.role !== "tool" && pendingCount > 0) {
+				for (const id in pendingToolCalls) pendingToolCalls[id] = false;
+				pendingCount = 0;
 			}
-
-			if (message.role === "assistant" && message.tool_calls && message.tool_calls.length > 0) {
-				for (let j = 0; j < message.tool_calls.length; j++) {
-					const toolCallEntry: ToolCall = message.tool_calls[j];
-					const idValue = toolCallEntry.id;
-					const id = typeof idValue === "string" ? idValue : "";
-					if (id !== "" && !pendingToolCalls[id]) {
-						pendingToolCalls[id] = true;
-						pendingToolCallCount += 1;
+			if (message.role === "assistant" && message.tool_calls) {
+				for (const call of message.tool_calls) {
+					if (call.id && !pendingToolCalls[call.id]) {
+						pendingToolCalls[call.id] = true;
+						pendingCount += 1;
 					}
 				}
 			}
-
 			if (message.role === "tool" && message.tool_call_id && pendingToolCalls[message.tool_call_id]) {
 				pendingToolCalls[message.tool_call_id] = false;
-				pendingToolCallCount = math.max(0, pendingToolCallCount - 1);
+				pendingCount -= 1;
 			}
-
-			const isAtEnd = i >= messages.length - 1;
-			const nextRole = !isAtEnd ? messages[i + 1].role : "";
-			const isUserTurnBoundary = !isAtEnd && nextRole === "user";
-			const isSafeBoundary = pendingToolCallCount === 0 && (isAtEnd || isUserTurnBoundary);
-			const isClosedAgentBoundary = pendingToolCallCount === 0 && (
-				message.role === "tool"
-				|| (
-					message.role === "assistant"
-					&& (!message.tool_calls || message.tool_calls.length === 0)
-				)
+			const next = compressionMessages[i + 1];
+			const closed = pendingCount === 0 && (
+				!next || (next.role === "user" && next.inputKind !== "steer")
+				|| message.role === "tool"
+				|| (message.role === "assistant" && (!message.tool_calls || message.tool_calls.length === 0))
 			);
-			if (isSafeBoundary) {
-				lastSafeBoundary = i + 1;
-				if (accumulatedTokens <= targetTokens) {
-					lastSafeBoundaryWithinBudget = i + 1;
-				}
-			}
-			if (isClosedAgentBoundary) {
-				lastClosedBoundary = i + 1;
-				if (accumulatedTokens <= targetTokens) {
-					lastClosedBoundaryWithinBudget = i + 1;
-				}
-			}
-
-			if (accumulatedTokens > targetTokens && !exceededBudget) {
-				exceededBudget = true;
-			}
-
-			// Stop at the first complete agent action after reaching the target.
-			// Preserve the triggering user instruction through buildCarryBoundary,
-			// while leaving newer completed actions verbatim for the next decision.
-			if (exceededBudget && isClosedAgentBoundary) {
-				return this.buildCarryBoundary(messages, i + 1);
-			}
-			// A user-only or otherwise unusual history may have no agent boundary.
-			if (exceededBudget && isSafeBoundary) {
-				return this.buildCarryBoundary(messages, i + 1);
+			if (closed) {
+				lastBoundary = i + 1;
+				// A partial chunk carries its latest task instruction back into the
+				// decision request; those tokens are not reclaimed by compression.
+				const retainedTokens = next || message.role === "user" ? carriedInstructionTokens : 0;
+				if (targetTokens !== undefined && removedTokens - retainedTokens >= targetTokens) break;
 			}
 		}
-
-		if (lastSafeBoundaryWithinBudget > 0) {
-			return this.buildSafeBoundary(messages, lastSafeBoundaryWithinBudget);
-		}
-		if (lastSafeBoundary > 0) {
-			return this.buildSafeBoundary(messages, lastSafeBoundary);
-		}
-		if (lastClosedBoundaryWithinBudget > 0) {
-			return this.buildCarryBoundary(messages, lastClosedBoundaryWithinBudget);
-		}
-		if (lastClosedBoundary > 0) {
-			return this.buildCarryBoundary(messages, lastClosedBoundary);
-		}
-		const fallback = math.min(messages.length, 1);
-		return this.buildSafeBoundary(messages, fallback);
+		if (lastBoundary === compressionMessages.length) return this.buildSafeBoundary(compressionMessages, lastBoundary);
+		return this.buildCarryBoundary(compressionMessages, lastBoundary);
 	}
 
 	private buildCarryBoundary(messages: AgentConversationMessage[], chunkEnd: number): CompressionBoundarySelection {
 		let carryUserIndex = -1;
 		for (let i = 0; i < chunkEnd; i++) {
-			if (messages[i].role === "user") {
+			if (messages[i].role === "user" && messages[i].inputKind !== "steer") {
 				carryUserIndex = i;
 			}
 		}
@@ -1873,25 +1842,6 @@ export class MemoryCompressor {
 		return TokenEstimator.estimate(prefix + lines.join("\n"));
 	}
 
-	private getRequiredCompressionTokens(
-		messages: AgentConversationMessage[],
-		systemPrompt: string,
-		toolDefinitions: string
-	): number {
-		const currentTokens = TokenEstimator.estimatePromptMessages(
-			messages,
-			systemPrompt,
-			toolDefinitions
-		);
-		const threshold = this.getContextWindow() * this.config.compressionTargetThreshold;
-		const overflow = math.max(0, currentTokens - threshold);
-		if (overflow <= 0) {
-			return math.max(1, this.estimateCompressionMessageTokens(messages[0], 0));
-		}
-		const safetyMargin = math.max(64, math.floor(threshold * 0.01));
-		return overflow + safetyMargin;
-	}
-
 	private formatMessagesForCompression(messages: AgentConversationMessage[]): string {
 		const lines: string[] = [];
 		for (let i = 0; i < messages.length; i++) {
@@ -1921,11 +1871,11 @@ export class MemoryCompressor {
 		decisionMode: MemoryCompressionDecisionMode,
 		context?: MemoryCompressionContext
 	): Promise<CompressionResult> {
-		const boundedHistoryText = this.boundCompressionHistoryText(currentMemory, historyText);
+		// History is selected at complete action boundaries and must never be clipped.
 		if (decisionMode === "xml") {
 			return this.callLLMForCompressionByXML(
 				currentMemory,
-				boundedHistoryText,
+				historyText,
 				llmOptions,
 				maxLLMTry,
 				context
@@ -1933,7 +1883,7 @@ export class MemoryCompressor {
 		}
 		return this.callLLMForCompressionByToolCalling(
 			currentMemory,
-			boundedHistoryText,
+			historyText,
 			llmOptions,
 			maxLLMTry,
 			context
@@ -1953,77 +1903,46 @@ export class MemoryCompressor {
 		);
 	}
 
-	private getCompressionHistoryTokenBudget(currentMemory: string): number {
-		const contextWindow = this.getContextWindow();
-		const reservedOutputTokens = math.max(
-			COMPRESSION_RESERVED_OUTPUT_MIN_TOKENS,
-			getSharedOutputTokenLimit(this.config.llmConfig)
-		);
-		const staticPromptTokens = TokenEstimator.estimate(this.buildCompressionStaticPrompt("tool_calling"));
-		const memoryTokens = TokenEstimator.estimate(currentMemory);
-		const available = contextWindow - reservedOutputTokens - staticPromptTokens - memoryTokens;
-		return Math.max(
-			COMPRESSION_HISTORY_MIN_TOKENS,
-			Math.floor(available * COMPRESSION_HISTORY_AVAILABLE_RATIO)
-		);
-	}
-
-	private boundCompressionHistoryText(currentMemory: string, historyText: string): string {
-		const historyTokens = TokenEstimator.estimate(historyText);
-		const tokenBudget = this.getCompressionHistoryTokenBudget(currentMemory);
-		if (historyTokens <= tokenBudget) return historyText;
-		const charsPerToken = historyTokens > 0
-			? historyText.length / historyTokens
-			: 4;
-		const targetChars = Math.max(
-			COMPRESSION_HISTORY_TRUNCATED_MIN_CHARS,
-			Math.floor(tokenBudget * charsPerToken)
-		);
-		const keepHead = Math.max(0, Math.floor(targetChars * COMPRESSION_HISTORY_TRUNCATED_HEAD_RATIO));
-		const keepTail = Math.max(0, targetChars - keepHead);
-		const head = keepHead > 0 ? utf8TakeHead(historyText, keepHead) : "";
-		const tail = keepTail > 0 ? utf8TakeTail(historyText, keepTail) : "";
-		return `[compression history truncated to fit context window; token_budget=${tokenBudget}, original_tokens=${historyTokens}]\n${head}\n...\n${tail}`;
-	}
-
-	private buildBoundedCompressionSections(currentMemory: string, historyText: string): {
+	private buildBoundedCompressionSections(currentMemory: string, historyText: string, llmOptions: Record<string, unknown>): {
 		currentMemory: string;
 		currentProjectMemory: string;
 		currentSessionSummary: string;
 		historyText: string;
+		historyBudget: number;
 	} {
-		const contextWindow = this.getContextWindow();
-		const reservedOutputTokens = math.max(
-			COMPRESSION_RESERVED_OUTPUT_MIN_TOKENS,
-			getSharedOutputTokenLimit(this.config.llmConfig)
+		// Use the HTTP layer's accounting, including output reserve and tool schema.
+		// Reserve for either format so XML fallback does not require clipping history.
+		let dynamicBudget = this.getContextWindow();
+		for (const mode of ["tool_calling", "xml"] as MemoryCompressionDecisionMode[]) {
+			const options = mode === "tool_calling" ? { ...llmOptions, tools: MEMORY_COMPRESSION_TOOLS } : llmOptions;
+			const emptyMessages: Message[] = [{ role: "system", content: "" }, { role: "user", content: "" }];
+			const available = getInputTokenBudget(emptyMessages, options, this.config.llmConfig)
+				- TokenEstimator.estimate(this.buildCompressionStaticPrompt(mode)) - 512;
+			dynamicBudget = math.min(dynamicBudget, available);
+		}
+		if (dynamicBudget <= 0) throw new MemoryCompressionBudgetError(
+			"Memory compression has no input space after reserving the configured output limit and prompts. Reduce max_tokens/max_completion_tokens or increase contextWindow."
 		);
-		const staticPromptTokens = TokenEstimator.estimate(this.buildCompressionStaticPrompt("tool_calling"));
-		const dynamicBudget = math.max(
-			COMPRESSION_DYNAMIC_MIN_TOKENS,
-			contextWindow - reservedOutputTokens - staticPromptTokens - COMPRESSION_DYNAMIC_PROMPT_OVERHEAD_TOKENS
+		const boundedMemory = clipTextToTokenBudget(optStr(currentMemory, "(empty)"), math.floor(dynamicBudget * COMPRESSION_SECTION_MEMORY_RATIO));
+		const boundedProjectMemory = clipTextToTokenBudget(optStr(this.storage.readProjectMemory(), "(empty)"), math.floor(dynamicBudget * COMPRESSION_SECTION_MEMORY_RATIO));
+		const boundedSessionSummary = clipTextToTokenBudget(optStr(this.storage.readSessionSummary(), "(empty)"), math.floor(dynamicBudget * COMPRESSION_SECTION_SESSION_RATIO));
+		// Unused memory allocations are returned to history, rather than limiting it to 45%.
+		const historyBudget = math.max(0, math.floor((dynamicBudget
+			- TokenEstimator.estimate(boundedMemory)
+			- TokenEstimator.estimate(boundedProjectMemory)
+			- TokenEstimator.estimate(boundedSessionSummary)) * 0.9));
+		if (TokenEstimator.estimate(historyText) > historyBudget) throw new MemoryCompressionBudgetError(
+			"Selected history exceeds the memory compression input budget; history was preserved."
 		);
-		const boundedMemory = clipTextToTokenBudget(optStr(currentMemory, "(empty)"), math.max(
-			COMPRESSION_SECTION_MEMORY_MIN_TOKENS,
-			math.floor(dynamicBudget * COMPRESSION_SECTION_MEMORY_RATIO)
-		));
-		const boundedProjectMemory = clipTextToTokenBudget(optStr(this.storage.readProjectMemory(), "(empty)"), math.max(
-			COMPRESSION_SECTION_MEMORY_MIN_TOKENS,
-			math.floor(dynamicBudget * COMPRESSION_SECTION_MEMORY_RATIO)
-		));
-		const boundedSessionSummary = clipTextToTokenBudget(optStr(this.storage.readSessionSummary(), "(empty)"), math.max(
-			COMPRESSION_SECTION_SESSION_MIN_TOKENS,
-			math.floor(dynamicBudget * COMPRESSION_SECTION_SESSION_RATIO)
-		));
-		const boundedHistory = clipTextToTokenBudget(historyText, math.max(
-			COMPRESSION_SECTION_HISTORY_MIN_TOKENS,
-			math.floor(dynamicBudget * COMPRESSION_SECTION_HISTORY_RATIO)
-		));
-		return {
-			currentMemory: boundedMemory,
-			currentProjectMemory: boundedProjectMemory,
-			currentSessionSummary: boundedSessionSummary,
-			historyText: boundedHistory,
-		};
+		return { currentMemory: boundedMemory, currentProjectMemory: boundedProjectMemory,
+			currentSessionSummary: boundedSessionSummary, historyText, historyBudget };
+	}
+
+	private ensureCompressionRequestFits(messages: Message[], options: Record<string, unknown>): void {
+		const fitted = fitMessagesToContext(messages, options, this.config.llmConfig);
+		if (fitted.trimmed || fitted.fittedTokens > fitted.budgetTokens) throw new MemoryCompressionBudgetError(
+			"Memory compression request exceeds the effective context budget; history was preserved."
+		);
 	}
 
 	private async callLLMForCompressionByToolCalling(
@@ -2033,39 +1952,7 @@ export class MemoryCompressor {
 		maxLLMTry: number,
 		context?: MemoryCompressionContext
 	): Promise<CompressionResult> {
-		const prompt = this.buildCompressionPromptBody(currentMemory, historyText);
-
-		// 定义 save_memory 工具
-		const tools = [{
-			type: "function" as const,
-			function: {
-				name: "save_memory",
-				description: "Save the memory consolidation result to persistent storage.",
-				parameters: {
-					type: "object",
-					properties: {
-						history_entry: {
-							type: "string",
-							description: "A paragraph summarizing key events/decisions/topics. " +
-								"Include detail useful for grep search."
-						},
-						memory_update: {
-							type: "string",
-							description: "Full updated MEMORY.md as markdown. Core memory only: user preferences, stable facts, decisions, known issues."
-						},
-						project_memory_update: {
-							type: "string",
-							description: "Full updated PROJECT_MEMORY.md as markdown. Project facts, build/run, files/architecture, project decisions and issues."
-						},
-						session_summary_update: {
-							type: "string",
-							description: "Full updated SESSION_SUMMARY.md as markdown. Current goal, recent progress, open issues, and an Active Checkpoint with the exact next tool action when work is unfinished."
-						},
-					},
-					required: ["history_entry", "memory_update"],
-				},
-			},
-		}];
+		const prompt = this.buildCompressionPromptBody(currentMemory, historyText, llmOptions);
 
 		let lastError = "missing save_memory tool call";
 		let outputBudgetExhausted = false;
@@ -2087,11 +1974,12 @@ export class MemoryCompressor {
 			];
 			const requestOptions = {
 				...llmOptions,
-				tools,
+				tools: MEMORY_COMPRESSION_TOOLS,
 			};
 			// Some OpenAI-compatible providers reject forced tool_choice. Keep tools enabled,
 			// but repair invalid non-tool responses and fall back to XML below.
 			delete (requestOptions as Record<string, unknown>).tool_choice;
+			this.ensureCompressionRequestFits(messages, requestOptions);
 			context?.onInput?.("memory_compression_tool_calling", messages, requestOptions);
 			const response = await callLLM(
 				messages,
@@ -2192,7 +2080,7 @@ export class MemoryCompressor {
 		maxLLMTry: number,
 		context?: MemoryCompressionContext
 	): Promise<CompressionResult> {
-		const prompt = this.buildCompressionPromptBody(currentMemory, historyText);
+		const prompt = this.buildCompressionPromptBody(currentMemory, historyText, llmOptions);
 		let lastError = "invalid xml response";
 		let outputBudgetExhausted = false;
 
@@ -2208,6 +2096,7 @@ export class MemoryCompressor {
 				{ role: "system", content: this.buildXMLCompressionSystemPrompt() },
 				{ role: "user", content: `${prompt}${feedback}` },
 			];
+			this.ensureCompressionRequestFits(requestMessages, llmOptions);
 			context?.onInput?.("memory_compression_xml", requestMessages, llmOptions);
 			const response = await callLLM(
 				requestMessages,
@@ -2273,17 +2162,8 @@ export class MemoryCompressor {
 	/**
 	 * 构建压缩提示
 	 */
-	private buildCompressionPromptBodyRaw(currentMemory: string, historyText: string): string {
-		return replaceTemplateVars(this.config.promptPack.memoryCompressionBodyPrompt, {
-			CURRENT_MEMORY: optStr(currentMemory, "(empty)"),
-			CURRENT_PROJECT_MEMORY: optStr(this.storage.readProjectMemory(), "(empty)"),
-			CURRENT_SESSION_SUMMARY: optStr(this.storage.readSessionSummary(), "(empty)"),
-			HISTORY_TEXT: historyText,
-		});
-	}
-
-	private buildCompressionPromptBody(currentMemory: string, historyText: string): string {
-		const bounded = this.buildBoundedCompressionSections(currentMemory, historyText);
+	private buildCompressionPromptBody(currentMemory: string, historyText: string, llmOptions: Record<string, unknown>): string {
+		const bounded = this.buildBoundedCompressionSections(currentMemory, historyText, llmOptions);
 		return replaceTemplateVars(this.config.promptPack.memoryCompressionBodyPrompt, {
 			CURRENT_MEMORY: bounded.currentMemory,
 			CURRENT_PROJECT_MEMORY: bounded.currentProjectMemory,
@@ -2293,14 +2173,11 @@ export class MemoryCompressor {
 	}
 
 	private buildCompressionStaticPrompt(mode: MemoryCompressionDecisionMode): string {
-		const formatPrompt = mode === "xml"
-			? this.config.promptPack.memoryCompressionXmlPrompt
-			: this.config.promptPack.memoryCompressionToolCallingPrompt;
-		return `${this.config.promptPack.memoryCompressionSystemPrompt}
-
-${formatPrompt}
-
-${this.buildCompressionPromptBodyRaw("", "")}`;
+		const formatPrompt = mode === "xml" ? this.config.promptPack.memoryCompressionXmlPrompt : this.config.promptPack.memoryCompressionToolCallingPrompt;
+		const body = replaceTemplateVars(this.config.promptPack.memoryCompressionBodyPrompt, {
+			CURRENT_MEMORY: "", CURRENT_PROJECT_MEMORY: "", CURRENT_SESSION_SUMMARY: "", HISTORY_TEXT: "",
+		});
+		return `${this.config.promptPack.memoryCompressionSystemPrompt}\n\n${formatPrompt}\n\n${body}`;
 	}
 
 	private buildToolCallingCompressionSystemPrompt(): string {
@@ -2467,9 +2344,7 @@ export async function compactSessionMemoryScope(options: {
 	let lastConsolidatedIndex = persistedSession.lastConsolidatedIndex;
 	let carryMessageIndex = persistedSession.carryMessageIndex;
 	const llmOptions = buildMemoryLLMOptions(llmConfigRes.config, options.llmOptions);
-	let compressionRound = 0;
-	while (lastConsolidatedIndex < messages.length && compressionRound < compressor.getMaxCompressionRounds()) {
-		compressionRound += 1;
+	while (lastConsolidatedIndex < messages.length) {
 		const activeMessages: AgentConversationMessage[] = [];
 		if (
 			typeof carryMessageIndex === "number"
@@ -2532,12 +2407,6 @@ export async function compactSessionMemoryScope(options: {
 			carryMessageIndex = undefined;
 		}
 		storage.writeSessionState(messages, lastConsolidatedIndex, carryMessageIndex);
-	}
-	if (lastConsolidatedIndex < messages.length) {
-		return {
-			success: false,
-			message: `memory compaction stopped after ${tostring(compressor.getMaxCompressionRounds())} rounds`,
-		};
 	}
 	return { success: true, remainingMessages: 0 };
 }

@@ -1416,7 +1416,10 @@ export interface AgentProjectRootResponse {
 	message?: string;
 };
 
+export interface AgentPendingInput {id:number;content:string;delivery:"queue"|"steer";held:boolean;status:string}
+export interface AgentInputSubmission {delivery?:"queue"|"steer";requestId?:string;action?:"cancel"|"edit"|"steer"|"resume"|"hold"|"release";inputId?:number}
 export interface AgentSession {
+ pendingInputs?:AgentPendingInput[];
 	id: number;
 	projectRoot: string;
 	title: string;
@@ -1511,6 +1514,8 @@ export interface AgentTokenUsageMetric {
 };
 
 export interface AgentSessionMessage {
+ inputKind?:"steer";
+ afterStep?:number;
 	id: number;
 	sessionId: number;
 	taskId?: number;
@@ -1747,7 +1752,7 @@ export const agentSessionSetMode = (req: { sessionId: number; workMode: "code" |
 	}>("/agent/session/mode", req);
 };
 
-export const agentSessionSend = (req: { sessionId: number; prompt: string; llmConfigId: number; disabledAgentTools?: string[]; workMode?: "code" | "plan" }) => {
+export const agentSessionSend = (req: { sessionId: number; prompt: string; llmConfigId: number; disabledAgentTools?: string[]; workMode?: "code" | "plan"; submission?:AgentInputSubmission }) => {
 	return post<{
 		success: true;
 		sessionId: number;
@@ -1758,7 +1763,7 @@ export const agentSessionSend = (req: { sessionId: number; prompt: string; llmCo
 	}>("/agent/session/send", req);
 };
 
-export const agentSessionSendLocal = (req: {sessionId: number; prompt: string; localAgentConfigId: number}) => {
+export const agentSessionSendLocal = (req: {sessionId: number; prompt: string; localAgentConfigId: number;submission?:AgentInputSubmission}) => {
 	return post<{success: true; sessionId: number; taskId: number} | {success: false; message: string}>("/agent/session/send-local", req);
 };
 
@@ -1787,7 +1792,7 @@ export const agentSessionFinishHandoff = (req: { sessionId: number; llmConfigId:
 	}>("/agent/session/finish-handoff", req);
 };
 
-export const agentSessionResend = (req: { sessionId: number; messageId: number; prompt: string; llmConfigId: number; disabledAgentTools?: string[]; workMode?: "code" | "plan" }) => {
+export const agentSessionResend = (req: { sessionId: number; messageId: number; prompt: string; llmConfigId: number; disabledAgentTools?: string[]; workMode?: "code" | "plan"; submission?:AgentInputSubmission }) => {
 	return post<{
 		success: true;
 		sessionId: number;

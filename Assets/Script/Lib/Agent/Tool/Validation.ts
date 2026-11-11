@@ -227,11 +227,14 @@ export function validateAgentToolInput(tool: AgentToolName, input: Record<string
 		return { success: true, value };
 	}
 	if (tool === "analyze_image") {
+		if (!Array.isArray(value.paths)) {
+			return {success:false, message:'analyze_image paths must be a JSON array, e.g. ["preview.png"]; do not JSON-stringify the array'};
+		}
 		const imageExt = (path: string) => {
 			const ext = Path.getExt(path).toLowerCase();
 			return ext === "png" || ext === "jpg" || ext === "jpeg";
 		};
-		if (!Array.isArray(value.paths) || value.paths.length < 1 || value.paths.length > 3 || value.paths.some(item => typeof item !== "string" || item.trim() === "" || !isValidWorkspacePath(item.trim()) || !imageExt(item.trim()))) {
+		if (value.paths.length < 1 || value.paths.length > 3 || value.paths.some(item => typeof item !== "string" || item.trim() === "" || !isValidWorkspacePath(item.trim()) || !imageExt(item.trim()))) {
 			return {success:false, message:"analyze_image requires 1–3 project-relative PNG/JPEG image paths"};
 		}
 		value.paths = (value.paths as unknown[]).map(item => (item as string).trim());

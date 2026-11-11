@@ -112,7 +112,7 @@ export function createAgentWasmSource(module:AgentHostModule, sessionId:number, 
     },
     requestPrompt(prompt:string,options:AgentPromptOptions,llmConfig:Record<string,unknown>,requestId:string,signal:AbortSignal):Promise<number> {
       return new Promise((resolve,reject)=>{
-        if(closed||pending.size>=1||signal.aborted||!requestId||!/^[0-9a-f-]{36}$/i.test(requestId)||pending.has(requestId)||typeof prompt!=='string'||!prompt.trim()||prompt.length>5000||!isAgentPromptOptions(options)){reject(new Error('Agent prompt request unavailable'));return;}
+        if(closed||pending.size>=1||signal.aborted||!requestId||!/^[0-9a-f-]{36}$/i.test(requestId)||pending.has(requestId)||typeof prompt!=='string'||(!prompt.trim()&&!(isAgentPromptOptions(options)&&options.submission?.action))||prompt.length>5000||!isAgentPromptOptions(options)){reject(new Error('Agent prompt request unavailable'));return;}
         const cleanup=()=>{clearTimeout(timer);signal.removeEventListener('abort',abort);pending.delete(requestId);};
         const fail=(reason:unknown)=>{cleanup();reject(reason);};
         const abort=()=>fail(signal.reason??new DOMException('Aborted','AbortError'));
@@ -127,7 +127,7 @@ export function createAgentWasmSource(module:AgentHostModule, sessionId:number, 
           }catch(error){reject(error);}
         },fail});
         signal.addEventListener('abort',abort,{once:true});
-        try{module.ccall('dora_web_agent_request',null,['string'],[JSON.stringify({operation:'prompt',sessionId,requestId,prompt,workMode:options.workMode,disabledAgentTools:options.disabledAgentTools,llmConfig})]);}
+        try{module.ccall('dora_web_agent_request',null,['string'],[JSON.stringify({operation:'prompt',sessionId,requestId,prompt,workMode:options.workMode,disabledAgentTools:options.disabledAgentTools,submission:options.submission,llmConfig})]);}
         catch(error){fail(error);}
       });
     },

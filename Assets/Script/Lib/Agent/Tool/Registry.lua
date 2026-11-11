@@ -307,7 +307,7 @@ local AGENT_TOOL_DEFINITION_SOURCES = { -- 136
 			items = {type = "string"}, -- 331
 			minItems = 1, -- 331
 			required = true, -- 331
-			description = "Array of 1–3 project-relative PNG/JPEG image paths, such as previewGame captures under .agent/vision or any project image file. In XML, use JSON array text: <paths>[\".agent/vision/123-456.png\"]</paths>, even for one image." -- 331
+			description = "Array of 1–3 project-relative PNG/JPEG image paths, such as previewGame captures under .agent/vision or any project image file. Pass an actual JSON array, for example {\"paths\":[\".agent/vision/123-456.png\"],\"question\":\"Describe the visible scene.\"}. Do not JSON-stringify the paths array, even for one image." -- 331
 		}, {name = "question", type = "string", required = true, description = "Neutral, observation-first primary inspection focus (max 4000 characters). Ask about candidate uses separately from visible content and do not embed an unverified interpretation in the question. The vision model also scans the complete visible frame for up to five obvious additional issues, so combine related checks in one request instead of asking many narrow follow-ups."}, {name = "criteria", type = "string", description = "Optional visual acceptance criteria, max 4000 characters."}, {name = "context", type = "string", description = "Optional concise expected scene, interaction state, image timing, or recent behavior change summary (max 4000 characters). Do not paste full conversation history, source code, diffs, or tool logs."}}, -- 331
 		rules = { -- 336
 			"Only supported exact provider services enable this tool; it cannot choose another model or supplier.", -- 336

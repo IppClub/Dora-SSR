@@ -296,115 +296,118 @@ function ____exports.validateAgentToolInput(tool, input) -- 91
 		return {success = true, value = value} -- 227
 	end -- 227
 	if tool == "analyze_image" then -- 227
-		local function imageExt(path) -- 230
-			local ext = string.lower(Path:getExt(path)) -- 231
-			return ext == "png" or ext == "jpg" or ext == "jpeg" -- 232
-		end -- 230
-		if not __TS__ArrayIsArray(value.paths) or #value.paths < 1 or #value.paths > 3 or __TS__ArraySome( -- 230
-			value.paths, -- 234
-			function(____, item) return type(item) ~= "string" or __TS__StringTrim(item) == "" or not isValidWorkspacePath(__TS__StringTrim(item)) or not imageExt(__TS__StringTrim(item)) end -- 234
-		) then -- 234
-			return {success = false, message = "analyze_image requires 1–3 project-relative PNG/JPEG image paths"} -- 235
-		end -- 235
-		value.paths = __TS__ArrayMap( -- 237
+		if not __TS__ArrayIsArray(value.paths) then -- 227
+			return {success = false, message = "analyze_image paths must be a JSON array, e.g. [\"preview.png\"]; do not JSON-stringify the array"} -- 231
+		end -- 231
+		local function imageExt(path) -- 233
+			local ext = string.lower(Path:getExt(path)) -- 234
+			return ext == "png" or ext == "jpg" or ext == "jpeg" -- 235
+		end -- 233
+		if #value.paths < 1 or #value.paths > 3 or __TS__ArraySome( -- 233
 			value.paths, -- 237
-			function(____, item) return __TS__StringTrim(item) end -- 237
-		) -- 237
-		for ____, name in ipairs({"question", "criteria", "context"}) do -- 238
-			do -- 238
-				local text = value[name] -- 239
-				if (name == "criteria" or name == "context") and text == nil then -- 239
-					goto __continue76 -- 240
-				end -- 240
-				if type(text) ~= "string" or name == "question" and __TS__StringTrim(text) == "" then -- 240
-					return {success = false, message = name .. " must be valid text"} -- 241
-				end -- 241
-				local length = utf8.len(text) -- 242
-				if length == nil or length > 4000 then -- 242
-					return {success = false, message = name .. " must contain at most 4000 Unicode characters"} -- 243
+			function(____, item) return type(item) ~= "string" or __TS__StringTrim(item) == "" or not isValidWorkspacePath(__TS__StringTrim(item)) or not imageExt(__TS__StringTrim(item)) end -- 237
+		) then -- 237
+			return {success = false, message = "analyze_image requires 1–3 project-relative PNG/JPEG image paths"} -- 238
+		end -- 238
+		value.paths = __TS__ArrayMap( -- 240
+			value.paths, -- 240
+			function(____, item) return __TS__StringTrim(item) end -- 240
+		) -- 240
+		for ____, name in ipairs({"question", "criteria", "context"}) do -- 241
+			do -- 241
+				local text = value[name] -- 242
+				if (name == "criteria" or name == "context") and text == nil then -- 242
+					goto __continue77 -- 243
 				end -- 243
-			end -- 243
-			::__continue76:: -- 243
-		end -- 243
-		return {success = true, value = value} -- 245
-	end -- 245
-	if tool == "execute_command" then -- 245
-		local mode = type(value.mode) == "string" and __TS__StringTrim(value.mode) or "" -- 248
-		if mode ~= "lua" and mode ~= "git" then -- 248
-			return {success = false, message = "execute_command requires mode: lua or git"} -- 249
-		end -- 249
-		value.mode = mode -- 250
-		if mode == "lua" then -- 250
-			local code = type(value.code) == "string" and value.code or "" -- 252
-			if __TS__StringTrim(code) == "" then -- 252
-				return {success = false, message = "execute_command lua mode requires code"} -- 253
-			end -- 253
-			value.code = code -- 254
-		else -- 254
-			local command = type(value.command) == "string" and __TS__StringTrim(value.command) or "" -- 256
-			if command == "" then -- 256
-				return {success = false, message = "execute_command git mode requires command"} -- 257
-			end -- 257
-			value.command = command -- 258
-			if type(value.cwd) == "string" then -- 258
-				value.cwd = __TS__StringTrim(value.cwd) -- 259
-			end -- 259
-		end -- 259
-		value.timeoutSeconds = clampInteger(value.timeoutSeconds, mode == "lua" and 30 or 600, 1, mode == "lua" and 600 or 1800) -- 261
-		return {success = true, value = value} -- 262
-	end -- 262
-	if tool == "list_sub_agents" then -- 262
-		if type(value.status) == "string" and __TS__StringTrim(value.status) ~= "" then -- 262
-			value.status = __TS__StringTrim(value.status) -- 265
-		end -- 265
-		value.limit = clampInteger(value.limit, 5, 1) -- 266
-		value.offset = clampInteger(value.offset, 0, 0) -- 267
-		if type(value.query) == "string" then -- 267
-			value.query = __TS__StringTrim(value.query) -- 268
+				if type(text) ~= "string" or name == "question" and __TS__StringTrim(text) == "" then -- 243
+					return {success = false, message = name .. " must be valid text"} -- 244
+				end -- 244
+				local length = utf8.len(text) -- 245
+				if length == nil or length > 4000 then -- 245
+					return {success = false, message = name .. " must contain at most 4000 Unicode characters"} -- 246
+				end -- 246
+			end -- 246
+			::__continue77:: -- 246
+		end -- 246
+		return {success = true, value = value} -- 248
+	end -- 248
+	if tool == "execute_command" then -- 248
+		local mode = type(value.mode) == "string" and __TS__StringTrim(value.mode) or "" -- 251
+		if mode ~= "lua" and mode ~= "git" then -- 251
+			return {success = false, message = "execute_command requires mode: lua or git"} -- 252
+		end -- 252
+		value.mode = mode -- 253
+		if mode == "lua" then -- 253
+			local code = type(value.code) == "string" and value.code or "" -- 255
+			if __TS__StringTrim(code) == "" then -- 255
+				return {success = false, message = "execute_command lua mode requires code"} -- 256
+			end -- 256
+			value.code = code -- 257
+		else -- 257
+			local command = type(value.command) == "string" and __TS__StringTrim(value.command) or "" -- 259
+			if command == "" then -- 259
+				return {success = false, message = "execute_command git mode requires command"} -- 260
+			end -- 260
+			value.command = command -- 261
+			if type(value.cwd) == "string" then -- 261
+				value.cwd = __TS__StringTrim(value.cwd) -- 262
+			end -- 262
+		end -- 262
+		value.timeoutSeconds = clampInteger(value.timeoutSeconds, mode == "lua" and 30 or 600, 1, mode == "lua" and 600 or 1800) -- 264
+		return {success = true, value = value} -- 265
+	end -- 265
+	if tool == "list_sub_agents" then -- 265
+		if type(value.status) == "string" and __TS__StringTrim(value.status) ~= "" then -- 265
+			value.status = __TS__StringTrim(value.status) -- 268
 		end -- 268
-		return {success = true, value = value} -- 269
-	end -- 269
-	if tool == "spawn_sub_agent" then -- 269
-		local prompt = type(value.prompt) == "string" and __TS__StringTrim(value.prompt) or "" -- 272
-		local title = type(value.title) == "string" and __TS__StringTrim(value.title) or "" -- 273
-		if prompt == "" then -- 273
-			return {success = false, message = "spawn_sub_agent requires prompt"} -- 274
-		end -- 274
-		if title == "" then -- 274
-			return {success = false, message = "spawn_sub_agent requires title"} -- 275
-		end -- 275
-		value.prompt = prompt -- 276
-		value.title = title -- 277
-		if type(value.expectedOutput) == "string" then -- 277
-			value.expectedOutput = __TS__StringTrim(value.expectedOutput) -- 278
+		value.limit = clampInteger(value.limit, 5, 1) -- 269
+		value.offset = clampInteger(value.offset, 0, 0) -- 270
+		if type(value.query) == "string" then -- 270
+			value.query = __TS__StringTrim(value.query) -- 271
+		end -- 271
+		return {success = true, value = value} -- 272
+	end -- 272
+	if tool == "spawn_sub_agent" then -- 272
+		local prompt = type(value.prompt) == "string" and __TS__StringTrim(value.prompt) or "" -- 275
+		local title = type(value.title) == "string" and __TS__StringTrim(value.title) or "" -- 276
+		if prompt == "" then -- 276
+			return {success = false, message = "spawn_sub_agent requires prompt"} -- 277
+		end -- 277
+		if title == "" then -- 277
+			return {success = false, message = "spawn_sub_agent requires title"} -- 278
 		end -- 278
-		if __TS__ArrayIsArray(value.filesHint) then -- 278
-			value.filesHint = __TS__ArrayMap( -- 280
-				__TS__ArrayFilter( -- 280
-					value.filesHint, -- 280
-					function(____, item) return type(item) == "string" end -- 280
-				), -- 280
-				function(____, item) return AgentUtils.sanitizeUTF8(item) end -- 280
-			) -- 280
-		end -- 280
-		return {success = true, value = value} -- 282
-	end -- 282
-	return {success = true, value = value} -- 284
+		value.prompt = prompt -- 279
+		value.title = title -- 280
+		if type(value.expectedOutput) == "string" then -- 280
+			value.expectedOutput = __TS__StringTrim(value.expectedOutput) -- 281
+		end -- 281
+		if __TS__ArrayIsArray(value.filesHint) then -- 281
+			value.filesHint = __TS__ArrayMap( -- 283
+				__TS__ArrayFilter( -- 283
+					value.filesHint, -- 283
+					function(____, item) return type(item) == "string" end -- 283
+				), -- 283
+				function(____, item) return AgentUtils.sanitizeUTF8(item) end -- 283
+			) -- 283
+		end -- 283
+		return {success = true, value = value} -- 285
+	end -- 285
+	return {success = true, value = value} -- 287
 end -- 91
-____exports.AGENT_TOOL_VALIDATORS = { -- 287
-	read_file = function(value) return ____exports.validateAgentToolInput("read_file", value) end, -- 288
-	edit_file = function(value) return ____exports.validateAgentToolInput("edit_file", value) end, -- 289
-	delete_file = function(value) return ____exports.validateAgentToolInput("delete_file", value) end, -- 290
-	grep_files = function(value) return ____exports.validateAgentToolInput("grep_files", value) end, -- 291
-	search_dora_doc = function(value) return ____exports.validateAgentToolInput("search_dora_doc", value) end, -- 292
-	glob_files = function(value) return ____exports.validateAgentToolInput("glob_files", value) end, -- 293
-	build = function(value) return ____exports.validateAgentToolInput("build", value) end, -- 294
-	fetch_url = function(value) return ____exports.validateAgentToolInput("fetch_url", value) end, -- 295
-	analyze_image = function(value) return ____exports.validateAgentToolInput("analyze_image", value) end, -- 296
-	execute_command = function(value) return ____exports.validateAgentToolInput("execute_command", value) end, -- 297
-	list_sub_agents = function(value) return ____exports.validateAgentToolInput("list_sub_agents", value) end, -- 298
-	spawn_sub_agent = function(value) return ____exports.validateAgentToolInput("spawn_sub_agent", value) end, -- 299
-	ask_user = function(value) return ____exports.validateAgentToolInput("ask_user", value) end, -- 300
-	finish = function(value) return ____exports.validateAgentToolInput("finish", value) end -- 301
-} -- 301
-return ____exports -- 301
+____exports.AGENT_TOOL_VALIDATORS = { -- 290
+	read_file = function(value) return ____exports.validateAgentToolInput("read_file", value) end, -- 291
+	edit_file = function(value) return ____exports.validateAgentToolInput("edit_file", value) end, -- 292
+	delete_file = function(value) return ____exports.validateAgentToolInput("delete_file", value) end, -- 293
+	grep_files = function(value) return ____exports.validateAgentToolInput("grep_files", value) end, -- 294
+	search_dora_doc = function(value) return ____exports.validateAgentToolInput("search_dora_doc", value) end, -- 295
+	glob_files = function(value) return ____exports.validateAgentToolInput("glob_files", value) end, -- 296
+	build = function(value) return ____exports.validateAgentToolInput("build", value) end, -- 297
+	fetch_url = function(value) return ____exports.validateAgentToolInput("fetch_url", value) end, -- 298
+	analyze_image = function(value) return ____exports.validateAgentToolInput("analyze_image", value) end, -- 299
+	execute_command = function(value) return ____exports.validateAgentToolInput("execute_command", value) end, -- 300
+	list_sub_agents = function(value) return ____exports.validateAgentToolInput("list_sub_agents", value) end, -- 301
+	spawn_sub_agent = function(value) return ____exports.validateAgentToolInput("spawn_sub_agent", value) end, -- 302
+	ask_user = function(value) return ____exports.validateAgentToolInput("ask_user", value) end, -- 303
+	finish = function(value) return ____exports.validateAgentToolInput("finish", value) end -- 304
+} -- 304
+return ____exports -- 304

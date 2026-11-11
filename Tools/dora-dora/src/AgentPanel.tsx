@@ -577,7 +577,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 	const lastStep = steps[steps.length - 1];
 	const latestUserMessageId = useMemo(() => {
 		for (let i = messages.length - 1; i >= 0; i--) {
-			if (messages[i].role === "user") {
+			if (messages[i].role === "user" && messages[i].inputKind !== "steer") {
 				return messages[i].id;
 			}
 		}
@@ -686,7 +686,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 		}
 		return {
 			historyMessages: messages.filter(message => message.taskId !== activeTaskId),
-			currentPromptMessages: messages.filter(message => message.taskId === activeTaskId && message.role === "user"),
+			currentPromptMessages: messages.filter(message => message.taskId === activeTaskId && message.role === "user" && message.inputKind !== "steer"),
 			currentSummaryMessages: messages.filter(message => message.taskId === activeTaskId && message.role === "assistant"),
 		};
 	}, [activeTaskId, messages]);
@@ -878,8 +878,8 @@ export default function AgentPanel(props: AgentPanelProps) {
 		return true;
 	}, [addAlert, projectRoot, t]);
 
-	const sendPromptText = React.useCallback(async (text: string, targetSessionId = selectedSessionId, requestedWorkMode = workMode) => {
-		if (text === "" || loading || continueLoadingTaskId !== null) return;
+	const sendPromptText = React.useCallback(async (text: string, targetSessionId = selectedSessionId, requestedWorkMode = workMode, submission?: Service.AgentInputSubmission) => {
+		if ((!text && !submission?.action) || loading || continueLoadingTaskId !== null) return;
 		setLoading(true);
 		try {
 			const backendId = selectedBackendIdRef.current;
@@ -893,8 +893,8 @@ export default function AgentPanel(props: AgentPanelProps) {
 				return;
 			}
 			const res = localId !== undefined
-				? await Service.agentSessionSendLocal({sessionId: targetSessionId, prompt: text, localAgentConfigId: localId})
-				: await Service.agentSessionSend({sessionId: targetSessionId, prompt: text, llmConfigId: llmConfigId!, disabledAgentTools, workMode: requestedWorkMode});
+				? await Service.agentSessionSendLocal({sessionId: targetSessionId, prompt: text, localAgentConfigId: localId, submission})
+				: await Service.agentSessionSend({sessionId: targetSessionId, prompt: text, llmConfigId: llmConfigId!, disabledAgentTools, workMode: requestedWorkMode, submission});
 			if (!res.success) {
 				if (res.message.includes("LLM config")) {
 					setLLMConfigMissing(true);
@@ -905,7 +905,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 				return;
 			}
 			setLLMConfigMissing(false);
-			setPrompt("");
+			if (!submission?.action) setPrompt(current=>current.trim()===text?"":current);
 			await refresh(true, targetSessionId);
 			return true;
 		} finally {
@@ -1036,9 +1036,9 @@ export default function AgentPanel(props: AgentPanelProps) {
 		await sendPromptText(t("agent.plan.startPrompt"), selectedSessionId, "code");
 	}, [addAlert, loading, selectedSessionId, sendPromptText, session?.currentTaskStatus, t]);
 
-	const onSend = async () => {
+	const onSend = async (delivery?: "queue"|"steer") => {
 		const text = prompt.trim();
-		await sendPromptText(text, selectedSessionId);
+		await sendPromptText(text, selectedSessionId, workMode, {delivery,requestId:crypto.randomUUID()});
 	};
 
 	useEffect(() => {
@@ -1458,7 +1458,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 								<AgentMessageList
 									messages={visibleHistoryMessages}
 									editableMessageId={localBackendSelected ? undefined : latestUserMessageId}
-									editDisabled={loading || continueLoadingTaskId !== null || session?.currentTaskStatus === "RUNNING"}
+									editDisabled={loading || continueLoadingTaskId !== null || session?.currentTaskStatus === "RUNNING" || (session?.pendingInputs?.length??0)>0}
 									onResendPrompt={resendPromptText}
 								/>
 							</Box>
@@ -1468,7 +1468,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 								<AgentMessageList
 									messages={messageGroups.currentPromptMessages}
 									editableMessageId={localBackendSelected ? undefined : latestUserMessageId}
-									editDisabled={loading || continueLoadingTaskId !== null || session?.currentTaskStatus === "RUNNING"}
+									editDisabled={loading || continueLoadingTaskId !== null || session?.currentTaskStatus === "RUNNING" || (session?.pendingInputs?.length??0)>0}
 									onResendPrompt={resendPromptText}
 								/>
 							</Box>
@@ -1499,6 +1499,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 								) : null}
 								<AgentStepList
 									steps={currentStepWindow.items}
+                                    steeringMessages={messages.filter(message=>message.taskId===session?.currentTaskId&&message.inputKind==='steer')}
 									checkpointMap={checkpointMap}
 									diffs={diffs}
 									taskDiffs={taskDiffs}
@@ -1718,7 +1719,9 @@ export default function AgentPanel(props: AgentPanelProps) {
 					llmConfigs={backendChoices}
 					llmConfigId={selectedBackendId || undefined}
 					onPromptChange={setPrompt}
-					onSend={() => void onSend()}
+                    pendingInputs={session?.pendingInputs??[]} canSteer={!localBackendSelected}
+                    onInputAction={async(command,content)=>{const accepted=await sendPromptText(content??"",selectedSessionId,workMode,{...command,requestId:crypto.randomUUID()});if(!accepted)throw new Error("队列操作未完成，请刷新后重试");}}
+					onSend={delivery => void onSend(delivery)}
 					onStop={() => void onStop()}
 					onNewSession={localBackendSelected ? () => void newLocalSession() : undefined}
 					onFetchUrlEnabledChange={session?.kind === "main" && !localBackendSelected ? setFetchUrlEnabled : undefined}

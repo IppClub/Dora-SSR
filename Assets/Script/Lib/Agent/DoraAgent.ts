@@ -104,7 +104,14 @@ export type {
 	AgentCompletionReport,
 } from 'Agent/Utils';
 
+export interface AgentSteeringInput {id: number; content: string}
+export interface AgentInputSource {
+ pending: (this: void) => AgentSteeringInput[];
+ delivered: (this: void, inputId: number, step: number) => void;
+}
 export interface CodingAgentRunOptions {
+ inputId?: number;
+ inputSource?: AgentInputSource;
 	prompt: string;
 	resumeConversation?: boolean;
 	resumeTask?: boolean;
@@ -407,6 +414,7 @@ interface AgentFileContextItem {
 }
 
 interface AgentShared {
+ inputSource?: AgentInputSource;
 	sessionId?: number;
 	taskId: number;
 	role: AgentRole;
@@ -889,9 +897,8 @@ async function maybeCompressHistory(
 	pendingUserPrompt = ""
 ): Promise<void> {
 	const { memory } = shared;
-	const maxRounds = memory.compressor.getMaxCompressionRounds();
-	let changed = false;
-	for (let round = 0; round < maxRounds; round++) {
+	let compressionRound = 0;
+	while (true) {
 		const systemPrompt = buildAgentSystemPrompt(shared);
 		const normalizedActiveMessages = sanitizeMessagesForLLMInput(getActiveConversationMessages(shared));
 		const decisionActiveMessages = projectMessagesForLLMContext(normalizedActiveMessages);
@@ -930,15 +937,11 @@ async function maybeCompressHistory(
 		const fitted = AgentUtils.fitMessagesToContext(triggerMessages, triggerOptions, shared.llmConfig);
 		// Trigger at 100% of the exact effective input budget used by the normal
 		// request path. The compression payload below remains independently projected.
-		const thresholdReached = getActiveRealMessageCount(shared) > 0
-			&& fitted.originalTokens >= fitted.budgetTokens;
-		if (!thresholdReached) {
-			if (changed) {
-				persistHistoryState(shared);
-			}
-			return;
+		if (fitted.originalTokens < fitted.budgetTokens) return;
+		if (getActiveRealMessageCount(shared) <= 0 || fitted.budgetTokens <= 0) {
+			throw new Error("The current instructions and configured output limit leave insufficient context space. Reduce the output limit or shorten the instructions; history was preserved.");
 		}
-		const compressionRound = round + 1;
+		compressionRound += 1;
 		AgentUtils.Log("Info", `[Memory] Effective input budget reached tokens=${fitted.originalTokens} budget=${fitted.budgetTokens} round=${compressionRound}`);
 		shared.step += 1;
 		const stepId = shared.step;
@@ -952,7 +955,7 @@ async function maybeCompressHistory(
 			reason: getMemoryCompressionStartReason(shared),
 			params: {
 				round: compressionRound,
-				maxRounds,
+				maxRounds: 0,
 				pendingMessages,
 				coveredThroughIndex: shared.lastConsolidatedIndex,
 				uncoveredMessages: uncoveredMessages.length,
@@ -966,6 +969,7 @@ async function maybeCompressHistory(
 			shared.llmMaxTry,
 			"tool_calling",
 			{
+				targetTokens: math.max(1, fitted.originalTokens - math.floor(fitted.budgetTokens * 0.5)),
 				stopToken: shared.stopToken,
 				onInput: (phase, messages, options) => {
 					saveStepLLMDebugInput(shared, stepId, phase, messages, options);
@@ -1000,20 +1004,14 @@ async function maybeCompressHistory(
 					compressedCount: result?.compressedCount ?? 0,
 				},
 			});
-			if (changed) {
-				persistHistoryState(shared);
-			}
-			return;
+			throw new Error(result?.error ?? "Memory compression could not make progress; history was preserved.");
 		}
 		const effectiveCompressedCount = math.max(
 			0,
 			result.compressedCount - (typeof shared.carryMessageIndex === "number" ? 1 : 0)
 		);
 		if (effectiveCompressedCount <= 0) {
-			if (changed) {
-				persistHistoryState(shared);
-			}
-			return;
+			throw new Error("Memory compression covered only the carried instruction and could not reduce the active history.");
 		}
 		emitAgentEvent(shared, {
 			type: "memory_compression_finished",
@@ -1036,11 +1034,14 @@ async function maybeCompressHistory(
 			},
 		});
 		applyCompressedSessionState(shared, result.compressedCount, result.carryMessageIndex, result.sessionSummaryUpdate);
-		changed = true;
-		AgentUtils.Log("Info", `[Memory] Compressed ${effectiveCompressedCount} messages (round ${compressionRound})`);
-	}
-	if (changed) {
 		persistHistoryState(shared);
+		const nextMessages = buildDecisionMessages(shared, undefined, 1, undefined, false,
+			includePendingUserPrompt ? pendingUserPrompt : "");
+		const nextFit = AgentUtils.fitMessagesToContext(nextMessages, triggerOptions, shared.llmConfig);
+		AgentUtils.Log("Info", `[Memory] Compressed ${effectiveCompressedCount} messages (round ${compressionRound}) tokens=${fitted.originalTokens}->${nextFit.originalTokens}`);
+		if (nextFit.originalTokens >= nextFit.budgetTokens && nextFit.originalTokens >= fitted.originalTokens) {
+			throw new Error("Memory compression did not reduce the effective request size. The remaining instructions or memory exceed the context budget; task paused.");
+		}
 	}
 }
 
@@ -1520,9 +1521,9 @@ function buildSkillsSection(shared: AgentShared): string {
 
 
 function getUnconsolidatedMessages(shared: AgentShared): Message[] {
-	return projectMessagesForLLMContext(
-		sanitizeMessagesForLLMInput(getActiveConversationMessages(shared))
-	);
+	// Covered steering input is in the session summary. Retain only the carried
+	// task instruction and the uncompressed tail, so compaction can reclaim space.
+	return projectMessagesForLLMContext(sanitizeMessagesForLLMInput(getActiveConversationMessages(shared)));
 }
 
 function isFinalDecisionTurn(shared: AgentShared): boolean {
@@ -1601,13 +1602,29 @@ function buildDecisionMessages(
 	return messages;
 }
 
+function consumePendingSteering(shared: AgentShared): number {
+ if (shared.stopToken.stopped || !shared.inputSource || shared.agentStepCount >= shared.maxSteps - 1) return 0;
+ const inputs = shared.inputSource.pending();
+ for (const input of inputs) {
+  if (!shared.messages.some(message => message.inputId === input.id)) {
+   appendConversationMessage(shared, {role: "user",content: input.content,inputKind: "steer",inputId: input.id,taskId: shared.taskId,afterStep:shared.step});
+  }
+  // Durable history is committed before acknowledging consumption to the inbox/UI.
+  persistHistoryState(shared);
+  shared.inputSource.delivered(input.id,shared.step);
+ }
+ return inputs.length;
+}
+
 class MainDecisionAgent extends Node<AgentShared> {
 	async prep(shared: AgentShared): Promise<{ shared: AgentShared }> {
 		if (shared.stopToken.stopped || shared.agentStepCount >= shared.maxSteps) {
 			return { shared };
 		}
 
+		consumePendingSteering(shared);
 		await maybeCompressHistory(shared);
+		consumePendingSteering(shared);
 
 		return { shared };
 	}
@@ -1878,6 +1895,17 @@ class MainDecisionAgent extends Node<AgentShared> {
 			persistHistoryState(shared);
 			return "main";
 		}
+		if (isDecisionPlainTextCompletion(result) && shared.inputSource && shared.agentStepCount < shared.maxSteps - 1) {
+   if (shared.inputSource.pending().length > 0) {
+    appendConversationMessage(shared,{role:"assistant",content:result.content,reasoning_content:result.reasoningContent});
+    shared.agentStepCount += 1;
+    shared.step += 1;
+    emitAssistantMessageFinished(shared,shared.step,result.content,result.reasoningContent);
+    consumePendingSteering(shared);
+    persistHistoryState(shared);
+    return "main";
+   }
+  }
 		if (isDecisionPlainTextCompletion(result)) {
 			shared.response = result.content;
 			const budgetState = getPlainTextCompletionBudgetState(shared.agentStepCount, shared.maxSteps);
@@ -2502,7 +2530,7 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 	if (options.resumeConversation === true && normalizedPrompt.trim() === "") {
 		for (let i = persistedSession.messages.length - 1; i >= 0; i--) {
 			const message = persistedSession.messages[i];
-			if (message.role === "user" && typeof message.content === "string" && message.content.trim() !== "") {
+			if (message.role === "user" && message.inputKind !== "steer" && typeof message.content === "string" && message.content.trim() !== "") {
 				effectiveUserQuery = message.content;
 				break;
 			}
@@ -2514,6 +2542,7 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 	const freshProjectCodeFile = freshProject.codeFile;
 
 	const shared: AgentShared = {
+		inputSource: options.inputSource,
 		sessionId: options.sessionId,
 		taskId: taskRes.taskId,
 		role: options.role ?? "main",
@@ -2614,8 +2643,10 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 			appendConversationMessage(shared, {
 				role: "user",
 				content: normalizedPrompt,
+    inputKind: "prompt",inputId: options.inputId,taskId: shared.taskId,
 			});
 			persistHistoryState(shared);
+   if (options.inputId !== undefined) shared.inputSource?.delivered(options.inputId,0);
 		}
 		const flow = new CodingAgentFlow(shared.role);
 		await flow.run(shared);

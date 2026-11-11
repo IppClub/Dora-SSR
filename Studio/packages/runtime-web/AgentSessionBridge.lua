@@ -161,7 +161,7 @@ function exports.open(sessionId)
 			return
 		end
 		if request.operation == "prompt" then
-			assert(type(request.prompt) == "string" and #request.prompt > 0 and #request.prompt <= 5000, "Invalid Studio Agent prompt")
+			assert(type(request.prompt) == "string" and (#request.prompt > 0 or type(request.submission) == "table") and #request.prompt <= 5000, "Invalid Studio Agent prompt")
 			assert(request.workMode == "code" or request.workMode == "plan", "Invalid Studio Agent work mode")
 			assert(type(request.disabledAgentTools) == "table" and #request.disabledAgentTools <= 2, "Invalid Studio Agent tool settings")
 			local disabledSeen = {}
@@ -177,7 +177,7 @@ function exports.open(sessionId)
 			local previous = promptReceipts[request.requestId]
 			if previous then
 				assert(previous.kind == "prompt" and previous.prompt == request.prompt and previous.url == config.url
-					and previous.workMode == request.workMode and previous.disabledKey == Utils.safeJsonEncode(request.disabledAgentTools), "Studio Agent prompt request was rebound")
+					and previous.submissionKey == Utils.safeJsonEncode(request.submission or {}) and previous.workMode == request.workMode and previous.disabledKey == Utils.safeJsonEncode(request.disabledAgentTools), "Studio Agent prompt request was rebound")
 				send("command", Utils.safeJsonEncode(previous.result), 0, request.requestId)
 				return
 			end
@@ -185,11 +185,14 @@ function exports.open(sessionId)
 			-- Restart/uncertain acknowledgement still requires session inspection.
 			local disabledKey = Utils.safeJsonEncode(request.disabledAgentTools)
 			assert(type(disabledKey) == "string", "Invalid Studio Agent tool settings")
-			promptReceipts[request.requestId] = {kind = "prompt", prompt = request.prompt, url = config.url, workMode = request.workMode, disabledKey = disabledKey, result = {success = false, message = "prompt acknowledgement pending; inspect session"}}
+			promptReceipts[request.requestId] = {kind = "prompt", prompt = request.prompt, url = config.url, submissionKey = Utils.safeJsonEncode(request.submission or {}), workMode = request.workMode, disabledKey = disabledKey, result = {success = false, message = "prompt acknowledgement pending; inspect session"}}
 			-- Keep Studio's task budget explicit instead of inheriting a mutable
 			-- global default. A prompt may build, repair and validate repeatedly
 			-- without forcing the user into artificial continuation rounds.
-			local result = Session.sendPrompt(sessionId, request.prompt, request.disabledAgentTools, request.workMode, nil, config, STUDIO_AGENT_MAX_STEPS)
+			local submission = request.submission or {}
+            assert(type(submission) == "table", "Invalid input submission")
+            submission.requestId = request.requestId
+            local result = Session.sendPrompt(sessionId, request.prompt, request.disabledAgentTools, request.workMode, nil, config, STUDIO_AGENT_MAX_STEPS, submission)
 			promptReceipts[request.requestId].result = result
 			send("command", Utils.safeJsonEncode(result), 0, request.requestId)
 			return

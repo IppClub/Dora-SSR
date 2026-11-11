@@ -23,6 +23,8 @@ import {
 	getSessionOperableTaskIds,
 	requireAgentStorage,
 } from 'Agent/Storage/Database';
+import * as InputInbox from 'Agent/Runtime/InputInbox';
+import type { InputSubmission } from 'Agent/Runtime/InputInbox';
 import { DualLayerStorage } from 'Agent/Runtime/Memory';
 import { Log, getLLMConfig, normalizeAgentCompletionReport, safeJsonDecode, safeJsonEncode, sanitizeUTF8, validateAgentLLMConfig } from 'Agent/Utils';
 import type { LLMConfig, StopToken } from 'Agent/Utils';
@@ -37,7 +39,9 @@ export type AgentSessionKind = "main" | "sub";
 export type AgentMessageRole = "user" | "assistant";
 export type AgentStepStatus = "PENDING" | "RUNNING" | "DONE" | "FAILED" | "STOPPED";
 
+export interface AgentPendingInputItem {id: number; content: string; delivery: "queue" | "steer"; held: boolean; status: string}
 export interface AgentSessionItem {
+ pendingInputs?: AgentPendingInputItem[];
 	id: number;
 	projectRoot: string;
 	title: string;
@@ -72,6 +76,8 @@ export interface AgentSessionMessageItem {
 	role: AgentMessageRole;
 	content: string;
 	displayContent?: string;
+ inputKind?: "steer";
+ afterStep?: number;
 	createdAt: number;
 	updatedAt: number;
 }
@@ -332,6 +338,145 @@ interface PendingSubAgentHandoffItem {
 }
 
 const activeStopTokens: Record<number, StopToken> = {};
+// Keep the input controller in one table: this module is close to Lua's 200-local limit.
+// Pending bindings are process-local; the durable inbox never contains model credentials.
+const followup = {
+	activeRuns: {} as Record<number, number>,
+	pendingWakes: 0 as number,
+	configs: {} as Record<number, LLMConfig>,
+	recovered: {} as Record<number, boolean>,
+	bindings: {} as Record<number, {llmConfig?: LLMConfig; llmConfigId?: unknown; localAgentConfigId?: number}>,
+	publish: undefined as unknown as (this:void,sessionId: number)=>void,
+	recover: undefined as unknown as (this:void,session: AgentSessionItem)=>void,
+	delivered: undefined as unknown as (this:void,sessionId: number,taskId: number,inputId: number,step: number)=>void,
+	dispatch: undefined as unknown as (this:void,sessionId: number)=>AgentSessionSendResult | undefined,
+	settle: undefined as unknown as (this:void,sessionId: number,taskId: number,succeeded: boolean)=>void,
+	submit: undefined as unknown as (this:void,sessionId: number,prompt: string,options: Record<string,unknown>,binding: {llmConfig?: LLMConfig;llmConfigId?: unknown;localAgentConfigId?: number},submission?: InputSubmission)=>AgentSessionSendResult
+};
+
+// Model bindings live only in the running host. Credentials and grant URLs never enter the inbox.
+
+followup.publish = (sessionId: number):void => {
+	emitAgentSessionPatch(sessionId,{session:getSessionItem(sessionId)});
+};
+followup.recover = (session: AgentSessionItem):void => {
+	if (followup.recovered[session.id] || followup.activeRuns[session.id]) return;
+	followup.recovered[session.id] = true;
+	const storage = new DualLayerStorage(session.projectRoot,session.memoryScope);
+	const history = storage.readSessionState().messages;
+	for (const input of InputInbox.listInputs(session.id)) {
+		const message = history.find(item => item.inputId === input.id);
+		if (message) followup.delivered(session.id,message.taskId ?? session.currentTaskId ?? 0,input.id,message.afterStep ?? 0);
+	}
+	InputInbox.recoverInputs(session.id);
+};
+followup.delivered = (sessionId: number,taskId: number,inputId: number,step: number):void => {
+	const input = InputInbox.getInput(sessionId,inputId);
+	if (!input || input.status === "delivered") return;
+	const receipt = queryOne("SELECT message_id FROM agent.AgentSessionInput WHERE id=?",[inputId]);
+	let messageId = typeof receipt?.[0] === "number" && receipt[0] > 0 ? receipt[0] : undefined;
+	if (!messageId) {
+		if (!DB.transaction([
+			[`INSERT INTO ${TABLE_MESSAGE}(session_id,task_id,role,content,display_content,created_at,updated_at) VALUES(?,?,'user',?,'',?,?)`,[[sessionId,taskId,input.content,now(),now()]]],
+			["UPDATE agent.AgentSessionInput SET message_id=last_insert_rowid(),delivered_step=?,status='delivered' WHERE id=?",[[step,inputId]]],
+		])) throw new Error("failed to commit input display");
+		const saved = queryOne("SELECT message_id FROM agent.AgentSessionInput WHERE id=?",[inputId]);
+		messageId = saved?.[0] as number;
+	} else InputInbox.markDelivered(inputId,messageId,step);
+	delete followup.configs[inputId];
+	emitAgentSessionPatch(sessionId,{session:getSessionItem(sessionId),message:getMessageItem(messageId)});
+};
+followup.dispatch = (sessionId: number):AgentSessionSendResult | undefined => {
+	const session = getSessionItem(sessionId);
+	if (!session || followup.activeRuns[sessionId] || session.currentTaskFinalizing || getPendingQuestionnaire(sessionId)
+		|| isProjectTaskAdmissionClosed(session.projectRoot) || session.currentTaskStatus === "RUNNING") return undefined;
+	const input = InputInbox.listInputs(sessionId)[0];
+	if (!input) {delete followup.bindings[sessionId];return undefined;}
+	if (input.held || input.status !== "pending") return undefined;
+	const binding = followup.bindings[sessionId];
+	if (!binding) {InputInbox.holdInputs(sessionId);followup.publish(sessionId);return undefined;}
+	const options = input.options;
+	let result: AgentSessionSendResult;
+	if (typeof options.localAgentConfigId === "number") {
+		result = startLocalPrompt(sessionId,input.content,options.localAgentConfigId,input.id);
+	} else {
+		result = startImmediatePrompt(sessionId,input.content,options.disabledAgentTools,options.workMode,
+			options.llmConfigId ?? binding.llmConfigId,followup.configs[input.id] ?? binding.llmConfig,options.maxSteps,input.id);
+	}
+	if (!result.success) {InputInbox.holdInputs(sessionId);followup.publish(sessionId);}
+	return result;
+};
+followup.settle = (sessionId: number,taskId: number,succeeded: boolean):void => {
+	if (followup.activeRuns[sessionId] !== taskId) return;
+	delete followup.activeRuns[sessionId];
+	if (!succeeded) InputInbox.holdInputs(sessionId);
+	else {
+		// Guides left at a step limit become queued follow-ups; they are never lost.
+		DB.exec("UPDATE agent.AgentSessionInput SET delivery='queue' WHERE session_id=? AND status='pending'",[sessionId]);
+	}
+	followup.publish(sessionId);
+	if (succeeded) {
+		followup.pendingWakes++;
+		Director.systemScheduler.schedule(()=>{try{followup.dispatch(sessionId);}finally{followup.pendingWakes--;}return true;});
+	}
+};
+export function sendPrompt(sessionId: number, prompt: string, disabledAgentTools?: unknown, workMode?: unknown,
+	llmConfigId?: unknown, llmConfig?: LLMConfig, maxSteps?: unknown, submission?: InputSubmission): AgentSessionSendResult {
+	return followup.submit(sessionId,prompt,{disabledAgentTools,workMode,llmConfigId,maxSteps},
+		{llmConfig,llmConfigId},submission);
+}
+export function sendLocalPrompt(sessionId: number, prompt: string, localAgentConfigId: unknown, submission?: InputSubmission): AgentSessionSendResult {
+	if (getSessionItem(sessionId)?.kind !== "main") return {success:false,message:"local Agent only supports main sessions"};
+	const id = tonumber(localAgentConfigId);
+	if (!id) return {success:false,message:"invalid local Agent config"};
+	return followup.submit(sessionId,prompt,{localAgentConfigId:id},{localAgentConfigId:id},submission);
+}
+followup.submit = (sessionId: number,prompt: string,options: Record<string,unknown>,binding: {llmConfig?: LLMConfig;llmConfigId?: unknown;localAgentConfigId?: number},submission?: InputSubmission):AgentSessionSendResult => {
+	if (submission !== undefined && typeof submission !== "object") return {success:false,message:"invalid input submission"};
+	const session = getSessionItem(sessionId);
+	if (!session) return {success:false,message:"session not found"};
+	if (isProjectTaskAdmissionClosed(session.projectRoot)) return {success:false,message:"project task admission is closed"};
+	if (session.kind !== "main") return startImmediatePrompt(sessionId,prompt,options.disabledAgentTools,options.workMode,options.llmConfigId,binding.llmConfig,options.maxSteps);
+	if (submission?.delivery !== undefined && submission.delivery !== "steer" && submission.delivery !== "queue") return {success:false,message:"invalid input delivery"};
+	if (submission?.requestId !== undefined && (typeof submission.requestId !== "string" || submission.requestId.length > 128 || submission.requestId === "")) return {success:false,message:"invalid input request ID"};
+	try {
+		followup.recover(session);
+		followup.bindings[sessionId] = binding;
+		if (submission?.action) {
+			if (submission.action === "resume" && binding.llmConfig) {
+				for (const item of InputInbox.listInputs(sessionId)) followup.configs[item.id] = binding.llmConfig;
+			}
+			InputInbox.mutateInput(sessionId,submission,normalizePromptTextSafe(prompt));
+			if (submission.action === "cancel" && submission.inputId !== undefined) delete followup.configs[submission.inputId];
+			followup.publish(sessionId);
+			const next = followup.dispatch(sessionId);
+			return next ?? {success:true,sessionId,taskId:session.currentTaskId ?? 0};
+		}
+		if (getPendingQuestionnaire(sessionId)) return {success:false,message:"complete the pending questionnaire before sending another prompt"};
+		if (binding.localAgentConfigId !== undefined) {
+			const config = LocalAgent.getConfig(binding.localAgentConfigId);
+			if (!config?.verifiedAt) return {success:false,message:"local Agent config is not verified"};
+		} else {
+			const resolved = binding.llmConfig ? {success:true as const,config:binding.llmConfig} : getLLMConfig(binding.llmConfigId);
+			if (!resolved.success) return {success:false,message:resolved.message};
+			const valid = validateAgentLLMConfig(resolved.config);
+			if (!valid.success) return valid;
+		}
+		const content = normalizePromptTextSafe(prompt);
+		if (content === "") return {success:false,message:"prompt is empty"};
+		const requestId = submission?.requestId ?? `input-${sessionId}-${os.time()}-${math.random(1,1000000000)}`;
+		const isActive = followup.activeRuns[sessionId] !== undefined && !activeStopTokens[session.currentTaskId ?? -1]?.stopped;
+		const delivery = content !== "/clear" && content !== "/compact" && isActive && !binding.localAgentConfigId && submission?.delivery === "steer" ? "steer" : "queue";
+		const wasPaused = InputInbox.listInputs(sessionId).some(item=>item.held);
+		const input = InputInbox.admitInput(sessionId,content,delivery,requestId,options,delivery === "steer" ? session.currentTaskId : undefined);
+		if (wasPaused && delivery === "queue") InputInbox.holdInputs(sessionId);
+		followup.publish(sessionId);
+		if (input.status === "delivered" || input.status === "cancelled") return {success:true,sessionId,taskId:input.taskId ?? session.currentTaskId ?? 0};
+		if (binding.llmConfig) followup.configs[input.id] = binding.llmConfig;
+		const next = followup.dispatch(sessionId);
+		return next ?? {success:true,sessionId,taskId:session.currentTaskId ?? 0};
+	} catch (error) {return {success:false,message:tostring(error)};}
+};
 const activeLocalAgentControls: Record<number, LocalAgent.LocalAgentRunControl> = {};
 const finalizingSubSessionTaskIds: Record<number, boolean> = {};
 let activePromptRuns = 0;
@@ -357,7 +502,7 @@ function scheduleStreamFlush() {
 
 /** Runtime ownership, including asynchronous completion after task status changes. */
 export function isRuntimeIdle(): boolean {
-	return activePromptRuns === 0
+	return followup.pendingWakes === 0 && activePromptRuns === 0
 		&& Object.keys(activeStopTokens).length === 0
 		&& Object.keys(activeLocalAgentControls).length === 0
 		&& Object.keys(finalizingSubSessionTaskIds).length === 0;
@@ -660,6 +805,8 @@ function rowToMessage(row: unknown[]): AgentSessionMessageItem {
 	};
 	const displayContent = toStr(row[5]);
 	if (displayContent !== "") message.displayContent = displayContent;
+ const receipt = queryOne("SELECT delivery,delivered_step FROM agent.AgentSessionInput WHERE message_id=? AND status='delivered'",[message.id]);
+ if (receipt?.[0] === "steer") {message.inputKind="steer";message.afterStep=typeof receipt[1] === "number" ? receipt[1] : 0;}
 	return message;
 }
 
@@ -864,7 +1011,10 @@ function getSessionRow(sessionId: number) {
 
 function getSessionItem(sessionId: number): AgentSessionItem | undefined {
 	const row = getSessionRow(sessionId);
-	return row ? rowToSession(row) : undefined;
+	if (!row) return undefined;
+ const session = rowToSession(row);
+ session.pendingInputs = InputInbox.listInputs(session.id).map(item=>({id:item.id,content:item.content,delivery:item.delivery,held:item.held,status:item.status}));
+ return session;
 }
 
 function getTaskPrompt(taskId: number): string | undefined {
@@ -883,7 +1033,10 @@ function getLatestMainSessionByProjectRoot(projectRoot: string): AgentSessionIte
 		LIMIT 1`,
 		[projectRoot],
 	);
-	return row ? rowToSession(row) : undefined;
+	if (!row) return undefined;
+ const session = rowToSession(row);
+ session.pendingInputs = InputInbox.listInputs(session.id).map(item=>({id:item.id,content:item.content,delivery:item.delivery,held:item.held,status:item.status}));
+ return session;
 }
 
 function countRunningSubSessions(rootSessionId: number): number {
@@ -905,6 +1058,10 @@ function countRunningSubSessions(rootSessionId: number): number {
 }
 
 function deleteSessionRecords(sessionId: number, preserveArtifacts = false) {
+ for (const input of InputInbox.listInputs(sessionId,true)) delete followup.configs[input.id];
+ DB.exec("DELETE FROM agent.AgentSessionInput WHERE session_id=?",[sessionId]);
+ delete followup.bindings[sessionId];
+ delete followup.recovered[sessionId];
 	streamUpdates.clear(sessionId);
 	const session = getSessionItem(sessionId);
 	const taskRows = queryRows(
@@ -1578,7 +1735,7 @@ function truncatePersistedSessionBeforeLatestUserPrompt(session: AgentSessionIte
 	const persisted = storage.readSessionState();
 	let userIndex = -1;
 	for (let i = persisted.messages.length - 1; i >= 0; i--) {
-		if (persisted.messages[i].role === "user") {
+		if (persisted.messages[i].role === "user" && persisted.messages[i].inputKind !== "steer") {
 			userIndex = i;
 			break;
 		}
@@ -2336,8 +2493,10 @@ export function getSession(sessionId: number, view?: { recentRounds: number; cur
 	if (!session) {
 		return { success: false, message: "session not found" };
 	}
+	if (!followup.activeRuns[sessionId]) followup.recover(session);
 	const restored = restorePendingQuestionnaireState(session);
 	const normalizedSession = normalizeSessionRuntimeState(restored.session);
+ normalizedSession.pendingInputs = getSessionItem(sessionId)?.pendingInputs;
 	const relatedSessions = listRelatedSessions(sessionId);
 	sanitizeStoredSteps(sessionId);
 	let firstMessageId = 0;
@@ -2345,8 +2504,9 @@ export function getSession(sessionId: number, view?: { recentRounds: number; cur
 	if (view) {
 		const limit = math.max(1, math.min(1000, math.floor(view.recentRounds)));
 		const requests = queryRows(
-			`SELECT id FROM ${TABLE_MESSAGE} WHERE session_id = ? AND role = 'user'
-			ORDER BY id DESC LIMIT ?`, [sessionId, limit + 1],
+			`SELECT m.id FROM ${TABLE_MESSAGE} AS m WHERE m.session_id = ? AND m.role = 'user'
+    AND NOT EXISTS (SELECT 1 FROM agent.AgentSessionInput i WHERE i.message_id=m.id AND i.delivery='steer')
+			ORDER BY m.id DESC LIMIT ?`, [sessionId, limit + 1],
 		) ?? [];
 		if (requests.length > limit) {
 			firstMessageId = requests[limit - 1][0] as number;
@@ -2573,7 +2733,7 @@ function stopClearedSubSession(session: AgentSessionItem, taskId: number): { suc
 	return { success: true };
 }
 
-export function sendPrompt(sessionId: number, prompt: string, disabledAgentTools?: unknown, workMode?: unknown, llmConfigId?: unknown, llmConfig?: LLMConfig, maxSteps?: unknown): AgentSessionSendResult {
+function startImmediatePrompt(sessionId: number, prompt: string, disabledAgentTools?: unknown, workMode?: unknown, llmConfigId?: unknown, llmConfig?: LLMConfig, maxSteps?: unknown, inputId?: number): AgentSessionSendResult {
 	const session = getSessionItem(sessionId);
 	if (session && isProjectTaskAdmissionClosed(session.projectRoot)) return { success: false, message: "project task admission is closed" };
 	if (!session) {
@@ -2609,10 +2769,10 @@ export function sendPrompt(sessionId: number, prompt: string, disabledAgentTools
 		session.workMode = nextWorkMode;
 	}
 	const boundedMaxSteps=typeof maxSteps==="number"&&maxSteps>=1&&maxSteps<=AgentConfig.AGENT_DEFAULTS.maxSteps?math.floor(maxSteps):undefined;
-	return startPromptTask(session, normalizedPrompt, undefined, normalizeDisabledAgentTools(disabledAgentTools), { workMode: nextWorkMode, llmConfigId, llmConfig, maxSteps:boundedMaxSteps });
+	return startPromptTask(session, normalizedPrompt, undefined, normalizeDisabledAgentTools(disabledAgentTools), { workMode: nextWorkMode, llmConfigId, llmConfig, maxSteps:boundedMaxSteps, inputId });
 }
 
-export function sendLocalPrompt(sessionId: number, prompt: string, localAgentConfigId: unknown): AgentSessionSendResult {
+function startLocalPrompt(sessionId: number, prompt: string, localAgentConfigId: unknown, inputId?: number): AgentSessionSendResult {
 	const session = getSessionItem(sessionId);
 	if (!session) return { success: false, message: "session not found" };
 	if (session.kind !== "main") return { success: false, message: "local Agent only supports main sessions" };
@@ -2627,6 +2787,8 @@ export function sendLocalPrompt(sessionId: number, prompt: string, localAgentCon
 	if (!taskRes.success) return taskRes;
 	const taskId = taskRes.taskId;
 	const messageId = insertMessage(session.id, "user", normalizedPrompt, taskId);
+ if (inputId !== undefined) {InputInbox.markDelivering(inputId,taskId);InputInbox.markDelivered(inputId,messageId);}
+ followup.activeRuns[sessionId] = taskId;
 	Tools.setTaskStatus(taskId, "RUNNING");
 	setSessionState(session.id, "RUNNING", taskId, "RUNNING");
 	upsertStep(session.id, taskId, 1, "local_agent_message", {
@@ -2684,6 +2846,7 @@ export function sendLocalPrompt(sessionId: number, prompt: string, localAgentCon
 			result: {provider: config.provider, events, transcript, exitCode: result.exitCode, resumeId: result.resumeId, message: result.message},
 		});
 		emitAgentSessionPatch(session.id, {session: getSessionItem(session.id), step: getStepItem(session.id, taskId, 1)});
+  followup.settle(sessionId,taskId,result.success && !result.stopped);
 	});
 	if (!completedSynchronously) activeLocalAgentControls[taskId] = control;
 	return { success: true, sessionId: session.id, taskId };
@@ -2730,6 +2893,7 @@ export function continuePrompt(sessionId: number, disabledAgentTools?: unknown, 
 }
 
 interface PromptTaskOptions {
+ inputId?: number;
 	maxSteps?: number;
 	forceSubAgentHandoff?: boolean;
 	workMode?: AgentWorkMode;
@@ -2771,6 +2935,8 @@ function startPromptTask(
 		removeContinuableTaskSummary(session);
 	}
 	const taskId = taskRes.taskId;
+ if (options?.inputId !== undefined) InputInbox.markDelivering(options.inputId,taskId);
+ followup.activeRuns[session.id] = taskId;
 	const previousTaskId = options?.existingTaskId === undefined ? session.currentTaskId : undefined;
 	const useChineseResponse = getDefaultUseChineseResponse();
 	let promptMessageId: number | undefined;
@@ -2780,6 +2946,10 @@ function startPromptTask(
 	} else if (options?.resumeConversation !== true && options?.persistUserMessage !== false) {
 		promptMessageId = insertMessage(session.id, "user", normalizedPrompt, taskId, options?.displayContent);
 	}
+ if (options?.inputId !== undefined && promptMessageId !== undefined) {
+  if (DB.exec("UPDATE agent.AgentSessionInput SET message_id=? WHERE id=?",[promptMessageId,options.inputId]) < 0) throw new Error("failed to link input display");
+  if (normalizedPrompt === "/clear" || normalizedPrompt === "/compact") InputInbox.markDelivered(options.inputId,promptMessageId);
+ }
 	const stopToken: StopToken = { stopped: false };
 	activeStopTokens[taskId] = stopToken;
 	setSessionState(session.id, "RUNNING", taskId, "RUNNING");
@@ -2796,6 +2966,11 @@ function startPromptTask(
 	activePromptRuns++;
 	runCodingAgent({
 		prompt: normalizedPrompt,
+  inputId: options?.inputId,
+  inputSource: {
+   pending: () => InputInbox.listInputs(session.id).filter(item=>item.delivery === "steer" && !item.held && item.status === "pending").map(item=>({id:item.id,content:item.content})),
+   delivered: (id,step) => followup.delivered(session.id,taskId,id,step),
+  },
 		resumeConversation: options?.resumeConversation,
 		resumeTask: options?.existingTaskId !== undefined,
 		initialStep: options?.initialStep,
@@ -2881,6 +3056,7 @@ function startPromptTask(
 			}
 		} finally {
 			activePromptRuns--;
+   followup.settle(session.id,taskId,result.success && !result.waitingForUser && !stopToken.stopped);
 		}
 	});
 	return { success: true, sessionId: session.id, taskId };
@@ -2925,6 +3101,7 @@ export function resendPrompt(sessionId: number, messageId: number, prompt: strin
 	if (!session) {
 		return { success: false, message: "session not found" };
 	}
+ if (InputInbox.listInputs(sessionId).length > 0) return {success:false,message:"finish or remove pending messages before editing task history"};
 	if (getPendingQuestionnaire(sessionId)) return { success: false, message: "complete the pending questionnaire before resending a prompt" };
 	if (session.currentTaskFinalizing === true || (session.currentTaskId !== undefined && finalizingSubSessionTaskIds[session.currentTaskId] === true)) {
 		return { success: false, message: "session task is finalizing" };
@@ -2937,9 +3114,10 @@ export function resendPrompt(sessionId: number, messageId: number, prompt: strin
 		return { success: false, message: "message not found" };
 	}
 	const latestUserRow = queryOne(
-		`SELECT id FROM ${TABLE_MESSAGE}
-		WHERE session_id = ? AND role = ?
-		ORDER BY id DESC LIMIT 1`,
+		`SELECT m.id FROM ${TABLE_MESSAGE} AS m
+  WHERE m.session_id = ? AND m.role = ? AND NOT EXISTS (
+   SELECT 1 FROM agent.AgentSessionInput i WHERE i.message_id=m.id AND i.delivery='steer')
+  ORDER BY m.id DESC LIMIT 1`,
 		[sessionId, "user"],
 	);
 	const latestUserMessageId = latestUserRow && typeof latestUserRow[0] === "number" ? latestUserRow[0] as number : 0;
@@ -3228,6 +3406,8 @@ export function respondQuestionnaire(sessionId: number, questionnaireId: number,
 }
 
 export function stopSessionTask(sessionId: number) {
+ InputInbox.holdInputs(sessionId);
+ followup.publish(sessionId);
 	const session = getSessionItem(sessionId);
 	if (!session || session.currentTaskId === undefined) {
 		return { success: false as const, message: "session task not found" };

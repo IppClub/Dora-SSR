@@ -3,7 +3,7 @@ import { App, Content, DB, Path } from 'Dora';
 import { Log } from 'Agent/Utils';
 import { toStr } from 'Agent/Storage/Support';
 
-export const AGENT_SCHEMA_VERSION = 1;
+export const AGENT_SCHEMA_VERSION = 2;
 export const AGENT_SCHEMA = "agent";
 export const TABLE_SESSION = "agent.AgentSession";
 export const TABLE_MESSAGE = "agent.AgentSessionMessage";
@@ -13,8 +13,18 @@ export const TABLE_CHECKPOINT = "agent.AgentCheckpoint";
 export const TABLE_CHECKPOINT_ENTRY = "agent.AgentCheckpointEntry";
 export const TABLE_TASK_REFERENCE = "agent.AgentTaskReference";
 
+const INPUT_SCHEMA_SQL = [
+ `CREATE TABLE agent.AgentSessionInput(id INTEGER PRIMARY KEY AUTOINCREMENT, session_id INTEGER NOT NULL,
+ request_id TEXT NOT NULL, content TEXT NOT NULL, delivery TEXT NOT NULL, status TEXT NOT NULL,
+ held INTEGER NOT NULL DEFAULT 0, task_id INTEGER, options_json TEXT NOT NULL, position INTEGER NOT NULL, message_id INTEGER, delivered_step INTEGER,
+ UNIQUE(session_id,request_id));`,
+ `CREATE INDEX agent.idx_agent_input_pending ON AgentSessionInput(session_id,status,position);`,
+ `CREATE INDEX agent.idx_agent_input_message ON AgentSessionInput(message_id);`,
+];
+
 const AGENT_DB_FILE = "agent.db";
 const REQUIRED_TABLES: { name: string; columns: string[] }[] = [
+ {name: "AgentSessionInput", columns: ["id","session_id","request_id","content","delivery","status","held","task_id","options_json","position","message_id","delivered_step"]},
 	{
 		name: "AgentSession",
 		columns: [
@@ -68,6 +78,8 @@ const REQUIRED_TABLES: { name: string; columns: string[] }[] = [
 ];
 
 const REQUIRED_INDEXES = [
+ "idx_agent_input_pending",
+ "idx_agent_input_message",
 	"idx_agent_session_project_root",
 	"idx_agent_session_message_sid_id",
 	"idx_agent_session_step_unique",
@@ -78,6 +90,7 @@ const REQUIRED_INDEXES = [
 ];
 
 const DROP_AGENT_SCHEMA_SQL = [
+ `DROP TABLE IF EXISTS agent.AgentSessionInput;`,
 	`DROP TABLE IF EXISTS ${TABLE_CHECKPOINT_ENTRY};`,
 	`DROP TABLE IF EXISTS ${TABLE_CHECKPOINT};`,
 	`DROP TABLE IF EXISTS ${TABLE_STEP};`,
@@ -88,6 +101,7 @@ const DROP_AGENT_SCHEMA_SQL = [
 ];
 
 const CREATE_AGENT_SCHEMA_SQL = [
+ ...INPUT_SCHEMA_SQL,
 	`CREATE TABLE ${TABLE_SESSION}(
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		project_root TEXT NOT NULL,
@@ -302,7 +316,9 @@ function initializeAgentStorage() {
 		storageError = `agent.db schema ${version} is newer than supported ${AGENT_SCHEMA_VERSION}`;
 		return;
 	}
-	if (version < AGENT_SCHEMA_VERSION && !rebuildSchema()) {
+	if (version < AGENT_SCHEMA_VERSION && !(version === 1
+ ? DB.transaction([...INPUT_SCHEMA_SQL, `PRAGMA agent.user_version = ${AGENT_SCHEMA_VERSION};`])
+ : rebuildSchema())) {
 		storageError = "failed to create current agent.db schema";
 		return;
 	}

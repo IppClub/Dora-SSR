@@ -32,7 +32,7 @@ export function persistSessionBoundariesBeforePublish(
         try{
           const patch=decodeAgentSessionPatch(payload);
           const running=patch.session?.currentTaskStatus==='RUNNING';
-          needsPersistence=!!patch.pendingQuestionnaire
+          needsPersistence=patch.session?.pendingInputs!==undefined||!!patch.pendingQuestionnaire
             || (running&&(patch.message?.role==='user'||patch.pendingQuestionnaire===false));
         }catch{close();return;}
         barrier=barrier.then(async()=>{

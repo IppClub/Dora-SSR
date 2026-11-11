@@ -1875,7 +1875,7 @@ HttpServer:post("/agent/session/send", function(req) -- 783
 				end -- 784
 			end -- 784
 			if sessionId ~= nil and prompt ~= nil then -- 784
-				return AgentSession.sendPrompt(sessionId, prompt, req.body.disabledAgentTools, req.body.workMode, req.body.llmConfigId) -- 785
+				return AgentSession.sendPrompt(sessionId, prompt, req.body.disabledAgentTools, req.body.workMode, req.body.llmConfigId, nil, nil, req.body.submission) -- 785
 			end -- 784
 		end -- 784
 	end -- 784
@@ -1911,7 +1911,7 @@ HttpServer:post("/agent/session/send-local", function(req) -- 787
 				end -- 788
 			end -- 788
 			if sessionId ~= nil and prompt ~= nil and localAgentConfigId ~= nil then -- 788
-				return AgentSession.sendLocalPrompt(sessionId, prompt, localAgentConfigId) -- 789
+				return AgentSession.sendLocalPrompt(sessionId, prompt, localAgentConfigId, req.body.submission) -- 789
 			end -- 788
 		end -- 788
 	end -- 788

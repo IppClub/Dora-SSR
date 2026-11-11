@@ -462,14 +462,14 @@ function getReservedOutputTokens(options: Record<string, unknown>, contextWindow
 	return math.max(1024, math.floor(contextWindow * 0.2));
 }
 
-function getInputTokenBudget(messages: Message[], options: Record<string, unknown>, config: LLMConfig): number {
+export function getInputTokenBudget(messages: Message[], options: Record<string, unknown>, config: LLMConfig): number {
 	const contextWindow = config.contextWindow > 0
 		? math.floor(config.contextWindow)
 		: 64000;
 	const reservedOutputTokens = getReservedOutputTokens(options, contextWindow);
 	const optionTokens = estimateOptionsTokens(options);
 	const structuralOverhead = math.max(256, messages.length * 16);
-	return math.max(512, contextWindow - reservedOutputTokens - optionTokens - structuralOverhead);
+	return math.max(0, contextWindow - reservedOutputTokens - optionTokens - structuralOverhead);
 }
 
 export function clipTextToTokenBudget(text: string, budgetTokens: number): string {
@@ -1351,6 +1351,9 @@ export const callLLMStream = (
 	}
 	const { url, model, apiKey } = config;
 	const fitted = fitMessagesToContext(messages, options, config);
+	if (fitted.fittedTokens > fitted.budgetTokens) {
+		return { success: false, message: "LLM context budget is insufficient for the configured output limit and request. Reduce max_tokens/max_completion_tokens or increase contextWindow." };
+	}
 	if (fitted.trimmed) {
 		Log("Warn", `[Agent.Utils] callLLMStream trimmed input tokens=${fitted.originalTokens} budget=${fitted.budgetTokens} fitted=${fitted.fittedTokens}`);
 	}
@@ -1537,6 +1540,9 @@ export async function callLLMStreamAggregated(
 	}
 	const { url, model, apiKey } = resolvedConfig;
 	const fitted = fitMessagesToContext(messages, options, resolvedConfig);
+	if (fitted.fittedTokens > fitted.budgetTokens) {
+		return { success: false, message: "LLM context budget is insufficient for the configured output limit and request. Reduce max_tokens/max_completion_tokens or increase contextWindow." };
+	}
 	const toolCount = Array.isArray(options.tools) ? options.tools.length : 0;
 	const toolChoice = typeof options.tool_choice === "string"
 		? options.tool_choice
@@ -1733,6 +1739,9 @@ export async function callLLM(
 	}
 	const { url, model, apiKey } = resolvedConfig;
 	const fitted = fitMessagesToContext(messages, options, resolvedConfig);
+	if (fitted.fittedTokens > fitted.budgetTokens) {
+		return { success: false, message: "LLM context budget is insufficient for the configured output limit and request. Reduce max_tokens/max_completion_tokens or increase contextWindow." };
+	}
 	Log("Info", `[Agent.Utils] callLLMOnce request model=${model} url=${url} messages=${messages.length}${fitted.trimmed ? ` trimmed_tokens=${fitted.originalTokens}->${fitted.fittedTokens}/${fitted.budgetTokens}` : ""}`);
 	if (stopToken?.stopped) {
 		const reason = stopToken.reason ?? "request cancelled";

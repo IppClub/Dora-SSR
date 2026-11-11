@@ -52,6 +52,7 @@ export async function analyzeImage(req: AnalyzeImageRequest): Promise<Record<str
 	if (!binding) return {success:false, message:"No default vision route is registered for the current Agent service"};
 	const validation = validateAgentToolInput("analyze_image", {paths:req.paths, question:req.question, criteria:req.criteria, context:req.context});
 	if (!validation.success) return {success:false,message:validation.message};
+	const paths = validation.value.paths as string[];
 	const start=App.runningTime;
 	// Set once the provider request leaves; only then does a call consume budget.
 	let requestIssued=false;
@@ -66,16 +67,16 @@ export async function analyzeImage(req: AnalyzeImageRequest): Promise<Record<str
 		const brief = buildVisionInspectionBrief(req.context, req.question, req.criteria);
 		const content: Record<string,unknown>[]=[{type:"text",text:brief}];
 		const images=[];
-		for (let i=0;i<req.paths.length;i++) {
-			const fullPath = resolveWorkspaceFilePath(req.workingDir, req.paths[i]);
-			if (fullPath === undefined) error(`image path escapes the project: ${req.paths[i]}`);
+		for (let i=0;i<paths.length;i++) {
+			const fullPath = resolveWorkspaceFilePath(req.workingDir, paths[i]);
+			if (fullPath === undefined) error(`image path escapes the project: ${paths[i]}`);
 			const data = Content.load(fullPath);
-			if (typeof data !== "string" || data === "") error(`image not found: ${req.paths[i]}`);
+			if (typeof data !== "string" || data === "") error(`image not found: ${paths[i]}`);
 			const inspected = inspectImage(data);
 			const [encoded]=mime.b64(data);
 			if (!encoded) error("Unable to encode image");
-			images.push({path:req.paths[i], width:inspected.width, height:inspected.height});
-			content.push({type:"text",text:`Image ${i+1}; ${req.paths[i]}${inspected.width !== undefined ? `; ${inspected.width}x${inspected.height}` : ""}`});
+			images.push({path:paths[i], width:inspected.width, height:inspected.height});
+			content.push({type:"text",text:`Image ${i+1}; ${paths[i]}${inspected.width !== undefined ? `; ${inspected.width}x${inspected.height}` : ""}`});
 			content.push({type:"image_url",image_url:{url:(inspected.format==="jpeg"?"data:image/jpeg;base64,":"data:image/png;base64,")+encoded}});
 		}
 		const body={model:binding.model,stream:false,max_tokens:binding.provider==="glm-coding-cn"?8192:4096,thinking:{type:binding.provider==="deepseek"?"disabled":"enabled"},
@@ -122,7 +123,6 @@ export async function analyzeImage(req: AnalyzeImageRequest): Promise<Record<str
 				requestIssued=true;
 			}));
 		});
-		if(req.isCancelled())return {success:false,cancelled:true,message:"Vision analysis cancelled"};
 		const result = parseVisionResponse(raw, binding.model);
 		const current = getVisionTaskUsage(req.taskId);
 		if (requestIssued) current.requestCount++;
@@ -133,7 +133,10 @@ export async function analyzeImage(req: AnalyzeImageRequest): Promise<Record<str
 			current.outputTokens += resultUsage.completion_tokens;
 			current.totalTokens += resultUsage.total_tokens ?? (resultUsage.prompt_tokens + resultUsage.completion_tokens);
 		}
-		return {...result,requestIssued,provider:binding.provider,bindingId:`${binding.provider}/${binding.model}`,profileVersion:VISION_PROFILE_VERSION,paths:req.paths,images,latencySeconds:App.runningTime-start,evidence:"static_game_images",reportGuidance:"Qualitative visual observation only. Preserve uncertainty; verify project facts deterministically; treat semantic labels for tiny or dense sprite sheets as model observations.",visionBudget:getVisionBudgetState(current)};
+		// Cancellation can race with an already received response. Retain issued
+		// request accounting, but never publish its analysis after cancellation.
+		if(req.isCancelled())return {success:false,cancelled:true,requestIssued,usage:result.usage,visionBudget:getVisionBudgetState(current),message:"Vision analysis cancelled"};
+		return {...result,requestIssued,provider:binding.provider,bindingId:`${binding.provider}/${binding.model}`,profileVersion:VISION_PROFILE_VERSION,paths,images,latencySeconds:App.runningTime-start,evidence:"static_game_images",reportGuidance:"Qualitative visual observation only. Preserve uncertainty; verify project facts deterministically; treat semantic labels for tiny or dense sprite sheets as model observations.",visionBudget:getVisionBudgetState(current)};
 	} catch(e) {
 		// Local errors only; provider payloads and credentials never enter tool output.
 		return {success:false,cancelled:req.isCancelled(),requestIssued,message:tostring(e).split(binding.apiKey).join("[redacted]")};

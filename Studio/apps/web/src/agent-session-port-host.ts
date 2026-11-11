@@ -116,7 +116,7 @@ export function serveAgentSessionPort(port: MessagePort, binding: {projectId:str
       if(message?.type==='send-prompt') {
         if(!started||capturing||!lifecycle?.sendPrompt||persisting||message.version!==1||message.projectId!==expected.projectId||message.generation!==expected.generation||message.sessionId!==expected.sessionId
           ||typeof message.requestId!=='string'||!/^[0-9a-f-]{36}$/i.test(message.requestId)||operations.has(message.requestId)||operations.size>=64
-          ||typeof message.prompt!=='string'||!message.prompt.trim()||message.prompt.length>5000||typeof message.grantId!=='string'||!/^[A-Za-z0-9_-]{1,128}$/.test(message.grantId)
+          ||typeof message.prompt!=='string'||(!message.prompt.trim()&&!(isAgentPromptOptions(message.options)&&message.options.submission?.action))||message.prompt.length>5000||typeof message.grantId!=='string'||!/^[A-Za-z0-9_-]{1,128}$/.test(message.grantId)
           ||!isAgentPromptOptions(message.options))throw new Error('Invalid Agent prompt request');
         operations.add(message.requestId);persisting=true;
         let taskId:number|undefined;

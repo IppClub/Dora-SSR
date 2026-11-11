@@ -52,7 +52,7 @@ export function SharedAgentMarkdown({content,className=''}:{content:string;class
   }}>{content}</ReactMarkdown></div>;
 }
 function StepCodeBlock({title,content}:{title:string;content:string}){return <details className="dora-agent-step-block"><summary>{title}</summary><pre>{content||'无输出'}</pre></details>;}
-export function SharedAgentStepList({steps,onOpenFile,running=false}:{steps:readonly AgentSessionStep[];running?:boolean;onOpenFile?:(path:string)=>void}){
+function AgentStepCards({steps,onOpenFile,running=false}:{steps:readonly AgentSessionStep[];running?:boolean;onOpenFile?:(path:string)=>void}){
   return <div className="dora-agent-step-list">{steps.map(step=>{
     if (!hasAgentStepCard(step)) return <AgentReasoning key={step.id} content={step.reasoningContent} active={running && step.status==='RUNNING' && step===steps[steps.length-1]}/>;
     const params=summarizeStepParams(step),buildItems=step.tool==='build'?buildResults(step):[],result=step.result??{},failure=step.status==='FAILED'&&result.success===false?stringValue(result.message):'',progress=step.status==='RUNNING'?numberValue(result.progress):undefined;
@@ -60,7 +60,7 @@ export function SharedAgentStepList({steps,onOpenFile,running=false}:{steps:read
     const answer=step.tool==='questionnaire_answer'?stringValue(result.displayText):'';
     return <article key={step.id} className={`dora-agent-step ${step.status.toLowerCase()}`} data-agent-step-id={step.id}>
       <header><span className="dora-agent-step-number">{step.step}</span><span className="dora-agent-step-tool">{stepToolNames[step.tool]??step.tool}</span>{step.status!=='DONE'&&<span className="dora-agent-step-status">{stepStatuses[step.status]??step.status}</span>}</header>
-      {step.reasoningContent.trim()&&<AgentReasoning content={step.reasoningContent}/>}
+      {(step.reasoningContent??'').trim()&&<AgentReasoning content={step.reasoningContent}/>}
       {answer?<SharedAgentMarkdown className="dora-agent-step-answer" content={answer}/>:<>{step.reason&&<SharedAgentMarkdown className="dora-agent-step-reason" content={step.reason}/>}</>}
       {params.length>0&&<dl className="dora-agent-step-params">{params.map((item,index)=><React.Fragment key={`${item.label}:${item.value}:${index}`}><dt>{item.label}</dt><dd>{item.value}</dd></React.Fragment>)}</dl>}
       {progress!==undefined&&<div className="dora-agent-step-progress" aria-label={`进度 ${Math.round(Math.max(0,Math.min(1,progress))*100)}%`}><i style={{width:`${Math.round(Math.max(0,Math.min(1,progress))*100)}%`}}/></div>}
@@ -94,4 +94,18 @@ export function SharedAgentQuestionnaire({questionnaire,submitting=false,labels,
       {question.type==='text'?<textarea rows={4} disabled={submitting} value={typeof current==='string'?current:''} placeholder={question.placeholder} onChange={event=>{clearSkip();setAnswers(value=>({...value,[question.id]:event.target.value}));}}/>:<div className="dora-agent-question-options">{(question.options??[]).map(option=><label key={option.id} className={selected.includes(option.id)?'selected':''}><input disabled={submitting} type={question.type==='single_choice'?'radio':'checkbox'} name={question.id} checked={selected.includes(option.id)} onChange={()=>choose(option.id)}/><span><strong>{option.label}{option.recommended?` (${copy.recommended})`:''}</strong>{option.description&&<small>{option.description}</small>}</span></label>)}{question.allowOther&&<input disabled={submitting} value={other} placeholder={copy.other} onChange={event=>updateOther(event.target.value)}/>}</div>}
     </div><footer><button type="button" disabled={submitting} onClick={onCancel}>{copy.cancel}</button><div><button type="button" disabled={submitting||index===0} onClick={()=>setIndex(value=>Math.max(0,value-1))}>{copy.previous}</button>{!question.required&&<button type="button" disabled={submitting} onClick={skip}>{copy.skip}</button>}<button className="primary" type="button" disabled={submitting||!valid} onClick={()=>last?onSubmit(submission()):setIndex(value=>value+1)}>{last?copy.submit:copy.next}</button></div></footer>
   </section>;
+}
+
+export {AgentFollowupQueue} from './AgentFollowup';
+export type {AgentInputDelivery,AgentInputCommand,AgentPendingInput,AgentInputControls} from './AgentFollowup';
+
+export function SharedAgentStepList(props:{steps:readonly AgentSessionStep[];steeringMessages?:readonly AgentSessionMessage[];running?:boolean;onOpenFile?:(path:string)=>void}){
+ const groups:React.ReactNode[]=[];let previous=-1;
+ for(const message of props.steeringMessages??[]){
+  const boundary=message.afterStep??0;
+  groups.push(<React.Fragment key={`guide-${message.id}`}><AgentStepCards {...props} steps={props.steps.filter(step=>(step.step??0)>previous&&(step.step??0)<=boundary)}/><article className="dora-agent-steering" data-agent-steering-id={message.id}><small>你的补充 · 已引导当前任务</small><SharedAgentMarkdown content={message.content}/></article></React.Fragment>);
+  previous=boundary;
+ }
+ groups.push(<AgentStepCards key="tail" {...props} steps={props.steps.filter(step=>(step.step??0)>previous)}/>);
+ return <>{groups}</>;
 }

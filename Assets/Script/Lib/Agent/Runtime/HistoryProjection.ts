@@ -487,7 +487,13 @@ export function projectMessagesForLLMContext(messages: Message[]): Message[] {
 	const projected: Message[] = [];
 	for (let i = 0; i < messages.length; i++) {
 		const message = messages[i];
-		const next: Message = { ...message };
+		const next: Message = {role: message.role, content: message.content, name: message.name,
+ tool_call_id: message.tool_call_id, reasoning_content: message.reasoning_content, tool_calls: message.tool_calls};
+ if ((message as Message & {inputKind?: string}).inputKind === "steer") {
+  next.content = `The user sent an update to the current task while you were working. Apply it together with the original goal and continue this task.
+
+${message.content ?? ""}`;
+ }
 		if (message.role === "assistant" && (!message.tool_calls || message.tool_calls.length === 0)) next.reasoning_content = undefined; // DeepSeek replays reasoning only with its tool calls.
 		if (message.role === "tool" && typeof message.content === "string") {
 			next.content = projectToolResultContentForLLM(message.name ?? "tool", message.content);
@@ -498,7 +504,10 @@ export function projectMessagesForLLMContext(messages: Message[]): Message[] {
 }
 
 export function projectMessagesForCompression(messages: Message[]): Message[] {
-	const projected = projectMessagesForLLMContext(messages);
+	const projected = projectMessagesForLLMContext(messages).map((message,index)=>{
+  const source = messages[index] as Message & {inputId?:number;inputKind?:"prompt"|"steer";taskId?:number};
+  return {...message,inputId:source.inputId,inputKind:source.inputKind,taskId:source.taskId};
+ });
 	const visionCallIds: Record<string, boolean> = {};
 	for (let i = 0; i < projected.length; i++) {
 		const message = projected[i];

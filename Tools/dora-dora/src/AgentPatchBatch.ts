@@ -105,6 +105,7 @@ export const reconcileMessageCollection = (
 			&& left.taskId === right.taskId
 			&& left.role === right.role
 			&& left.content === right.content
+			&& left.inputKind === right.inputKind && left.afterStep === right.afterStep
 			&& left.displayContent === right.displayContent
 			&& left.createdAt === right.createdAt
 			&& left.updatedAt === right.updatedAt;

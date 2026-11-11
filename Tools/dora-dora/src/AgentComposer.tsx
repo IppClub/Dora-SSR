@@ -13,18 +13,18 @@ import CircularProgress from '@mui/material/CircularProgress';
 import Tooltip from '@mui/material/Tooltip';
 import AddCommentOutlinedIcon from '@mui/icons-material/AddCommentOutlined';
 import {useTranslation} from 'react-i18next';
-import {SharedAgentComposer,type AgentActualUsage} from '@dora-studio/agent-ui';
+import {SharedAgentComposer,type AgentActualUsage,type AgentInputControls,type AgentInputDelivery} from '@dora-studio/agent-ui';
 import {Color} from './Theme';
 import '@dora-studio/agent-ui/style.css';
 
-interface AgentComposerProps {
+interface AgentComposerProps extends AgentInputControls {
 	compact?:boolean;prompt:string;loading:boolean;running:boolean;stopping?:boolean;canStop?:boolean;
 	contextRatio?:number;usedTokens?:number;maxTokens?:number;actualUsage?:AgentActualUsage;
 	hideContextUsage?:boolean;
 	fetchUrlEnabled?:boolean;executeCommandEnabled?:boolean;planMode?:boolean;
 	llmConfigs?:Array<{id:string|number;name:string}>;llmConfigId?:string|number;
 	status?:string;newSessionLabel?:string;newSessionLoading?:boolean;newSessionDisabled?:boolean;
-	onPromptChange:(value:string)=>void;onSend:()=>void;onStop:()=>void;
+	onPromptChange:(value:string)=>void;onSend:(delivery?:AgentInputDelivery)=>void;onStop:()=>void;
 	onNewSession?:()=>void;
 	onFetchUrlEnabledChange?:(value:boolean)=>void;onExecuteCommandEnabledChange?:(value:boolean)=>void;
 	onPlanModeChange?:(value:boolean)=>void;onLLMConfigChange?:(value:string|number)=>void;
@@ -53,19 +53,13 @@ export default function AgentComposer(props:AgentComposerProps){
 			selectModel:t('agent.selectModel'),modelForNextRun:t('agent.modelForNextRun'),contextUsage:(used,max,percent)=>hideContextUsage?hiddenContextUsageLabel:t('agent.contextEstimateTitle',{used,max,percent}),
 			actualUsage:usage=>t(usage.cachedInputTokens===undefined?'agent.actualUsageTitle':'agent.actualUsageWithCacheTitle',{input:compactNumber(usage.inputTokens),output:compactNumber(usage.outputTokens),cached:compactNumber(usage.cachedInputTokens??0),cachePercent:usage.inputTokens>0?Math.round(((usage.cachedInputTokens??0)/usage.inputTokens)*100):0,requests:compactNumber(usage.requestCount??0)}),
 		}}
+        {...(props.pendingInputs?{pendingInputs:props.pendingInputs}:{})} canSteer={props.canSteer!==false}
+        {...(props.onInputAction?{onInputAction:props.onInputAction}:{})}
+        leadingAction={props.onNewSession?<Tooltip title={t('agent.newSessionHint')}><span><Button data-agent-new-session="true" size="small" aria-label={props.newSessionLabel} disabled={props.newSessionDisabled||props.newSessionLoading} onClick={props.onNewSession} sx={{minWidth:0,color:Color.TextSecondary}}>{props.newSessionLoading?<CircularProgress size={14}/>:<AddCommentOutlinedIcon sx={{fontSize:16}}/>}{!compact&&props.newSessionLabel}</Button></span></Tooltip>:null}
 		onPromptChange={props.onPromptChange} onSend={props.onSend} onStop={props.onStop}
 		{...(props.onFetchUrlEnabledChange?{onFetchUrlEnabledChange:props.onFetchUrlEnabledChange}:{})}
 		{...(props.onExecuteCommandEnabledChange?{onExecuteCommandEnabledChange:props.onExecuteCommandEnabledChange}:{})}
 		{...(props.onPlanModeChange?{onPlanModeChange:props.onPlanModeChange}:{})}
 		{...(props.onLLMConfigChange?{onModelChange:(value:string|number)=>props.onLLMConfigChange?.(value)}:{})}
-	/>{props.onNewSession?<Box sx={{position:'absolute',left:'50%',bottom:compact?10:21,width:compact?'calc(100% - 20px)':'calc(100% - 32px)',maxWidth:compact?960:948,transform:'translateX(-50%)',display:'flex',justifyContent:'flex-start',boxSizing:'border-box',pointerEvents:'none'}}><Tooltip title={t('agent.newSessionHint')} arrow><span><Button
-		data-agent-new-session="true"
-		aria-label={props.newSessionLabel}
-		size="small"
-		variant="text"
-		startIcon={!compact&&!props.newSessionLoading?<AddCommentOutlinedIcon sx={{fontSize:'15px !important'}}/>:undefined}
-		disabled={props.newSessionDisabled===true||props.newSessionLoading===true}
-		onClick={props.onNewSession}
-		sx={{height:compact?28:30,minWidth:compact?28:0,px:compact?0.5:0.9,borderRadius:1.5,color:Color.TextSecondary,fontSize:12,fontWeight:400,textTransform:'none',pointerEvents:'auto','& .MuiButton-startIcon':{mr:0.5},'&:hover':{color:Color.Theme,backgroundColor:Color.ThemeMuted},'&.Mui-disabled':{color:Color.DisabledText}}}
-	>{props.newSessionLoading?<CircularProgress size={14}/>:compact?<AddCommentOutlinedIcon sx={{fontSize:16}}/>:props.newSessionLabel}</Button></span></Tooltip></Box>:null}</Box>;
+	/></Box>;
 }

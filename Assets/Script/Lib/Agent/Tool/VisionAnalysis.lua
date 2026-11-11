@@ -71,139 +71,135 @@ function ____exports.analyzeImage(req) -- 50
 		if not validation.success then -- 53
 			return ____awaiter_resolve(nil, {success = false, message = validation.message}) -- 53
 		end -- 53
-		local start = App.runningTime -- 55
-		local requestIssued = false -- 57
-		local ____hasReturned, ____returnValue -- 57
-		local ____try = __TS__AsyncAwaiter(function() -- 57
-			if req:isCancelled() then -- 57
-				____hasReturned = true -- 59
-				____returnValue = {success = false, cancelled = true, message = "Vision analysis cancelled"} -- 59
-				return -- 59
-			end -- 59
-			local budget = getVisionTaskUsage(req.taskId) -- 60
-			if budget.requestCount >= VISION_MAX_ANALYSIS_REQUESTS or budget.totalTokens >= VISION_MAX_REPORTED_TOKENS then -- 60
-				____hasReturned = true -- 64
-				____returnValue = { -- 64
-					success = false, -- 64
-					message = ((("Vision task budget exhausted: " .. tostring(budget.requestCount)) .. " issued requests and ") .. tostring(budget.totalTokens)) .. " reported tokens already used", -- 64
-					visionBudget = getVisionBudgetState(budget) -- 64
-				} -- 64
-				return -- 64
-			end -- 64
-			local brief = ____exports.buildVisionInspectionBrief(req.context, req.question, req.criteria) -- 66
-			local content = {{type = "text", text = brief}} -- 67
-			local images = {} -- 68
-			do -- 68
-				local i = 0 -- 69
-				while i < #req.paths do -- 69
-					local fullPath = resolveWorkspaceFilePath(req.workingDir, req.paths[i + 1]) -- 70
-					if fullPath == nil then -- 70
-						error("image path escapes the project: " .. req.paths[i + 1]) -- 71
-					end -- 71
-					local data = Content:load(fullPath) -- 72
-					if type(data) ~= "string" or data == "" then -- 72
-						error("image not found: " .. req.paths[i + 1]) -- 73
-					end -- 73
-					local inspected = inspectImage(data) -- 74
-					local encoded = mime.b64(data) -- 75
-					if not encoded then -- 75
-						error("Unable to encode image") -- 76
-					end -- 76
-					images[#images + 1] = {path = req.paths[i + 1], width = inspected.width, height = inspected.height} -- 77
-					content[#content + 1] = { -- 78
-						type = "text", -- 78
-						text = ((("Image " .. tostring(i + 1)) .. "; ") .. req.paths[i + 1]) .. (inspected.width ~= nil and (("; " .. tostring(inspected.width)) .. "x") .. tostring(inspected.height) or "") -- 78
-					} -- 78
-					content[#content + 1] = {type = "image_url", image_url = {url = (inspected.format == "jpeg" and "data:image/jpeg;base64," or "data:image/png;base64,") .. encoded}} -- 79
-					i = i + 1 -- 69
-				end -- 69
-			end -- 69
-			local body = __TS__ObjectAssign({model = binding.model, stream = false, max_tokens = binding.provider == "glm-coding-cn" and 8192 or 4096, thinking = {type = binding.provider == "deepseek" and "disabled" or "enabled"}}, binding.provider == "glm-coding-cn" and ({reasoning_effort = "low", temperature = 0.1, top_p = 0.6}) or ({}), {messages = {{role = "system", content = ____exports.VISION_INSPECTION_SYSTEM_PROMPT}, {role = "user", content = content}}}) -- 81
-			local json = safeJsonEncode(body) -- 84
-			if not json then -- 84
-				error("Unable to encode vision request") -- 85
-			end -- 85
-			local headers = {"Authorization: Bearer " .. binding.apiKey, "Content-Type: application/json"} -- 86
-			if binding.studioGateway then -- 86
-				headers[#headers + 1] = "X-Studio-Model-Request-Id: " .. createStudioModelRequestId() -- 87
-			end -- 87
-			if binding.provider == "glm-coding-cn" then -- 87
-				__TS__ArrayPush(headers, "X-Title: 4.5V MCP Local", "Accept-Language: en-US,en") -- 88
+		local paths = validation.value.paths -- 55
+		local start = App.runningTime -- 56
+		local requestIssued = false -- 58
+		local ____hasReturned, ____returnValue -- 58
+		local ____try = __TS__AsyncAwaiter(function() -- 58
+			if req:isCancelled() then -- 58
+				____hasReturned = true -- 60
+				____returnValue = {success = false, cancelled = true, message = "Vision analysis cancelled"} -- 60
+				return -- 60
+			end -- 60
+			local budget = getVisionTaskUsage(req.taskId) -- 61
+			if budget.requestCount >= VISION_MAX_ANALYSIS_REQUESTS or budget.totalTokens >= VISION_MAX_REPORTED_TOKENS then -- 61
+				____hasReturned = true -- 65
+				____returnValue = { -- 65
+					success = false, -- 65
+					message = ((("Vision task budget exhausted: " .. tostring(budget.requestCount)) .. " issued requests and ") .. tostring(budget.totalTokens)) .. " reported tokens already used", -- 65
+					visionBudget = getVisionBudgetState(budget) -- 65
+				} -- 65
+				return -- 65
+			end -- 65
+			local brief = ____exports.buildVisionInspectionBrief(req.context, req.question, req.criteria) -- 67
+			local content = {{type = "text", text = brief}} -- 68
+			local images = {} -- 69
+			do -- 69
+				local i = 0 -- 70
+				while i < #paths do -- 70
+					local fullPath = resolveWorkspaceFilePath(req.workingDir, paths[i + 1]) -- 71
+					if fullPath == nil then -- 71
+						error("image path escapes the project: " .. paths[i + 1]) -- 72
+					end -- 72
+					local data = Content:load(fullPath) -- 73
+					if type(data) ~= "string" or data == "" then -- 73
+						error("image not found: " .. paths[i + 1]) -- 74
+					end -- 74
+					local inspected = inspectImage(data) -- 75
+					local encoded = mime.b64(data) -- 76
+					if not encoded then -- 76
+						error("Unable to encode image") -- 77
+					end -- 77
+					images[#images + 1] = {path = paths[i + 1], width = inspected.width, height = inspected.height} -- 78
+					content[#content + 1] = { -- 79
+						type = "text", -- 79
+						text = ((("Image " .. tostring(i + 1)) .. "; ") .. paths[i + 1]) .. (inspected.width ~= nil and (("; " .. tostring(inspected.width)) .. "x") .. tostring(inspected.height) or "") -- 79
+					} -- 79
+					content[#content + 1] = {type = "image_url", image_url = {url = (inspected.format == "jpeg" and "data:image/jpeg;base64," or "data:image/png;base64,") .. encoded}} -- 80
+					i = i + 1 -- 70
+				end -- 70
+			end -- 70
+			local body = __TS__ObjectAssign({model = binding.model, stream = false, max_tokens = binding.provider == "glm-coding-cn" and 8192 or 4096, thinking = {type = binding.provider == "deepseek" and "disabled" or "enabled"}}, binding.provider == "glm-coding-cn" and ({reasoning_effort = "low", temperature = 0.1, top_p = 0.6}) or ({}), {messages = {{role = "system", content = ____exports.VISION_INSPECTION_SYSTEM_PROMPT}, {role = "user", content = content}}}) -- 82
+			local json = safeJsonEncode(body) -- 85
+			if not json then -- 85
+				error("Unable to encode vision request") -- 86
+			end -- 86
+			local headers = {"Authorization: Bearer " .. binding.apiKey, "Content-Type: application/json"} -- 87
+			if binding.studioGateway then -- 87
+				headers[#headers + 1] = "X-Studio-Model-Request-Id: " .. createStudioModelRequestId() -- 88
 			end -- 88
-			local raw = __TS__Await(__TS__New( -- 90
-				__TS__Promise, -- 90
-				function(____, resolve, reject) -- 90
-					local settled = false -- 91
-					local requestId = 0 -- 91
-					local responseReady = false -- 91
-					local responseData -- 92
-					local responseError -- 92
-					local function fail(message) -- 93
-						if settled then -- 93
-							return -- 93
-						end -- 93
-						settled = true -- 93
-						if requestId ~= 0 then -- 93
-							HttpClient:cancel(requestId) -- 93
-						end -- 93
-						reject(nil, message) -- 93
-					end -- 93
-					Director.systemScheduler:schedule(function() -- 94
+			if binding.provider == "glm-coding-cn" then -- 88
+				__TS__ArrayPush(headers, "X-Title: 4.5V MCP Local", "Accept-Language: en-US,en") -- 89
+			end -- 89
+			local raw = __TS__Await(__TS__New( -- 91
+				__TS__Promise, -- 91
+				function(____, resolve, reject) -- 91
+					local settled = false -- 92
+					local requestId = 0 -- 92
+					local responseReady = false -- 92
+					local responseData -- 93
+					local responseError -- 93
+					local function fail(message) -- 94
 						if settled then -- 94
-							return true -- 95
-						end -- 95
-						if responseReady then -- 95
-							if responseError ~= nil then -- 95
-								fail(responseError) -- 100
-							else -- 100
-								settled = true -- 101
-								resolve(nil, responseData) -- 101
-							end -- 101
-							return true -- 102
-						end -- 102
-						if req:isCancelled() or App.runningTime - start > ANALYZE_IMAGE_HTTP_TIMEOUT_SECONDS then -- 102
-							fail(req:isCancelled() and "Vision analysis cancelled" or "Vision request timed out") -- 104
-							return true -- 104
-						end -- 104
-						return false -- 105
-					end) -- 94
-					Director.systemScheduler:schedule(once(function() -- 111
-						if settled then -- 111
-							return -- 112
-						end -- 112
-						requestId = HttpClient:post( -- 113
-							binding.url, -- 113
-							headers, -- 113
-							json, -- 113
-							ANALYZE_IMAGE_HTTP_TIMEOUT_SECONDS, -- 113
-							function(data) -- 113
-								if settled then -- 113
-									return -- 114
-								end -- 114
-								requestId = 0 -- 115
-								if data == nil then -- 115
-									responseError = "Vision request failed (network, credentials, model access or quota); no fallback was attempted" -- 116
-								elseif #data > 512 * 1024 then -- 116
-									responseError = "Vision response exceeded size budget" -- 117
-								else -- 117
-									responseData = data -- 118
-								end -- 118
-								responseReady = true -- 119
-							end -- 113
-						) -- 113
-						if requestId == 0 then -- 113
-							fail("Unable to schedule vision request") -- 121
-							return -- 121
-						end -- 121
-						requestIssued = true -- 122
-					end)) -- 111
-				end -- 90
-			)) -- 90
-			if req:isCancelled() then -- 90
-				____hasReturned = true -- 125
-				____returnValue = {success = false, cancelled = true, message = "Vision analysis cancelled"} -- 125
-				return -- 125
-			end -- 125
+							return -- 94
+						end -- 94
+						settled = true -- 94
+						if requestId ~= 0 then -- 94
+							HttpClient:cancel(requestId) -- 94
+						end -- 94
+						reject(nil, message) -- 94
+					end -- 94
+					Director.systemScheduler:schedule(function() -- 95
+						if settled then -- 95
+							return true -- 96
+						end -- 96
+						if responseReady then -- 96
+							if responseError ~= nil then -- 96
+								fail(responseError) -- 101
+							else -- 101
+								settled = true -- 102
+								resolve(nil, responseData) -- 102
+							end -- 102
+							return true -- 103
+						end -- 103
+						if req:isCancelled() or App.runningTime - start > ANALYZE_IMAGE_HTTP_TIMEOUT_SECONDS then -- 103
+							fail(req:isCancelled() and "Vision analysis cancelled" or "Vision request timed out") -- 105
+							return true -- 105
+						end -- 105
+						return false -- 106
+					end) -- 95
+					Director.systemScheduler:schedule(once(function() -- 112
+						if settled then -- 112
+							return -- 113
+						end -- 113
+						requestId = HttpClient:post( -- 114
+							binding.url, -- 114
+							headers, -- 114
+							json, -- 114
+							ANALYZE_IMAGE_HTTP_TIMEOUT_SECONDS, -- 114
+							function(data) -- 114
+								if settled then -- 114
+									return -- 115
+								end -- 115
+								requestId = 0 -- 116
+								if data == nil then -- 116
+									responseError = "Vision request failed (network, credentials, model access or quota); no fallback was attempted" -- 117
+								elseif #data > 512 * 1024 then -- 117
+									responseError = "Vision response exceeded size budget" -- 118
+								else -- 118
+									responseData = data -- 119
+								end -- 119
+								responseReady = true -- 120
+							end -- 114
+						) -- 114
+						if requestId == 0 then -- 114
+							fail("Unable to schedule vision request") -- 122
+							return -- 122
+						end -- 122
+						requestIssued = true -- 123
+					end)) -- 112
+				end -- 91
+			)) -- 91
 			local result = parseVisionResponse(raw, binding.model) -- 126
 			local current = getVisionTaskUsage(req.taskId) -- 127
 			if requestIssued then -- 127
@@ -216,50 +212,62 @@ function ____exports.analyzeImage(req) -- 50
 				current.outputTokens = current.outputTokens + resultUsage.completion_tokens -- 133
 				current.totalTokens = current.totalTokens + (resultUsage.total_tokens or resultUsage.prompt_tokens + resultUsage.completion_tokens) -- 134
 			end -- 134
-			____hasReturned = true -- 136
-			____returnValue = __TS__ObjectAssign( -- 136
-				{}, -- 136
-				result, -- 136
-				{ -- 136
-					requestIssued = requestIssued, -- 136
-					provider = binding.provider, -- 136
-					bindingId = (binding.provider .. "/") .. binding.model, -- 136
-					profileVersion = VISION_PROFILE_VERSION, -- 136
-					paths = req.paths, -- 136
-					images = images, -- 136
-					latencySeconds = App.runningTime - start, -- 136
-					evidence = "static_game_images", -- 136
-					reportGuidance = "Qualitative visual observation only. Preserve uncertainty; verify project facts deterministically; treat semantic labels for tiny or dense sprite sheets as model observations.", -- 136
-					visionBudget = getVisionBudgetState(current) -- 136
-				} -- 136
-			) -- 136
-			return -- 136
-		end) -- 136
-		____try = ____try.catch( -- 136
-			____try, -- 136
-			function(____, e) -- 136
-				return __TS__AsyncAwaiter(function() -- 136
-					____hasReturned = true -- 139
-					____returnValue = { -- 139
-						success = false, -- 139
-						cancelled = req:isCancelled(), -- 139
-						requestIssued = requestIssued, -- 139
-						message = table.concat( -- 139
-							__TS__StringSplit( -- 139
-								tostring(e), -- 139
-								binding.apiKey -- 139
-							), -- 139
-							"[redacted]" -- 139
-						) -- 139
-					} -- 139
-					return -- 139
-				end) -- 139
-			end -- 139
-		) -- 139
-		__TS__Await(____try) -- 58
-		if ____hasReturned then -- 58
-			return ____awaiter_resolve(nil, ____returnValue) -- 58
-		end -- 58
-	end) -- 58
+			if req:isCancelled() then -- 134
+				____hasReturned = true -- 138
+				____returnValue = { -- 138
+					success = false, -- 138
+					cancelled = true, -- 138
+					requestIssued = requestIssued, -- 138
+					usage = result.usage, -- 138
+					visionBudget = getVisionBudgetState(current), -- 138
+					message = "Vision analysis cancelled" -- 138
+				} -- 138
+				return -- 138
+			end -- 138
+			____hasReturned = true -- 139
+			____returnValue = __TS__ObjectAssign( -- 139
+				{}, -- 139
+				result, -- 139
+				{ -- 139
+					requestIssued = requestIssued, -- 139
+					provider = binding.provider, -- 139
+					bindingId = (binding.provider .. "/") .. binding.model, -- 139
+					profileVersion = VISION_PROFILE_VERSION, -- 139
+					paths = paths, -- 139
+					images = images, -- 139
+					latencySeconds = App.runningTime - start, -- 139
+					evidence = "static_game_images", -- 139
+					reportGuidance = "Qualitative visual observation only. Preserve uncertainty; verify project facts deterministically; treat semantic labels for tiny or dense sprite sheets as model observations.", -- 139
+					visionBudget = getVisionBudgetState(current) -- 139
+				} -- 139
+			) -- 139
+			return -- 139
+		end) -- 139
+		____try = ____try.catch( -- 139
+			____try, -- 139
+			function(____, e) -- 139
+				return __TS__AsyncAwaiter(function() -- 139
+					____hasReturned = true -- 142
+					____returnValue = { -- 142
+						success = false, -- 142
+						cancelled = req:isCancelled(), -- 142
+						requestIssued = requestIssued, -- 142
+						message = table.concat( -- 142
+							__TS__StringSplit( -- 142
+								tostring(e), -- 142
+								binding.apiKey -- 142
+							), -- 142
+							"[redacted]" -- 142
+						) -- 142
+					} -- 142
+					return -- 142
+				end) -- 142
+			end -- 142
+		) -- 142
+		__TS__Await(____try) -- 59
+		if ____hasReturned then -- 59
+			return ____awaiter_resolve(nil, ____returnValue) -- 59
+		end -- 59
+	end) -- 59
 end -- 50
 return ____exports -- 50

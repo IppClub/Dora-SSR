@@ -782,11 +782,11 @@ HttpServer\post "/agent/session/mode", (req): invalidArguments ->
 
 HttpServer\post "/agent/session/send", (req): invalidArguments ->
 	switch req when {body: {:sessionId, :prompt}}
-		return AgentSession.sendPrompt sessionId, prompt, req.body.disabledAgentTools, req.body.workMode, req.body.llmConfigId
+		return AgentSession.sendPrompt sessionId, prompt, req.body.disabledAgentTools, req.body.workMode, req.body.llmConfigId, nil, nil, req.body.submission
 
 HttpServer\post "/agent/session/send-local", (req): invalidArguments ->
 	switch req when {body: {:sessionId, :prompt, :localAgentConfigId}}
-		return AgentSession.sendLocalPrompt sessionId, prompt, localAgentConfigId
+		return AgentSession.sendLocalPrompt sessionId, prompt, localAgentConfigId, req.body.submission
 
 HttpServer\post "/agent/session/local/new", (req): invalidArguments ->
 	switch req when {body: {:sessionId}}

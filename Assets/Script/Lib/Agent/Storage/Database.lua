@@ -16,7 +16,7 @@ local ____Utils = require("Agent.Utils") -- 3
 local Log = ____Utils.Log -- 3
 local ____Support = require("Agent.Storage.Support") -- 4
 local toStr = ____Support.toStr -- 4
-____exports.AGENT_SCHEMA_VERSION = 1 -- 6
+____exports.AGENT_SCHEMA_VERSION = 2 -- 6
 ____exports.AGENT_SCHEMA = "agent" -- 7
 ____exports.TABLE_SESSION = "agent.AgentSession" -- 8
 ____exports.TABLE_MESSAGE = "agent.AgentSessionMessage" -- 9
@@ -25,574 +25,615 @@ ____exports.TABLE_TASK = "agent.AgentTask" -- 11
 ____exports.TABLE_CHECKPOINT = "agent.AgentCheckpoint" -- 12
 ____exports.TABLE_CHECKPOINT_ENTRY = "agent.AgentCheckpointEntry" -- 13
 ____exports.TABLE_TASK_REFERENCE = "agent.AgentTaskReference" -- 14
-local AGENT_DB_FILE = "agent.db" -- 16
-local REQUIRED_TABLES = { -- 17
-	{name = "AgentSession", columns = { -- 18
-		"id", -- 21
-		"project_root", -- 21
-		"title", -- 21
-		"kind", -- 21
-		"root_session_id", -- 21
-		"parent_session_id", -- 22
-		"memory_scope", -- 22
-		"status", -- 22
-		"current_task_id", -- 22
-		"current_task_status", -- 23
-		"created_at", -- 23
-		"updated_at", -- 23
-		"metrics_json", -- 23
-		"work_mode" -- 24
-	}}, -- 24
-	{name = "AgentSessionMessage", columns = { -- 27
-		"id", -- 30
-		"session_id", -- 30
-		"task_id", -- 30
-		"role", -- 30
-		"content", -- 30
-		"display_content", -- 31
-		"created_at", -- 31
-		"updated_at" -- 31
-	}}, -- 31
-	{name = "AgentSessionStep", columns = { -- 34
-		"id", -- 37
-		"session_id", -- 37
-		"task_id", -- 37
-		"step", -- 37
-		"tool", -- 37
-		"status", -- 37
-		"reason", -- 37
-		"reasoning_content", -- 38
-		"params_json", -- 38
-		"result_json", -- 38
-		"checkpoint_id", -- 38
-		"checkpoint_seq", -- 39
-		"files_json", -- 39
-		"created_at", -- 39
-		"updated_at" -- 39
-	}}, -- 39
-	{name = "AgentTask", columns = { -- 42
-		"id", -- 45
-		"status", -- 45
-		"prompt", -- 45
-		"head_seq", -- 45
-		"work_mode", -- 45
-		"created_at", -- 46
-		"updated_at" -- 46
-	}}, -- 46
-	{name = "AgentCheckpoint", columns = { -- 49
-		"id", -- 52
-		"task_id", -- 52
-		"seq", -- 52
-		"status", -- 52
-		"summary", -- 52
-		"tool_name", -- 52
-		"created_at", -- 53
-		"applied_at", -- 53
-		"reverted_at" -- 53
-	}}, -- 53
-	{name = "AgentCheckpointEntry", columns = { -- 56
-		"id", -- 59
-		"checkpoint_id", -- 59
-		"ord", -- 59
-		"path", -- 59
-		"op", -- 59
-		"before_exists", -- 59
-		"before_data", -- 60
-		"after_exists", -- 60
-		"after_data", -- 60
-		"bytes_before", -- 60
-		"bytes_after" -- 61
-	}}, -- 61
-	{name = "AgentTaskReference", columns = {"owner_task_id", "target_task_id", "kind", "created_at"}} -- 64
-} -- 64
-local REQUIRED_INDEXES = { -- 70
-	"idx_agent_session_project_root", -- 71
-	"idx_agent_session_message_sid_id", -- 72
-	"idx_agent_session_step_unique", -- 73
-	"idx_agent_session_step_sid_task_step", -- 74
-	"idx_agent_cp_task_seq", -- 75
-	"idx_agent_entry_cp_ord", -- 76
-	"idx_agent_task_ref_target" -- 77
-} -- 77
-local DROP_AGENT_SCHEMA_SQL = { -- 80
-	("DROP TABLE IF EXISTS " .. ____exports.TABLE_CHECKPOINT_ENTRY) .. ";", -- 80
-	("DROP TABLE IF EXISTS " .. ____exports.TABLE_CHECKPOINT) .. ";", -- 80
-	("DROP TABLE IF EXISTS " .. ____exports.TABLE_STEP) .. ";", -- 80
-	("DROP TABLE IF EXISTS " .. ____exports.TABLE_MESSAGE) .. ";", -- 80
-	("DROP TABLE IF EXISTS " .. ____exports.TABLE_TASK_REFERENCE) .. ";", -- 80
-	("DROP TABLE IF EXISTS " .. ____exports.TABLE_SESSION) .. ";", -- 80
-	("DROP TABLE IF EXISTS " .. ____exports.TABLE_TASK) .. ";" -- 80
-} -- 80
-local CREATE_AGENT_SCHEMA_SQL = { -- 90
-	("CREATE TABLE " .. ____exports.TABLE_SESSION) .. "(\n\t\tid INTEGER PRIMARY KEY AUTOINCREMENT,\n\t\tproject_root TEXT NOT NULL,\n\t\ttitle TEXT NOT NULL DEFAULT '',\n\t\tkind TEXT NOT NULL DEFAULT 'main',\n\t\troot_session_id INTEGER NOT NULL DEFAULT 0,\n\t\tparent_session_id INTEGER,\n\t\tmemory_scope TEXT NOT NULL DEFAULT 'main',\n\t\tstatus TEXT NOT NULL DEFAULT 'IDLE',\n\t\tcurrent_task_id INTEGER,\n\t\tcurrent_task_status TEXT NOT NULL DEFAULT 'IDLE',\n\t\tcreated_at INTEGER NOT NULL,\n\t\tupdated_at INTEGER NOT NULL,\n\t\tmetrics_json TEXT NOT NULL DEFAULT '',\n\t\twork_mode TEXT NOT NULL DEFAULT 'code'\n\t);", -- 90
-	"CREATE INDEX agent.idx_agent_session_project_root\n\t\tON AgentSession(project_root, updated_at DESC);", -- 107
-	("CREATE TABLE " .. ____exports.TABLE_MESSAGE) .. "(\n\t\tid INTEGER PRIMARY KEY AUTOINCREMENT,\n\t\tsession_id INTEGER NOT NULL,\n\t\ttask_id INTEGER,\n\t\trole TEXT NOT NULL,\n\t\tcontent TEXT NOT NULL DEFAULT '',\n\t\tdisplay_content TEXT NOT NULL DEFAULT '',\n\t\tcreated_at INTEGER NOT NULL,\n\t\tupdated_at INTEGER NOT NULL\n\t);", -- 107
-	"CREATE INDEX agent.idx_agent_session_message_sid_id\n\t\tON AgentSessionMessage(session_id, id);", -- 119
-	("CREATE TABLE " .. ____exports.TABLE_STEP) .. "(\n\t\tid INTEGER PRIMARY KEY AUTOINCREMENT,\n\t\tsession_id INTEGER NOT NULL,\n\t\ttask_id INTEGER NOT NULL,\n\t\tstep INTEGER NOT NULL,\n\t\ttool TEXT NOT NULL DEFAULT '',\n\t\tstatus TEXT NOT NULL DEFAULT 'PENDING',\n\t\treason TEXT NOT NULL DEFAULT '',\n\t\treasoning_content TEXT NOT NULL DEFAULT '',\n\t\tparams_json TEXT NOT NULL DEFAULT '',\n\t\tresult_json TEXT NOT NULL DEFAULT '',\n\t\tcheckpoint_id INTEGER,\n\t\tcheckpoint_seq INTEGER,\n\t\tfiles_json TEXT NOT NULL DEFAULT '',\n\t\tcreated_at INTEGER NOT NULL,\n\t\tupdated_at INTEGER NOT NULL\n\t);", -- 119
-	"CREATE UNIQUE INDEX agent.idx_agent_session_step_unique\n\t\tON AgentSessionStep(session_id, task_id, step);", -- 138
-	"CREATE INDEX agent.idx_agent_session_step_sid_task_step\n\t\tON AgentSessionStep(session_id, task_id, step);", -- 140
-	("CREATE TABLE " .. ____exports.TABLE_TASK) .. "(\n\t\tid INTEGER PRIMARY KEY AUTOINCREMENT,\n\t\tstatus TEXT NOT NULL,\n\t\tprompt TEXT NOT NULL DEFAULT '',\n\t\thead_seq INTEGER NOT NULL DEFAULT 0,\n\t\twork_mode TEXT NOT NULL DEFAULT 'code',\n\t\tcreated_at INTEGER NOT NULL,\n\t\tupdated_at INTEGER NOT NULL\n\t);", -- 140
-	("CREATE TABLE " .. ____exports.TABLE_CHECKPOINT) .. "(\n\t\tid INTEGER PRIMARY KEY AUTOINCREMENT,\n\t\ttask_id INTEGER NOT NULL,\n\t\tseq INTEGER NOT NULL,\n\t\tstatus TEXT NOT NULL,\n\t\tsummary TEXT NOT NULL DEFAULT '',\n\t\ttool_name TEXT NOT NULL DEFAULT '',\n\t\tcreated_at INTEGER NOT NULL,\n\t\tapplied_at INTEGER,\n\t\treverted_at INTEGER\n\t);", -- 140
-	"CREATE INDEX agent.idx_agent_cp_task_seq\n\t\tON AgentCheckpoint(task_id, seq);", -- 162
-	("CREATE TABLE " .. ____exports.TABLE_CHECKPOINT_ENTRY) .. "(\n\t\tid INTEGER PRIMARY KEY AUTOINCREMENT,\n\t\tcheckpoint_id INTEGER NOT NULL,\n\t\tord INTEGER NOT NULL,\n\t\tpath TEXT NOT NULL,\n\t\top TEXT NOT NULL,\n\t\tbefore_exists INTEGER NOT NULL,\n\t\tbefore_data BLOB,\n\t\tafter_exists INTEGER NOT NULL,\n\t\tafter_data BLOB,\n\t\tbytes_before INTEGER NOT NULL DEFAULT 0,\n\t\tbytes_after INTEGER NOT NULL DEFAULT 0\n\t);", -- 162
-	"CREATE INDEX agent.idx_agent_entry_cp_ord\n\t\tON AgentCheckpointEntry(checkpoint_id, ord);", -- 177
-	("CREATE TABLE " .. ____exports.TABLE_TASK_REFERENCE) .. "(\n\t\towner_task_id INTEGER NOT NULL,\n\t\ttarget_task_id INTEGER NOT NULL,\n\t\tkind TEXT NOT NULL,\n\t\tcreated_at INTEGER NOT NULL,\n\t\tPRIMARY KEY(owner_task_id, target_task_id, kind)\n\t);", -- 177
-	"CREATE INDEX agent.idx_agent_task_ref_target\n\t\tON AgentTaskReference(target_task_id);", -- 186
-	("PRAGMA agent.user_version = " .. tostring(____exports.AGENT_SCHEMA_VERSION)) .. ";" -- 186
-} -- 186
-local DROP_LEGACY_AGENT_SQL = { -- 191
-	"DROP TABLE IF EXISTS main.AgentCheckpointEntry;", -- 192
-	"DROP TABLE IF EXISTS main.AgentCheckpoint;", -- 193
-	"DROP TABLE IF EXISTS main.AgentSessionStep;", -- 194
-	"DROP TABLE IF EXISTS main.AgentSessionMessage;", -- 195
-	"DROP TABLE IF EXISTS main.AgentSession;", -- 196
-	"DROP TABLE IF EXISTS main.AgentTaskReference;", -- 197
-	"DROP TABLE IF EXISTS main.AgentTask;", -- 198
-	"DROP TABLE IF EXISTS main.AgentQuestionnaire;" -- 199
-} -- 199
-local storageError -- 202
-local storageReady = false -- 203
-local function getSchemaVersion() -- 205
-	local rows = DB:query("PRAGMA agent.user_version") -- 206
-	if not rows or #rows == 0 or type(rows[1][1]) ~= "number" then -- 206
-		return nil -- 207
-	end -- 207
-	return math.max( -- 208
-		0, -- 208
-		math.floor(rows[1][1]) -- 208
-	) -- 208
-end -- 205
-local function rebuildSchema() -- 211
-	local tableRows = DB:query("SELECT name FROM agent.sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%'") or ({}) -- 212
-	local dropAllTables = {} -- 215
-	do -- 215
-		local i = 0 -- 216
-		while i < #tableRows do -- 216
-			do -- 216
-				local tableName = toStr(tableRows[i + 1][1]) -- 217
-				if tableName == "" then -- 217
-					goto __continue6 -- 218
-				end -- 218
-				local quotedName = string.gsub(tableName, "\"", "\"\"") -- 219
-				dropAllTables[#dropAllTables + 1] = ("DROP TABLE IF EXISTS agent.\"" .. quotedName) .. "\";" -- 220
-			end -- 220
-			::__continue6:: -- 220
-			i = i + 1 -- 216
-		end -- 216
-	end -- 216
-	local ____DB_1 = DB -- 222
-	local ____DB_transaction_2 = DB.transaction -- 222
-	local ____array_0 = __TS__SparseArrayNew(table.unpack(dropAllTables)) -- 222
-	__TS__SparseArrayPush( -- 222
-		____array_0, -- 222
-		table.unpack(DROP_AGENT_SCHEMA_SQL) -- 222
+local INPUT_SCHEMA_SQL = {"CREATE TABLE agent.AgentSessionInput(id INTEGER PRIMARY KEY AUTOINCREMENT, session_id INTEGER NOT NULL,\n request_id TEXT NOT NULL, content TEXT NOT NULL, delivery TEXT NOT NULL, status TEXT NOT NULL,\n held INTEGER NOT NULL DEFAULT 0, task_id INTEGER, options_json TEXT NOT NULL, position INTEGER NOT NULL, message_id INTEGER, delivered_step INTEGER,\n UNIQUE(session_id,request_id));", "CREATE INDEX agent.idx_agent_input_pending ON AgentSessionInput(session_id,status,position);", "CREATE INDEX agent.idx_agent_input_message ON AgentSessionInput(message_id);"} -- 16
+local AGENT_DB_FILE = "agent.db" -- 25
+local REQUIRED_TABLES = { -- 26
+	{name = "AgentSessionInput", columns = { -- 27
+		"id", -- 27
+		"session_id", -- 27
+		"request_id", -- 27
+		"content", -- 27
+		"delivery", -- 27
+		"status", -- 27
+		"held", -- 27
+		"task_id", -- 27
+		"options_json", -- 27
+		"position", -- 27
+		"message_id", -- 27
+		"delivered_step" -- 27
+	}}, -- 27
+	{name = "AgentSession", columns = { -- 28
+		"id", -- 31
+		"project_root", -- 31
+		"title", -- 31
+		"kind", -- 31
+		"root_session_id", -- 31
+		"parent_session_id", -- 32
+		"memory_scope", -- 32
+		"status", -- 32
+		"current_task_id", -- 32
+		"current_task_status", -- 33
+		"created_at", -- 33
+		"updated_at", -- 33
+		"metrics_json", -- 33
+		"work_mode" -- 34
+	}}, -- 34
+	{name = "AgentSessionMessage", columns = { -- 37
+		"id", -- 40
+		"session_id", -- 40
+		"task_id", -- 40
+		"role", -- 40
+		"content", -- 40
+		"display_content", -- 41
+		"created_at", -- 41
+		"updated_at" -- 41
+	}}, -- 41
+	{name = "AgentSessionStep", columns = { -- 44
+		"id", -- 47
+		"session_id", -- 47
+		"task_id", -- 47
+		"step", -- 47
+		"tool", -- 47
+		"status", -- 47
+		"reason", -- 47
+		"reasoning_content", -- 48
+		"params_json", -- 48
+		"result_json", -- 48
+		"checkpoint_id", -- 48
+		"checkpoint_seq", -- 49
+		"files_json", -- 49
+		"created_at", -- 49
+		"updated_at" -- 49
+	}}, -- 49
+	{name = "AgentTask", columns = { -- 52
+		"id", -- 55
+		"status", -- 55
+		"prompt", -- 55
+		"head_seq", -- 55
+		"work_mode", -- 55
+		"created_at", -- 56
+		"updated_at" -- 56
+	}}, -- 56
+	{name = "AgentCheckpoint", columns = { -- 59
+		"id", -- 62
+		"task_id", -- 62
+		"seq", -- 62
+		"status", -- 62
+		"summary", -- 62
+		"tool_name", -- 62
+		"created_at", -- 63
+		"applied_at", -- 63
+		"reverted_at" -- 63
+	}}, -- 63
+	{name = "AgentCheckpointEntry", columns = { -- 66
+		"id", -- 69
+		"checkpoint_id", -- 69
+		"ord", -- 69
+		"path", -- 69
+		"op", -- 69
+		"before_exists", -- 69
+		"before_data", -- 70
+		"after_exists", -- 70
+		"after_data", -- 70
+		"bytes_before", -- 70
+		"bytes_after" -- 71
+	}}, -- 71
+	{name = "AgentTaskReference", columns = {"owner_task_id", "target_task_id", "kind", "created_at"}} -- 74
+} -- 74
+local REQUIRED_INDEXES = { -- 80
+	"idx_agent_input_pending", -- 81
+	"idx_agent_input_message", -- 82
+	"idx_agent_session_project_root", -- 83
+	"idx_agent_session_message_sid_id", -- 84
+	"idx_agent_session_step_unique", -- 85
+	"idx_agent_session_step_sid_task_step", -- 86
+	"idx_agent_cp_task_seq", -- 87
+	"idx_agent_entry_cp_ord", -- 88
+	"idx_agent_task_ref_target" -- 89
+} -- 89
+local DROP_AGENT_SCHEMA_SQL = { -- 92
+	"DROP TABLE IF EXISTS agent.AgentSessionInput;", -- 93
+	("DROP TABLE IF EXISTS " .. ____exports.TABLE_CHECKPOINT_ENTRY) .. ";", -- 93
+	("DROP TABLE IF EXISTS " .. ____exports.TABLE_CHECKPOINT) .. ";", -- 93
+	("DROP TABLE IF EXISTS " .. ____exports.TABLE_STEP) .. ";", -- 93
+	("DROP TABLE IF EXISTS " .. ____exports.TABLE_MESSAGE) .. ";", -- 93
+	("DROP TABLE IF EXISTS " .. ____exports.TABLE_TASK_REFERENCE) .. ";", -- 93
+	("DROP TABLE IF EXISTS " .. ____exports.TABLE_SESSION) .. ";", -- 93
+	("DROP TABLE IF EXISTS " .. ____exports.TABLE_TASK) .. ";" -- 93
+} -- 93
+local ____array_0 = __TS__SparseArrayNew(table.unpack(INPUT_SCHEMA_SQL)) -- 93
+__TS__SparseArrayPush( -- 93
+	____array_0, -- 93
+	("CREATE TABLE " .. ____exports.TABLE_SESSION) .. "(\n\t\tid INTEGER PRIMARY KEY AUTOINCREMENT,\n\t\tproject_root TEXT NOT NULL,\n\t\ttitle TEXT NOT NULL DEFAULT '',\n\t\tkind TEXT NOT NULL DEFAULT 'main',\n\t\troot_session_id INTEGER NOT NULL DEFAULT 0,\n\t\tparent_session_id INTEGER,\n\t\tmemory_scope TEXT NOT NULL DEFAULT 'main',\n\t\tstatus TEXT NOT NULL DEFAULT 'IDLE',\n\t\tcurrent_task_id INTEGER,\n\t\tcurrent_task_status TEXT NOT NULL DEFAULT 'IDLE',\n\t\tcreated_at INTEGER NOT NULL,\n\t\tupdated_at INTEGER NOT NULL,\n\t\tmetrics_json TEXT NOT NULL DEFAULT '',\n\t\twork_mode TEXT NOT NULL DEFAULT 'code'\n\t);", -- 93
+	"CREATE INDEX agent.idx_agent_session_project_root\n\t\tON AgentSession(project_root, updated_at DESC);", -- 121
+	("CREATE TABLE " .. ____exports.TABLE_MESSAGE) .. "(\n\t\tid INTEGER PRIMARY KEY AUTOINCREMENT,\n\t\tsession_id INTEGER NOT NULL,\n\t\ttask_id INTEGER,\n\t\trole TEXT NOT NULL,\n\t\tcontent TEXT NOT NULL DEFAULT '',\n\t\tdisplay_content TEXT NOT NULL DEFAULT '',\n\t\tcreated_at INTEGER NOT NULL,\n\t\tupdated_at INTEGER NOT NULL\n\t);", -- 121
+	"CREATE INDEX agent.idx_agent_session_message_sid_id\n\t\tON AgentSessionMessage(session_id, id);", -- 133
+	("CREATE TABLE " .. ____exports.TABLE_STEP) .. "(\n\t\tid INTEGER PRIMARY KEY AUTOINCREMENT,\n\t\tsession_id INTEGER NOT NULL,\n\t\ttask_id INTEGER NOT NULL,\n\t\tstep INTEGER NOT NULL,\n\t\ttool TEXT NOT NULL DEFAULT '',\n\t\tstatus TEXT NOT NULL DEFAULT 'PENDING',\n\t\treason TEXT NOT NULL DEFAULT '',\n\t\treasoning_content TEXT NOT NULL DEFAULT '',\n\t\tparams_json TEXT NOT NULL DEFAULT '',\n\t\tresult_json TEXT NOT NULL DEFAULT '',\n\t\tcheckpoint_id INTEGER,\n\t\tcheckpoint_seq INTEGER,\n\t\tfiles_json TEXT NOT NULL DEFAULT '',\n\t\tcreated_at INTEGER NOT NULL,\n\t\tupdated_at INTEGER NOT NULL\n\t);", -- 133
+	"CREATE UNIQUE INDEX agent.idx_agent_session_step_unique\n\t\tON AgentSessionStep(session_id, task_id, step);", -- 152
+	"CREATE INDEX agent.idx_agent_session_step_sid_task_step\n\t\tON AgentSessionStep(session_id, task_id, step);", -- 154
+	("CREATE TABLE " .. ____exports.TABLE_TASK) .. "(\n\t\tid INTEGER PRIMARY KEY AUTOINCREMENT,\n\t\tstatus TEXT NOT NULL,\n\t\tprompt TEXT NOT NULL DEFAULT '',\n\t\thead_seq INTEGER NOT NULL DEFAULT 0,\n\t\twork_mode TEXT NOT NULL DEFAULT 'code',\n\t\tcreated_at INTEGER NOT NULL,\n\t\tupdated_at INTEGER NOT NULL\n\t);", -- 154
+	("CREATE TABLE " .. ____exports.TABLE_CHECKPOINT) .. "(\n\t\tid INTEGER PRIMARY KEY AUTOINCREMENT,\n\t\ttask_id INTEGER NOT NULL,\n\t\tseq INTEGER NOT NULL,\n\t\tstatus TEXT NOT NULL,\n\t\tsummary TEXT NOT NULL DEFAULT '',\n\t\ttool_name TEXT NOT NULL DEFAULT '',\n\t\tcreated_at INTEGER NOT NULL,\n\t\tapplied_at INTEGER,\n\t\treverted_at INTEGER\n\t);", -- 154
+	"CREATE INDEX agent.idx_agent_cp_task_seq\n\t\tON AgentCheckpoint(task_id, seq);", -- 176
+	("CREATE TABLE " .. ____exports.TABLE_CHECKPOINT_ENTRY) .. "(\n\t\tid INTEGER PRIMARY KEY AUTOINCREMENT,\n\t\tcheckpoint_id INTEGER NOT NULL,\n\t\tord INTEGER NOT NULL,\n\t\tpath TEXT NOT NULL,\n\t\top TEXT NOT NULL,\n\t\tbefore_exists INTEGER NOT NULL,\n\t\tbefore_data BLOB,\n\t\tafter_exists INTEGER NOT NULL,\n\t\tafter_data BLOB,\n\t\tbytes_before INTEGER NOT NULL DEFAULT 0,\n\t\tbytes_after INTEGER NOT NULL DEFAULT 0\n\t);", -- 176
+	"CREATE INDEX agent.idx_agent_entry_cp_ord\n\t\tON AgentCheckpointEntry(checkpoint_id, ord);", -- 191
+	("CREATE TABLE " .. ____exports.TABLE_TASK_REFERENCE) .. "(\n\t\towner_task_id INTEGER NOT NULL,\n\t\ttarget_task_id INTEGER NOT NULL,\n\t\tkind TEXT NOT NULL,\n\t\tcreated_at INTEGER NOT NULL,\n\t\tPRIMARY KEY(owner_task_id, target_task_id, kind)\n\t);", -- 191
+	"CREATE INDEX agent.idx_agent_task_ref_target\n\t\tON AgentTaskReference(target_task_id);", -- 200
+	("PRAGMA agent.user_version = " .. tostring(____exports.AGENT_SCHEMA_VERSION)) .. ";" -- 200
+) -- 200
+local CREATE_AGENT_SCHEMA_SQL = {__TS__SparseArraySpread(____array_0)} -- 103
+local DROP_LEGACY_AGENT_SQL = { -- 205
+	"DROP TABLE IF EXISTS main.AgentCheckpointEntry;", -- 206
+	"DROP TABLE IF EXISTS main.AgentCheckpoint;", -- 207
+	"DROP TABLE IF EXISTS main.AgentSessionStep;", -- 208
+	"DROP TABLE IF EXISTS main.AgentSessionMessage;", -- 209
+	"DROP TABLE IF EXISTS main.AgentSession;", -- 210
+	"DROP TABLE IF EXISTS main.AgentTaskReference;", -- 211
+	"DROP TABLE IF EXISTS main.AgentTask;", -- 212
+	"DROP TABLE IF EXISTS main.AgentQuestionnaire;" -- 213
+} -- 213
+local storageError -- 216
+local storageReady = false -- 217
+local function getSchemaVersion() -- 219
+	local rows = DB:query("PRAGMA agent.user_version") -- 220
+	if not rows or #rows == 0 or type(rows[1][1]) ~= "number" then -- 220
+		return nil -- 221
+	end -- 221
+	return math.max( -- 222
+		0, -- 222
+		math.floor(rows[1][1]) -- 222
 	) -- 222
-	__TS__SparseArrayPush( -- 222
-		____array_0, -- 222
-		table.unpack(CREATE_AGENT_SCHEMA_SQL) -- 222
-	) -- 222
-	return ____DB_transaction_2( -- 222
-		____DB_1, -- 222
-		{__TS__SparseArraySpread(____array_0)} -- 222
-	) -- 222
-end -- 211
-local function validateSchema() -- 225
-	do -- 225
-		local i = 0 -- 226
-		while i < #REQUIRED_TABLES do -- 226
-			local required = REQUIRED_TABLES[i + 1] -- 227
-			local rows = DB:query(("PRAGMA agent.table_info(" .. required.name) .. ")") -- 228
-			if not rows or #rows ~= #required.columns then -- 228
-				return ("table " .. required.name) .. " has an unexpected column count" -- 230
-			end -- 230
+end -- 219
+local function rebuildSchema() -- 225
+	local tableRows = DB:query("SELECT name FROM agent.sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%'") or ({}) -- 226
+	local dropAllTables = {} -- 229
+	do -- 229
+		local i = 0 -- 230
+		while i < #tableRows do -- 230
 			do -- 230
-				local j = 0 -- 232
-				while j < #required.columns do -- 232
-					if toStr(rows[j + 1][2]) ~= required.columns[j + 1] then -- 232
-						return ("table " .. required.name) .. " has an unexpected schema" -- 234
-					end -- 234
-					j = j + 1 -- 232
+				local tableName = toStr(tableRows[i + 1][1]) -- 231
+				if tableName == "" then -- 231
+					goto __continue6 -- 232
 				end -- 232
-			end -- 232
-			i = i + 1 -- 226
-		end -- 226
-	end -- 226
-	local indexRows = DB:query("SELECT name FROM agent.sqlite_master WHERE type = 'index' AND name LIKE 'idx_agent_%'") or ({}) -- 238
-	local indexes = {} -- 241
-	do -- 241
-		local i = 0 -- 242
-		while i < #indexRows do -- 242
-			indexes[toStr(indexRows[i + 1][1])] = true -- 243
-			i = i + 1 -- 242
-		end -- 242
-	end -- 242
-	do -- 242
-		local i = 0 -- 245
-		while i < #REQUIRED_INDEXES do -- 245
-			if not indexes[REQUIRED_INDEXES[i + 1]] then -- 245
-				return "missing index " .. REQUIRED_INDEXES[i + 1] -- 247
-			end -- 247
-			i = i + 1 -- 245
-		end -- 245
-	end -- 245
-	return nil -- 250
+				local quotedName = string.gsub(tableName, "\"", "\"\"") -- 233
+				dropAllTables[#dropAllTables + 1] = ("DROP TABLE IF EXISTS agent.\"" .. quotedName) .. "\";" -- 234
+			end -- 234
+			::__continue6:: -- 234
+			i = i + 1 -- 230
+		end -- 230
+	end -- 230
+	local ____DB_2 = DB -- 236
+	local ____DB_transaction_3 = DB.transaction -- 236
+	local ____array_1 = __TS__SparseArrayNew(table.unpack(dropAllTables)) -- 236
+	__TS__SparseArrayPush( -- 236
+		____array_1, -- 236
+		table.unpack(DROP_AGENT_SCHEMA_SQL) -- 236
+	) -- 236
+	__TS__SparseArrayPush( -- 236
+		____array_1, -- 236
+		table.unpack(CREATE_AGENT_SCHEMA_SQL) -- 236
+	) -- 236
+	return ____DB_transaction_3( -- 236
+		____DB_2, -- 236
+		{__TS__SparseArraySpread(____array_1)} -- 236
+	) -- 236
 end -- 225
-local function validateCodecAndWrite() -- 253
-	local binaryProbe = "Dora\0Blob\0Probe" -- 254
-	local smallProbe = "Dora Agent small text" -- 255
-	local compressedProbe = "Dora Agent checkpoint codec probe：" .. string.rep("压缩内容", 128) -- 256
-	local rows = DB:query("SELECT\n\t\t\tCAST(? AS BLOB),\n\t\t\ttypeof(CAST(? AS BLOB)),\n\t\t\tdora_decompress_text(dora_compress_text(?)),\n\t\t\ttypeof(dora_compress_text(?)),\n\t\t\tdora_decompress_text(dora_compress_text(?)),\n\t\t\ttypeof(dora_compress_text(?))", { -- 257
-		binaryProbe, -- 265
-		binaryProbe, -- 265
-		smallProbe, -- 265
-		smallProbe, -- 265
-		compressedProbe, -- 265
-		compressedProbe -- 265
-	}) -- 265
-	if not rows or #rows ~= 1 or toStr(rows[1][1]) ~= binaryProbe or toStr(rows[1][2]) ~= "blob" or toStr(rows[1][3]) ~= smallProbe or toStr(rows[1][4]) ~= "text" or toStr(rows[1][5]) ~= compressedProbe or toStr(rows[1][6]) ~= "blob" then -- 265
-		return false -- 277
-	end -- 277
-	return DB:transaction({"CREATE TABLE agent.AgentStorageProbe(value INTEGER NOT NULL);", "INSERT INTO agent.AgentStorageProbe(value) VALUES(1);", "DROP TABLE agent.AgentStorageProbe;"}) -- 279
-end -- 253
-local function initializeAgentStorage() -- 286
-	local dbPath = Path(App.platform == "Web" and Content.writablePath or Content.appPath, AGENT_DB_FILE) -- 287
-	if not DB:existDB(____exports.AGENT_SCHEMA) then -- 287
-		DB:exec("ATTACH DATABASE ? AS " .. ____exports.AGENT_SCHEMA, {dbPath}) -- 289
-	end -- 289
-	if not DB:existDB(____exports.AGENT_SCHEMA) then -- 289
-		storageError = "failed to attach " .. dbPath -- 292
-		return -- 293
-	end -- 293
-	local version = getSchemaVersion() -- 296
-	if version == nil then -- 296
-		storageError = "failed to read agent.db schema version" -- 298
-		return -- 299
-	end -- 299
-	if version > ____exports.AGENT_SCHEMA_VERSION then -- 299
-		storageError = (("agent.db schema " .. tostring(version)) .. " is newer than supported ") .. tostring(____exports.AGENT_SCHEMA_VERSION) -- 302
-		return -- 303
+local function validateSchema() -- 239
+	do -- 239
+		local i = 0 -- 240
+		while i < #REQUIRED_TABLES do -- 240
+			local required = REQUIRED_TABLES[i + 1] -- 241
+			local rows = DB:query(("PRAGMA agent.table_info(" .. required.name) .. ")") -- 242
+			if not rows or #rows ~= #required.columns then -- 242
+				return ("table " .. required.name) .. " has an unexpected column count" -- 244
+			end -- 244
+			do -- 244
+				local j = 0 -- 246
+				while j < #required.columns do -- 246
+					if toStr(rows[j + 1][2]) ~= required.columns[j + 1] then -- 246
+						return ("table " .. required.name) .. " has an unexpected schema" -- 248
+					end -- 248
+					j = j + 1 -- 246
+				end -- 246
+			end -- 246
+			i = i + 1 -- 240
+		end -- 240
+	end -- 240
+	local indexRows = DB:query("SELECT name FROM agent.sqlite_master WHERE type = 'index' AND name LIKE 'idx_agent_%'") or ({}) -- 252
+	local indexes = {} -- 255
+	do -- 255
+		local i = 0 -- 256
+		while i < #indexRows do -- 256
+			indexes[toStr(indexRows[i + 1][1])] = true -- 257
+			i = i + 1 -- 256
+		end -- 256
+	end -- 256
+	do -- 256
+		local i = 0 -- 259
+		while i < #REQUIRED_INDEXES do -- 259
+			if not indexes[REQUIRED_INDEXES[i + 1]] then -- 259
+				return "missing index " .. REQUIRED_INDEXES[i + 1] -- 261
+			end -- 261
+			i = i + 1 -- 259
+		end -- 259
+	end -- 259
+	return nil -- 264
+end -- 239
+local function validateCodecAndWrite() -- 267
+	local binaryProbe = "Dora\0Blob\0Probe" -- 268
+	local smallProbe = "Dora Agent small text" -- 269
+	local compressedProbe = "Dora Agent checkpoint codec probe：" .. string.rep("压缩内容", 128) -- 270
+	local rows = DB:query("SELECT\n\t\t\tCAST(? AS BLOB),\n\t\t\ttypeof(CAST(? AS BLOB)),\n\t\t\tdora_decompress_text(dora_compress_text(?)),\n\t\t\ttypeof(dora_compress_text(?)),\n\t\t\tdora_decompress_text(dora_compress_text(?)),\n\t\t\ttypeof(dora_compress_text(?))", { -- 271
+		binaryProbe, -- 279
+		binaryProbe, -- 279
+		smallProbe, -- 279
+		smallProbe, -- 279
+		compressedProbe, -- 279
+		compressedProbe -- 279
+	}) -- 279
+	if not rows or #rows ~= 1 or toStr(rows[1][1]) ~= binaryProbe or toStr(rows[1][2]) ~= "blob" or toStr(rows[1][3]) ~= smallProbe or toStr(rows[1][4]) ~= "text" or toStr(rows[1][5]) ~= compressedProbe or toStr(rows[1][6]) ~= "blob" then -- 279
+		return false -- 291
+	end -- 291
+	return DB:transaction({"CREATE TABLE agent.AgentStorageProbe(value INTEGER NOT NULL);", "INSERT INTO agent.AgentStorageProbe(value) VALUES(1);", "DROP TABLE agent.AgentStorageProbe;"}) -- 293
+end -- 267
+local function initializeAgentStorage() -- 300
+	local dbPath = Path(App.platform == "Web" and Content.writablePath or Content.appPath, AGENT_DB_FILE) -- 301
+	if not DB:existDB(____exports.AGENT_SCHEMA) then -- 301
+		DB:exec("ATTACH DATABASE ? AS " .. ____exports.AGENT_SCHEMA, {dbPath}) -- 303
 	end -- 303
-	if version < ____exports.AGENT_SCHEMA_VERSION and not rebuildSchema() then -- 303
-		storageError = "failed to create current agent.db schema" -- 306
+	if not DB:existDB(____exports.AGENT_SCHEMA) then -- 303
+		storageError = "failed to attach " .. dbPath -- 306
 		return -- 307
 	end -- 307
-	local schemaError = validateSchema() -- 309
-	if schemaError then -- 309
-		storageError = "agent.db schema error: " .. schemaError -- 311
-		return -- 312
-	end -- 312
-	if not validateCodecAndWrite() then -- 312
-		storageError = "agent.db codec or write probe failed" -- 315
-		return -- 316
-	end -- 316
-	if not DB:transaction(DROP_LEGACY_AGENT_SQL) then -- 316
-		storageError = "failed to remove legacy Agent tables from dora.db" -- 319
-		return -- 320
-	end -- 320
-	storageReady = true -- 322
-	Log( -- 323
-		"Info", -- 323
-		(("[AgentStorage] ready path=" .. dbPath) .. " schema=") .. tostring(____exports.AGENT_SCHEMA_VERSION) -- 323
-	) -- 323
-end -- 286
-function ____exports.isAgentStorageReady() -- 326
-	return storageReady -- 327
-end -- 326
-function ____exports.getAgentStorageError() -- 330
-	return storageError -- 331
-end -- 330
-function ____exports.requireAgentStorage() -- 334
-	if storageReady then -- 334
-		return {success = true} -- 335
-	end -- 335
-	return {success = false, message = storageError and "Agent database unavailable: " .. storageError or "Agent database unavailable"} -- 336
-end -- 334
-local function normalizeTaskIds(rows) -- 342
-	local result = {} -- 343
-	if not rows then -- 343
-		return result -- 344
-	end -- 344
-	do -- 344
-		local i = 0 -- 345
-		while i < #rows do -- 345
-			local taskId = type(rows[i + 1][1]) == "number" and math.floor(rows[i + 1][1]) or 0 -- 346
-			if taskId > 0 and __TS__ArrayIndexOf(result, taskId) < 0 then -- 346
-				result[#result + 1] = taskId -- 347
-			end -- 347
-			i = i + 1 -- 345
-		end -- 345
-	end -- 345
-	return result -- 349
+	local version = getSchemaVersion() -- 310
+	if version == nil then -- 310
+		storageError = "failed to read agent.db schema version" -- 312
+		return -- 313
+	end -- 313
+	if version > ____exports.AGENT_SCHEMA_VERSION then -- 313
+		storageError = (("agent.db schema " .. tostring(version)) .. " is newer than supported ") .. tostring(____exports.AGENT_SCHEMA_VERSION) -- 316
+		return -- 317
+	end -- 317
+	local ____temp_8 = version < ____exports.AGENT_SCHEMA_VERSION -- 319
+	if ____temp_8 then -- 319
+		local ____temp_7 -- 319
+		if version == 1 then -- 319
+			local ____DB_5 = DB -- 320
+			local ____DB_transaction_6 = DB.transaction -- 320
+			local ____array_4 = __TS__SparseArrayNew(table.unpack(INPUT_SCHEMA_SQL)) -- 320
+			__TS__SparseArrayPush( -- 320
+				____array_4, -- 320
+				("PRAGMA agent.user_version = " .. tostring(____exports.AGENT_SCHEMA_VERSION)) .. ";" -- 320
+			) -- 320
+			____temp_7 = ____DB_transaction_6( -- 320
+				____DB_5, -- 320
+				{__TS__SparseArraySpread(____array_4)} -- 320
+			) -- 320
+		else -- 320
+			____temp_7 = rebuildSchema() -- 321
+		end -- 321
+		____temp_8 = not ____temp_7 -- 319
+	end -- 319
+	if ____temp_8 then -- 319
+		storageError = "failed to create current agent.db schema" -- 322
+		return -- 323
+	end -- 323
+	local schemaError = validateSchema() -- 325
+	if schemaError then -- 325
+		storageError = "agent.db schema error: " .. schemaError -- 327
+		return -- 328
+	end -- 328
+	if not validateCodecAndWrite() then -- 328
+		storageError = "agent.db codec or write probe failed" -- 331
+		return -- 332
+	end -- 332
+	if not DB:transaction(DROP_LEGACY_AGENT_SQL) then -- 332
+		storageError = "failed to remove legacy Agent tables from dora.db" -- 335
+		return -- 336
+	end -- 336
+	storageReady = true -- 338
+	Log( -- 339
+		"Info", -- 339
+		(("[AgentStorage] ready path=" .. dbPath) .. " schema=") .. tostring(____exports.AGENT_SCHEMA_VERSION) -- 339
+	) -- 339
+end -- 300
+function ____exports.isAgentStorageReady() -- 342
+	return storageReady -- 343
 end -- 342
-function ____exports.getTaskReferenceClosure(rootTaskIds) -- 352
-	local closure = {} -- 353
-	local seen = {} -- 354
-	local queue = {} -- 355
-	do -- 355
-		local i = 0 -- 356
-		while i < #rootTaskIds do -- 356
-			do -- 356
-				local taskId = math.floor(rootTaskIds[i + 1]) -- 357
-				if taskId <= 0 or seen[taskId] then -- 357
-					goto __continue42 -- 358
-				end -- 358
-				seen[taskId] = true -- 359
-				closure[#closure + 1] = taskId -- 360
-				queue[#queue + 1] = taskId -- 361
-			end -- 361
-			::__continue42:: -- 361
-			i = i + 1 -- 356
-		end -- 356
-	end -- 356
-	do -- 356
-		local offset = 0 -- 363
-		while offset < #queue do -- 363
-			local ownerTaskId = queue[offset + 1] -- 364
-			local targets = normalizeTaskIds(DB:query(("SELECT target_task_id FROM " .. ____exports.TABLE_TASK_REFERENCE) .. " WHERE owner_task_id = ?", {ownerTaskId})) -- 365
-			do -- 365
-				local i = 0 -- 369
-				while i < #targets do -- 369
-					do -- 369
-						local targetTaskId = targets[i + 1] -- 370
-						if seen[targetTaskId] then -- 370
-							goto __continue47 -- 371
-						end -- 371
-						seen[targetTaskId] = true -- 372
-						closure[#closure + 1] = targetTaskId -- 373
-						queue[#queue + 1] = targetTaskId -- 374
-					end -- 374
-					::__continue47:: -- 374
-					i = i + 1 -- 369
-				end -- 369
-			end -- 369
-			offset = offset + 1 -- 363
-		end -- 363
-	end -- 363
-	return closure -- 377
-end -- 352
-function ____exports.getSessionOperableTaskIds(sessionId) -- 380
-	local roots = normalizeTaskIds(DB:query(("SELECT current_task_id FROM " .. ____exports.TABLE_SESSION) .. " WHERE id = ? AND current_task_id > 0", {sessionId})) -- 381
-	return ____exports.getTaskReferenceClosure(roots) -- 385
-end -- 380
-function ____exports.getAllOperableTaskIds() -- 388
-	local roots = normalizeTaskIds(DB:query(("SELECT current_task_id FROM " .. ____exports.TABLE_SESSION) .. " WHERE current_task_id > 0")) -- 389
-	return ____exports.getTaskReferenceClosure(roots) -- 392
-end -- 388
-function ____exports.addTaskReference(ownerTaskId, targetTaskId, kind) -- 395
-	if kind == nil then -- 395
-		kind = "sub_agent_handoff" -- 395
-	end -- 395
-	if ownerTaskId <= 0 or targetTaskId <= 0 or ownerTaskId == targetTaskId then -- 395
-		return false -- 396
-	end -- 396
-	return DB:exec( -- 397
-		("INSERT OR IGNORE INTO " .. ____exports.TABLE_TASK_REFERENCE) .. "(owner_task_id, target_task_id, kind, created_at)\n\t\tVALUES(?, ?, ?, ?)", -- 397
-		{ -- 400
-			ownerTaskId, -- 400
-			targetTaskId, -- 400
-			kind, -- 400
-			os.time() -- 400
-		} -- 400
-	) >= 0 -- 400
-end -- 395
-function ____exports.isTaskOperableForSession(sessionId, taskId) -- 404
-	if sessionId <= 0 or taskId <= 0 then -- 404
-		return false -- 405
-	end -- 405
-	return __TS__ArrayIndexOf( -- 406
-		____exports.getSessionOperableTaskIds(sessionId), -- 406
-		taskId -- 406
-	) >= 0 -- 406
+function ____exports.getAgentStorageError() -- 346
+	return storageError -- 347
+end -- 346
+function ____exports.requireAgentStorage() -- 350
+	if storageReady then -- 350
+		return {success = true} -- 351
+	end -- 351
+	return {success = false, message = storageError and "Agent database unavailable: " .. storageError or "Agent database unavailable"} -- 352
+end -- 350
+local function normalizeTaskIds(rows) -- 358
+	local result = {} -- 359
+	if not rows then -- 359
+		return result -- 360
+	end -- 360
+	do -- 360
+		local i = 0 -- 361
+		while i < #rows do -- 361
+			local taskId = type(rows[i + 1][1]) == "number" and math.floor(rows[i + 1][1]) or 0 -- 362
+			if taskId > 0 and __TS__ArrayIndexOf(result, taskId) < 0 then -- 362
+				result[#result + 1] = taskId -- 363
+			end -- 363
+			i = i + 1 -- 361
+		end -- 361
+	end -- 361
+	return result -- 365
+end -- 358
+function ____exports.getTaskReferenceClosure(rootTaskIds) -- 368
+	local closure = {} -- 369
+	local seen = {} -- 370
+	local queue = {} -- 371
+	do -- 371
+		local i = 0 -- 372
+		while i < #rootTaskIds do -- 372
+			do -- 372
+				local taskId = math.floor(rootTaskIds[i + 1]) -- 373
+				if taskId <= 0 or seen[taskId] then -- 373
+					goto __continue42 -- 374
+				end -- 374
+				seen[taskId] = true -- 375
+				closure[#closure + 1] = taskId -- 376
+				queue[#queue + 1] = taskId -- 377
+			end -- 377
+			::__continue42:: -- 377
+			i = i + 1 -- 372
+		end -- 372
+	end -- 372
+	do -- 372
+		local offset = 0 -- 379
+		while offset < #queue do -- 379
+			local ownerTaskId = queue[offset + 1] -- 380
+			local targets = normalizeTaskIds(DB:query(("SELECT target_task_id FROM " .. ____exports.TABLE_TASK_REFERENCE) .. " WHERE owner_task_id = ?", {ownerTaskId})) -- 381
+			do -- 381
+				local i = 0 -- 385
+				while i < #targets do -- 385
+					do -- 385
+						local targetTaskId = targets[i + 1] -- 386
+						if seen[targetTaskId] then -- 386
+							goto __continue47 -- 387
+						end -- 387
+						seen[targetTaskId] = true -- 388
+						closure[#closure + 1] = targetTaskId -- 389
+						queue[#queue + 1] = targetTaskId -- 390
+					end -- 390
+					::__continue47:: -- 390
+					i = i + 1 -- 385
+				end -- 385
+			end -- 385
+			offset = offset + 1 -- 379
+		end -- 379
+	end -- 379
+	return closure -- 393
+end -- 368
+function ____exports.getSessionOperableTaskIds(sessionId) -- 396
+	local roots = normalizeTaskIds(DB:query(("SELECT current_task_id FROM " .. ____exports.TABLE_SESSION) .. " WHERE id = ? AND current_task_id > 0", {sessionId})) -- 397
+	return ____exports.getTaskReferenceClosure(roots) -- 401
+end -- 396
+function ____exports.getAllOperableTaskIds() -- 404
+	local roots = normalizeTaskIds(DB:query(("SELECT current_task_id FROM " .. ____exports.TABLE_SESSION) .. " WHERE current_task_id > 0")) -- 405
+	return ____exports.getTaskReferenceClosure(roots) -- 408
 end -- 404
-local function getTaskStatus(taskId) -- 409
-	local rows = DB:query(("SELECT status FROM " .. ____exports.TABLE_TASK) .. " WHERE id = ?", {taskId}) -- 410
-	return rows and #rows > 0 and toStr(rows[1][1]) or "" -- 411
-end -- 409
-local function getProtectedTaskIds() -- 416
-	local rows = DB:query(((((("WITH RECURSIVE protected(id) AS (\n\t\tSELECT current_task_id FROM " .. ____exports.TABLE_SESSION) .. " WHERE current_task_id > 0\n\t\tUNION SELECT id FROM ") .. ____exports.TABLE_TASK) .. " WHERE status IN ('RUNNING', 'WAITING_USER')\n\t\tUNION SELECT r.target_task_id FROM ") .. ____exports.TABLE_TASK_REFERENCE) .. " r\n\t\t\tJOIN protected p ON r.owner_task_id = p.id\n\t) SELECT id FROM protected") -- 417
-	return rows and normalizeTaskIds(rows) or nil -- 423
-end -- 416
-local function cleanupTaskHeavyDataRecord(taskId) -- 427
-	if taskId <= 0 then -- 427
-		return nil -- 428
-	end -- 428
-	local status = getTaskStatus(taskId) -- 429
-	if status == "" or status == "RUNNING" or status == "WAITING_USER" then -- 429
-		return nil -- 430
-	end -- 430
-	local protectedIds = getProtectedTaskIds() -- 431
-	if not protectedIds or __TS__ArrayIndexOf(protectedIds, taskId) >= 0 then -- 431
-		return nil -- 432
-	end -- 432
-	local targets = normalizeTaskIds(DB:query(("SELECT target_task_id FROM " .. ____exports.TABLE_TASK_REFERENCE) .. " WHERE owner_task_id = ?", {taskId})) -- 433
-	local success = DB:transaction({ -- 437
-		((((("DELETE FROM " .. ____exports.TABLE_CHECKPOINT_ENTRY) .. "\n\t\t\tWHERE checkpoint_id IN (SELECT id FROM ") .. ____exports.TABLE_CHECKPOINT) .. " WHERE task_id = ") .. tostring(math.floor(taskId))) .. ");", -- 437
-		((("DELETE FROM " .. ____exports.TABLE_CHECKPOINT) .. " WHERE task_id = ") .. tostring(math.floor(taskId))) .. ";", -- 437
-		((("DELETE FROM " .. ____exports.TABLE_STEP) .. " WHERE task_id = ") .. tostring(math.floor(taskId))) .. ";", -- 437
-		((((("DELETE FROM " .. ____exports.TABLE_TASK_REFERENCE) .. "\n\t\t\tWHERE owner_task_id = ") .. tostring(math.floor(taskId))) .. "\n\t\t\t\tOR target_task_id = ") .. tostring(math.floor(taskId))) .. ";", -- 437
-		((((((((((("DELETE FROM " .. ____exports.TABLE_TASK) .. "\n\t\t\tWHERE id = ") .. tostring(math.floor(taskId))) .. "\n\t\t\t\tAND NOT EXISTS (\n\t\t\t\t\tSELECT 1 FROM ") .. ____exports.TABLE_MESSAGE) .. " WHERE task_id = ") .. tostring(math.floor(taskId))) .. "\n\t\t\t\t)\n\t\t\t\tAND NOT EXISTS (\n\t\t\t\t\tSELECT 1 FROM ") .. ____exports.TABLE_SESSION) .. " WHERE current_task_id = ") .. tostring(math.floor(taskId))) .. "\n\t\t\t\t)\n\t\t\t\t;" -- 437
-	}) -- 437
-	if not success then -- 437
-		return nil -- 455
-	end -- 455
-	Log( -- 456
-		"Info", -- 456
-		"[AgentStorage] cleaned heavy data task=" .. tostring(taskId) -- 456
-	) -- 456
-	return targets -- 457
-end -- 427
-function ____exports.cleanupTaskHeavyData(taskId) -- 460
-	local targets = cleanupTaskHeavyDataRecord(taskId) -- 461
-	if not targets then -- 461
-		return false -- 462
-	end -- 462
-	do -- 462
-		local i = 0 -- 463
-		while i < #targets do -- 463
-			____exports.cleanupTaskHeavyData(targets[i + 1]) -- 463
-			i = i + 1 -- 463
-		end -- 463
-	end -- 463
-	return true -- 464
-end -- 460
-function ____exports.auditOrphanHeavyData() -- 478
-	local protectedIds = getProtectedTaskIds() -- 479
-	local ____protectedIds_3 -- 482
-	if protectedIds then -- 482
-		____protectedIds_3 = DB:query(((((((((((((("WITH\n\t\tcp AS (SELECT task_id, COUNT(*) AS n FROM " .. ____exports.TABLE_CHECKPOINT) .. " GROUP BY task_id),\n\t\tentries AS (SELECT c.task_id, COUNT(*) AS n, SUM(e.bytes_before + e.bytes_after) AS raw_bytes\n\t\t\tFROM ") .. ____exports.TABLE_CHECKPOINT_ENTRY) .. " e JOIN ") .. ____exports.TABLE_CHECKPOINT) .. " c ON c.id = e.checkpoint_id GROUP BY c.task_id),\n\t\tsteps AS (SELECT task_id, COUNT(*) AS n FROM ") .. ____exports.TABLE_STEP) .. " GROUP BY task_id),\n\t\trefs AS (SELECT owner_task_id, COUNT(*) AS n FROM ") .. ____exports.TABLE_TASK_REFERENCE) .. " GROUP BY owner_task_id),\n\t\tmessages AS (SELECT task_id, COUNT(*) AS n FROM ") .. ____exports.TABLE_MESSAGE) .. " GROUP BY task_id)\n\t\tSELECT t.id, COALESCE(cp.n, 0), COALESCE(entries.n, 0), COALESCE(steps.n, 0),\n\t\t\tCOALESCE(refs.n, 0), COALESCE(entries.raw_bytes, 0), COALESCE(messages.n, 0)\n\t\tFROM ") .. ____exports.TABLE_TASK) .. " t\n\t\tLEFT JOIN cp ON cp.task_id = t.id\n\t\tLEFT JOIN entries ON entries.task_id = t.id\n\t\tLEFT JOIN steps ON steps.task_id = t.id\n\t\tLEFT JOIN refs ON refs.owner_task_id = t.id\n\t\tLEFT JOIN messages ON messages.task_id = t.id\n\t\tWHERE t.status NOT IN ('RUNNING', 'WAITING_USER') ORDER BY t.id") -- 482
-	else -- 482
-		____protectedIds_3 = nil -- 497
-	end -- 497
-	local rows = ____protectedIds_3 -- 482
-	local audit = { -- 498
-		success = protectedIds ~= nil and rows ~= nil, -- 499
-		taskCount = 0, -- 500
-		checkpointCount = 0, -- 501
-		entryCount = 0, -- 502
-		stepCount = 0, -- 503
-		referenceCount = 0, -- 504
-		rawBytes = 0, -- 505
-		candidateTaskIds = {} -- 506
-	} -- 506
-	if not rows or not protectedIds then -- 506
-		return audit -- 508
-	end -- 508
-	local protectedTasks = {} -- 509
-	for ____, id in ipairs(protectedIds) do -- 510
-		protectedTasks[id] = true -- 510
-	end -- 510
-	do -- 510
-		local i = 0 -- 511
-		while i < #rows do -- 511
-			do -- 511
-				local taskId = rows[i + 1][1] -- 512
-				if protectedTasks[taskId] then -- 512
-					goto __continue71 -- 513
-				end -- 513
-				local checkpointCount = rows[i + 1][2] or 0 -- 514
-				local entryCount = rows[i + 1][3] or 0 -- 515
-				local stepCount = rows[i + 1][4] or 0 -- 516
-				local referenceCount = rows[i + 1][5] or 0 -- 517
-				local messageCount = rows[i + 1][7] or 0 -- 518
-				if checkpointCount <= 0 and entryCount <= 0 and stepCount <= 0 and referenceCount <= 0 and messageCount > 0 then -- 518
-					goto __continue71 -- 526
-				end -- 526
-				audit.taskCount = audit.taskCount + 1 -- 528
-				audit.checkpointCount = audit.checkpointCount + checkpointCount -- 529
-				audit.entryCount = audit.entryCount + entryCount -- 530
-				audit.stepCount = audit.stepCount + stepCount -- 531
-				audit.referenceCount = audit.referenceCount + referenceCount -- 532
-				audit.rawBytes = audit.rawBytes + (rows[i + 1][6] or 0) -- 533
-				local ____audit_candidateTaskIds_4 = audit.candidateTaskIds -- 533
-				____audit_candidateTaskIds_4[#____audit_candidateTaskIds_4 + 1] = taskId -- 534
-			end -- 534
-			::__continue71:: -- 534
-			i = i + 1 -- 511
-		end -- 511
-	end -- 511
-	return audit -- 536
-end -- 478
-local orphanSweepCursor = 0 -- 544
-function ____exports.cleanupOrphanHeavyDataBatch(maxTasks) -- 546
-	if maxTasks == nil then -- 546
-		maxTasks = 4 -- 546
-	end -- 546
-	local audit = ____exports.auditOrphanHeavyData() -- 547
-	local limit = math.max( -- 548
-		0, -- 548
-		math.min( -- 548
-			16, -- 548
-			math.floor(maxTasks) -- 548
-		) -- 548
-	) -- 548
-	local cleanedTaskCount = 0 -- 549
-	local failedTaskCount = 0 -- 550
-	local ids = audit.candidateTaskIds -- 551
-	local nextIndex = __TS__ArrayFindIndex( -- 552
-		ids, -- 552
-		function(____, id) return id > orphanSweepCursor end -- 552
-	) -- 552
-	local start = nextIndex >= 0 and nextIndex or 0 -- 553
-	do -- 553
-		local i = 0 -- 554
-		while audit.success and i < #ids and i < limit do -- 554
-			local taskId = ids[(start + i) % #ids + 1] -- 555
-			orphanSweepCursor = taskId -- 558
-			if cleanupTaskHeavyDataRecord(taskId) ~= nil then -- 558
-				cleanedTaskCount = cleanedTaskCount + 1 -- 559
-			else -- 559
-				failedTaskCount = failedTaskCount + 1 -- 560
-			end -- 560
-			i = i + 1 -- 554
-		end -- 554
-	end -- 554
-	if not audit.success or audit.taskCount > 0 then -- 554
-		Log( -- 563
-			audit.success and "Info" or "Warn", -- 563
-			(((((((((((((("[AgentStorage] orphan audit success=" .. tostring(audit.success)) .. " tasks=") .. tostring(audit.taskCount)) .. " checkpoints=") .. tostring(audit.checkpointCount)) .. " entries=") .. tostring(audit.entryCount)) .. " steps=") .. tostring(audit.stepCount)) .. " raw_bytes=") .. tostring(audit.rawBytes)) .. " cleaned=") .. tostring(cleanedTaskCount)) .. " failed=") .. tostring(failedTaskCount) -- 563
-		) -- 563
-	end -- 563
-	return __TS__ObjectAssign({}, audit, {cleanedTaskCount = cleanedTaskCount, failedTaskCount = failedTaskCount}) -- 566
-end -- 546
-function ____exports.getStorageUsage() -- 577
-	local ready = ____exports.requireAgentStorage() -- 578
-	if not ready.success then -- 578
-		return ready -- 579
+function ____exports.addTaskReference(ownerTaskId, targetTaskId, kind) -- 411
+	if kind == nil then -- 411
+		kind = "sub_agent_handoff" -- 411
+	end -- 411
+	if ownerTaskId <= 0 or targetTaskId <= 0 or ownerTaskId == targetTaskId then -- 411
+		return false -- 412
+	end -- 412
+	return DB:exec( -- 413
+		("INSERT OR IGNORE INTO " .. ____exports.TABLE_TASK_REFERENCE) .. "(owner_task_id, target_task_id, kind, created_at)\n\t\tVALUES(?, ?, ?, ?)", -- 413
+		{ -- 416
+			ownerTaskId, -- 416
+			targetTaskId, -- 416
+			kind, -- 416
+			os.time() -- 416
+		} -- 416
+	) >= 0 -- 416
+end -- 411
+function ____exports.isTaskOperableForSession(sessionId, taskId) -- 420
+	if sessionId <= 0 or taskId <= 0 then -- 420
+		return false -- 421
+	end -- 421
+	return __TS__ArrayIndexOf( -- 422
+		____exports.getSessionOperableTaskIds(sessionId), -- 422
+		taskId -- 422
+	) >= 0 -- 422
+end -- 420
+local function getTaskStatus(taskId) -- 425
+	local rows = DB:query(("SELECT status FROM " .. ____exports.TABLE_TASK) .. " WHERE id = ?", {taskId}) -- 426
+	return rows and #rows > 0 and toStr(rows[1][1]) or "" -- 427
+end -- 425
+local function getProtectedTaskIds() -- 432
+	local rows = DB:query(((((("WITH RECURSIVE protected(id) AS (\n\t\tSELECT current_task_id FROM " .. ____exports.TABLE_SESSION) .. " WHERE current_task_id > 0\n\t\tUNION SELECT id FROM ") .. ____exports.TABLE_TASK) .. " WHERE status IN ('RUNNING', 'WAITING_USER')\n\t\tUNION SELECT r.target_task_id FROM ") .. ____exports.TABLE_TASK_REFERENCE) .. " r\n\t\t\tJOIN protected p ON r.owner_task_id = p.id\n\t) SELECT id FROM protected") -- 433
+	return rows and normalizeTaskIds(rows) or nil -- 439
+end -- 432
+local function cleanupTaskHeavyDataRecord(taskId) -- 443
+	if taskId <= 0 then -- 443
+		return nil -- 444
+	end -- 444
+	local status = getTaskStatus(taskId) -- 445
+	if status == "" or status == "RUNNING" or status == "WAITING_USER" then -- 445
+		return nil -- 446
+	end -- 446
+	local protectedIds = getProtectedTaskIds() -- 447
+	if not protectedIds or __TS__ArrayIndexOf(protectedIds, taskId) >= 0 then -- 447
+		return nil -- 448
+	end -- 448
+	local targets = normalizeTaskIds(DB:query(("SELECT target_task_id FROM " .. ____exports.TABLE_TASK_REFERENCE) .. " WHERE owner_task_id = ?", {taskId})) -- 449
+	local success = DB:transaction({ -- 453
+		((((("DELETE FROM " .. ____exports.TABLE_CHECKPOINT_ENTRY) .. "\n\t\t\tWHERE checkpoint_id IN (SELECT id FROM ") .. ____exports.TABLE_CHECKPOINT) .. " WHERE task_id = ") .. tostring(math.floor(taskId))) .. ");", -- 453
+		((("DELETE FROM " .. ____exports.TABLE_CHECKPOINT) .. " WHERE task_id = ") .. tostring(math.floor(taskId))) .. ";", -- 453
+		((("DELETE FROM " .. ____exports.TABLE_STEP) .. " WHERE task_id = ") .. tostring(math.floor(taskId))) .. ";", -- 453
+		((((("DELETE FROM " .. ____exports.TABLE_TASK_REFERENCE) .. "\n\t\t\tWHERE owner_task_id = ") .. tostring(math.floor(taskId))) .. "\n\t\t\t\tOR target_task_id = ") .. tostring(math.floor(taskId))) .. ";", -- 453
+		((((((((((("DELETE FROM " .. ____exports.TABLE_TASK) .. "\n\t\t\tWHERE id = ") .. tostring(math.floor(taskId))) .. "\n\t\t\t\tAND NOT EXISTS (\n\t\t\t\t\tSELECT 1 FROM ") .. ____exports.TABLE_MESSAGE) .. " WHERE task_id = ") .. tostring(math.floor(taskId))) .. "\n\t\t\t\t)\n\t\t\t\tAND NOT EXISTS (\n\t\t\t\t\tSELECT 1 FROM ") .. ____exports.TABLE_SESSION) .. " WHERE current_task_id = ") .. tostring(math.floor(taskId))) .. "\n\t\t\t\t)\n\t\t\t\t;" -- 453
+	}) -- 453
+	if not success then -- 453
+		return nil -- 471
+	end -- 471
+	Log( -- 472
+		"Info", -- 472
+		"[AgentStorage] cleaned heavy data task=" .. tostring(taskId) -- 472
+	) -- 472
+	return targets -- 473
+end -- 443
+function ____exports.cleanupTaskHeavyData(taskId) -- 476
+	local targets = cleanupTaskHeavyDataRecord(taskId) -- 477
+	if not targets then -- 477
+		return false -- 478
+	end -- 478
+	do -- 478
+		local i = 0 -- 479
+		while i < #targets do -- 479
+			____exports.cleanupTaskHeavyData(targets[i + 1]) -- 479
+			i = i + 1 -- 479
+		end -- 479
+	end -- 479
+	return true -- 480
+end -- 476
+function ____exports.auditOrphanHeavyData() -- 494
+	local protectedIds = getProtectedTaskIds() -- 495
+	local ____protectedIds_9 -- 498
+	if protectedIds then -- 498
+		____protectedIds_9 = DB:query(((((((((((((("WITH\n\t\tcp AS (SELECT task_id, COUNT(*) AS n FROM " .. ____exports.TABLE_CHECKPOINT) .. " GROUP BY task_id),\n\t\tentries AS (SELECT c.task_id, COUNT(*) AS n, SUM(e.bytes_before + e.bytes_after) AS raw_bytes\n\t\t\tFROM ") .. ____exports.TABLE_CHECKPOINT_ENTRY) .. " e JOIN ") .. ____exports.TABLE_CHECKPOINT) .. " c ON c.id = e.checkpoint_id GROUP BY c.task_id),\n\t\tsteps AS (SELECT task_id, COUNT(*) AS n FROM ") .. ____exports.TABLE_STEP) .. " GROUP BY task_id),\n\t\trefs AS (SELECT owner_task_id, COUNT(*) AS n FROM ") .. ____exports.TABLE_TASK_REFERENCE) .. " GROUP BY owner_task_id),\n\t\tmessages AS (SELECT task_id, COUNT(*) AS n FROM ") .. ____exports.TABLE_MESSAGE) .. " GROUP BY task_id)\n\t\tSELECT t.id, COALESCE(cp.n, 0), COALESCE(entries.n, 0), COALESCE(steps.n, 0),\n\t\t\tCOALESCE(refs.n, 0), COALESCE(entries.raw_bytes, 0), COALESCE(messages.n, 0)\n\t\tFROM ") .. ____exports.TABLE_TASK) .. " t\n\t\tLEFT JOIN cp ON cp.task_id = t.id\n\t\tLEFT JOIN entries ON entries.task_id = t.id\n\t\tLEFT JOIN steps ON steps.task_id = t.id\n\t\tLEFT JOIN refs ON refs.owner_task_id = t.id\n\t\tLEFT JOIN messages ON messages.task_id = t.id\n\t\tWHERE t.status NOT IN ('RUNNING', 'WAITING_USER') ORDER BY t.id") -- 498
+	else -- 498
+		____protectedIds_9 = nil -- 513
+	end -- 513
+	local rows = ____protectedIds_9 -- 498
+	local audit = { -- 514
+		success = protectedIds ~= nil and rows ~= nil, -- 515
+		taskCount = 0, -- 516
+		checkpointCount = 0, -- 517
+		entryCount = 0, -- 518
+		stepCount = 0, -- 519
+		referenceCount = 0, -- 520
+		rawBytes = 0, -- 521
+		candidateTaskIds = {} -- 522
+	} -- 522
+	if not rows or not protectedIds then -- 522
+		return audit -- 524
+	end -- 524
+	local protectedTasks = {} -- 525
+	for ____, id in ipairs(protectedIds) do -- 526
+		protectedTasks[id] = true -- 526
+	end -- 526
+	do -- 526
+		local i = 0 -- 527
+		while i < #rows do -- 527
+			do -- 527
+				local taskId = rows[i + 1][1] -- 528
+				if protectedTasks[taskId] then -- 528
+					goto __continue71 -- 529
+				end -- 529
+				local checkpointCount = rows[i + 1][2] or 0 -- 530
+				local entryCount = rows[i + 1][3] or 0 -- 531
+				local stepCount = rows[i + 1][4] or 0 -- 532
+				local referenceCount = rows[i + 1][5] or 0 -- 533
+				local messageCount = rows[i + 1][7] or 0 -- 534
+				if checkpointCount <= 0 and entryCount <= 0 and stepCount <= 0 and referenceCount <= 0 and messageCount > 0 then -- 534
+					goto __continue71 -- 542
+				end -- 542
+				audit.taskCount = audit.taskCount + 1 -- 544
+				audit.checkpointCount = audit.checkpointCount + checkpointCount -- 545
+				audit.entryCount = audit.entryCount + entryCount -- 546
+				audit.stepCount = audit.stepCount + stepCount -- 547
+				audit.referenceCount = audit.referenceCount + referenceCount -- 548
+				audit.rawBytes = audit.rawBytes + (rows[i + 1][6] or 0) -- 549
+				local ____audit_candidateTaskIds_10 = audit.candidateTaskIds -- 549
+				____audit_candidateTaskIds_10[#____audit_candidateTaskIds_10 + 1] = taskId -- 550
+			end -- 550
+			::__continue71:: -- 550
+			i = i + 1 -- 527
+		end -- 527
+	end -- 527
+	return audit -- 552
+end -- 494
+local orphanSweepCursor = 0 -- 560
+function ____exports.cleanupOrphanHeavyDataBatch(maxTasks) -- 562
+	if maxTasks == nil then -- 562
+		maxTasks = 4 -- 562
+	end -- 562
+	local audit = ____exports.auditOrphanHeavyData() -- 563
+	local limit = math.max( -- 564
+		0, -- 564
+		math.min( -- 564
+			16, -- 564
+			math.floor(maxTasks) -- 564
+		) -- 564
+	) -- 564
+	local cleanedTaskCount = 0 -- 565
+	local failedTaskCount = 0 -- 566
+	local ids = audit.candidateTaskIds -- 567
+	local nextIndex = __TS__ArrayFindIndex( -- 568
+		ids, -- 568
+		function(____, id) return id > orphanSweepCursor end -- 568
+	) -- 568
+	local start = nextIndex >= 0 and nextIndex or 0 -- 569
+	do -- 569
+		local i = 0 -- 570
+		while audit.success and i < #ids and i < limit do -- 570
+			local taskId = ids[(start + i) % #ids + 1] -- 571
+			orphanSweepCursor = taskId -- 574
+			if cleanupTaskHeavyDataRecord(taskId) ~= nil then -- 574
+				cleanedTaskCount = cleanedTaskCount + 1 -- 575
+			else -- 575
+				failedTaskCount = failedTaskCount + 1 -- 576
+			end -- 576
+			i = i + 1 -- 570
+		end -- 570
+	end -- 570
+	if not audit.success or audit.taskCount > 0 then -- 570
+		Log( -- 579
+			audit.success and "Info" or "Warn", -- 579
+			(((((((((((((("[AgentStorage] orphan audit success=" .. tostring(audit.success)) .. " tasks=") .. tostring(audit.taskCount)) .. " checkpoints=") .. tostring(audit.checkpointCount)) .. " entries=") .. tostring(audit.entryCount)) .. " steps=") .. tostring(audit.stepCount)) .. " raw_bytes=") .. tostring(audit.rawBytes)) .. " cleaned=") .. tostring(cleanedTaskCount)) .. " failed=") .. tostring(failedTaskCount) -- 579
+		) -- 579
 	end -- 579
-	local pageSize = DB:query("PRAGMA agent.page_size") -- 580
-	local pageCount = DB:query("PRAGMA agent.page_count") -- 581
-	local freeCount = DB:query("PRAGMA agent.freelist_count") -- 582
-	local rows = DB:query(((((((((((((((((((((((("SELECT\n\t\t(SELECT COUNT(*) FROM " .. ____exports.TABLE_SESSION) .. "),\n\t\t(SELECT COUNT(*) FROM ") .. ____exports.TABLE_MESSAGE) .. "),\n\t\t(SELECT COUNT(*) FROM ") .. ____exports.TABLE_TASK) .. "),\n\t\t(SELECT COUNT(*) FROM ") .. ____exports.TABLE_STEP) .. "),\n\t\t(SELECT COUNT(*) FROM ") .. ____exports.TABLE_CHECKPOINT) .. "),\n\t\t(SELECT COUNT(*) FROM ") .. ____exports.TABLE_CHECKPOINT_ENTRY) .. "),\n\t\t(SELECT COUNT(*) FROM ") .. ____exports.TABLE_TASK_REFERENCE) .. "),\n\t\t(SELECT COALESCE(SUM(length(CAST(content AS BLOB)) + length(CAST(display_content AS BLOB))), 0) FROM ") .. ____exports.TABLE_MESSAGE) .. "),\n\t\t(SELECT COALESCE(SUM(length(CAST(prompt AS BLOB))), 0) FROM ") .. ____exports.TABLE_TASK) .. "),\n\t\t(SELECT COALESCE(SUM(length(CAST(reason AS BLOB)) + length(CAST(reasoning_content AS BLOB))\n\t\t\t+ length(CAST(params_json AS BLOB)) + length(CAST(result_json AS BLOB)) + length(CAST(files_json AS BLOB))), 0) FROM ") .. ____exports.TABLE_STEP) .. "),\n\t\t(SELECT COALESCE(SUM(bytes_before + bytes_after), 0) FROM ") .. ____exports.TABLE_CHECKPOINT_ENTRY) .. "),\n\t\t(SELECT COALESCE(SUM(COALESCE(length(CAST(before_data AS BLOB)), 0) + COALESCE(length(CAST(after_data AS BLOB)), 0)), 0) FROM ") .. ____exports.TABLE_CHECKPOINT_ENTRY) .. ")") -- 583
-	local orphanHeavyData = ____exports.auditOrphanHeavyData() -- 597
-	if not (pageSize and pageSize[1]) or not (pageCount and pageCount[1]) or not (freeCount and freeCount[1]) or not (rows and rows[1]) or not orphanHeavyData.success then -- 597
-		return {success = false, message = "failed to read Agent storage usage"} -- 599
-	end -- 599
-	local size = pageSize[1][1] -- 601
-	local pages = pageCount[1][1] -- 602
-	local free = freeCount[1][1] -- 603
-	local r = rows[1] -- 604
-	return {success = true, usage = {database = { -- 605
-		allocatedBytes = size * pages, -- 606
-		freeBytes = size * free, -- 606
-		usedBytes = size * (pages - free), -- 606
-		pageSize = size, -- 606
-		pageCount = pages, -- 606
-		freePageCount = free -- 606
-	}, records = { -- 606
-		sessions = r[1], -- 607
-		messages = r[2], -- 607
-		tasks = r[3], -- 607
-		steps = r[4], -- 607
-		checkpoints = r[5], -- 607
-		entries = r[6], -- 607
-		references = r[7] -- 607
-	}, payload = { -- 607
-		messageBytes = r[8], -- 608
-		taskPromptBytes = r[9], -- 608
-		stepBytes = r[10], -- 608
-		checkpointRawBytes = r[11], -- 608
-		checkpointStoredBytes = r[12] -- 608
-	}, orphanHeavyData = orphanHeavyData}} -- 608
-end -- 577
-initializeAgentStorage() -- 613
-return ____exports -- 613
+	return __TS__ObjectAssign({}, audit, {cleanedTaskCount = cleanedTaskCount, failedTaskCount = failedTaskCount}) -- 582
+end -- 562
+function ____exports.getStorageUsage() -- 593
+	local ready = ____exports.requireAgentStorage() -- 594
+	if not ready.success then -- 594
+		return ready -- 595
+	end -- 595
+	local pageSize = DB:query("PRAGMA agent.page_size") -- 596
+	local pageCount = DB:query("PRAGMA agent.page_count") -- 597
+	local freeCount = DB:query("PRAGMA agent.freelist_count") -- 598
+	local rows = DB:query(((((((((((((((((((((((("SELECT\n\t\t(SELECT COUNT(*) FROM " .. ____exports.TABLE_SESSION) .. "),\n\t\t(SELECT COUNT(*) FROM ") .. ____exports.TABLE_MESSAGE) .. "),\n\t\t(SELECT COUNT(*) FROM ") .. ____exports.TABLE_TASK) .. "),\n\t\t(SELECT COUNT(*) FROM ") .. ____exports.TABLE_STEP) .. "),\n\t\t(SELECT COUNT(*) FROM ") .. ____exports.TABLE_CHECKPOINT) .. "),\n\t\t(SELECT COUNT(*) FROM ") .. ____exports.TABLE_CHECKPOINT_ENTRY) .. "),\n\t\t(SELECT COUNT(*) FROM ") .. ____exports.TABLE_TASK_REFERENCE) .. "),\n\t\t(SELECT COALESCE(SUM(length(CAST(content AS BLOB)) + length(CAST(display_content AS BLOB))), 0) FROM ") .. ____exports.TABLE_MESSAGE) .. "),\n\t\t(SELECT COALESCE(SUM(length(CAST(prompt AS BLOB))), 0) FROM ") .. ____exports.TABLE_TASK) .. "),\n\t\t(SELECT COALESCE(SUM(length(CAST(reason AS BLOB)) + length(CAST(reasoning_content AS BLOB))\n\t\t\t+ length(CAST(params_json AS BLOB)) + length(CAST(result_json AS BLOB)) + length(CAST(files_json AS BLOB))), 0) FROM ") .. ____exports.TABLE_STEP) .. "),\n\t\t(SELECT COALESCE(SUM(bytes_before + bytes_after), 0) FROM ") .. ____exports.TABLE_CHECKPOINT_ENTRY) .. "),\n\t\t(SELECT COALESCE(SUM(COALESCE(length(CAST(before_data AS BLOB)), 0) + COALESCE(length(CAST(after_data AS BLOB)), 0)), 0) FROM ") .. ____exports.TABLE_CHECKPOINT_ENTRY) .. ")") -- 599
+	local orphanHeavyData = ____exports.auditOrphanHeavyData() -- 613
+	if not (pageSize and pageSize[1]) or not (pageCount and pageCount[1]) or not (freeCount and freeCount[1]) or not (rows and rows[1]) or not orphanHeavyData.success then -- 613
+		return {success = false, message = "failed to read Agent storage usage"} -- 615
+	end -- 615
+	local size = pageSize[1][1] -- 617
+	local pages = pageCount[1][1] -- 618
+	local free = freeCount[1][1] -- 619
+	local r = rows[1] -- 620
+	return {success = true, usage = {database = { -- 621
+		allocatedBytes = size * pages, -- 622
+		freeBytes = size * free, -- 622
+		usedBytes = size * (pages - free), -- 622
+		pageSize = size, -- 622
+		pageCount = pages, -- 622
+		freePageCount = free -- 622
+	}, records = { -- 622
+		sessions = r[1], -- 623
+		messages = r[2], -- 623
+		tasks = r[3], -- 623
+		steps = r[4], -- 623
+		checkpoints = r[5], -- 623
+		entries = r[6], -- 623
+		references = r[7] -- 623
+	}, payload = { -- 623
+		messageBytes = r[8], -- 624
+		taskPromptBytes = r[9], -- 624
+		stepBytes = r[10], -- 624
+		checkpointRawBytes = r[11], -- 624
+		checkpointStoredBytes = r[12] -- 624
+	}, orphanHeavyData = orphanHeavyData}} -- 624
+end -- 593
+initializeAgentStorage() -- 629
+return ____exports -- 629

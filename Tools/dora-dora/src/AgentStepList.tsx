@@ -21,6 +21,7 @@ import './github-markdown-dark.css';
 const AgentFileDiff = React.lazy(() => import('./AgentFileDiff'));
 
 interface AgentStepListProps {
+ steeringMessages?: import('./Service').AgentSessionMessage[];
 	steps: AgentSessionStep[];
 	checkpointMap: Map<number, AgentCheckpointItem>;
 	diffs: Record<number, AgentCheckpointDiffFile[]>;
@@ -1109,6 +1110,18 @@ const AgentStepRow = React.memo(function AgentStepRow(props: AgentStepRowProps) 
 });
 
 function AgentStepList(props: AgentStepListProps) {
+ if (props.steeringMessages?.length) {
+  const groups: React.ReactNode[] = [];
+  let previous = -1;
+  for (const message of props.steeringMessages) {
+   const boundary = message.afterStep ?? 0;
+   const items = props.steps.filter(step=>step.step>previous&&step.step<=boundary);
+   groups.push(<React.Fragment key={`guide-${message.id}`}><AgentStepList {...props} steps={items} steeringMessages={undefined}/><Box sx={{borderLeft:`2px solid ${Color.Theme}`,pl:1.5,py:.5}}><Typography variant="caption" sx={{color:Color.Theme}}>你的补充 · 已引导当前任务</Typography><Typography sx={{whiteSpace:'pre-wrap',fontSize:14}}>{message.content}</Typography></Box></React.Fragment>);
+   previous=boundary;
+  }
+  groups.push(<AgentStepList key="tail" {...props} steps={props.steps.filter(step=>step.step>previous)} steeringMessages={undefined}/>);
+  return <Stack spacing={2}>{groups}</Stack>;
+ }
 	const { steps, ...rowProps } = props;
 	return (
 		<Stack spacing={2}>
