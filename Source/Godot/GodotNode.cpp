@@ -299,12 +299,14 @@ void GodotNode::setupInput() {
             input.pressed=gained; _session->input(input);
         }
     });
+    // Keyboard slots only receive host events after registering with Keyboard.
+    // A newly launched game must accept keys before its first pointer click.
+    setKeyboardEnabled(true);
     setTouchEnabled(true);
     setControllerEnabled(true);
     slot("TapBegan"_slice, [this](Event *event) {
         Touch *touch = nullptr;
         if (event->get(touch) && touch) {
-            setKeyboardEnabled(true);
             const auto location = touch->getLocation();
             sendPointer(location.x, _pixelHeight-location.y, godotMouseButton(touch), true);
         }
