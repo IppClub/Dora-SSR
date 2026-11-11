@@ -3,6 +3,7 @@ Type=Application
 Name=Dora SSR
 Comment=Dora SSR game engine and development environment
 Exec=dora-ssr %U
+MimeType=x-scheme-handler/dora-ssr;
 Icon=dora-ssr
 Categories=Development;Game;
 Terminal=false

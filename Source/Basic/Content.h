@@ -37,6 +37,7 @@ public:
 	const bgfx::Memory* loadBX(String filename);
 	bool copy(String src, String dst);
 	bool move(String src, String dst);
+	bool renameFolder(String src, String dst);
 	bool remove(String filename);
 	bool save(String filename, String content);
 	bool save(String filename, const uint8_t* content, int64_t size);

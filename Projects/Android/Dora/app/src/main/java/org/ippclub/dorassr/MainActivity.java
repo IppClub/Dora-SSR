@@ -91,6 +91,7 @@ public class MainActivity extends SDLActivity {
 	private static final long MAX_GAME_BYTES = 256L * 1024 * 1024;
 	private static final ExecutorService gameFileWorker = Executors.newSingleThreadExecutor();
 	private static native void nativeReceiveFile(String path, boolean picked);
+	private static native boolean nativeOpenProjectLink(String link);
 	private String pendingGameExport;
 
 	private static native void nativeSetPath(String path);
@@ -178,6 +179,12 @@ public class MainActivity extends SDLActivity {
 		Uri uri = null;
 		if (Intent.ACTION_VIEW.equals(intent.getAction())) uri = intent.getData();
 		else if (Intent.ACTION_SEND.equals(intent.getAction())) uri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
+		if (uri != null && "https".equals(uri.getScheme()) && "atompie.osgame.org".equals(uri.getHost())
+				&& nativeOpenProjectLink(uri.toString())) {
+			Toast.makeText(this, gameText("正在打开原子派作品…", "Opening AtomPie project…"), Toast.LENGTH_SHORT).show();
+			setIntent(new Intent(this, MainActivity.class));
+			return;
+		}
 		if (uri != null && ("content".equals(uri.getScheme()) || "file".equals(uri.getScheme()))) {
 			copyGameFile(uri, false);
 			// Do not replay the original delivery after activity recreation.

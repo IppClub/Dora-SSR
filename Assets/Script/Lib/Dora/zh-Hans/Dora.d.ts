@@ -4477,6 +4477,14 @@ class Content {
 	move(srcPath: string, dstPath: string): boolean;
 
 	/**
+	 * 在同一文件系统内重命名目录。目标路径必须可用。
+	 * @param srcPath 要重命名的目录。
+	 * @param dstPath 新路径。
+	 * @returns 是否重命名成功。
+	 */
+	renameFolder(srcPath: string, dstPath: string): boolean;
+
+	/**
 	 * 检查指定路径是否为绝对路径。
 	 * @param path 要检查的路径。
 	 * @returns 如果路径是绝对路径，则为`true`，否则为`false`。

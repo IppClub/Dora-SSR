@@ -9,6 +9,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Const/Header.h"
 
 #include "Basic/Application.h"
+#include "Basic/AtomPieLink.h"
 #include "Basic/IDEInput.h"
 
 #include "Basic/AutoreleasePool.h"
@@ -57,6 +58,7 @@ void activateGuiWindowMac(SDL_Window* window);
 #include <emscripten/html5.h>
 #endif
 
+#include <algorithm>
 #include <chrono>
 #include <deque>
 #include <mutex>
@@ -76,11 +78,11 @@ void activateGuiWindowMac(SDL_Window* window);
 #define DORA_REVISION "2"_slice
 
 namespace {
-#if (BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX) && !defined(DORA_AS_LIB)
+#if (BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX || BX_PLATFORM_LINUX) && !defined(DORA_AS_LIB)
 Dora::GuiInstance* guiInstance = nullptr;
 
-void activateGuiWindow(SDL_Window* window, const std::string& activationToken) {
-	(void)activationToken;
+#if BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX
+void activateGuiWindow(SDL_Window* window) {
 #if BX_PLATFORM_OSX
 	Dora::activateGuiWindowMac(window);
 #else
@@ -111,6 +113,7 @@ void activateGuiWindow(SDL_Window* window, const std::string& activationToken) {
 	}
 #endif
 }
+#endif
 #endif
 #if (BX_PLATFORM_OSX || BX_PLATFORM_LINUX) && !defined(DORA_AS_LIB)
 // Standalone POSIX applications only. The watchdog deliberately lives until
@@ -169,6 +172,8 @@ private:
 
 std::mutex receivedFileMutex;
 std::deque<std::string> receivedFiles;
+std::mutex openProjectMutex;
+std::deque<std::string> openProjects;
 #if BX_PLATFORM_EMSCRIPTEN
 void setWebRuntimeState(const char* state, const char* detail = "") {
 	// The page owns lifecycle UI even when main runs on a pthread. Synchronous
@@ -226,6 +231,15 @@ JNIEXPORT jstring JNICALL Java_org_ippclub_dorassr_MainActivity_nativeGetInstall
 }
 extern "C" int Android_JNI_SendMessage(int command, int param);
 extern "C" JNIEnv* Android_JNI_GetEnv();
+
+extern "C" JNIEXPORT jboolean JNICALL Java_org_ippclub_dorassr_MainActivity_nativeOpenProjectLink(JNIEnv* env, jclass, jstring value) {
+	if (!value) return JNI_FALSE;
+	const char* link = env->GetStringUTFChars(value, nullptr);
+	if (!link) return JNI_FALSE;
+	const bool accepted = Dora::Application::queueOpenProjectLink(link);
+	env->ReleaseStringUTFChars(value, link);
+	return accepted ? JNI_TRUE : JNI_FALSE;
+}
 
 extern "C" JNIEXPORT void JNICALL Java_org_ippclub_dorassr_MainActivity_nativeReceiveFile(JNIEnv* env, jclass, jstring value, jboolean picked) {
 	const jchar* text = env->GetStringChars(value, nullptr);
@@ -1308,10 +1322,15 @@ int Application::run(MainFunc mainFunc) {
 			signalQuitPosted = SDL_PushEvent(&quitEvent) > 0;
 		}
 #endif
-#if (BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX) && !defined(DORA_AS_LIB)
-		std::string activationToken;
-		if (guiInstance && guiInstance->takeActivationRequest(activationToken)) {
-			activateGuiWindow(_sdlWindow, activationToken);
+#if (BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX || BX_PLATFORM_LINUX) && !defined(DORA_AS_LIB)
+		std::string assetId;
+		if (guiInstance && guiInstance->takeActivationRequest(assetId)) {
+			if (!assetId.empty()) queueOpenProjectLink(std::string(AtomPieDesktopLink) + assetId);
+#if BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX
+			activateGuiWindow(_sdlWindow);
+#else
+			if (!assetId.empty()) SDL_RaiseWindow(_sdlWindow);
+#endif
 		}
 #endif
 		// do render staff and swap buffers
@@ -1341,7 +1360,11 @@ int Application::run(MainFunc mainFunc) {
 			bool suppressKeyboardEvent = false;
 			switch (event.type) {
 				case SDL_DROPFILE:
-					queueReceivedFile(event.drop.file ? event.drop.file : "");
+					if (event.drop.file) {
+						const std::string_view value(event.drop.file);
+						if (value.compare(0, 9, "dora-ssr:") == 0) queueOpenProjectLink(value);
+						else queueReceivedFile(event.drop.file);
+					}
 					SDL_free(event.drop.file);
 					continue;
 
@@ -1846,6 +1869,15 @@ int Application::mainLogic(Application* app) {
 			}
 		}
 
+		std::string projectId;
+		{
+			std::lock_guard<std::mutex> lock(openProjectMutex);
+			if (!openProjects.empty()) {
+				projectId = std::move(openProjects.front());
+				openProjects.pop_front();
+			}
+		}
+		if (!projectId.empty()) Event::send("AtomPieOpenProject"sv, projectId);
 		SharedDirector.doLogic();
 
 		app->_logicTime = app->getElapsedTime() - startTime;
@@ -2474,6 +2506,15 @@ void Application::queueReceivedFile(std::string path) {
 	if (receivedFiles.size() < 16) receivedFiles.push_back(std::move(path));
 }
 
+bool Application::queueOpenProjectLink(std::string_view link) {
+	const auto assetId = atomPieAssetId(link);
+	if (assetId.empty()) return false;
+	std::lock_guard<std::mutex> lock(openProjectMutex);
+	if (openProjects.size() < 16 && std::find(openProjects.begin(), openProjects.end(), assetId) == openProjects.end())
+		openProjects.emplace_back(assetId);
+	return true;
+}
+
 std::string Application::takeReceivedFile() {
 	std::lock_guard<std::mutex> lock(receivedFileMutex);
 	if (receivedFiles.empty()) return "";
@@ -2564,10 +2605,12 @@ extern "C" int dora_libgodot_metal_probe_finish();
 
 #ifndef DORA_AS_LIB
 namespace {
-int runGuiApplication() {
+int runGuiApplication(int argc, char* argv[]) {
+	std::string_view assetId;
+	for (int i = 1; i < argc && assetId.empty(); ++i) assetId = Dora::atomPieAssetId(argv[i]);
 #if (BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX || BX_PLATFORM_LINUX) && !defined(DORA_AS_LIB)
 	Dora::GuiInstance instance;
-	const auto result = instance.acquire();
+	const auto result = instance.acquire(assetId.empty() ? 0 : std::stoi(std::string(assetId)));
 	if (result != Dora::GuiInstance::Result::Primary) {
 		const bool notified = result == Dora::GuiInstance::Result::Notified;
 		const bool existing = notified || result == Dora::GuiInstance::Result::Existing;
@@ -2592,10 +2635,20 @@ int runGuiApplication() {
 		if (existing) return 0;
 		return 1;
 	}
-#if BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX
 	guiInstance = &instance;
 #endif
+	if (!assetId.empty()) {
+#if BX_PLATFORM_WINDOWS
+		// Shell protocol activation may start in System32. Load the packaged assets beside Dora.exe.
+		char* basePath = SDL_GetBasePath();
+		if (!basePath) return 1;
+		std::error_code error;
+		std::filesystem::current_path(std::filesystem::u8path(basePath), error);
+		SDL_free(basePath);
+		if (error) return 1;
 #endif
+		Dora::Application::queueOpenProjectLink(std::string(Dora::AtomPieDesktopLink) + std::string(assetId));
+	}
 #if (BX_PLATFORM_OSX || BX_PLATFORM_IOS || BX_PLATFORM_LINUX || BX_PLATFORM_WINDOWS || BX_PLATFORM_ANDROID) && defined(DORA_GODOT_NODE_TEST)
     int exitCode = SharedApplication.run(dora_godot_node_test_main);
     if (!exitCode) exitCode = dora_godot_node_test_finish();
@@ -2612,7 +2665,7 @@ int runGuiApplication() {
 	Dora::Web::stopTaskQueue();
 #endif
 	Dora::Life::destroy(Slice::Empty);
-#if (BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX) && !defined(DORA_AS_LIB)
+#if (BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX || BX_PLATFORM_LINUX) && !defined(DORA_AS_LIB)
 	guiInstance = nullptr;
 #endif
 	return exitCode;
@@ -2635,7 +2688,7 @@ int main(int argc, char* argv[]) {
 	DORA_UNUSED_PARAM(argc);
 	DORA_UNUSED_PARAM(argv);
 #endif
-	return runGuiApplication();
+	return runGuiApplication(argc, argv);
 }
 #endif // !DORA_AS_LIB
 #endif // BX_PLATFORM_OSX || BX_PLATFORM_ANDROID || BX_PLATFORM_IOS || BX_PLATFORM_LINUX || BX_PLATFORM_EMSCRIPTEN
@@ -2669,6 +2722,24 @@ NS_DORA_END
 #endif // DORA_WIN_CONSOLE
 
 #ifndef DORA_AS_LIB
+namespace {
+bool registerDoraUrlHandler() {
+	std::wstring executable(32768, L'\0');
+	const DWORD length = GetModuleFileNameW(nullptr, executable.data(), static_cast<DWORD>(executable.size()));
+	if (length == 0 || length >= executable.size()) return false;
+	executable.resize(length);
+	constexpr auto key = L"Software\\Classes\\dora-ssr";
+	constexpr auto commandKey = L"Software\\Classes\\dora-ssr\\shell\\open\\command";
+	const std::wstring command = L"\"" + executable + L"\" \"%1\"";
+	constexpr wchar_t label[] = L"URL:Dora SSR";
+	constexpr wchar_t empty[] = L"";
+	return RegSetKeyValueW(HKEY_CURRENT_USER, commandKey, nullptr, REG_SZ, command.c_str(),
+			   static_cast<DWORD>((command.size() + 1) * sizeof(wchar_t))) == ERROR_SUCCESS
+		&& RegSetKeyValueW(HKEY_CURRENT_USER, key, nullptr, REG_SZ, label, sizeof(label)) == ERROR_SUCCESS
+		&& RegSetKeyValueW(HKEY_CURRENT_USER, key, L"URL Protocol", REG_SZ, empty, sizeof(empty)) == ERROR_SUCCESS;
+}
+}
+
 int CALLBACK WinMain(
 	_In_ HINSTANCE hInstance,
 	_In_ HINSTANCE hPrevInstance,
@@ -2702,7 +2773,9 @@ int CALLBACK WinMain(
 		Dora::Life::destroy(Slice::Empty);
 		return exitCode;
 	}
-	return runGuiApplication();
+	if (argvStorage.size() == 2 && argvStorage[1] == "--register-url-handler")
+		return registerDoraUrlHandler() ? 0 : 1;
+	return runGuiApplication(argc, argv.data());
 }
 #endif // !DORA_AS_LIB
 
