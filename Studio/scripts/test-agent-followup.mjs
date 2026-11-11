@@ -65,6 +65,10 @@ end
 D.thread(function()
  local ok,err=pcall(function()
   local first=send('ORIGINAL_TASK','queue','original')
+  local started=S.getSession(sid)
+  assert(#started.session.pendingInputs==0,'active task prompt must not appear in the follow-up queue')
+  assert(#I.listInputs(sid)==0,'initial task prompt must bypass the inbox')
+  assert(D.DB:query('SELECT COUNT(*) FROM agent.AgentSessionInput WHERE session_id=?',{sid})[1][1]==0,'initial prompt must not create an inbox receipt')
   send('AFTER_TASK_A','queue','queued-a')
   send('AFTER_TASK_B','queue','queued-b')
   send('STEER_TOUCH','steer','steer-a')
@@ -119,7 +123,7 @@ for(const path of ['AgentHostSession.lua','AgentSessionBridge.lua','StudioAgentE
 sources.push({path:'fixtures/agent-schema-v1.sql',text:await readFile('scripts/fixtures/agent-schema-v1.sql','utf8')});
 sources.push({path:'Utils.lua',text:await readFile('../Assets/Script/Lib/Utils.lua','utf8')});
 const uiRequire=createRequire(resolve('apps/web/package.json'));
-const ui=await build({alias:{react:dirname(uiRequire.resolve('react/package.json')),'react-dom':dirname(uiRequire.resolve('react-dom/package.json'))},stdin:{contents:`import React from 'react';import {createRoot} from 'react-dom/client';import {SharedAgentComposer} from '../../../packages/agent-ui/src/AgentComposer';function Test(){const [prompt,setPrompt]=React.useState('');return <SharedAgentComposer prompt={prompt} loading={false} running onPromptChange={setPrompt} onSend={delivery=>{window.sent.push({prompt,delivery});setPrompt('')}} onStop={()=>window.stops++} pendingInputs={[{id:1,content:'等待当前任务完成后补充测试',delivery:'queue',held:false,status:'pending'},{id:2,content:'需要兼容触屏',delivery:'steer',held:false,status:'pending'}]} onInputAction={async(command,content)=>window.commands.push({command,content})}/>}window.sent=[];window.stops=0;window.commands=[];createRoot(document.getElementById('root')).render(<Test/>);`,loader:'tsx',resolveDir:resolve('apps/web/src')},bundle:true,write:false,format:'esm',platform:'browser',jsx:'automatic',loader:{'.css':'empty'}});
+const ui=await build({alias:{react:dirname(uiRequire.resolve('react/package.json')),'react-dom':dirname(uiRequire.resolve('react-dom/package.json'))},stdin:{contents:`import React from 'react';import {createRoot} from 'react-dom/client';import {SharedAgentComposer} from '../../../packages/agent-ui/src/AgentComposer';import {AgentReasoning} from '../../../packages/agent-ui/src/AgentReasoning';import {SharedAgentUserMessage,SharedAgentStepList} from '../../../packages/agent-ui/src';function Test(){const [prompt,setPrompt]=React.useState('');const [composerState,setComposerState]=React.useState({running:true,stopping:false,canSteer:true});window.setComposerState=setComposerState;return <><div style={{fontSize:24}}><AgentReasoning active content="布局测试"/></div><SharedAgentUserMessage message={{id:98,role:"user",content:"普通用户消息"}}/><SharedAgentStepList steps={[]} steeringMessages={[{id:99,role:"user",content:"已投递的后续消息",inputKind:"steer",afterStep:0}]}/><SharedAgentComposer prompt={prompt} loading={false} {...composerState} onPromptChange={setPrompt} onSend={delivery=>{window.sent.push({prompt,delivery});setPrompt('')}} onStop={()=>window.stops++} pendingInputs={[{id:1,content:'等待当前任务完成后补充测试',delivery:'queue',held:false,status:'pending'},{id:2,content:'需要兼容触屏',delivery:'steer',held:false,status:'pending'}]} onInputAction={async(command,content)=>window.commands.push({command,content})}/></>}window.sent=[];window.stops=0;window.commands=[];createRoot(document.getElementById('root')).render(<Test/>);`,loader:'tsx',resolveDir:resolve('apps/web/src')},bundle:true,write:false,format:'esm',platform:'browser',jsx:'automatic',loader:{'.css':'empty'}});
 const userTestUi=userTest?await build({alias:{react:dirname(uiRequire.resolve('react/package.json')),'react-dom':dirname(uiRequire.resolve('react-dom/package.json'))},entryPoints:['scripts/fixtures/agent-followup-user-test.tsx'],bundle:true,write:false,format:'esm',platform:'browser',jsx:'automatic',loader:{'.css':'empty'}}):null;
 const html=await readFile(resolve(runtime,'dora-player-runtime.html'),'utf8');
 const server=createServer(async(req,res)=>{
@@ -159,22 +163,50 @@ try{
  assert.ok(index>=0);assert.equal(second[index+1].role,'tool');assert.equal(second[index+2].role,'tool');assert.ok(second.slice(index+3).some(message=>message.role==='user'&&message.content?.includes('STEER_TOUCH')));
  assert.ok(!second.some(message=>message.content?.includes('AFTER_TASK_A')),'future queue leaked into active task');
  assert.ok(requests[2].messages.some(message=>message.content?.includes('STEER_FINAL_RESPONSE')),'guide during final reply was lost');
- assert.deepEqual(requests.slice(3,5).map(request=>request.messages.filter(message=>message.role==='user').at(-1).content),['AFTER_TASK_A_EDITED','AFTER_TASK_B']);
+ // Steering may coalesce into the same model turn under load. Check the
+ // queued task requests by their last user message instead of fixed indexes.
+ assert.deepEqual(requests.map(request=>request.messages.filter(message=>message.role==='user').at(-1).content).filter(content=>content==='AFTER_TASK_A_EDITED'||content==='AFTER_TASK_B'),['AFTER_TASK_A_EDITED','AFTER_TASK_B']);
  await page.evaluate(()=>Module.doraSyncUserStorage({afterCurrent:true}));
  await page.reload();await page.waitForFunction(()=>window.events?.some(event=>event.kind==='restored'||event.kind==='failure'),null,{timeout:30000});
  const restoredEvents=await page.evaluate(()=>window.events);const resumed=restoredEvents.find(event=>event.kind==='restored'||event.kind==='failure');assert.equal(resumed.kind,'restored',resumed.message);
  await writeFile(resolve(output,'restored.json'),JSON.stringify(restoredEvents,null,2));
  await page.goto(`http://127.0.0.1:${server.address().port}/ui`);const input=page.getByRole('textbox',{name:'Agent 描述'});
+ assert.equal(await page.locator('.agent-message.user').count(),2,'ordinary and delivered follow-up messages must share the user renderer');
+ assert.equal(await page.locator('[data-agent-message-id="99"]').innerText(),'你\n\n已投递的后续消息');
+ assert.equal(await page.locator('.dora-agent-steering').count(),0);
+ assert.equal(await page.getByText('你的补充 · 已引导当前任务',{exact:true}).count(),0);
+ assert.equal(await page.getByRole('button',{name:'停止',exact:true}).count(),1);
+ assert.equal(await page.getByRole('button',{name:'加入队列',exact:true}).count(),0);
+ assert.equal(await page.locator('[data-agent-thinking="true"]').evaluate(node=>getComputedStyle(node).fontSize),'16px','thinking label must use the original body1 size, not inherited 24px');
+ await input.fill('draft');assert.equal(await page.getByRole('button',{name:'停止',exact:true}).count(),0);assert.equal(await page.getByRole('button',{name:'加入队列',exact:true}).count(),1);
  await input.fill('queued');await input.press('Enter');assert.equal((await page.evaluate(()=>window.sent))[0].delivery,'queue');
  const modifier=await page.evaluate(()=>/Mac|iPhone|iPad/.test(navigator.platform))?'Meta':'Control';
  await input.fill('guided');await input.press(modifier+'+Enter');assert.equal((await page.evaluate(()=>window.sent))[1].delivery,'steer');
  await input.fill('one');await input.press('Shift+Enter');await input.type('two');assert.equal(await input.inputValue(),'one\ntwo');
  await input.press('Escape');assert.equal(await page.evaluate(()=>window.stops),1);
- await page.getByRole('button',{name:'后续消息设置'}).click();await page.getByRole('menuitem',{name:'引导 · 补充当前任务的要求'}).click();await page.keyboard.press('Escape');
- await input.fill('default guide');await input.press('Enter');assert.equal((await page.evaluate(()=>window.sent))[2].delivery,'steer');
- await input.fill('temporary queue');await input.press(modifier+'+Enter');assert.equal((await page.evaluate(()=>window.sent))[3].delivery,'queue');
- await page.getByRole('menu').waitFor({state:'hidden'});await page.waitForTimeout(200);await page.screenshot({path:resolve(output,'composer-desktop.png')});await page.setViewportSize({width:390,height:844});await page.screenshot({path:resolve(output,'composer-mobile.png')});
- await page.reload();const restored=page.getByRole('textbox',{name:'Agent 描述'});await restored.fill('persisted');await restored.press('Enter');assert.equal((await page.evaluate(()=>window.sent))[0].delivery,'steer');
- console.log('PASS: real Lua/WASM FIFO, mid-tool/final-reply steering, duplicate IDs, editing, stop preservation; desktop/mobile composer and shortcuts.');
+ assert.equal(await page.getByRole('button',{name:'后续消息设置'}).count(),0);
+ const queued=page.locator('[data-agent-input-id="1"]');
+ await queued.getByRole('button',{name:'引导',exact:true}).click();
+ await page.waitForFunction(()=>window.commands.length===1);
+ assert.deepEqual((await page.evaluate(()=>window.commands))[0].command,{action:'steer',inputId:1});
+ assert.equal(await page.getByRole('group',{name:'引导确认'}).count(),0,'guide must execute immediately without confirmation');
+ await input.fill('queue after guide');await input.press('Enter');assert.equal((await page.evaluate(()=>window.sent))[2].delivery,'queue');
+ await input.fill('');await input.focus();await page.waitForTimeout(200);
+ const draftStyle=await input.evaluate(node=>{const style=getComputedStyle(node),surface=getComputedStyle(node.parentElement);return{font:style.font,fontSize:style.fontSize,outline:style.outlineStyle,resize:style.resize,background:surface.backgroundColor,radius:surface.borderRadius,focus:surface.borderColor};});
+ await queued.getByRole('button',{name:'编辑消息'}).click();const edit=page.getByRole('textbox',{name:'编辑排队消息'});await edit.waitFor();await edit.focus();await page.waitForTimeout(200);
+ const editStyle=await edit.evaluate(node=>{const style=getComputedStyle(node),surface=getComputedStyle(node.parentElement);return{font:style.font,fontSize:style.fontSize,outline:style.outlineStyle,resize:style.resize,background:surface.backgroundColor,radius:surface.borderRadius,focus:surface.borderColor};});
+ assert.deepEqual(editStyle,draftStyle,'queued edit must match draft typography, surface and focus');
+ const queueBox=await page.getByLabel('后续消息',{exact:true}).boundingBox(),draftBox=await input.boundingBox();assert.ok(Math.abs(queueBox.width-draftBox.width)<3,'queue and composer must have the same width');
+ await page.screenshot({path:resolve(output,'composer-edit-desktop.png')});await page.setViewportSize({width:390,height:844});await page.screenshot({path:resolve(output,'composer-edit-mobile.png')});
+ await queued.getByRole('button',{name:'取消',exact:true}).click();
+ await page.evaluate(()=>window.setComposerState({running:true,stopping:true,canSteer:true}));await input.fill('draft while stopping');assert.equal(await page.getByRole('button',{name:'加入队列',exact:true}).count(),0);assert.equal(await page.getByRole('button',{name:'正在停止',exact:true}).count(),1);
+ await page.evaluate(()=>window.setComposerState({running:false,stopping:false,canSteer:true}));assert.equal(await page.getByRole('button',{name:'停止',exact:true}).count(),0);assert.equal(await page.getByRole('button',{name:'发送',exact:true}).count(),1);
+ await page.evaluate(()=>window.setComposerState({running:true,stopping:false,canSteer:true}));await input.fill('');
+ await page.screenshot({path:resolve(output,'composer-desktop.png')});await page.setViewportSize({width:390,height:844});await page.screenshot({path:resolve(output,'composer-mobile.png')});
+ await page.evaluate(()=>localStorage.setItem('dora-agent-followup',JSON.stringify({delivery:'steer',sendKey:'modifier'})));
+ await page.reload();const restored=page.getByRole('textbox',{name:'Agent 描述'});await restored.fill('old preferences ignored');await restored.press('Enter');assert.equal((await page.evaluate(()=>window.sent))[0].delivery,'queue');
+ await restored.fill('explicit guide');await restored.press(modifier+'+Enter');assert.equal((await page.evaluate(()=>window.sent))[1].delivery,'steer');
+ assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+ console.log('PASS: real Lua/WASM FIFO, mid-tool/final-reply steering, duplicate IDs, editing, stop preservation; desktop/mobile composer, fixed shortcuts, ignored legacy preferences and ordinary follow-up messages and one-click steering.');
 }
 }finally{await browser.close();await new Promise(done=>server.close(done));}

@@ -11,6 +11,8 @@ import { startPackagePanel } from "Dev/Mobile/PackagePanel";
 import { ProjectIndex } from "Dev/Mobile/ProjectIndex";
 import type { MobileProjectLanguage } from "Dev/Mobile/ProjectCreate";
 import type { ResourceInfo } from "Tools/ResourceDownloader/Catalog";
+import * as Updater from "Tools/SelfUpdater/Service";
+import { createGoUpdaterPanel } from "Tools/SelfUpdater/GoPanel";
 
 interface FeedEntry extends ModelFeedEntry {
 	resource?: ResourceInfo;
@@ -289,11 +291,21 @@ export function startMobileFeed(options: MobileFeedOptions) {
 			},
 		});
 	};
-	let receiveElapsed = 0;
+	let updatePanel: Node.Type | undefined;
+ let updateAvailable = Updater.getState().available;
+ const openUpdate = () => {
+  if (updatePanel || preparing || creating || createOpen || packagePanel || transitioning || syncConfirmation || managementOpen) return;
+  updatePanel = createGoUpdaterPanel(() => { updatePanel = undefined; });
+  updatePanel.addTo(Director.systemUI);
+ };
+ let receiveElapsed = 0;
 	host.schedule(dt => {
 		receiveElapsed += dt;
 		if (receiveElapsed < 0.5) return false;
 		receiveElapsed = 0;
+  const available = Updater.getState().available;
+  if (available !== updateAvailable && !createOpen && !preparing && !transitioning) { updateAvailable = available; render(); }
+  if (updatePanel) return false;
 		if (isActive() && host.visible && !packagePanel && !createOpen && !projectIndexOpen && !managementOpen && !syncConfirmation && !preparing && !transitioning && HttpServer.wsConnectionCount === 0) {
 			const path = options.takeReceivedFile ? options.takeReceivedFile() : App.takeReceivedFile();
 			if (path !== "") openPackage("receive", path);
@@ -454,7 +466,7 @@ export function startMobileFeed(options: MobileFeedOptions) {
 	};
 
 	const switchMode = () => {
-		if (!isActive() || !host.visible || HttpServer.wsConnectionCount > 0 || preparing || creating || createOpen || packagePanel || transitioning || syncConfirmation || managementOpen || !options.onSwitchMode) return;
+		if (!isActive() || !host.visible || HttpServer.wsConnectionCount > 0 || preparing || creating || createOpen || packagePanel || transitioning || syncConfirmation || managementOpen || updatePanel || !options.onSwitchMode) return;
 		leaving = true;
 		options.onSwitchMode();
 	};
@@ -484,6 +496,7 @@ export function startMobileFeed(options: MobileFeedOptions) {
 		const usableWidth = safe.width;
 		const usableHeight = safe.height;
 		const wide = usableWidth >= 760;
+		const updateHeaderExtra = Updater.getState().available && usableWidth < 400 ? 44 : 0;
 		const shortLandscape = wide && usableHeight < 500;
 		const compact = !wide && usableHeight < 700;
 		const compactLandscape = compact && usableWidth > usableHeight && usableHeight < 520;
@@ -493,13 +506,14 @@ export function startMobileFeed(options: MobileFeedOptions) {
 		const item = current();
 		rememberCurrent();
 		const coverWidth = wide ? math.min(usableWidth * 0.54, 680) : usableWidth - 32;
-		const coverHeight = wide
+		const baseCoverHeight = wide
 			? math.min(usableHeight - 118, coverWidth * 0.72)
 			: compact
 				? math.min(usableHeight * (compactLandscape ? 0.43 : 0.49), coverWidth * 0.72)
 				: math.min(usableHeight * 0.54, coverWidth * 1.12);
+		const coverHeight = math.max(100, baseCoverHeight - updateHeaderExtra);
 		const coverX = left + 16;
-		const coverY = wide ? bottom + (usableHeight - coverHeight) / 2 - 12 + landscapeTopLift : bottom + usableHeight - coverHeight - 82;
+		const coverY = wide ? bottom + (usableHeight - coverHeight) / 2 - 12 + landscapeTopLift : bottom + usableHeight - coverHeight - 82 - updateHeaderExtra;
 		const infoX = wide ? coverX + coverWidth + 28 : left + 20;
 		const infoWidth = wide ? usableWidth - coverWidth - 72 : usableWidth - 40;
 		const infoTop = wide ? bottom + usableHeight - 122 + landscapeTopLift : coverY - (compactLandscape ? 28 : 30);
@@ -635,20 +649,21 @@ export function startMobileFeed(options: MobileFeedOptions) {
 			{!item && tab === "discover" && syncDiscover ? <MobileButton tag="mobile-feed-empty-index" x={left + (usableWidth - 160) / 2} y={bottom + 24} width={160}
 				text={zh ? "作品目录" : "Game index"} onTapped={openProjectIndex} /> : undefined}
 			<node tag="mobile-feed-header" order={headerRenderOrder} visible={!syncConfirmation}>
+    {Updater.getState().available ? <MobileButton tag="mobile-engine-update" x={left + usableWidth - (updateHeaderExtra > 0 ? 56 : 136)} y={bottom + usableHeight - 56 + landscapeTopLift} width={44} height={44} text="↑" fontSize={23} onTapped={openUpdate} /> : undefined}
 				{options.onSwitchMode ? <node tag="mobile-ui-mode-switch" x={left + 12} y={bottom + usableHeight - 58 + landscapeTopLift} width={72} height={48}
 					anchorX={0} anchorY={0} touchEnabled={true} swallowTouches={true} onTapped={switchMode}>
 					<label x={0} y={30} anchorX={0} fontName={fontName} fontSize={16} text="DORA" color3={preparing ? 0x777e8c : 0xffcc33} />
 					<label x={0} y={10} anchorX={0} fontName={fontName} fontSize={10} text={zh ? "切换传统界面" : "Classic UI"} color3={0x777e8c} />
 				</node> : undefined}
-				<label tag="mobile-feed-discover-tab" x={left + usableWidth / 2 - 44} y={bottom + usableHeight - 34 + landscapeTopLift} fontName={fontName} fontSize={math.floor(17 * fontScale)}
+				<label tag="mobile-feed-discover-tab" x={left + usableWidth / 2 - 44} y={bottom + usableHeight - 34 + landscapeTopLift - updateHeaderExtra} fontName={fontName} fontSize={math.floor(17 * fontScale)}
 					text={zh ? "发现" : "Discover"} color3={tab === "discover" ? 0xffcc33 : 0xa8afbd}
 					touchEnabled={true} swallowTouches={true} onTapped={() => setTab("discover")} />
-				<label tag="mobile-feed-local-tab" x={left + usableWidth / 2 + 44} y={bottom + usableHeight - 34 + landscapeTopLift} fontName={fontName} fontSize={math.floor(17 * fontScale)}
+				<label tag="mobile-feed-local-tab" x={left + usableWidth / 2 + 44} y={bottom + usableHeight - 34 + landscapeTopLift - updateHeaderExtra} fontName={fontName} fontSize={math.floor(17 * fontScale)}
 					text={zh ? "本地" : "Local"} color3={tab === "local" ? 0xffcc33 : 0xa8afbd}
 					touchEnabled={true} swallowTouches={true} onTapped={() => { local = getLocalEntries(); setTab("local"); }} />
-				<RoundedSurface x={left + usableWidth / 2 + (tab === "discover" ? -58 : 30)} y={bottom + usableHeight - 56 + landscapeTopLift} width={28} height={3} radius={1.5} fillColor={colors.brand} renderOrder={headerRenderOrder + 1} />
+				<RoundedSurface x={left + usableWidth / 2 + (tab === "discover" ? -58 : 30)} y={bottom + usableHeight - 56 + landscapeTopLift - updateHeaderExtra} width={28} height={3} radius={1.5} fillColor={colors.brand} renderOrder={headerRenderOrder + 1} />
 				{tab === "local" && options.createProject ? <MobileNewButton tag="mobile-feed-create"
-					x={left + usableWidth - 82} y={bottom + usableHeight - 56 + landscapeTopLift}
+					x={left + usableWidth - (updateHeaderExtra > 0 ? 138 : 82)} y={bottom + usableHeight - 56 + landscapeTopLift}
 					text={zh ? "+ 新建" : "+ New"} renderOrder={headerRenderOrder + 1} onTapped={() => openPackage("add")} /> : undefined}
 			</node>
 			{managementOpen && canManage && item ? (() => {
@@ -762,7 +777,7 @@ export function startMobileFeed(options: MobileFeedOptions) {
 
 	attachGamepad(host, {
 		initialTag: "mobile-feed-play",
-		isEnabled: () => isActive() && !packagePanel && !preparing && !transitioning && !creating,
+		isEnabled: () => isActive() && !updatePanel && !packagePanel && !preparing && !transitioning && !creating,
 		onActive: () => { gamepadUsed = true; render(); },
 		onBack: () => { if (managementOpen) closeManagement(); else if (syncConfirmation) dismissSyncConfirmation(); else if (createInput.isFocused()) blurCreateInput(); else if (createOpen) closeCreate(); else switchMode(); },
 		onActivate: target => {
@@ -809,7 +824,7 @@ export function startMobileFeed(options: MobileFeedOptions) {
 			else if (createOpen && !creating) closeCreate();
 		} else if (event === "WillEnterBackground" || event === "DidEnterBackground") blurCreateInput();
 	});
-	host.onCleanup(() => { blurCreateInput(); active = false; packagePanel?.removeFromParent(true); packagePanel = undefined; });
+	host.onCleanup(() => { updatePanel?.removeFromParent(true); blurCreateInput(); active = false; packagePanel?.removeFromParent(true); packagePanel = undefined; });
 	host.slot("RestoreFeedEntry", (entry: FeedEntry) => {
 		if (!isActive() || HttpServer.wsConnectionCount > 0) return;
 		managementOpen = false;

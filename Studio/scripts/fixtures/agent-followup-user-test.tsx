@@ -31,6 +31,7 @@ function Test(){
   <section aria-label="已投递消息" style={{height:190,overflowY:'auto',padding:12,background:'#151515',borderRadius:8}}>
    {state?.detail?.messages?.filter((item:any)=>item.role==='user').map((item:any)=><p key={item.id} style={{fontSize:13,whiteSpace:'pre-wrap',borderLeft:item.inputKind==='steer'?'2px solid #ffc13d':'2px solid #555',paddingLeft:10}}>{item.content}</p>)}
   </section>
+  {(session?.currentTaskStatus==='STOPPED'||session?.currentTaskStatus==='FAILED')&&state?.idle&&<button onClick={()=>void command('continue').catch(error=>setError(String(error)))}>继续任务</button>}
   <SharedAgentComposer prompt={prompt} running={running} loading={busy} disabled={!state} onPromptChange={setPrompt} onSend={delivery=>void send(delivery)} onStop={()=>void command('stop').catch(error=>setError(String(error)))} pendingInputs={session?.pendingInputs??[]} onInputAction={inputAction} models={[{id:'fixture',name:'隔离测试模型'}]} modelId="fixture"/>
   <iframe id="runtime" title="隔离 Agent 引擎" src="/runtime-uat" style={{position:'fixed',bottom:0,left:0,width:16,height:16,opacity:0,pointerEvents:'none',border:0}}/>
  </main>;

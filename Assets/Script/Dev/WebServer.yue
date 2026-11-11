@@ -1474,6 +1474,22 @@ HttpServer\post "/list", (req): success: false ->
 			files = nil if #files == 0
 			return success: true, :files
 
+-- All interfaces observe/control the same engine-owned update task.
+updater = require "Tools.SelfUpdater.Service"
+HttpServer\post "/engine-update/state", -> require("Script.Dev.Entry").getUpdateState!
+HttpServer\post "/engine-update/check", (req) ->
+	source = req.body and req.body.source
+	return success: false unless source == nil or source in ["AtomGit", "GitHub"]
+	success: require("Script.Dev.Entry").checkForUpdates true, source
+HttpServer\post "/engine-update/download", (req) ->
+	target = req.body and req.body.platform
+	if target ~= nil
+		return success: false unless target in ["windows-x64", "windows-x64-opengl", "windows-x64-msi", "windows-x64-opengl-msi"]
+	success: updater.downloadUpdate target
+HttpServer\post "/engine-update/cancel", -> success: updater.cancelOperation!
+HttpServer\post "/engine-update/discard", -> success: updater.discardPrepared!
+HttpServer\post "/engine-update/install", (req) -> success: updater.installUpdate(req.body and req.body.confirmed == true)
+
 HttpServer\post "/info", (req) ->
 	import "Script.Dev.Entry"
 	config = Entry.getConfig!

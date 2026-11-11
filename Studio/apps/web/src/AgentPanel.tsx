@@ -3,7 +3,7 @@ import type {AgentSessionConnection} from './agent-session-controller';
 import './agent-panel.css';
 import {useLayoutEffect,useRef,useState,type ReactNode} from 'react';
 import {ModelAllowance} from './ModelAllowance';
-import {SharedAgentComposer,SharedAgentMarkdown,SharedAgentQuestionnaire,SharedAgentStepList,useAgentTimeline,type AgentQuestionnaireAnswer,type AgentInputControls,type AgentInputDelivery} from '@dora-studio/agent-ui';
+import {SharedAgentComposer,SharedAgentMarkdown,SharedAgentUserMessage,SharedAgentQuestionnaire,SharedAgentStepList,useAgentTimeline,type AgentQuestionnaireAnswer,type AgentInputControls,type AgentInputDelivery} from '@dora-studio/agent-ui';
 import '@dora-studio/agent-ui/style.css';
 import type {AgentModelQueueState} from './agent-model-queue';
 
@@ -53,7 +53,7 @@ export function AgentPanel({state, onLoadHistory, loadingHistory = false, connec
   const messages=state?state.messages.orderedIds.map(id=>state.messages.byId.get(id)!):[];
   const steps=state?state.steps.orderedIds.map(id=>state.steps.byId.get(id)!):[];
   const timeline=useAgentTimeline(messages,steps,currentTaskId);
-  const messageView=(message:typeof messages[number])=><article key={`message-${message.id}`} className={`agent-message ${message.role}`}><header>{message.role === 'user' ? '你' : 'Dora Agent'}</header><SharedAgentMarkdown content={message.displayContent ?? message.content}/></article>;
+  const messageView=(message:typeof messages[number])=>message.role==='user'?<SharedAgentUserMessage key={`message-${message.id}`} message={message}/>:<article key={`message-${message.id}`} className={`agent-message ${message.role}`}><header>Dora Agent</header><SharedAgentMarkdown content={message.displayContent ?? message.content}/></article>;
   return <aside className="agent-pane" aria-label="Dora Agent">
     <div className="pane-header"><h2><span>✦</span> Dora Agent</h2><span className="badge">{state?.deleted ? '会话已删除' : active ? connection === 'closed' ? '已断开' : connection === 'resync-required' ? '待同步' : statuses[state.session.status] ?? state.session.status : '待接入'}</span></div>
     {controls}

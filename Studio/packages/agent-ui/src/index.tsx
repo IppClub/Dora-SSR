@@ -99,11 +99,15 @@ export function SharedAgentQuestionnaire({questionnaire,submitting=false,labels,
 export {AgentFollowupQueue} from './AgentFollowup';
 export type {AgentInputDelivery,AgentInputCommand,AgentPendingInput,AgentInputControls} from './AgentFollowup';
 
+export function SharedAgentUserMessage({message}:{message:AgentSessionMessage}){
+ return <article className="agent-message user" data-agent-message-id={message.id}><header>你</header><SharedAgentMarkdown content={message.displayContent??message.content}/></article>;
+}
+
 export function SharedAgentStepList(props:{steps:readonly AgentSessionStep[];steeringMessages?:readonly AgentSessionMessage[];running?:boolean;onOpenFile?:(path:string)=>void}){
  const groups:React.ReactNode[]=[];let previous=-1;
  for(const message of props.steeringMessages??[]){
   const boundary=message.afterStep??0;
-  groups.push(<React.Fragment key={`guide-${message.id}`}><AgentStepCards {...props} steps={props.steps.filter(step=>(step.step??0)>previous&&(step.step??0)<=boundary)}/><article className="dora-agent-steering" data-agent-steering-id={message.id}><small>你的补充 · 已引导当前任务</small><SharedAgentMarkdown content={message.content}/></article></React.Fragment>);
+  groups.push(<React.Fragment key={`guide-${message.id}`}><AgentStepCards {...props} steps={props.steps.filter(step=>(step.step??0)>previous&&(step.step??0)<=boundary)}/><SharedAgentUserMessage message={message}/></React.Fragment>);
   previous=boundary;
  }
  groups.push(<AgentStepCards key="tail" {...props} steps={props.steps.filter(step=>(step.step??0)>previous)}/>);

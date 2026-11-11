@@ -16,6 +16,7 @@ import AgentChangeSetSummaryCard from './AgentChangeSetSummary';
 import { recordAgentRowRender } from './AgentRenderDiagnostics';
 import Markdown from './Markdown';
 import AgentVisionEvidence from './AgentVisionEvidence';
+import AgentMessageList from './AgentMessageList';
 import './github-markdown-dark.css';
 
 const AgentFileDiff = React.lazy(() => import('./AgentFileDiff'));
@@ -1116,7 +1117,7 @@ function AgentStepList(props: AgentStepListProps) {
   for (const message of props.steeringMessages) {
    const boundary = message.afterStep ?? 0;
    const items = props.steps.filter(step=>step.step>previous&&step.step<=boundary);
-   groups.push(<React.Fragment key={`guide-${message.id}`}><AgentStepList {...props} steps={items} steeringMessages={undefined}/><Box sx={{borderLeft:`2px solid ${Color.Theme}`,pl:1.5,py:.5}}><Typography variant="caption" sx={{color:Color.Theme}}>你的补充 · 已引导当前任务</Typography><Typography sx={{whiteSpace:'pre-wrap',fontSize:14}}>{message.content}</Typography></Box></React.Fragment>);
+   groups.push(<React.Fragment key={`guide-${message.id}`}><AgentStepList {...props} steps={items} steeringMessages={undefined}/><AgentMessageList messages={[message]}/></React.Fragment>);
    previous=boundary;
   }
   groups.push(<AgentStepList key="tail" {...props} steps={props.steps.filter(step=>step.step>previous)} steeringMessages={undefined}/>);

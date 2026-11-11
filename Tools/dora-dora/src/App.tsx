@@ -23,6 +23,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import { AlertColor, Button, Collapse, DialogActions, DialogContent, DialogContentText, InputAdornment, TextField, Container, Link, Typography, Checkbox, FormControlLabel, Tooltip, Stack, MenuItem } from '@mui/material';
 import NewFileDialog, { DoraFileType } from './NewFileDialog';
 import logo from './logo.svg';
+import EngineUpdate from './EngineUpdate';
 import { TransitionGroup } from 'react-transition-group';
 import * as Service from './Service';
 import { uploadFile } from './UploadFile';
@@ -725,6 +726,7 @@ const getAlertAccentColor = (type: AlertColor) => {
 };
 
 export default function PersistentDrawerLeft() {
+	const [engineUpdateOpen, setEngineUpdateOpen] = useState(false);
 	const { t } = useTranslation();
 	const [alerts, setAlerts] = useState<{
 		msg: string,
@@ -2901,6 +2903,7 @@ export default function PersistentDrawerLeft() {
 	}, [addAlert, files, getRunningAgentSessionForProject, tabIndex, t, selectedNode, isEditorActioning]);
 
 	const onLaunchToolEntry = useCallback((entry: Service.EntryLaunchInfo) => {
+		if (entry.kind === "tool" && entry.name === "SelfUpdater") { setEngineUpdateOpen(true); return; }
 		Service.run({ file: entry.file, asProj: entry.asProj }).then((res) => {
 			if (res.success) {
 				addAlert(t("alert.run", { title: res.target ?? entry.name }), "success");
@@ -5754,6 +5757,7 @@ export default function PersistentDrawerLeft() {
 							background: Color.BackgroundDark,
 							borderBottom: `0.5px solid ${Color.Line}`
 						}}>
+							<EngineUpdate open={engineUpdateOpen} onOpen={() => setEngineUpdateOpen(true)} onClose={() => setEngineUpdateOpen(false)} saveBeforeInstall={saveAllTabs}>
 							<Tooltip title={t("menu.version", { version: Info.version ?? "" })}>
 								<a
 									href={Info.locale.match(/^zh/) ? 'https://ippclub.gitee.io/Dora-SSR/zh-Hans/docs/api/intro' : 'https://dora-ssr.net/docs/api/intro'}
@@ -5783,6 +5787,7 @@ export default function PersistentDrawerLeft() {
 									)}
 								</a>
 							</Tooltip>
+							</EngineUpdate>
 							<Stack direction="row" spacing={1} alignItems="center">
 								<Tooltip title={t("menu.explorer")}>
 									<IconButton

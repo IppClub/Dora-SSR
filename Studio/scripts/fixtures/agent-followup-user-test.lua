@@ -20,6 +20,7 @@ _studio_agent_request = function(encoded)
  local request = U.safeJsonDecode(encoded)
  local ok,result = pcall(function()
   if request.operation == 'stop' then return S.stopSessionTask(sid) end
+  if request.operation == 'continue' then return S.continuePrompt(sid,{},nil,config) end
   if request.operation == 'prompt' then
    local submission = request.submission or {}
    submission.requestId = request.requestId

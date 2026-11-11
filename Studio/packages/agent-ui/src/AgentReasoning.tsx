@@ -22,7 +22,7 @@ export function AgentReasoning({content, active = false, thinkingLabel = '正在
     if (active && follow.current && panel.current) panel.current.scrollTop = panel.current.scrollHeight;
   }, [content, open, active]);
   if (!content.trim() && !active) return null;
-  return <div data-agent-reasoning={active ? 'active' : 'archived'} style={{minWidth: 0, maxWidth: '100%', color: active ? '#eee' : '#bbb', fontSize: active ? '1em' : '0.85em'}}>
+  return <div data-agent-reasoning={active ? 'active' : 'archived'} style={{minWidth: 0, maxWidth: '100%', color: active ? '#eee' : '#bbb', fontSize: active ? '1rem' : '0.85em'}}>
     <button type="button" data-agent-thinking={active ? 'true' : undefined} aria-expanded={open} aria-controls={panelId}
       disabled={!content.trim()} onClick={() => setOpen(value => !value)}
       style={{display: 'flex', alignItems: 'center', gap: 8, width: active ? '100%' : undefined, maxWidth: '100%', minWidth: 0, padding: active ? '5px 0' : '2px 0', border: 0, borderRadius: 3, background: 'transparent', color: 'inherit', font: 'inherit', textAlign: 'left', cursor: content.trim() ? 'pointer' : 'default'}}>

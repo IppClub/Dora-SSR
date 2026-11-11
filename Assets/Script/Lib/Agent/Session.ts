@@ -464,16 +464,28 @@ followup.submit = (sessionId: number,prompt: string,options: Record<string,unkno
 		}
 		const content = normalizePromptTextSafe(prompt);
 		if (content === "") return {success:false,message:"prompt is empty"};
+		const pending = InputInbox.listInputs(sessionId);
+		// A normal prompt starts a task directly. The inbox is reserved for
+		// messages sent while a task is running/finalizing or a queue is waiting.
+		if (followup.activeRuns[sessionId] === undefined && session.currentTaskStatus !== "RUNNING"
+			&& !session.currentTaskFinalizing && pending.length === 0) {
+			return binding.localAgentConfigId !== undefined
+				? startLocalPrompt(sessionId,content,binding.localAgentConfigId)
+				: startImmediatePrompt(sessionId,content,options.disabledAgentTools,options.workMode,
+					options.llmConfigId,binding.llmConfig,options.maxSteps);
+		}
 		const requestId = submission?.requestId ?? `input-${sessionId}-${os.time()}-${math.random(1,1000000000)}`;
 		const isActive = followup.activeRuns[sessionId] !== undefined && !activeStopTokens[session.currentTaskId ?? -1]?.stopped;
 		const delivery = content !== "/clear" && content !== "/compact" && isActive && !binding.localAgentConfigId && submission?.delivery === "steer" ? "steer" : "queue";
-		const wasPaused = InputInbox.listInputs(sessionId).some(item=>item.held);
+		const wasPaused = pending.some(item=>item.held);
 		const input = InputInbox.admitInput(sessionId,content,delivery,requestId,options,delivery === "steer" ? session.currentTaskId : undefined);
 		if (wasPaused && delivery === "queue") InputInbox.holdInputs(sessionId);
-		followup.publish(sessionId);
 		if (input.status === "delivered" || input.status === "cancelled") return {success:true,sessionId,taskId:input.taskId ?? session.currentTaskId ?? 0};
 		if (binding.llmConfig) followup.configs[input.id] = binding.llmConfig;
 		const next = followup.dispatch(sessionId);
+		// A new task publishes its prompt in the conversation as it starts. Only
+		// publish the inbox separately when the message actually has to wait.
+		if (!next) followup.publish(sessionId);
 		return next ?? {success:true,sessionId,taskId:session.currentTaskId ?? 0};
 	} catch (error) {return {success:false,message:tostring(error)};}
 };
@@ -1009,11 +1021,18 @@ function getSessionRow(sessionId: number) {
 	);
 }
 
+function getPendingSessionInputs(sessionId: number): AgentPendingInputItem[] {
+ // Delivering inputs already belong to the live conversation. Keep their
+ // durable receipts internally until the runtime acknowledges them.
+ return InputInbox.listInputs(sessionId).filter(item=>item.status !== "delivering")
+  .map(item=>({id:item.id,content:item.content,delivery:item.delivery,held:item.held,status:item.status}));
+}
+
 function getSessionItem(sessionId: number): AgentSessionItem | undefined {
 	const row = getSessionRow(sessionId);
 	if (!row) return undefined;
  const session = rowToSession(row);
- session.pendingInputs = InputInbox.listInputs(session.id).map(item=>({id:item.id,content:item.content,delivery:item.delivery,held:item.held,status:item.status}));
+ session.pendingInputs = getPendingSessionInputs(session.id);
  return session;
 }
 
@@ -1035,7 +1054,7 @@ function getLatestMainSessionByProjectRoot(projectRoot: string): AgentSessionIte
 	);
 	if (!row) return undefined;
  const session = rowToSession(row);
- session.pendingInputs = InputInbox.listInputs(session.id).map(item=>({id:item.id,content:item.content,delivery:item.delivery,held:item.held,status:item.status}));
+ session.pendingInputs = getPendingSessionInputs(session.id);
  return session;
 }
 
@@ -2852,7 +2871,7 @@ function startLocalPrompt(sessionId: number, prompt: string, localAgentConfigId:
 	return { success: true, sessionId: session.id, taskId };
 }
 
-export function continuePrompt(sessionId: number, disabledAgentTools?: unknown, llmConfigId?: unknown): AgentSessionSendResult {
+export function continuePrompt(sessionId: number, disabledAgentTools?: unknown, llmConfigId?: unknown, llmConfig?: LLMConfig): AgentSessionSendResult {
 	const session = getSessionItem(sessionId);
 	if (session && isProjectTaskAdmissionClosed(session.projectRoot)) return { success: false, message: "project task admission is closed" };
 	if (!session) {
@@ -2871,8 +2890,13 @@ export function continuePrompt(sessionId: number, disabledAgentTools?: unknown, 
 	if (session.currentTaskId === undefined) {
 		return { success: false, message: "session task not found" };
 	}
+	const resolved = llmConfig ? {success:true as const,config:llmConfig} : getLLMConfig(llmConfigId);
+	if (!resolved.success) return {success:false,message:resolved.message};
+	followup.recover(session);
+	const previousBinding = followup.bindings[sessionId];
+	followup.bindings[sessionId] = {llmConfig:resolved.config,llmConfigId};
 	const taskId = session.currentTaskId;
-	return startPromptTask(
+	const result = startPromptTask(
 		session,
 		"",
 		undefined,
@@ -2888,8 +2912,18 @@ export function continuePrompt(sessionId: number, disabledAgentTools?: unknown, 
 			// would make a task that stopped at maxSteps fail again immediately.
 			initialAgentStepCount: 0,
 			llmConfigId,
+			llmConfig: resolved.config,
 		},
 	);
+	if (result.success) {
+		// The existing task's Continue action also restores its follow-ups.
+		// A stop/failure still keeps them held until this explicit user action.
+		for (const input of InputInbox.listInputs(sessionId)) followup.configs[input.id] = resolved.config;
+		InputInbox.mutateInput(sessionId,{action:"resume"},"");
+		followup.publish(sessionId);
+	} else if (previousBinding) followup.bindings[sessionId] = previousBinding;
+	else delete followup.bindings[sessionId];
+	return result;
 }
 
 interface PromptTaskOptions {

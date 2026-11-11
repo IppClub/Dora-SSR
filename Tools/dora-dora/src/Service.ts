@@ -1906,3 +1906,29 @@ export const addAgentSessionPatchListener = (listener: (patch: AgentSessionPatch
 export const removeAgentSessionPatchListener = (listener: (patch: AgentSessionPatch) => void) => {
 	eventEmitter.off("AgentSessionPatch", listener);
 };
+
+// Engine-owned updater. No paths or download URLs are accepted from the browser.
+export interface EngineUpdateState {
+ serial: number;
+ phase: 'idle' | 'checking' | 'available' | 'current' | 'error' | 'downloading' | 'canceling' | 'ready' | 'installing';
+ source: 'AtomGit' | 'GitHub';
+ currentVersion: string;
+ targetVersion?: string;
+ publishedAt?: string;
+ releaseUrl?: string;
+ available: boolean;
+ comparison?: number;
+ platform: string;
+ packagePlatform?: string;
+ packageSize?: number;
+ installSupported: boolean;
+ canDownload: boolean;
+ windows: boolean;
+ prepared: boolean;
+ checkedAt: number;
+ usedCache: boolean;
+ message: string;
+ progress?: {progress: number; message: string; source?: string};
+}
+export const engineUpdateState = () => post<EngineUpdateState>('/engine-update/state');
+export const engineUpdateAction = (action: 'check' | 'download' | 'cancel' | 'discard' | 'install', data: {source?: EngineUpdateState['source']; platform?: string; confirmed?: boolean} = {}) => post<{success: boolean}>(`/engine-update/${action}`, data);
