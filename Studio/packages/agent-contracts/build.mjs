@@ -211,14 +211,14 @@ const validationSource = ts.createSourceFile(validationPath.pathname, await read
 const editParser = validationSource.statements.find(statement => ts.isFunctionDeclaration(statement) && statement.name?.text === 'getAgentFileEditInputs');
 if (!editParser) throw new Error('Upstream edit parser changed; migration review required');
 const semanticFunction = validationSource.statements.find(statement => ts.isFunctionDeclaration(statement) && statement.name?.text === 'validateAgentToolInput');
-const searchBranches = ['tool === "grep_files" || tool === "search_dora_doc"', 'tool === "glob_files"'].map(expression => {
+const searchBranches = ['tool === "grep_files" || tool === "search_dora_doc"'].map(expression => {
   const branch = semanticFunction?.body?.statements.find(statement => ts.isIfStatement(statement) && statement.expression.getText(validationSource) === expression);
   if (!branch) throw new Error(`Upstream search validation changed: ${expression}`);
   return branch.getText(validationSource);
 });
 const clampInteger = validationSource.statements.find(statement => ts.isFunctionDeclaration(statement) && statement.name?.text === 'clampInteger');
 if (!clampInteger) throw new Error('Upstream search clamp changed');
-const searchHandlers = ['grepFiles', 'globFiles', 'searchDoraDoc'].map(name => {
+const searchHandlers = ['grepFiles', 'searchDoraDoc'].map(name => {
   const statement = handlerSource.statements.find(statement => ts.isVariableStatement(statement) && statement.declarationList.declarations.some(d => d.name.getText(handlerSource) === name));
   if (!statement) throw new Error(`Upstream search handler changed: ${name}`);
   return statement.getText(handlerSource);
@@ -233,7 +233,7 @@ export function validateSearchInput(tool, input) {
 }
 export function createSearchHandlers(Tools) {
   ${searchHandlers.join('\n')}
-  return {grep_files: grepFiles, glob_files: globFiles, search_dora_doc: searchDoraDoc};
+  return {grep_files: grepFiles, search_dora_doc: searchDoraDoc};
 }`, loader: 'ts' }, outfile: new URL('search-tools.js', output).pathname, bundle: true, format: 'esm', platform: 'neutral',
   plugins: [{ name: 'agent-search-config', setup(builder) {
     builder.onResolve({ filter: /^Agent\/Config\/Defaults$/ }, () => ({ path: new URL('../../../Assets/Script/Lib/Agent/Config/Defaults.ts', import.meta.url).pathname }));
@@ -250,13 +250,10 @@ export function createBuildHandler(buildBackend) {
 }`, loader: 'ts' }, outfile: new URL('build-tool.js', output).pathname, format: 'esm', platform: 'neutral' });
 const editBranch = semanticFunction?.body?.statements.find(statement => ts.isIfStatement(statement) && statement.expression.getText(validationSource) === 'tool === "edit_file"');
 if (!editBranch) throw new Error('Upstream edit validator changed; review required');
-const deleteBranch = semanticFunction?.body?.statements.find(statement => ts.isIfStatement(statement) && statement.expression.getText(validationSource) === 'tool === "delete_file"');
 const decisionPath = validationSource.statements.find(statement => ts.isFunctionDeclaration(statement) && statement.name?.text === 'getDecisionPath');
-if (!deleteBranch || !decisionPath) throw new Error('Upstream delete validator changed');
+if (!decisionPath) throw new Error('Upstream edit path parser changed');
 await build({ stdin: { contents: `${decisionPath.getText(validationSource)}
-export function validateDeleteFile(input) { const value = {...input}; ${deleteBranch.thenStatement.getText(validationSource)} }`, loader: 'ts' },
-  outfile: new URL('delete-validation.js', output).pathname, format: 'esm', platform: 'neutral' });
-await build({ stdin: { contents: `${editParser.getText(validationSource)}
+${editParser.getText(validationSource)}
 export function validateEditFile(input) {
   const value = {...input};
   ${editBranch.thenStatement.getText(validationSource)}
@@ -295,49 +292,25 @@ for (const statement of policySource.statements) {
   }
 }
 if (requiredPolicy.size) throw new Error('Upstream guard policy changed; review required');
-const deleteHandler = handlerSource.statements.find(statement => ts.isVariableStatement(statement) && statement.declarationList.declarations.some(d => d.name.getText(handlerSource) === 'deleteFile'));
 const internalPath = policySource.statements.find(statement => ts.isFunctionDeclaration(statement) && statement.name?.text === 'isAgentInternalDocumentPath');
-if (!deleteHandler || !internalPath) throw new Error('Upstream delete handler changed');
-let deleteCalls = 0;
-const asyncDelete = ts.transform(deleteHandler, [context => root => {
-  const visit = node => {
-    if (ts.isCallExpression(node) && node.expression.getText(handlerSource) === 'Tools.deleteFile') {
-      deleteCalls++; return ts.factory.createAwaitExpression(ts.visitEachChild(node, visit, context));
-    }
-    return ts.visitEachChild(node, visit, context);
-  };
-  return ts.visitNode(root, visit);
-}]);
-if (deleteCalls !== 1) throw new Error('Upstream delete commit boundary changed');
-const deleteSource = ts.createPrinter().printNode(ts.EmitHint.Unspecified, asyncDelete.transformed[0], handlerSource);
-asyncDelete.dispose();
-await build({ stdin: { contents: `export function createDeleteHandler(Tools) {
- const string = {match: value => [value.replace(/^[\\t\\n\\v\\f\\r ]+|[\\t\\n\\v\\f\\r ]+$/g, '')]};
- ${[...policyParts, internalPath.getText(policySource)].map(part => part.replace(/^export /, '')).join('\n')}
- const AgentRuntimePolicy = {normalizeAgentPath, isAgentInternalDocumentPath};
- ${deleteSource}
- return async (...args) => {
-   const result = await deleteFile(...args);
-   return {...result, output: Object.fromEntries(Object.entries(result.output).filter(([, value]) => value !== undefined))};
- };
-}`, loader: 'ts' }, outfile: new URL('delete-handler.js', output).pathname, format: 'esm', platform: 'neutral' });
+if (!internalPath) throw new Error('Upstream internal-document policy changed');
 const editHandler = handlerSource.statements.find(statement => ts.isVariableStatement(statement) && statement.declarationList.declarations.some(d => d.name.getText(handlerSource) === 'editFile'));
 if (!editHandler) throw new Error('Upstream edit handler changed');
-let commitCalls = 0;
+let commitCalls = 0, deleteCalls = 0;
 const asyncEdit = ts.transform(editHandler, [context => root => {
   const visit = node => {
-    if (ts.isCallExpression(node) && node.expression.getText(handlerSource) === 'Tools.applyFileChanges') {
-      commitCalls++;
+    if (ts.isCallExpression(node) && ['Tools.applyFileChanges', 'Tools.deleteFile'].includes(node.expression.getText(handlerSource))) {
+      if (node.expression.getText(handlerSource) === 'Tools.deleteFile') deleteCalls++; else commitCalls++;
       return ts.factory.createAwaitExpression(ts.visitEachChild(node, visit, context));
     }
     return ts.visitEachChild(node, visit, context);
   };
   return ts.visitNode(root, visit);
 }]);
-if (commitCalls !== 1) throw new Error('Upstream edit commit boundary changed; review required');
+if (commitCalls !== 1 || deleteCalls !== 1) throw new Error('Upstream edit commit boundary changed; review required');
 const asyncEditSource = ts.createPrinter().printNode(ts.EmitHint.Unspecified, asyncEdit.transformed[0], handlerSource);
 asyncEdit.dispose();
-const editPolicyNames = ['normalizeLineEndings', 'countOccurrences', 'containsWholeFileDuplicate', 'isAgentInternalDocumentPath', 'successfulEditResult'];
+const editPolicyNames = ['normalizeLineEndings', 'countOccurrences', 'containsWholeFileDuplicate', 'isAgentInternalDocumentPath', 'requiresAgentBuildForPath', 'successfulEditResult'];
 const editPolicyParts = [...policyParts];
 for (const name of editPolicyNames) {
   const fn = policySource.statements.find(statement => ts.isFunctionDeclaration(statement) && statement.name?.text === name);
@@ -350,11 +323,13 @@ import {getAgentFileEditInputs} from './file-edits.js';
 import {getAgentFileEditPlanGuardDenial} from './guards.js';
 export function createEditHandler(Tools) {
   const sanitizeUTF8 = text => text.toWellFormed();
+  const Path={getExt:path=>path.split('/').at(-1).split('.').slice(1).at(-1)??'',getFilename:path=>path.split('/').at(-1)};
   const string = {match: value => [value.replace(/^[\\t\\n\\v\\f\\r ]+|[\\t\\n\\v\\f\\r ]+$/g, '')]};
   ${editPolicyParts.map(part => part.replace(/^export /, '')).join('\n')}
-  const AgentRuntimePolicy = {normalizeAgentPath, normalizeLineEndings, countOccurrences, containsWholeFileDuplicate, isAgentInternalDocumentPath, successfulEditResult};
+  const AgentRuntimePolicy = {normalizeAgentPath, normalizeLineEndings, countOccurrences, containsWholeFileDuplicate, isAgentInternalDocumentPath, requiresAgentBuildForPath, successfulEditResult};
   ${asyncEditSource}
-  return editFile;
+  // Lua tables omit nil properties; normalize the JavaScript adapter at the same boundary.
+  return async (...args) => JSON.parse(JSON.stringify(await editFile(...args)));
 }`, loader: 'ts' }, outfile: new URL('edit-handler.js', output).pathname, format: 'esm', platform: 'neutral' });
 await build({ entryPoints: [new URL('../../../Assets/Script/Lib/Agent/Tool/Guards.ts', import.meta.url).pathname],
   outfile: new URL('guards.js', output).pathname, bundle: true, format: 'esm', platform: 'neutral',
