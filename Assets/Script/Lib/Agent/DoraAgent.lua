@@ -1679,7 +1679,7 @@ function MainDecisionAgent.prototype.callDecisionByToolCalling(self, shared, las
 		do -- 1803
 			local i = 0 -- 1806
 			while i < #decisions do -- 1806
-				if decisions[i + 1].tool ~= nil and decisions[i + 1].preExecutionFailure == nil then -- 1806
+				if decisions[i + 1].tool == "ask_user" and decisions[i + 1].preExecutionFailure == nil then -- 1806
 					decisions[i + 1].preExecutionFailure = {code = "INVALID_TOOL_COMBINATION", message = decisions[i + 1].tool .. " cannot be mixed with other tool calls"} -- 1809
 				end -- 1809
 				i = i + 1 -- 1806

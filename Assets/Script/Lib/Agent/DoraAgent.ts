@@ -1804,7 +1804,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 			return decisions[0];
 		}
 		for (let i = 0; i < decisions.length; i++) {
-			if (decisions[i].tool !== undefined
+			if (decisions[i].tool === "ask_user"
 				&& decisions[i].preExecutionFailure === undefined) {
 				decisions[i].preExecutionFailure = {
 					code: "INVALID_TOOL_COMBINATION",
