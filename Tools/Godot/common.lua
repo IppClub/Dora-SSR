@@ -9,7 +9,11 @@ function save(file,value) write(file,serialize(value).."\n") end
 function array(values) import("core.base.json");return json.mark_as_array(values or {}) end
 function null() import("core.base.json");return json.purenull end
 function digest(file) return hash.sha256(file) end
-function data_digest(value) import("core.base.bytes");return hash.sha256(bytes(value)) end
+function data_digest(value)
+    -- xmake rejects zero-length byte buffers; SHA-256 still defines their digest.
+    if value == "" then return "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855" end
+    import("core.base.bytes");return hash.sha256(bytes(value))
+end
 function relative(file,base) return path.relative(file,base):gsub("\\","/") end
 function real(file,depth)
     depth=depth or 0;assert(depth<256,"Symlink/path recursion limit: "..file)
