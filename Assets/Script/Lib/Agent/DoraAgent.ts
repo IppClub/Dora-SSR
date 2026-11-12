@@ -1456,7 +1456,7 @@ function validateDecisionForShared(
 ): { success: true } | { success: false; message: string } {
 	if (enforceFinalTurn && isFinalDecisionTurn(shared) ) {
 		return shared.role === "sub"
-			? { success: false, message: "the final sub-agent turn must call finish with structured completion metadata" }
+			? { success: false, message: "the final sub-agent turn must return a plain-text completion instead of calling another tool" }
 			: { success: false, message: "the final main-agent turn must return a plain-text completion instead of calling another tool" };
 	}
 	if (!isToolAllowedForRole(shared, tool)) {

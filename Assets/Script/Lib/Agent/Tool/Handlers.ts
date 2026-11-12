@@ -602,18 +602,6 @@ const spawnAgent: AgentToolHandler = async (context, input) => {
 	};
 };
 
-const finish: AgentToolHandler = async (_context, input) => {
-	const message = typeof input.message === "string" ? input.message.trim() : "";
-	return {
-		output: { success: true, message },
-		control: {
-			concludeTask: true,
-			finalMessage: message,
-			completion: AgentUtils.normalizeAgentCompletionReport(input),
-		},
-	};
-};
-
 const analyzeImageHandler: AgentToolHandler = async (context, input) => {
 	let visionContext = context.visionTaskContext ?? "";
 	if (typeof input.context === "string" && input.context.trim() !== "") {

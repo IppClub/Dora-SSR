@@ -3213,11 +3213,11 @@ followup.delivered = function(sessionId, taskId, inputId, step) -- 373
 end -- 373
 followup.dispatch = function(sessionId) -- 389
 	local session = getSessionItem(sessionId) -- 390
-	if not session or followup.activeRuns[sessionId] or session.currentTaskFinalizing or getPendingQuestionnaire(sessionId) or isProjectTaskAdmissionClosed(session.projectRoot) or session.currentTaskStatus == "RUNNING" then -- 390
+	if not session or followup.activeRuns[sessionId] ~= nil or session.currentTaskFinalizing or getPendingQuestionnaire(sessionId) or isProjectTaskAdmissionClosed(session.projectRoot) or session.currentTaskStatus == "RUNNING" then -- 390
 		return nil -- 392
 	end -- 392
 	local input = InputInbox.listInputs(sessionId)[1] -- 393
-	if not input then -- 393
+	if input == nil then -- 393
 		__TS__Delete(followup.bindings, sessionId) -- 394
 		return nil -- 394
 	end -- 394
@@ -3225,7 +3225,7 @@ followup.dispatch = function(sessionId) -- 389
 		return nil -- 395
 	end -- 395
 	local binding = followup.bindings[sessionId] -- 396
-	if not binding then -- 396
+	if binding == nil then -- 396
 		InputInbox.holdInputs(sessionId) -- 397
 		followup.publish(sessionId) -- 397
 		return nil -- 397
@@ -3609,7 +3609,7 @@ function ____exports.getSession(sessionId, view) -- 2514
 	if not session then -- 2515
 		return {success = false, message = "session not found"} -- 2517
 	end -- 2517
-	if not followup.activeRuns[sessionId] then -- 2517
+	if followup.activeRuns[sessionId] == nil then -- 2517
 		followup.recover(session) -- 2519
 	end -- 2519
 	local restored = restorePendingQuestionnaireState(session) -- 2520
@@ -3753,7 +3753,7 @@ function ____exports.continuePrompt(sessionId, disabledAgentTools, llmConfigId, 
 		end -- 2933
 		InputInbox.mutateInput(sessionId, {action = "resume"}, "") -- 2934
 		followup.publish(sessionId) -- 2935
-	elseif previousBinding then -- 2935
+	elseif previousBinding ~= nil then -- 2935
 		followup.bindings[sessionId] = previousBinding -- 2936
 	else -- 2936
 		__TS__Delete(followup.bindings, sessionId) -- 2937

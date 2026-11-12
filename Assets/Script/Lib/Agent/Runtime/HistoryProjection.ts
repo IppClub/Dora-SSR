@@ -413,7 +413,7 @@ function sanitizeVisionActionParamsForCompression(params: Record<string, unknown
 	const projected: Record<string, unknown> = {};
 	if (typeof params.question === "string") projected.question = params.question;
 	if (typeof params.criteria === "string") projected.criteria = params.criteria;
-	if (isArray(params.paths)) projected.imageCount = params.paths.length;
+	if (isArray(params.paths)) projected.paths = params.paths.slice(0, 3);
 	return projected;
 }
 
@@ -428,6 +428,11 @@ function projectVisionResultForCompression(content: string): string {
 	}
 	const projected: Record<string, unknown> = {};
 	if (decoded.success !== undefined) projected.success = decoded.success;
+	if (isArray(decoded.paths)) projected.paths = decoded.paths.slice(0, 3);
+	if (isArray(decoded.images)) projected.images = decoded.images.slice(0, 3).map(item => {
+		if (!isRecord(item)) return {};
+		return {path: item.path, width: item.width, height: item.height};
+	});
 	if (typeof decoded.report === "string") {
 		projected.report = truncateHistoryText(
 			decoded.report,

@@ -5,7 +5,7 @@ local __TS__StringStartsWith = ____lualib.__TS__StringStartsWith -- 1
 local __TS__StringIncludes = ____lualib.__TS__StringIncludes -- 1
 local ____exports = {} -- 1
 --- Increment when a fixed vision route or its request profile changes.
-____exports.VISION_PROFILE_VERSION = 6 -- 5
+____exports.VISION_PROFILE_VERSION = 7 -- 5
 ____exports.VISION_UNAVAILABLE_MESSAGE = "当前大模型服务没有可用视觉通道。请检查 Agent 设置中的模型服务与 API 接口地址。" -- 7
 --- Only exact, reviewed service endpoints may reuse the current credential.
 function ____exports.resolveVisionBinding(config) -- 18
@@ -46,7 +46,7 @@ function ____exports.resolveVisionBinding(config) -- 18
 		return {provider = "deepseek", model = "deepseek-flash", url = "https://api.deepseek.com/v1/chat/completions", apiKey = config.apiKey} -- 32
 	end -- 32
 	if url == "https://open.bigmodel.cn/api/coding/paas/v4/chat/completions" then -- 32
-		return {provider = "glm-coding-cn", model = "glm-5.3-flash", url = "https://open.bigmodel.cn/api/paas/v4/chat/completions", apiKey = config.apiKey} -- 35
+		return {provider = "glm-coding-cn", model = "glm-5.3-flash", url = url, apiKey = config.apiKey} -- 35
 	end -- 35
 	return nil -- 37
 end -- 18

@@ -388,13 +388,13 @@ followup.delivered = (sessionId: number,taskId: number,inputId: number,step: num
 };
 followup.dispatch = (sessionId: number):AgentSessionSendResult | undefined => {
 	const session = getSessionItem(sessionId);
-	if (!session || followup.activeRuns[sessionId] || session.currentTaskFinalizing || getPendingQuestionnaire(sessionId)
+	if (!session || followup.activeRuns[sessionId] !== undefined || session.currentTaskFinalizing || getPendingQuestionnaire(sessionId)
 		|| isProjectTaskAdmissionClosed(session.projectRoot) || session.currentTaskStatus === "RUNNING") return undefined;
 	const input = InputInbox.listInputs(sessionId)[0];
-	if (!input) {delete followup.bindings[sessionId];return undefined;}
+	if (input === undefined) {delete followup.bindings[sessionId];return undefined;}
 	if (input.held || input.status !== "pending") return undefined;
 	const binding = followup.bindings[sessionId];
-	if (!binding) {InputInbox.holdInputs(sessionId);followup.publish(sessionId);return undefined;}
+	if (binding === undefined) {InputInbox.holdInputs(sessionId);followup.publish(sessionId);return undefined;}
 	const options = input.options;
 	let result: AgentSessionSendResult;
 	if (typeof options.localAgentConfigId === "number") {
@@ -2516,7 +2516,7 @@ export function getSession(sessionId: number, view?: { recentRounds: number; cur
 	if (!session) {
 		return { success: false, message: "session not found" };
 	}
-	if (!followup.activeRuns[sessionId]) followup.recover(session);
+	if (followup.activeRuns[sessionId] === undefined) followup.recover(session);
 	const restored = restorePendingQuestionnaireState(session);
 	const normalizedSession = normalizeSessionRuntimeState(restored.session);
  normalizedSession.pendingInputs = getSessionItem(sessionId)?.pendingInputs;
@@ -2933,7 +2933,7 @@ export function continuePrompt(sessionId: number, disabledAgentTools?: unknown, 
 		for (const input of InputInbox.listInputs(sessionId)) followup.configs[input.id] = resolved.config;
 		InputInbox.mutateInput(sessionId,{action:"resume"},"");
 		followup.publish(sessionId);
-	} else if (previousBinding) followup.bindings[sessionId] = previousBinding;
+	} else if (previousBinding !== undefined) followup.bindings[sessionId] = previousBinding;
 	else delete followup.bindings[sessionId];
 	return result;
 }

@@ -222,7 +222,7 @@ function validateDecisionForShared(shared, tool, _params, enforceFinalTurn) -- 1
 		enforceFinalTurn = false -- 1455
 	end -- 1455
 	if enforceFinalTurn and isFinalDecisionTurn(shared) then -- 1455
-		return shared.role == "sub" and ({success = false, message = "the final sub-agent turn must call finish with structured completion metadata"}) or ({success = false, message = "the final main-agent turn must return a plain-text completion instead of calling another tool"}) -- 1458
+		return shared.role == "sub" and ({success = false, message = "the final sub-agent turn must return a plain-text completion instead of calling another tool"}) or ({success = false, message = "the final main-agent turn must return a plain-text completion instead of calling another tool"}) -- 1458
 	end -- 1458
 	if not isToolAllowedForRole(shared, tool) then -- 1458
 		if __TS__ArrayIndexOf( -- 1458

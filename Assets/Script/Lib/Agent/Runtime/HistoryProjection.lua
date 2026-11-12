@@ -12,12 +12,12 @@ local ____exports = {} -- 1
 local AgentUtils = require("Agent.Utils") -- 2
 local AgentConfig = require("Agent.Config.Defaults") -- 4
 --- Frontend lifecycle stays on the step; the model receives only the build outcome.
-function ____exports.projectBuildResultForModel(result, execution) -- 611
-	if execution ~= nil and execution.status ~= "DONE" or result.failureKind == "tool" or type(result.code) == "string" then -- 611
-		return {message = "Build tool call failed: " .. (type(result.message) == "string" and result.message or "unknown failure")} -- 613
-	end -- 613
-	return result -- 615
-end -- 611
+function ____exports.projectBuildResultForModel(result, execution) -- 616
+	if execution ~= nil and execution.status ~= "DONE" or result.failureKind == "tool" or type(result.code) == "string" then -- 616
+		return {message = "Build tool call failed: " .. (type(result.message) == "string" and result.message or "unknown failure")} -- 618
+	end -- 618
+	return result -- 620
+end -- 616
 local function isRecord(value) -- 7
 	return type(value) == "table" -- 8
 end -- 7
@@ -466,7 +466,7 @@ local function sanitizeVisionActionParamsForCompression(params) -- 412
 		projected.criteria = params.criteria -- 415
 	end -- 415
 	if isArray(params.paths) then -- 415
-		projected.imageCount = #params.paths -- 416
+		projected.paths = __TS__ArraySlice(params.paths, 0, 3) -- 416
 	end -- 416
 	return projected -- 417
 end -- 412
@@ -479,223 +479,237 @@ local function projectVisionResultForCompression(content) -- 420
 	if decoded.success ~= nil then -- 429
 		projected.success = decoded.success -- 430
 	end -- 430
-	if type(decoded.report) == "string" then -- 430
-		projected.report = truncateHistoryText(decoded.report, AgentConfig.AGENT_LIMITS.compressionVisionReportMaxChars, "vision report") -- 432
+	if isArray(decoded.paths) then -- 430
+		projected.paths = __TS__ArraySlice(decoded.paths, 0, 3) -- 431
+	end -- 431
+	if isArray(decoded.images) then -- 431
+		projected.images = __TS__ArrayMap( -- 432
+			__TS__ArraySlice(decoded.images, 0, 3), -- 432
+			function(____, item) -- 432
+				if not isRecord(item) then -- 432
+					return {} -- 433
+				end -- 433
+				return {path = item.path, width = item.width, height = item.height} -- 434
+			end -- 432
+		) -- 432
 	end -- 432
-	if type(decoded.message) == "string" then -- 432
-		projected.message = truncateHistoryText(decoded.message, AgentConfig.AGENT_LIMITS.llmHistoryEditResultMessageMaxChars, "vision message") -- 439
-	end -- 439
-	if decoded.cancelled ~= nil then -- 439
-		projected.cancelled = decoded.cancelled -- 445
-	end -- 445
-	return ____exports.toJson(projected, false) -- 446
+	if type(decoded.report) == "string" then -- 432
+		projected.report = truncateHistoryText(decoded.report, AgentConfig.AGENT_LIMITS.compressionVisionReportMaxChars, "vision report") -- 437
+	end -- 437
+	if type(decoded.message) == "string" then -- 437
+		projected.message = truncateHistoryText(decoded.message, AgentConfig.AGENT_LIMITS.llmHistoryEditResultMessageMaxChars, "vision message") -- 444
+	end -- 444
+	if decoded.cancelled ~= nil then -- 444
+		projected.cancelled = decoded.cancelled -- 450
+	end -- 450
+	return ____exports.toJson(projected, false) -- 451
 end -- 420
-local function projectToolResultContentForLLM(tool, content) -- 449
-	local decoded = AgentUtils.safeJsonDecode(content) -- 450
-	if not isRecord(decoded) or isArray(decoded) then -- 450
-		return truncateHistoryText(content, AgentConfig.AGENT_LIMITS.llmHistoryToolResultMaxChars, tool .. " result") -- 452
-	end -- 452
-	local projected = decoded -- 458
-	if tool == "edit_file" or tool == "write_file" or tool == "delete_file" then -- 458
-		projected = projectEditResultForLLM(decoded) -- 460
-	elseif tool == "build" then -- 460
-		projected = projectBuildResultForLLM(decoded) -- 462
-	elseif tool == "execute_command" then -- 462
-		projected = projectCommandResultForLLM(decoded) -- 464
-	end -- 464
-	local encoded = ____exports.toJson(projected, false) -- 466
-	if tool == "read_file" then -- 466
-		return encoded -- 469
+local function projectToolResultContentForLLM(tool, content) -- 454
+	local decoded = AgentUtils.safeJsonDecode(content) -- 455
+	if not isRecord(decoded) or isArray(decoded) then -- 455
+		return truncateHistoryText(content, AgentConfig.AGENT_LIMITS.llmHistoryToolResultMaxChars, tool .. " result") -- 457
+	end -- 457
+	local projected = decoded -- 463
+	if tool == "edit_file" or tool == "write_file" or tool == "delete_file" then -- 463
+		projected = projectEditResultForLLM(decoded) -- 465
+	elseif tool == "build" then -- 465
+		projected = projectBuildResultForLLM(decoded) -- 467
+	elseif tool == "execute_command" then -- 467
+		projected = projectCommandResultForLLM(decoded) -- 469
 	end -- 469
-	if #encoded <= AgentConfig.AGENT_LIMITS.llmHistoryToolResultMaxChars then -- 469
-		return encoded -- 470
-	end -- 470
-	local fallback = { -- 471
-		success = projected.success, -- 472
-		llmHistoryTruncated = true, -- 473
-		originalChars = #encoded, -- 474
-		preview = truncateHistoryText( -- 475
-			encoded, -- 476
-			math.floor(AgentConfig.AGENT_LIMITS.llmHistoryToolResultMaxChars * 0.45), -- 477
-			tool .. " result" -- 478
-		) -- 478
-	} -- 478
-	return ____exports.toJson(fallback, false) -- 481
-end -- 449
-function ____exports.projectMessagesForLLMContext(messages) -- 483
-	local projected = {} -- 487
-	do -- 487
-		local i = 0 -- 488
-		while i < #messages do -- 488
-			local message = messages[i + 1] -- 489
-			local next = { -- 490
-				role = message.role, -- 490
-				content = message.content, -- 490
-				name = message.name, -- 490
-				tool_call_id = message.tool_call_id, -- 491
-				reasoning_content = message.reasoning_content, -- 491
-				tool_calls = message.tool_calls -- 491
-			} -- 491
-			if message.inputKind == "steer" then -- 491
-				next.content = "The user sent an update to the current task while you were working. Apply it together with the original goal and continue this task.\n\n" .. (message.content or "") -- 493
-			end -- 493
-			if message.role == "assistant" and (not message.tool_calls or #message.tool_calls == 0) then -- 493
-				next.reasoning_content = nil -- 497
-			end -- 497
-			if message.role == "tool" and type(message.content) == "string" then -- 497
-				next.content = projectToolResultContentForLLM(message.name or "tool", message.content) -- 499
-			end -- 499
-			projected[#projected + 1] = next -- 501
-			i = i + 1 -- 488
-		end -- 488
-	end -- 488
-	return projected -- 503
-end -- 483
-function ____exports.projectMessagesForCompression(messages) -- 506
-	local projected = __TS__ArrayMap( -- 507
-		____exports.projectMessagesForLLMContext(messages), -- 507
-		function(____, message, index) -- 507
-			local source = messages[index + 1] -- 508
-			return __TS__ObjectAssign({}, message, {inputId = source.inputId, inputKind = source.inputKind, taskId = source.taskId}) -- 509
-		end -- 507
-	) -- 507
-	local visionCallIds = {} -- 511
-	do -- 511
-		local i = 0 -- 512
-		while i < #projected do -- 512
-			do -- 512
-				local message = projected[i + 1] -- 513
-				if message.role == "tool" and type(message.content) == "string" and (message.name == "analyze_image" or type(message.tool_call_id) == "string" and visionCallIds[message.tool_call_id] == true) then -- 513
-					local ____opt_0 = messages[i + 1] -- 513
-					local rawOriginalContent = ____opt_0 and ____opt_0.content -- 520
-					local originalContent = type(rawOriginalContent) == "string" and rawOriginalContent or message.content -- 521
-					projected[i + 1] = __TS__ObjectAssign( -- 522
-						{}, -- 522
-						message, -- 522
-						{content = projectVisionResultForCompression(originalContent)} -- 522
-					) -- 522
-					goto __continue139 -- 523
-				end -- 523
-				if message.role ~= "assistant" or not message.tool_calls or #message.tool_calls == 0 then -- 523
-					goto __continue139 -- 525
-				end -- 525
-				local changed = false -- 526
-				local toolCalls = __TS__ArrayMap( -- 527
-					message.tool_calls, -- 527
-					function(____, toolCall) -- 527
-						local fn = toolCall["function"] -- 528
-						if (fn and fn.name) == "analyze_image" and type(toolCall.id) == "string" and toolCall.id ~= "" then -- 528
-							visionCallIds[toolCall.id] = true -- 530
-						end -- 530
-						if (fn and fn.name) ~= "edit_file" and (fn and fn.name) ~= "analyze_image" or type(fn.arguments) ~= "string" then -- 530
-							return toolCall -- 532
-						end -- 532
-						local decoded = AgentUtils.safeJsonDecode(fn.arguments) -- 533
-						if not isRecord(decoded) or isArray(decoded) then -- 533
-							return toolCall -- 534
-						end -- 534
-						changed = true -- 535
-						return __TS__ObjectAssign( -- 536
-							{}, -- 536
-							toolCall, -- 537
-							{["function"] = __TS__ObjectAssign( -- 536
-								{}, -- 538
-								fn, -- 539
-								{arguments = ____exports.toJson( -- 538
-									fn.name == "analyze_image" and sanitizeVisionActionParamsForCompression(decoded) or ____exports.sanitizeActionParamsForHistory("edit_file", decoded), -- 540
-									false -- 542
-								)} -- 542
-							)} -- 542
-						) -- 542
-					end -- 527
-				) -- 527
-				if changed then -- 527
-					projected[i + 1] = __TS__ObjectAssign({}, message, {tool_calls = toolCalls}) -- 546
-				end -- 546
-			end -- 546
-			::__continue139:: -- 546
-			i = i + 1 -- 512
+	local encoded = ____exports.toJson(projected, false) -- 471
+	if tool == "read_file" then -- 471
+		return encoded -- 474
+	end -- 474
+	if #encoded <= AgentConfig.AGENT_LIMITS.llmHistoryToolResultMaxChars then -- 474
+		return encoded -- 475
+	end -- 475
+	local fallback = { -- 476
+		success = projected.success, -- 477
+		llmHistoryTruncated = true, -- 478
+		originalChars = #encoded, -- 479
+		preview = truncateHistoryText( -- 480
+			encoded, -- 481
+			math.floor(AgentConfig.AGENT_LIMITS.llmHistoryToolResultMaxChars * 0.45), -- 482
+			tool .. " result" -- 483
+		) -- 483
+	} -- 483
+	return ____exports.toJson(fallback, false) -- 486
+end -- 454
+function ____exports.projectMessagesForLLMContext(messages) -- 488
+	local projected = {} -- 492
+	do -- 492
+		local i = 0 -- 493
+		while i < #messages do -- 493
+			local message = messages[i + 1] -- 494
+			local next = { -- 495
+				role = message.role, -- 495
+				content = message.content, -- 495
+				name = message.name, -- 495
+				tool_call_id = message.tool_call_id, -- 496
+				reasoning_content = message.reasoning_content, -- 496
+				tool_calls = message.tool_calls -- 496
+			} -- 496
+			if message.inputKind == "steer" then -- 496
+				next.content = "The user sent an update to the current task while you were working. Apply it together with the original goal and continue this task.\n\n" .. (message.content or "") -- 498
+			end -- 498
+			if message.role == "assistant" and (not message.tool_calls or #message.tool_calls == 0) then -- 498
+				next.reasoning_content = nil -- 502
+			end -- 502
+			if message.role == "tool" and type(message.content) == "string" then -- 502
+				next.content = projectToolResultContentForLLM(message.name or "tool", message.content) -- 504
+			end -- 504
+			projected[#projected + 1] = next -- 506
+			i = i + 1 -- 493
+		end -- 493
+	end -- 493
+	return projected -- 508
+end -- 488
+function ____exports.projectMessagesForCompression(messages) -- 511
+	local projected = __TS__ArrayMap( -- 512
+		____exports.projectMessagesForLLMContext(messages), -- 512
+		function(____, message, index) -- 512
+			local source = messages[index + 1] -- 513
+			return __TS__ObjectAssign({}, message, {inputId = source.inputId, inputKind = source.inputKind, taskId = source.taskId}) -- 514
 		end -- 512
-	end -- 512
-	return projected -- 548
-end -- 506
-function ____exports.sanitizeMessagesForLLMInput(messages) -- 551
-	local sanitized = {} -- 552
-	local droppedAssistantToolCalls = 0 -- 553
-	local droppedToolResults = 0 -- 554
-	do -- 554
-		local i = 0 -- 555
-		while i < #messages do -- 555
-			do -- 555
-				local message = messages[i + 1] -- 556
-				if message.role == "assistant" and message.tool_calls and #message.tool_calls > 0 then -- 556
-					local requiredIds = {} -- 558
-					do -- 558
-						local j = 0 -- 559
-						while j < #message.tool_calls do -- 559
-							local toolCall = message.tool_calls[j + 1] -- 560
-							local id = type(toolCall and toolCall.id) == "string" and toolCall.id or "" -- 561
-							if id ~= "" and __TS__ArrayIndexOf(requiredIds, id) < 0 then -- 561
-								requiredIds[#requiredIds + 1] = id -- 563
-							end -- 563
-							j = j + 1 -- 559
-						end -- 559
-					end -- 559
-					if #requiredIds == 0 then -- 559
-						sanitized[#sanitized + 1] = message -- 567
-						goto __continue149 -- 568
-					end -- 568
-					local matchedIds = {} -- 570
-					local matchedTools = {} -- 571
-					local j = i + 1 -- 572
-					while j < #messages do -- 572
-						local toolMessage = messages[j + 1] -- 574
-						if toolMessage.role ~= "tool" then -- 574
-							break -- 575
-						end -- 575
-						local toolCallId = type(toolMessage.tool_call_id) == "string" and toolMessage.tool_call_id or "" -- 576
-						if toolCallId ~= "" and __TS__ArrayIndexOf(requiredIds, toolCallId) >= 0 and matchedIds[toolCallId] ~= true then -- 576
-							matchedIds[toolCallId] = true -- 578
-							matchedTools[#matchedTools + 1] = toolMessage -- 579
-						else -- 579
-							droppedToolResults = droppedToolResults + 1 -- 581
-						end -- 581
-						j = j + 1 -- 583
-					end -- 583
-					local complete = true -- 585
-					do -- 585
-						local j = 0 -- 586
-						while j < #requiredIds do -- 586
-							if matchedIds[requiredIds[j + 1]] ~= true then -- 586
-								complete = false -- 588
-								break -- 589
-							end -- 589
-							j = j + 1 -- 586
+	) -- 512
+	local visionCallIds = {} -- 516
+	do -- 516
+		local i = 0 -- 517
+		while i < #projected do -- 517
+			do -- 517
+				local message = projected[i + 1] -- 518
+				if message.role == "tool" and type(message.content) == "string" and (message.name == "analyze_image" or type(message.tool_call_id) == "string" and visionCallIds[message.tool_call_id] == true) then -- 518
+					local ____opt_0 = messages[i + 1] -- 518
+					local rawOriginalContent = ____opt_0 and ____opt_0.content -- 525
+					local originalContent = type(rawOriginalContent) == "string" and rawOriginalContent or message.content -- 526
+					projected[i + 1] = __TS__ObjectAssign( -- 527
+						{}, -- 527
+						message, -- 527
+						{content = projectVisionResultForCompression(originalContent)} -- 527
+					) -- 527
+					goto __continue143 -- 528
+				end -- 528
+				if message.role ~= "assistant" or not message.tool_calls or #message.tool_calls == 0 then -- 528
+					goto __continue143 -- 530
+				end -- 530
+				local changed = false -- 531
+				local toolCalls = __TS__ArrayMap( -- 532
+					message.tool_calls, -- 532
+					function(____, toolCall) -- 532
+						local fn = toolCall["function"] -- 533
+						if (fn and fn.name) == "analyze_image" and type(toolCall.id) == "string" and toolCall.id ~= "" then -- 533
+							visionCallIds[toolCall.id] = true -- 535
+						end -- 535
+						if (fn and fn.name) ~= "edit_file" and (fn and fn.name) ~= "analyze_image" or type(fn.arguments) ~= "string" then -- 535
+							return toolCall -- 537
+						end -- 537
+						local decoded = AgentUtils.safeJsonDecode(fn.arguments) -- 538
+						if not isRecord(decoded) or isArray(decoded) then -- 538
+							return toolCall -- 539
+						end -- 539
+						changed = true -- 540
+						return __TS__ObjectAssign( -- 541
+							{}, -- 541
+							toolCall, -- 542
+							{["function"] = __TS__ObjectAssign( -- 541
+								{}, -- 543
+								fn, -- 544
+								{arguments = ____exports.toJson( -- 543
+									fn.name == "analyze_image" and sanitizeVisionActionParamsForCompression(decoded) or ____exports.sanitizeActionParamsForHistory("edit_file", decoded), -- 545
+									false -- 547
+								)} -- 547
+							)} -- 547
+						) -- 547
+					end -- 532
+				) -- 532
+				if changed then -- 532
+					projected[i + 1] = __TS__ObjectAssign({}, message, {tool_calls = toolCalls}) -- 551
+				end -- 551
+			end -- 551
+			::__continue143:: -- 551
+			i = i + 1 -- 517
+		end -- 517
+	end -- 517
+	return projected -- 553
+end -- 511
+function ____exports.sanitizeMessagesForLLMInput(messages) -- 556
+	local sanitized = {} -- 557
+	local droppedAssistantToolCalls = 0 -- 558
+	local droppedToolResults = 0 -- 559
+	do -- 559
+		local i = 0 -- 560
+		while i < #messages do -- 560
+			do -- 560
+				local message = messages[i + 1] -- 561
+				if message.role == "assistant" and message.tool_calls and #message.tool_calls > 0 then -- 561
+					local requiredIds = {} -- 563
+					do -- 563
+						local j = 0 -- 564
+						while j < #message.tool_calls do -- 564
+							local toolCall = message.tool_calls[j + 1] -- 565
+							local id = type(toolCall and toolCall.id) == "string" and toolCall.id or "" -- 566
+							if id ~= "" and __TS__ArrayIndexOf(requiredIds, id) < 0 then -- 566
+								requiredIds[#requiredIds + 1] = id -- 568
+							end -- 568
+							j = j + 1 -- 564
+						end -- 564
+					end -- 564
+					if #requiredIds == 0 then -- 564
+						sanitized[#sanitized + 1] = message -- 572
+						goto __continue153 -- 573
+					end -- 573
+					local matchedIds = {} -- 575
+					local matchedTools = {} -- 576
+					local j = i + 1 -- 577
+					while j < #messages do -- 577
+						local toolMessage = messages[j + 1] -- 579
+						if toolMessage.role ~= "tool" then -- 579
+							break -- 580
+						end -- 580
+						local toolCallId = type(toolMessage.tool_call_id) == "string" and toolMessage.tool_call_id or "" -- 581
+						if toolCallId ~= "" and __TS__ArrayIndexOf(requiredIds, toolCallId) >= 0 and matchedIds[toolCallId] ~= true then -- 581
+							matchedIds[toolCallId] = true -- 583
+							matchedTools[#matchedTools + 1] = toolMessage -- 584
+						else -- 584
+							droppedToolResults = droppedToolResults + 1 -- 586
 						end -- 586
-					end -- 586
-					if complete then -- 586
-						__TS__ArrayPush( -- 593
-							sanitized, -- 593
-							message, -- 593
-							table.unpack(matchedTools) -- 593
-						) -- 593
-					else -- 593
-						droppedAssistantToolCalls = droppedAssistantToolCalls + 1 -- 595
-						droppedToolResults = droppedToolResults + #matchedTools -- 596
-					end -- 596
-					i = j - 1 -- 598
-					goto __continue149 -- 599
-				end -- 599
-				if message.role == "tool" then -- 599
-					droppedToolResults = droppedToolResults + 1 -- 602
-					goto __continue149 -- 603
-				end -- 603
-				sanitized[#sanitized + 1] = message -- 605
-			end -- 605
-			::__continue149:: -- 605
-			i = i + 1 -- 555
-		end -- 555
-	end -- 555
-	return sanitized -- 607
-end -- 551
-return ____exports -- 551
+						j = j + 1 -- 588
+					end -- 588
+					local complete = true -- 590
+					do -- 590
+						local j = 0 -- 591
+						while j < #requiredIds do -- 591
+							if matchedIds[requiredIds[j + 1]] ~= true then -- 591
+								complete = false -- 593
+								break -- 594
+							end -- 594
+							j = j + 1 -- 591
+						end -- 591
+					end -- 591
+					if complete then -- 591
+						__TS__ArrayPush( -- 598
+							sanitized, -- 598
+							message, -- 598
+							table.unpack(matchedTools) -- 598
+						) -- 598
+					else -- 598
+						droppedAssistantToolCalls = droppedAssistantToolCalls + 1 -- 600
+						droppedToolResults = droppedToolResults + #matchedTools -- 601
+					end -- 601
+					i = j - 1 -- 603
+					goto __continue153 -- 604
+				end -- 604
+				if message.role == "tool" then -- 604
+					droppedToolResults = droppedToolResults + 1 -- 607
+					goto __continue153 -- 608
+				end -- 608
+				sanitized[#sanitized + 1] = message -- 610
+			end -- 610
+			::__continue153:: -- 610
+			i = i + 1 -- 560
+		end -- 560
+	end -- 560
+	return sanitized -- 612
+end -- 556
+return ____exports -- 556

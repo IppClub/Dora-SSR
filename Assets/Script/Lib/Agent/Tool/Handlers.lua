@@ -780,55 +780,39 @@ local function spawnAgent(context, input) -- 549
 		}, control = {spawnedSubAgent = true}}) -- 599
 	end) -- 599
 end -- 549
-local function finish(_context, input) -- 605
+local function analyzeImageHandler(context, input) -- 605
 	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 605
-		local message = type(input.message) == "string" and __TS__StringTrim(input.message) or "" -- 606
-		return ____awaiter_resolve( -- 606
-			nil, -- 606
-			{ -- 607
-				output = {success = true, message = message}, -- 608
-				control = { -- 609
-					concludeTask = true, -- 610
-					finalMessage = message, -- 611
-					completion = AgentUtils.normalizeAgentCompletionReport(input) -- 612
-				} -- 612
-			} -- 612
-		) -- 612
-	end) -- 612
+		local visionContext = context.visionTaskContext or "" -- 606
+		if type(input.context) == "string" and __TS__StringTrim(input.context) ~= "" then -- 606
+			visionContext = visionContext == "" and input.context or (visionContext .. "\n\n") .. input.context -- 608
+		end -- 608
+		return ____awaiter_resolve( -- 608
+			nil, -- 608
+			{output = __TS__Await(analyzeImage({ -- 610
+				workingDir = context.workingDir, -- 611
+				taskId = context.taskId, -- 612
+				sessionId = context.sessionId, -- 613
+				binding = context.visionBinding, -- 614
+				paths = input.paths, -- 615
+				question = input.question, -- 616
+				criteria = input.criteria, -- 617
+				context = visionContext, -- 618
+				isCancelled = function() return context.cancellation:isCancelled() end -- 619
+			}))} -- 619
+		) -- 619
+	end) -- 619
 end -- 605
-local function analyzeImageHandler(context, input) -- 617
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 617
-		local visionContext = context.visionTaskContext or "" -- 618
-		if type(input.context) == "string" and __TS__StringTrim(input.context) ~= "" then -- 618
-			visionContext = visionContext == "" and input.context or (visionContext .. "\n\n") .. input.context -- 620
-		end -- 620
-		return ____awaiter_resolve( -- 620
-			nil, -- 620
-			{output = __TS__Await(analyzeImage({ -- 622
-				workingDir = context.workingDir, -- 623
-				taskId = context.taskId, -- 624
-				sessionId = context.sessionId, -- 625
-				binding = context.visionBinding, -- 626
-				paths = input.paths, -- 627
-				question = input.question, -- 628
-				criteria = input.criteria, -- 629
-				context = visionContext, -- 630
-				isCancelled = function() return context.cancellation:isCancelled() end -- 631
-			}))} -- 631
-		) -- 631
-	end) -- 631
-end -- 617
-____exports.AGENT_TOOL_HANDLERS = { -- 635
-	read_file = readFile, -- 636
-	analyze_image = analyzeImageHandler, -- 637
-	grep_files = grepFiles, -- 638
-	search_dora_doc = searchDoraDoc, -- 639
-	build = build, -- 640
-	fetch_url = fetchUrl, -- 641
-	execute_command = executeCommand, -- 642
-	edit_file = editFile, -- 643
-	write_file = writeFile, -- 644
-	ask_user = askUser, -- 645
-	spawn_agent = spawnAgent -- 646
-} -- 646
-return ____exports -- 646
+____exports.AGENT_TOOL_HANDLERS = { -- 623
+	read_file = readFile, -- 624
+	analyze_image = analyzeImageHandler, -- 625
+	grep_files = grepFiles, -- 626
+	search_dora_doc = searchDoraDoc, -- 627
+	build = build, -- 628
+	fetch_url = fetchUrl, -- 629
+	execute_command = executeCommand, -- 630
+	edit_file = editFile, -- 631
+	write_file = writeFile, -- 632
+	ask_user = askUser, -- 633
+	spawn_agent = spawnAgent -- 634
+} -- 634
+return ____exports -- 634

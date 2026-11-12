@@ -87,7 +87,21 @@ export async function executeAgentToolDefinition(
 		return failure("TOOL_EXECUTION_FAILED", tostring(error));
 	}
 	if (context.cancellation.isCancelled()) {
-		return failure("TOOL_CANCELLED", getCancellationReason(context));
+		const stopped = failure("TOOL_CANCELLED", getCancellationReason(context));
+		// A cancellation stops publication, not accounting for already-issued work.
+		if (definition.name === "analyze_image" && result.output.requestIssued === true) {
+			stopped.output.requestIssued = true;
+			const usage = result.output.usage as {prompt_tokens?: number; completion_tokens?: number; total_tokens?: number} | undefined;
+			// VisionAnalysis already normalized these provider accounting fields.
+			if (usage) stopped.output.usage = {prompt_tokens: usage.prompt_tokens, completion_tokens: usage.completion_tokens, total_tokens: usage.total_tokens};
+		} else if (definition.name === "execute_command") {
+			const capture = result.output.visionCapture as {batchCount?: number; frameCount?: number} | undefined;
+			if (capture && typeof capture.batchCount === "number" && Number.isFinite(capture.batchCount)
+				&& typeof capture.frameCount === "number" && Number.isFinite(capture.frameCount)) {
+				stopped.output.visionCapture = {batchCount: capture.batchCount, frameCount: capture.frameCount};
+			}
+		}
+		return stopped;
 	}
 
 	const outputValidator = compileJsonSchema(definition.outputSchema);
