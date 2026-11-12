@@ -1,6 +1,6 @@
 local root=assert(arg[1])
 local f=assert(io.open(root..'/Assets/Script/Dev/Entry.lua'));local source=f:read('*a');f:close()
-local block=assert(source:match('(local updateSceneCache = moduleCache.-)local Set, Struct, LintYueGlobals'))
+local block=assert(source:match('(local updateState = nil.-)local Set, Struct, LintYueGlobals'))
 local week=7*24*60*60
 local now=2000000
 local function boot(last,notice,platform,notificationVersion,ignoredVersion)

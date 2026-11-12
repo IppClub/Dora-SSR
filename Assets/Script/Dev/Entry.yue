@@ -231,33 +231,34 @@ export.connectWebIDE = (embedded = false) ->
 			App.winSize = Size 640 * ratio, 480 * ratio
 
 -- Keep update tasks and their Git/HTTP dependencies out of scene cleanup.
-updateSceneCache = moduleCache
-moduleCache = []
-updater = oldRequire "Tools.SelfUpdater.Service"
-moduleCache = updateSceneCache
--- Entry is the shared public state owner, including the persisted notification.
-updateState = updater.getState!
--- A notification belongs to the installed build that detected it. Do not
--- restore an older build's badge after an upgrade, even within seven days.
-if config.updateNotificationVersion ~= App.version
-	config.updateNotification = false
-config.updateNotificationVersion = App.version
-updateState.available = config.updateNotification == true
-publishUpdateState = (state) ->
-	updateState = state
-	config.updateNotification = state.available
+updateState = nil
+checkForUpdates = do
+	updateSceneCache = moduleCache
+	moduleCache = []
+	updater = oldRequire "Tools.SelfUpdater.Service"
+	moduleCache = updateSceneCache
+	-- Entry owns shared state; updater dependencies survive scene cleanup.
+	updateState = updater.getState!
+	if config.updateNotificationVersion ~= App.version
+		config.updateNotification = false
 	config.updateNotificationVersion = App.version
-	config.ignoredUpdateVersion = state.ignoredVersion
-	if state.checkedAt > 0 and not state.usedCache and state.checkedAt ~= config.lastUpdateCheck
-		config.lastUpdateCheck = state.checkedAt
-updater.bindEntryState (-> updateState), publishUpdateState, config.ignoredUpdateVersion
+	updateState.available = config.updateNotification == true
+	publishUpdateState = (state) ->
+		updateState = state
+		config.updateNotification = state.available
+		config.updateNotificationVersion = App.version
+		config.ignoredUpdateVersion = state.ignoredVersion
+		if state.checkedAt > 0 and not state.usedCache and state.checkedAt ~= config.lastUpdateCheck
+			config.lastUpdateCheck = state.checkedAt
+	updater.bindEntryState (-> updateState), publishUpdateState, config.ignoredUpdateVersion
+	(manual = true, source = nil) ->
+		unless manual
+			return false if App.platform == "Emscripten"
+			if config.lastUpdateCheck? and os.difftime(os.time!, config.lastUpdateCheck) < 7 * 24 * 60 * 60
+				return false
+		updater.checkForUpdates source
 export.getUpdateState = -> updateState
-export checkForUpdates = (manual = true, source = nil) ->
-	unless manual
-		return false if App.platform == "Emscripten"
-		if config.lastUpdateCheck? and os.difftime(os.time!, config.lastUpdateCheck) < 7 * 24 * 60 * 60
-			return false
-	updater.checkForUpdates source
+export.checkForUpdates = checkForUpdates
 thread ->
 	sleep 2
 	checkForUpdates false
