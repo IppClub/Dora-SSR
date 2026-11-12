@@ -459,7 +459,7 @@ Run the same command on macOS to exercise the production shortcut bridge in SDL/
 
 ## Web IDE composer 附件
 
-Web IDE（含内置 WebView）的 Agent composer 支持通过加号选择任意文件，也支持粘贴 PNG/JPEG。附件先保留在浏览器草稿中，图片显示缩略图，发送前可移除；发送时才通过现有上传接口写入当前项目 `.agent/tmp/attachments/<唯一编号>/`，消息中附带原文件名与项目相对路径。Agent 可用 `read_file` 读取文本、用 `analyze_image` 分析图片。文件内容不直接拼进模型上下文。
+Web IDE（含内置 WebView）的 Agent composer 支持通过加号选择或复制粘贴任意文件；PNG/JPEG 显示图片预览，其他类型显示固定 120×120 文件卡片。纯文字粘贴仍作为正文输入。附件先保留在浏览器草稿中，图片显示缩略图，发送前可移除；发送时才通过现有上传接口写入当前项目 `.agent/tmp/attachments/<唯一编号>/`，消息中附带原文件名与项目相对路径。Agent 可用 `read_file` 读取文本、用 `analyze_image` 分析图片。文件内容不直接拼进模型上下文。
 
 上传或消息发送失败会保留草稿，重试复用已上传路径和同一次投递编号；上传期间新输入的文本不会被清空。切换项目或会话会清除该草稿的附件并取消未完成上传。上传后的文件保留在临时目录，当前没有自动过期删除策略。共享 composer 的附件能力由宿主 `onUploadAttachment` 接入；未接入的宿主不显示加号。
 
