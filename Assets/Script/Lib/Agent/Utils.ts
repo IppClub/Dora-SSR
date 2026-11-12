@@ -1185,8 +1185,15 @@ export type LLMConfig = {
 };
 
 export function validateAgentLLMConfig(config: LLMConfig): { success: true } | { success: false; message: string } {
+	const visionModel = config.customOptions?.visionModel;
+	if (visionModel !== undefined && visionModel !== json.null && typeof visionModel !== "string") {
+		return {success: false, message: "视觉模型名称 visionModel 必须是字符串；留空使用默认行为。"};
+	}
 	const auxiliaryOptions = config.customOptions?.auxiliaryOptions;
-	if (isPlainRecord(auxiliaryOptions)) {
+	const emptyOptions = typeof auxiliaryOptions === "object" && auxiliaryOptions !== undefined
+		&& auxiliaryOptions !== json.null && Object.keys(auxiliaryOptions as object).length === 0;
+	if (isPlainRecord(auxiliaryOptions) || emptyOptions) {
+		// Lua represents an empty JSON object as an empty table too.
 		// An empty object keeps the defaults for auxiliary calls.
 		// Provider-specific overrides are optional.
 		return { success: true };
@@ -1241,7 +1248,7 @@ export function applyCustomLLMOptions(
 	for (const key in customOptions) {
 		// Dora-owned auxiliary request settings are consumed by MemoryCompressor.
 		// They are not provider API fields and must never leak into normal calls.
-		if (key === "auxiliaryOptions") continue;
+		if (key === "auxiliaryOptions" || key === "visionModel") continue;
 		const value = customOptions[key];
 		if (value === json.null) {
 			delete merged[key];

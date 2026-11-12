@@ -602,6 +602,11 @@ const LLMConfigDialog = ({ open, onClose }: LLMConfigDialogProps) => {
 			setError(t('llm.customOptionsInvalid'));
 			return;
 		}
+		const visionModel = parseCustomOptionsObject(payload.customOptions)?.visionModel;
+		if (visionModel !== undefined && visionModel !== null && typeof visionModel !== 'string') {
+			setError(t('llm.visionModelInvalid'));
+			return;
+		}
 		if (!hasAuxiliaryOptions(payload.customOptions)) {
 			setError(t('llm.auxiliaryOptionsRequired'));
 			return;
@@ -881,6 +886,20 @@ const LLMConfigDialog = ({ open, onClose }: LLMConfigDialogProps) => {
 								sx={inputStyle}
 							/>
 						</Stack>
+						<TextField
+							label={t('llm.visionModel')}
+							helperText={t('llm.visionModelHelp')}
+							value={typeof parseCustomOptionsObject(form.customOptions ?? '')?.visionModel === 'string' ? parseCustomOptionsObject(form.customOptions ?? '')!.visionModel : ''}
+							disabled={parseCustomOptionsObject(form.customOptions ?? '') === undefined}
+							onChange={(event) => {
+								const options = parseCustomOptionsObject(form.customOptions ?? '');
+								if (!options) return;
+								if (event.target.value.trim() === '') delete options.visionModel;
+								else options.visionModel = event.target.value;
+								setForm({...form, customOptions: JSON.stringify(options, null, 2)});
+							}}
+							fullWidth autoComplete="off" size="small" sx={inputStyle}
+						/>
 						<Stack direction="row" spacing={2}>
 							<TextField
 								label={t('llm.temperature')}

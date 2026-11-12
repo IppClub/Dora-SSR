@@ -23,13 +23,15 @@ export function normalizeVisionUsage(value: unknown): VisionProviderUsage | unde
 }
 
 /** Retain accounting even when a billed response is unusable; never retain reasoning or raw payloads. */
-export function parseVisionResponse(raw: string, expectedModel: string): Record<string, unknown> {
+export function parseVisionResponse(raw: string, expectedModel: string, allowModelAlias = false): Record<string, unknown> {
 	const [decoded] = safeJsonDecode(raw);
 	if (type(decoded) !== "table") return {success: false, model: expectedModel, message: "Vision returned an invalid response"};
 	const response = decoded as Record<string, unknown>;
 	const usage = normalizeVisionUsage(response.usage);
-	const accounting = {model: expectedModel, usage};
-	if (response.model !== expectedModel) return {...accounting, success: false, message: "Vision response model is missing or differs from the registered binding"};
+	const accounting = {model: expectedModel, usage,
+		...(allowModelAlias && typeof response.model === "string" ? {responseModel: sanitizeUTF8(response.model.slice(0, 256))} : {}),
+	};
+	if (response.model !== expectedModel && !(allowModelAlias && typeof response.model === "string" && response.model.trim() !== "")) return {...accounting, success: false, message: "Vision response model is missing or differs from the registered binding"};
 	const choices = type(response.choices) === "table" ? response.choices as unknown[] : [];
 	const choice = type(choices[0]) === "table" ? choices[0] as Record<string, unknown> : undefined;
 	const message = type(choice?.message) === "table" ? choice!.message as Record<string, unknown> : undefined;

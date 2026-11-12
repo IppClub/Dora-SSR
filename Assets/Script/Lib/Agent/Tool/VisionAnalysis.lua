@@ -120,7 +120,7 @@ function ____exports.analyzeImage(req) -- 50
 					i = i + 1 -- 70
 				end -- 70
 			end -- 70
-			local body = __TS__ObjectAssign({model = binding.model, stream = false, max_tokens = binding.provider == "glm-coding-cn" and 8192 or 4096, thinking = {type = binding.provider == "deepseek" and "disabled" or "enabled"}}, binding.provider == "glm-coding-cn" and ({reasoning_effort = "low", temperature = 0.1, top_p = 0.6}) or ({}), {messages = {{role = "system", content = ____exports.VISION_INSPECTION_SYSTEM_PROMPT}, {role = "user", content = content}}}) -- 82
+			local body = __TS__ObjectAssign({model = binding.model, stream = false, max_tokens = binding.provider == "glm-coding-cn" and 8192 or 4096}, binding.provider ~= "custom" and ({thinking = {type = binding.provider == "deepseek" and "disabled" or "enabled"}}) or ({}), binding.provider == "glm-coding-cn" and ({reasoning_effort = "low", temperature = 0.1, top_p = 0.6}) or ({}), {messages = {{role = "system", content = ____exports.VISION_INSPECTION_SYSTEM_PROMPT}, {role = "user", content = content}}}) -- 82
 			local json = safeJsonEncode(body) -- 85
 			if not json then -- 85
 				error("Unable to encode vision request") -- 86
@@ -201,7 +201,7 @@ function ____exports.analyzeImage(req) -- 50
 					end)) -- 112
 				end -- 91
 			)) -- 91
-			local result = parseVisionResponse(raw, binding.model) -- 126
+			local result = parseVisionResponse(raw, binding.model, binding.customModel == true) -- 126
 			local current = getVisionTaskUsage(req.taskId) -- 127
 			if requestIssued then -- 127
 				current.requestCount = current.requestCount + 1 -- 128

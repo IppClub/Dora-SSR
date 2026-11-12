@@ -79,7 +79,7 @@ export async function analyzeImage(req: AnalyzeImageRequest): Promise<Record<str
 			content.push({type:"text",text:`Image ${i+1}; ${paths[i]}${inspected.width !== undefined ? `; ${inspected.width}x${inspected.height}` : ""}`});
 			content.push({type:"image_url",image_url:{url:(inspected.format==="jpeg"?"data:image/jpeg;base64,":"data:image/png;base64,")+encoded}});
 		}
-		const body={model:binding.model,stream:false,max_tokens:binding.provider==="glm-coding-cn"?8192:4096,thinking:{type:binding.provider==="deepseek"?"disabled":"enabled"},
+		const body={model:binding.model,stream:false,max_tokens:binding.provider==="glm-coding-cn"?8192:4096,...(binding.provider!=="custom"?{thinking:{type:binding.provider==="deepseek"?"disabled":"enabled"}}:{}),
 			...(binding.provider==="glm-coding-cn"?{reasoning_effort:"low",temperature:0.1,top_p:0.6}:{}),
 			messages:[{role:"system",content:VISION_INSPECTION_SYSTEM_PROMPT},{role:"user",content}]};
 		const [json]=safeJsonEncode(body);
@@ -123,7 +123,7 @@ export async function analyzeImage(req: AnalyzeImageRequest): Promise<Record<str
 				requestIssued=true;
 			}));
 		});
-		const result = parseVisionResponse(raw, binding.model);
+		const result = parseVisionResponse(raw, binding.model, binding.customModel === true);
 		const current = getVisionTaskUsage(req.taskId);
 		if (requestIssued) current.requestCount++;
 		const resultUsage = normalizeVisionUsage(result.usage as {prompt_tokens?: number; completion_tokens?: number; total_tokens?: number} | undefined);

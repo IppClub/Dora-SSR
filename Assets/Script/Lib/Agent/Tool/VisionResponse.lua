@@ -24,34 +24,40 @@ function ____exports.normalizeVisionUsage(value) -- 14
 	} -- 21
 end -- 14
 --- Retain accounting even when a billed response is unusable; never retain reasoning or raw payloads.
-function ____exports.parseVisionResponse(raw, expectedModel) -- 26
+function ____exports.parseVisionResponse(raw, expectedModel, allowModelAlias) -- 26
+	if allowModelAlias == nil then -- 26
+		allowModelAlias = false -- 26
+	end -- 26
 	local decoded = safeJsonDecode(raw) -- 27
 	if type(decoded) ~= "table" then -- 27
 		return {success = false, model = expectedModel, message = "Vision returned an invalid response"} -- 28
 	end -- 28
 	local response = decoded -- 29
 	local usage = ____exports.normalizeVisionUsage(response.usage) -- 30
-	local accounting = {model = expectedModel, usage = usage} -- 31
-	if response.model ~= expectedModel then -- 31
-		return __TS__ObjectAssign({}, accounting, {success = false, message = "Vision response model is missing or differs from the registered binding"}) -- 32
-	end -- 32
-	local choices = type(response.choices) == "table" and response.choices or ({}) -- 33
-	local choice = type(choices[1]) == "table" and choices[1] or nil -- 34
-	local message = type(choice and choice.message) == "table" and choice.message or nil -- 35
-	local report = message and message.content -- 36
-	local finishReason = type(choice and choice.finish_reason) == "string" and string.sub(choice.finish_reason, 1, 32) or nil -- 37
-	if type(report) ~= "string" or __TS__StringTrim(report) == "" or finishReason ~= "stop" then -- 37
-		local message = finishReason == "length" and "Vision report was truncated by the provider output limit before completing (finish_reason=length); narrow the question or analyze fewer images" or "Vision returned no complete report" -- 39
-		return __TS__ObjectAssign({}, accounting, {success = false, finishReason = finishReason, message = message}) -- 42
-	end -- 42
-	return __TS__ObjectAssign( -- 44
-		{}, -- 44
-		accounting, -- 44
-		{ -- 44
-			success = true, -- 44
-			report = sanitizeUTF8(string.sub(report, 1, 16000)), -- 44
-			reportTruncated = #report > 16000 -- 44
-		} -- 44
-	) -- 44
+	local accounting = __TS__ObjectAssign( -- 31
+		{model = expectedModel, usage = usage}, -- 31
+		allowModelAlias and type(response.model) == "string" and ({responseModel = sanitizeUTF8(string.sub(response.model, 1, 256))}) or ({}) -- 32
+	) -- 32
+	if response.model ~= expectedModel and not (allowModelAlias and type(response.model) == "string" and __TS__StringTrim(response.model) ~= "") then -- 32
+		return __TS__ObjectAssign({}, accounting, {success = false, message = "Vision response model is missing or differs from the registered binding"}) -- 34
+	end -- 34
+	local choices = type(response.choices) == "table" and response.choices or ({}) -- 35
+	local choice = type(choices[1]) == "table" and choices[1] or nil -- 36
+	local message = type(choice and choice.message) == "table" and choice.message or nil -- 37
+	local report = message and message.content -- 38
+	local finishReason = type(choice and choice.finish_reason) == "string" and string.sub(choice.finish_reason, 1, 32) or nil -- 39
+	if type(report) ~= "string" or __TS__StringTrim(report) == "" or finishReason ~= "stop" then -- 39
+		local message = finishReason == "length" and "Vision report was truncated by the provider output limit before completing (finish_reason=length); narrow the question or analyze fewer images" or "Vision returned no complete report" -- 41
+		return __TS__ObjectAssign({}, accounting, {success = false, finishReason = finishReason, message = message}) -- 44
+	end -- 44
+	return __TS__ObjectAssign( -- 46
+		{}, -- 46
+		accounting, -- 46
+		{ -- 46
+			success = true, -- 46
+			report = sanitizeUTF8(string.sub(report, 1, 16000)), -- 46
+			reportTruncated = #report > 16000 -- 46
+		} -- 46
+	) -- 46
 end -- 26
 return ____exports -- 26
