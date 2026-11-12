@@ -40,24 +40,20 @@ const disabledToolGuard: AgentToolGuard = request => {
 
 const planPathGuard: AgentToolGuard = request => {
 	if (request.context.workMode !== "plan") return undefined;
-	if (request.definition.name !== "edit_file" && request.definition.name !== "delete_file") return undefined;
-	if (request.definition.name === "edit_file") {
-		if (Array.isArray(request.input.edits)) return undefined;
-		for (const edit of getAgentFileEditInputs(request.input)) {
-			const denial = getAgentFileEditPlanGuardDenial(request.context, edit);
-			if (denial !== undefined) return denial;
-		}
-		return undefined;
+	if (request.definition.name !== "edit_file") return undefined;
+	if (Array.isArray(request.input.edits)) return undefined;
+	// Covers every edit_file form, including the explicit delete form: the
+	// parsed single edit carries the target path either way.
+	for (const edit of getAgentFileEditInputs(request.input)) {
+		const denial = getAgentFileEditPlanGuardDenial(request.context, edit);
+		if (denial !== undefined) return denial;
 	}
-	const path = AgentRuntimePolicy.normalizeAgentPath(
-		AgentRuntimePolicy.getAgentDecisionPath(request.input)
-	);
-	if (AgentRuntimePolicy.isAgentPlanPath(path)) return undefined;
-	return deny("PLAN_PATH_DENIED", `${request.definition.name} in Plan mode may only write under ${AgentRuntimePolicy.AGENT_PLAN_DIR}`);
+	return undefined;
 };
 
 const protectedDocumentGuard: AgentToolGuard = request => {
-	if (request.definition.name !== "delete_file") return undefined;
+	if (request.definition.name !== "edit_file") return undefined;
+	if (request.input.delete !== true) return undefined;
 	const path = AgentRuntimePolicy.normalizeAgentPath(
 		AgentRuntimePolicy.getAgentDecisionPath(request.input)
 	);
@@ -65,7 +61,7 @@ const protectedDocumentGuard: AgentToolGuard = request => {
 		return deny("PROTECTED_AGENT_DOCUMENT", `${path} is a fixed living document and cannot be deleted`);
 	}
 	if (AgentRuntimePolicy.isMainAgentMemoryPath(path)) {
-		return deny("PROTECTED_AGENT_MEMORY", "Files under .agent/main are managed Agent memory and cannot be deleted with delete_file");
+		return deny("PROTECTED_AGENT_MEMORY", "Files under .agent/main are managed Agent memory and cannot be deleted with edit_file delete");
 	}
 	return undefined;
 };

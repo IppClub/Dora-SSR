@@ -592,7 +592,7 @@ export function applyFileChanges(taskId: number, workDir: string, changes: FileC
 			return { success: false, message: `invalid path: ${change.path}` };
 		}
 		if (change.op === "delete" && Content.exist(fullPath) && Content.isdir(fullPath)) {
-			return { success: false, message: `delete_file only supports files, not directories: ${change.path}` };
+			return { success: false, message: `edit_file delete only supports files, not directories: ${change.path}` };
 		}
 		if (Content.exist(fullPath) && !Content.isdir(fullPath)) {
 			const [, isBinary] = Content.getAttr(fullPath);
@@ -600,7 +600,7 @@ export function applyFileChanges(taskId: number, workDir: string, changes: FileC
 				return {
 					success: false,
 					message: change.op === "delete"
-						? `binary file deletion must use delete_file: ${change.path}`
+						? `binary file deletion must use the edit_file delete form: ${change.path}`
 						: `binary files cannot be edited with text checkpoints: ${change.path}`,
 				};
 			}
@@ -712,7 +712,7 @@ export function deleteFile(taskId: number, workDir: string, targetFile: string, 
 		return { success: false, message: `invalid path: ${targetFile}` };
 	}
 	if (Content.exist(fullPath) && Content.isdir(fullPath)) {
-		return { success: false, message: `delete_file only supports files, not directories: ${targetFile}` };
+		return { success: false, message: `edit_file delete only supports files, not directories: ${targetFile}` };
 	}
 
 	let isBinary = false;

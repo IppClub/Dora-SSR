@@ -67,6 +67,12 @@ function setup({count = 50, chunk = 15, fixed = 0, growMemory = false, carry = f
   context.buildDecisionMessages = state => context.getUnconsolidatedMessages(state);
   return {shared, context, events, targets, persisted, calls: () => calls};
 }
+const belowTrigger = setup({count: 21});
+await belowTrigger.context.maybeCompressHistory(belowTrigger.shared);
+assert.equal(belowTrigger.calls(), 0);
+const proactive = setup({count: 22});
+await proactive.context.maybeCompressHistory(proactive.shared);
+assert.equal(proactive.calls(), 1, "compact at 90 percent before the input budget is exhausted");
 const normal = setup();
 await normal.context.maybeCompressHistory(normal.shared);
 assert.equal(normal.calls(), 2);

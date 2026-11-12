@@ -456,7 +456,7 @@ function projectToolResultContentForLLM(tool: string, content: string): string {
 		);
 	}
 	let projected = decoded;
-	if (tool === "edit_file" || tool === "delete_file") {
+	if (tool === "edit_file" || tool === "write_file" || tool === "delete_file") {
 		projected = projectEditResultForLLM(decoded);
 	} else if (tool === "build") {
 		projected = projectBuildResultForLLM(decoded);

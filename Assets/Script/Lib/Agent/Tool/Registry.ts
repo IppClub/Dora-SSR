@@ -163,6 +163,7 @@ const AGENT_TOOL_DEFINITION_SOURCES: AgentToolDefinitionSource[] = [
 			"Batch ranges are independent and ordered. A failed read remains in results and does not discard successful reads.",
 			"startLine defaults to 1. If endLine is omitted, read at most 300 lines from the resolved starting line (start + 299), capped at EOF. Negative indices count backward from EOF; explicit endLine=-1 reads through EOF. Line 0 is invalid.",
 			"Read @dora_full_logs.txt to inspect the current Dora engine log snapshot; it is a read-only virtual path, not a workspace file.",
+		"Use analyze_image to inspect PNG/JPEG images through the configured vision service; read_file is for text.",
 			"Paths returned by search_dora_doc are authoritative built-in documentation paths and can be read directly without modifying them.",
 		],
 		parallelSafe: true,
@@ -171,10 +172,10 @@ const AGENT_TOOL_DEFINITION_SOURCES: AgentToolDefinitionSource[] = [
 		name: "edit_file",
 		roles: ["main", "sub"],
 		workModes: ["code", "plan"],
-		description: "Make one file edit, or apply an ordered best-effort batch of file edits in one call. A batch may use a shared top-level path.",
+		description: "Make targeted edits with old_str anchors, apply an ordered best-effort batch of edits, or delete a file. Whole-file creation/rewrite belongs to write_file.",
 		parameters: [
-			{ name: "path", type: "string", description: "Workspace-relative file path for the legacy single-edit form, or the default path for batch entries that omit path." },
-			{ name: "old_str", type: "string", description: "Legacy single-edit form: existing text to replace. If empty, rewrite the whole file or create it when missing." },
+			{ name: "path", type: "string", description: "Workspace-relative file path for the legacy single-edit form or delete, or the default path for batch entries that omit path." },
+			{ name: "old_str", type: "string", description: "Legacy single-edit form: existing text to replace. Must be non-empty; use write_file for whole-file creation or replacement." },
 			{ name: "new_str", type: "string", description: "Legacy single-edit form: replacement text or complete file content." },
 			{
 				name: "edits",
@@ -185,73 +186,67 @@ const AGENT_TOOL_DEFINITION_SOURCES: AgentToolDefinitionSource[] = [
 					type: "object",
 					properties: {
 						path: { type: "string", description: "Workspace-relative file path to edit. May be omitted when the batch supplies a top-level default path." },
-						old_str: { type: "string", description: "Existing staged text to replace; empty rewrites or creates." },
+						old_str: { type: "string", description: "Existing staged text to replace; must be non-empty." },
 						new_str: { type: "string", description: "Replacement or complete file content." },
 					},
 					required: ["old_str", "new_str"],
 					additionalProperties: false,
 				},
 			},
+			{ name: "delete", type: "boolean", description: "Set true to delete the file at `path`. Cannot be combined with old_str, new_str, or edits. Only single files; directories are rejected. Deletions create a checkpoint like any edit." },
 		],
 		rules: [
-			"Use path + old_str + new_str for one edit; edits for a batch with per-entry paths; or path + edits when all or some batch entries share a default path. Do not combine edits with top-level old_str/new_str.",
+			"Use path + old_str + new_str for one targeted edit; edits for a batch; or path + delete=true to remove one file. old_str must be a non-empty exact anchor; use write_file to create or rewrite whole files.",
 			"Prefer one batch when several independent files or several known replacements can be changed coherently before the next build.",
 			"Each batch entry succeeds or fails independently. Failed entries are reported and skipped; all successful staged results are committed together in one checkpoint.",
 			"Repeated paths are allowed and execute in array order against content from earlier successful entries; the final successful content for each unique path is written once.",
 			"old_str and new_str MUST be different.",
 			"old_str must match existing text exactly when it is non-empty.",
-			"If old_str is empty, create the file when it doesn't exist, or clear and rewrite the whole file with new_str when it already exists.",
+						"Deletion is an explicit, separate call with delete=true and a path; a capped or missing listing never implies deletion, and directories cannot be deleted.",
 			"Files under .agent/main are writable persistent memory for deliberate proactive updates. Record only durable project knowledge, user decisions, or a precise active checkpoint; these memory-only edits do not require a project build.",
 		],
 	},
 	{
-		name: "delete_file",
+		name: "write_file",
 		roles: ["main", "sub"],
 		workModes: ["code", "plan"],
-		description: "Remove a file.",
+		description: "Create a file or overwrite it with complete new content.",
 		parameters: [
-			{ name: "target_file", type: "string", required: true, description: "Workspace-relative file path to delete." },
+			{ name: "path", type: "string", required: true, description: "Workspace-relative file path to create or overwrite." },
+			{ name: "new_str", type: "string", required: true, description: "Complete file content. The file is replaced or created with exactly this content." },
 		],
+		rules: [
+			"Use this to create new files or rewrite a file completely.",
+			"For targeted changes inside an existing file, prefer edit_file with an old_str anchor instead of rewriting the whole file.",
+			"Each write creates a checkpoint like any edit.",
+		],
+		parallelSafe: false,
 	},
 	{
 		name: "grep_files",
 		roles: ["main", "sub"],
 		workModes: ["code", "plan"],
-		description: "Search text patterns inside files.",
+		description: "Search text patterns inside files, or enumerate files by name when pattern is omitted.",
 		parameters: [
 			{ name: "path", type: "string", description: "Workspace directory, workspace file, or exact @dora-doc/... virtual document path to search within." },
-			{ name: "pattern", type: "string", required: true, description: "Content pattern to search for. Use | to express OR alternatives." },
-			{ name: "globs", type: "array", items: { type: "string" }, description: "Optional file glob filters." },
+			{ name: "pattern", type: "string", description: "Content pattern to search for. Omit it to enumerate matching files by `globs` under `path` instead of searching content." },
+			{ name: "globs", type: "array", items: { type: "string" }, description: "File glob filters. With `pattern` they restrict which files are searched; without `pattern` they select which files are listed." },
 			{ name: "useRegex", type: "boolean", description: "Set true when pattern is a regular expression." },
 			{ name: "caseSensitive", type: "boolean", description: "Set true for case-sensitive matching." },
-			{ name: "limit", type: "number", description: "Maximum number of results to return." },
-			{ name: "offset", type: "number", description: "Offset for paginating later result pages." },
+			{ name: "limit", type: "number", description: "Maximum number of content matches to return." },
+			{ name: "offset", type: "number", description: "Offset for paginating result pages." },
 			{ name: "groupByFile", type: "boolean", description: "Set true to rank candidate files before drilling into one file." },
+			{ name: "maxEntries", type: "number", description: "Maximum number of entries when enumerating files without `pattern`." },
 		],
 		rules: [
 			"`path` may point to a workspace directory, workspace file, or an exact @dora-doc/... virtual document returned by search_dora_doc.",
-			"This is content search (grep), not filename search.",
-			"`pattern` matches file contents. `globs` only restrict which files are searched.",
+			"With `pattern` this is content search (grep): `pattern` matches file contents and `globs` only restrict which files are searched.",
+			"Without `pattern` this enumerates files by path, extension, or glob pattern; every matching file is returned even when files share a basename with different extensions, such as town.tsx, town.tmx, and town.png.",
+			"A capped, truncated, or non-exact listing does not prove that a file is absent. Before reporting a missing file, use an exact glob for its path or extension and confirm the result is not truncated.",
 			"`useRegex` defaults to false. Set `useRegex=true` when `pattern` is a regular expression such as `^title:`.",
 			"`caseSensitive` defaults to false.",
 			"Use `|` inside pattern to separate alternative content queries; results are merged by union (OR), not AND.",
-			"Search results are intentionally capped. Refine the pattern or read a specific file next.",
-		],
-		parallelSafe: true,
-	},
-	{
-		name: "glob_files",
-		roles: ["main", "sub"],
-		workModes: ["code", "plan"],
-		description: "Enumerate files under a directory.",
-		parameters: [
-			{ name: "path", type: "string", description: "Base directory to enumerate. Defaults to the workspace root when omitted." },
-			{ name: "globs", type: "array", items: { type: "string" }, description: "Optional glob filters for returned paths." },
-			{ name: "maxEntries", type: "number", description: "Maximum number of entries to return." },
-		],
-		rules: [
-			"Use this to discover files by path, extension, or glob pattern.", "Every matching file is returned even when files share a basename with different extensions, such as town.tsx, town.tmx, and town.png.",
-			"A capped, truncated, or non-exact listing does not prove that a file is absent. Before reporting a missing file, use an exact glob for its path or extension and confirm the result is not truncated.", "Directory listings are intentionally capped. Narrow the path before expanding further.",
+			"Search results and directory listings are intentionally capped. Refine the pattern, narrow the path, or read a specific file next.",
 		],
 		parallelSafe: true,
 	},
@@ -369,87 +364,30 @@ const AGENT_TOOL_DEFINITION_SOURCES: AgentToolDefinitionSource[] = [
 		],
 	},
 	{
-		name: "finish",
-		roles: ["sub"],
-		workModes: ["code", "plan"],
-		description: "Conclude a sub-agent task and provide a structured completion handoff to its parent.",
-		parameters: [
-			{ name: "message", type: "string", required: true, description: "Concise handoff summary for the parent agent." },
-			{ name: "outcome", type: "string", required: true, enum: ["completed", "partial", "blocked"], description: "Sub-agent work outcome." },
-			{
-				name: "validation", type: "array", items: {
-					type: "object",
-					properties: {
-						kind: { type: "string", enum: ["build", "runtime", "manual"] },
-						result: { type: "string", enum: ["passed", "failed", "not_run"] },
-						evidence: { type: "array", items: { type: "string" } },
-					},
-					required: ["kind", "result"],
-				}, description: "Validation performed. Sub agents must provide an array, using not_run when a relevant check was not run."
-			},
-			{ name: "knownIssues", type: "array", items: { type: "string" }, description: "Known remaining issues or blockers. Sub agents must provide an array, which may be empty." },
-			{ name: "assumptions", type: "array", items: { type: "string" }, description: "Material assumptions made during the work. Sub agents must provide an array, which may be empty." },
-			{
-				name: "learningCandidates", type: "array", items: {
-					type: "object",
-					properties: {
-						claim: { type: "string" },
-						scope: { type: "string", enum: ["file", "project", "engine"] },
-						evidence: { type: "array", items: { type: "string" } },
-						confidence: { type: "string", enum: ["observed", "inferred"] },
-					},
-					required: ["claim", "scope", "confidence"],
-				}, description: "Durable, evidence-backed facts worth sharing with later agents. Sub agents must provide an array, which may be empty."
-			},
-		],
-		rules: [
-			"Sub agents must explicitly report outcome, validation, knownIssues, assumptions, and learningCandidates.",
-			"Do not claim validation passed without concrete evidence from the corresponding tool result.",
-			"Use learningCandidates only for durable facts, constraints, or project conventions; omit generic progress narration.",
-		],
-	},
-	{
-		name: "list_sub_agents",
+		name: "spawn_agent",
 		roles: ["main"],
 		workModes: ["code"],
-		description: "Query sub-agent state under the current main session.",
+		description: "Dispatch a sub agent for delegated work, or list sub-agent state when prompt is omitted.",
 		parameters: [
-			{ name: "status", type: "string", enum: ["active_or_recent", "running", "done", "failed", "all"], description: "Optional status filter. Defaults to active_or_recent." },
-			{ name: "limit", type: "number", description: "Maximum number of items to return. Defaults to 5." },
-			{ name: "offset", type: "number", description: "Offset for paging older items." },
-			{ name: "query", type: "string", description: "Optional text filter matched against title, goal, or summary." },
+			{ name: "prompt", type: "string", description: "Spawn form: detailed, self-contained task prompt sent to the sub agent. Provide it with title to spawn; omit it to list sub-agent state instead." },
+			{ name: "title", type: "string", description: "Spawn form: short tab title for the sub agent. Required when prompt is present; ignored otherwise." },
+			{ name: "expectedOutput", type: "string", description: "Spawn form: optional expected result summary." },
+			{ name: "filesHint", type: "array", items: { type: "string" }, description: "Spawn form: optional likely files or directories involved." },
+			{ name: "status", type: "string", enum: ["active_or_recent", "running", "done", "failed", "all"], description: "List form: optional status filter. Defaults to active_or_recent." },
+			{ name: "limit", type: "number", description: "List form: maximum number of items to return. Defaults to 5." },
+			{ name: "offset", type: "number", description: "List form: offset for paging older items." },
+			{ name: "query", type: "string", description: "List form: optional text filter matched against title, goal, or summary." },
 		],
 		rules: [
-			"Use this only when you do not already know the current sub-agent status and need to inspect running delegated work or recent completed results before deciding whether to dispatch more sub agents or read a result file.",
-			"status defaults to active_or_recent and may also be running, done, failed, or all.",
-			"limit defaults to a small recent window. Use offset to page older items.",
-			"query filters by title, goal, or summary text.",
-			"After any successful spawn_sub_agent in the current task, this tool is unavailable for the rest of that task. Finish the turn instead; completion arrives through an asynchronous handoff.",
-		],
-		parallelSafe: true,
-	},
-	{
-		name: "spawn_sub_agent",
-		roles: ["main"],
-		workModes: ["code"],
-		description: "Create and start a sub agent session for delegated implementation work.",
-		parameters: [
-			{ name: "title", type: "string", required: true, description: "Short tab title for the sub agent." },
-			{ name: "prompt", type: "string", required: true, description: "Detailed, self-contained task prompt sent to the sub agent. Describe the concrete work to execute, constraints, expected output, and relevant files when known." },
-			{ name: "expectedOutput", type: "string", description: "Optional expected result summary." },
-			{ name: "filesHint", type: "array", items: { type: "string" }, description: "Optional likely files or directories involved." },
-		],
-		rules: [
-			"Use this for large multi-file work, parallel exploration, long-running verification, or isolated execution tasks.",
-			"For small focused edits, use edit_file/delete_file/build directly in the current main-agent run.",
+			"Two forms: prompt + title dispatches a new sub agent; prompt omitted lists sub-agent state. Never combine spawn fields with list filters.",
+			"Use the spawn form for large multi-file work, parallel exploration, long-running verification, or isolated execution tasks. For small focused edits, use edit_file/build directly in the current main-agent run.",
 			"The spawned sub agent inherits the current session tool capabilities.",
-			"title should be short and specific.",
-			"prompt should be self-contained and actionable, and should clearly describe the concrete work to execute, constraints, desired output, and any relevant files.",
+			"prompt should be self-contained and actionable, and should clearly describe the concrete work to execute, constraints, desired output, and any relevant files. title should be short and specific.",
 			"Spawn is asynchronous and nonblocking. You may dispatch multiple independent sub agents in one response, subject to the concurrency limit.",
-			"After dispatching all intended independent sub agents, complete at most three bounded foreground tool batches that do not depend on their results. Then finish the current turn and return control to the user while the sub agents keep running.",
-			"After a successful spawn in the current task, do not call list_sub_agents, wait, join, or poll. Completion is delivered asynchronously as a later handoff.",
+			"After dispatching all intended independent sub agents, complete at most three bounded foreground tool batches that do not depend on their results. Then finish this turn and return control to the user while the sub agents keep running.",
+			"After any successful spawn in the current task, the list form is rejected for the rest of that task. Do not wait, join, or poll; completion arrives asynchronously as a later handoff.",
+			"Use the list form only when you do not already know the current sub-agent status and need to inspect delegated work before deciding whether to dispatch more sub agents or read a result file.",
 			"Avoid assigning overlapping files or dependent steps to concurrent sub agents unless the coordination boundary is explicit.",
-			"filesHint is an optional list of likely files or directories.",
 		],
 	},
 	{
@@ -493,7 +431,7 @@ const AGENT_TOOL_DEFINITION_SOURCES: AgentToolDefinitionSource[] = [
 			},
 		],
 		rules: [
-			"Inspect the project before asking; do not ask for facts available through read_file, grep_files, glob_files, or search_dora_doc.",
+			"Inspect the project before asking; do not ask for facts available through read_file, grep_files, or search_dora_doc.",
 			"ask_user has no document-update prerequisite. Incorporate the answers into .agent/plan/PLAN.md and .agent/plan/PROGRESS.md before finish.",
 			"For single_choice, mark at most one option recommended. For multiple_choice, recommended options form a suggested set.",
 			"ask_user must be the only tool call in the response.",
@@ -598,39 +536,16 @@ export function getToolDefinitionsForRole(role: AgentRole, options?: {
 }): AgentToolDefinition[] {
 	return AGENT_TOOL_DEFINITIONS.filter(tool =>
 		hasRole(tool, role)
-		&& (options?.includeFinish === true || tool.name !== "finish")
 		&& isToolCapabilityEnabled(tool, options)
 	);
 }
-
-const SUB_AGENT_REQUIRED_FINISH_PARAMS = [
-	"message",
-	"outcome",
-	"validation",
-	"knownIssues",
-	"assumptions",
-	"learningCandidates",
-];
 
 function getDecisionToolDefinitionsForRole(role: AgentRole, options?: {
 	includeFinish?: boolean;
 	disabledAgentTools?: AgentToolName[];
 	workMode?: AgentWorkMode;
 }): AgentToolDefinition[] {
-	const tools = getToolDefinitionsForRole(role, options);
-	if (role !== "sub") return tools;
-	return tools.map(tool => {
-		if (tool.name !== "finish") return tool;
-		const parameters = (tool.parameters ?? []).map(parameter => ({
-			...parameter,
-			required: SUB_AGENT_REQUIRED_FINISH_PARAMS.indexOf(parameter.name) >= 0,
-		}));
-		return {
-			...tool,
-			parameters,
-			inputSchema: context => createInputSchemaFromParameters(parameters, context),
-		};
-	});
+	return getToolDefinitionsForRole(role, options);
 }
 
 export function buildToolDefinitionsDetailed(tools: AgentToolDefinition[], options?: {

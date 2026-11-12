@@ -17,7 +17,7 @@ export function buildAgentTimeline(messages:readonly AgentSessionMessage[],steps
 export function useAgentTimeline(messages:readonly AgentSessionMessage[],steps:readonly AgentSessionStep[],currentTaskId?:number){return useMemo(()=>buildAgentTimeline(messages,steps,currentTaskId),[messages,steps,currentTaskId]);}
 
 type AgentStepParam={label:string;value?:string};
-const stepToolNames:Record<string,string>={message:'消息',read_file:'文件读取',edit_file:'编辑文件',delete_file:'删除文件',grep_files:'搜索文件',glob_files:'列出文件',search_dora_doc:'搜索引擎文档',compress_memory:'记忆压缩',merge_memory:'合并记忆',spawn_sub_agent:'派出子代理',list_sub_agents:'列出子代理',sub_agent_handoff:'子代理交接',build:'构建',fetch_url:'网络获取',execute_command:'执行命令',analyze_image:'画面分析',ask_user:'询问用户',finish:'收工'};
+const stepToolNames:Record<string,string>={message:'消息',read_file:'文件读取',edit_file:'编辑文件',write_file:'写入文件',spawn_agent:'子代理',delete_file:'删除文件',grep_files:'搜索文件',glob_files:'列出文件',search_dora_doc:'搜索引擎文档',compress_memory:'记忆压缩',merge_memory:'合并记忆',spawn_sub_agent:'派出子代理',list_sub_agents:'列出子代理',sub_agent_handoff:'子代理交接',build:'构建',fetch_url:'网络获取',execute_command:'执行命令',analyze_image:'画面分析',ask_user:'询问用户',finish:'收工'};
 const stepStatuses:Record<string,string>={PENDING:'等待中',RUNNING:'进行中',DONE:'已完成',FAILED:'失败',STOPPED:'已停止'};
 const stringValue=(value:unknown)=>typeof value==='string'?value:'';
 const numberValue=(value:unknown)=>typeof value==='number'&&Number.isFinite(value)?value:undefined;

@@ -47,7 +47,6 @@ import {
 	parseToolCallArguments,
 	getDecisionPath,
 	validateDecision,
-	validateCompletionForRole,
 	isDecisionBatchSuccess,
 	isDecisionLoopContinue,
 	isDecisionPlainTextCompletion,
@@ -286,7 +285,7 @@ export type CodingAgentEvent =
 		sessionId?: number;
 		taskId: number;
 		step: number;
-		tool: "edit_file" | "delete_file";
+		tool: "edit_file" | "write_file";
 		checkpointId: number;
 		checkpointSeq: number;
 		files: {
@@ -807,8 +806,7 @@ async function executeToolActionWithGuidance(shared: AgentShared, action: AgentA
 	if (
 		shared.workflow.hasSpawnedSubAgentThisTask === true
 		&& (shared.workflow.delegatedForegroundBatches ?? 0) + 1 >= AgentConfig.AGENT_DEFAULTS.delegatedForegroundBatchLimit
-		&& action.tool !== "spawn_sub_agent"
-		&& action.tool !== "finish"
+		&& action.tool !== "spawn_agent"
 	) {
 		guidance.push("Foreground work after delegation has reached the recommended bound. Prefer dispatching another independent sub-agent or finishing this turn so the user can continue interacting.");
 	}
@@ -819,7 +817,7 @@ async function executeToolActionWithGuidance(shared: AgentShared, action: AgentA
 		if (action.tool === "build" && result.success === true && shared.workflow.failedTestHasSourceEdit !== true) {
 			guidance.push("The build passed, but no authored source change has addressed the deterministic test failure. Make a narrow source fix before rebuilding or retesting.");
 		} else if (
-			(action.tool === "edit_file" || action.tool === "delete_file")
+			(action.tool === "edit_file" || action.tool === "write_file")
 			&& result.success === true
 			&& result.changed !== false
 		) {
@@ -837,7 +835,7 @@ async function executeToolActionWithGuidance(shared: AgentShared, action: AgentA
 		}
 	}
 	if (
-		(action.tool === "edit_file" || action.tool === "delete_file")
+		(action.tool === "edit_file" || action.tool === "write_file")
 		&& !AgentRuntimePolicy.isAgentInternalDocumentPath(getDecisionPath(action.params))
 		&& AgentRuntimePolicy.isEditBudgetExhausted(shared.workflow)
 	) {
@@ -852,7 +850,7 @@ async function executeToolActionWithGuidance(shared: AgentShared, action: AgentA
 			guidance.push("After compression, prefer a targeted old_str replacement or an early build over rewriting a complete existing file.");
 		}
 	}
-	if (action.tool === "list_sub_agents" && shared.workflow.hasSpawnedSubAgentThisTask === true) {
+	if (action.tool === "spawn_agent" && action.params.prompt === undefined && shared.workflow.hasSpawnedSubAgentThisTask === true) {
 		guidance.push("Sub-agent results arrive asynchronously. Avoid polling repeatedly; finish the current turn when no independent foreground work remains.");
 	}
 	if (shared.workflow.freshProjectBuildPending === true && action.tool !== "build") {
@@ -864,7 +862,7 @@ async function executeToolActionWithGuidance(shared: AgentShared, action: AgentA
 		if (action.tool === "build") {
 			guidance.push("This build reported authored-file diagnostics. Make a narrow source repair before building again.");
 		} else if (
-			(action.tool === "edit_file" || action.tool === "delete_file")
+			(action.tool === "edit_file" || action.tool === "write_file")
 			&& result.success === true
 			&& result.changed !== false
 		) {
@@ -935,9 +933,9 @@ async function maybeCompressHistory(
 			}),
 		};
 		const fitted = AgentUtils.fitMessagesToContext(triggerMessages, triggerOptions, shared.llmConfig);
-		// Trigger at 100% of the exact effective input budget used by the normal
+		// Trigger at 90% of the exact effective input budget used by the normal
 		// request path. The compression payload below remains independently projected.
-		if (fitted.originalTokens < fitted.budgetTokens) return;
+		if (fitted.originalTokens < fitted.budgetTokens * 0.9) return;
 		if (getActiveRealMessageCount(shared) <= 0 || fitted.budgetTokens <= 0) {
 			throw new Error("The current instructions and configured output limit leave insufficient context space. Reduce the output limit or shorten the instructions; history was preserved.");
 		}
@@ -1333,9 +1331,8 @@ function applyCompressedSessionState(
 		if (markerIndex >= 0) {
 			const nextToolLine = sessionSummary.slice(markerIndex, markerIndex + 120);
 			const toolNames: AgentToolName[] = [
-				"read_file", "edit_file", "delete_file", "grep_files", "search_dora_doc",
-				"glob_files", "build", "fetch_url", "execute_command", "analyze_image", "list_sub_agents",
-				"spawn_sub_agent", "finish",
+				"read_file", "edit_file", "write_file", "grep_files", "search_dora_doc",
+				"build", "fetch_url", "execute_command", "spawn_agent",
 			];
 			for (let i = 0; i < toolNames.length; i++) {
 				const tool = toolNames[i];
@@ -1346,7 +1343,7 @@ function applyCompressedSessionState(
 			}
 		}
 	}
-	if (shared.workflow.hasSpawnedSubAgentThisTask === true && shared.workflow.resumeRequiredTool === "list_sub_agents") {
+	if (shared.workflow.hasSpawnedSubAgentThisTask === true && shared.workflow.resumeRequiredTool === "spawn_agent") {
 		shared.workflow.resumeRequiredTool = undefined;
 	}
 	if (shared.workflow.resumeRequiredTool !== undefined && !isToolAllowedForRole(shared, shared.workflow.resumeRequiredTool)) {
@@ -1357,7 +1354,7 @@ function applyCompressedSessionState(
 function appendConversationMessage(shared: AgentShared, message: AgentConversationMessage): void {
 	shared.messages.push({
 		...message,
-		content: message.content ? AgentUtils.sanitizeUTF8(message.content) : message.content,
+		content: (typeof message.content === "string" && message.content) ? AgentUtils.sanitizeUTF8(message.content) : message.content,
 		name: message.name ? AgentUtils.sanitizeUTF8(message.name) : message.name,
 		tool_call_id: message.tool_call_id ? AgentUtils.sanitizeUTF8(message.tool_call_id) : message.tool_call_id,
 		reasoning_content: message.reasoning_content ? AgentUtils.sanitizeUTF8(message.reasoning_content) : message.reasoning_content,
@@ -1438,11 +1435,6 @@ function parseAndValidateToolCallDecision(
 	decision.providerArguments = argsText;
 	decision.reason = reason;
 	decision.reasoningContent = reasoningContent;
-	const completionValidation = validateCompletionForRole(shared.role, decision.tool, decision.params);
-	if (!completionValidation.success) {
-		decision.preExecutionFailure = { code: "INVALID_TOOL_INPUT", message: completionValidation.message };
-		return decision;
-	}
 	const validation = validateDecision(decision.tool, decision.params);
 	if (!validation.success) {
 		decision.preExecutionFailure = { code: "INVALID_TOOL_INPUT", message: validation.message };
@@ -1464,7 +1456,7 @@ function validateDecisionForShared(
 	_params: Record<string, unknown>,
 	enforceFinalTurn = false
 ): { success: true } | { success: false; message: string } {
-	if (enforceFinalTurn && isFinalDecisionTurn(shared) && tool !== "finish") {
+	if (enforceFinalTurn && isFinalDecisionTurn(shared) ) {
 		return shared.role === "sub"
 			? { success: false, message: "the final sub-agent turn must call finish with structured completion metadata" }
 			: { success: false, message: "the final main-agent turn must return a plain-text completion instead of calling another tool" };
@@ -1543,8 +1535,8 @@ function isFinalDecisionTurn(shared: AgentShared): boolean {
 function getFinalDecisionTurnPrompt(shared: AgentShared): string {
 	if (shared.role === "sub") {
 		return shared.useChineseResponse
-			? "当前已到达本子任务的最后处理轮次。不要再调用其它工具，请调用 finish 提交结构化交接；如实填写 outcome、validation、knownIssues、assumptions 和 learningCandidates，不要把部分或未验证工作描述为全部完成。"
-			: "This is the final processing turn for the sub task. Do not call another work tool; call finish with a structured handoff. Report outcome, validation, knownIssues, assumptions, and learningCandidates truthfully, and do not describe partial or unverified work as complete.";
+			? "当前已到达本子任务的最后处理轮次。不要再调用工具，请直接用纯文本给出最终答复；如实区分已完成且有证据的内容、未验证或未完成的项目以及建议的下一步，不要把部分结果描述为全部完成。"
+			: "This is the final processing turn for the task. Do not call another tool; return the final user-facing answer as plain text. Clearly distinguish completed work with evidence, unverified or unfinished items, and the recommended next action. Do not describe partial work as fully complete.";
 	}
 	return shared.useChineseResponse
 		? "当前已到达本 task 的最后处理轮次。不要再调用工具，请直接用 plain text 向用户给出最终答复；如实区分已完成且有证据的内容、未验证或未完成的项目以及建议的下一步，不要把部分结果描述为全部完成。"
@@ -1814,7 +1806,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 			return decisions[0];
 		}
 		for (let i = 0; i < decisions.length; i++) {
-			if ((decisions[i].tool === "finish" || decisions[i].tool === "ask_user")
+			if (decisions[i].tool !== undefined
 				&& decisions[i].preExecutionFailure === undefined) {
 				decisions[i].preExecutionFailure = {
 					code: "INVALID_TOOL_COMBINATION",
@@ -1979,37 +1971,6 @@ class MainDecisionAgent extends Node<AgentShared> {
 			persistHistoryState(shared);
 			return "batch_tools";
 		}
-		if (result.tool === "finish") {
-			const action: AgentActionRecord = {
-				step: shared.step,
-				toolCallId: ensureToolCallId(result.toolCallId),
-				tool: "finish",
-				reason: result.reason ?? "",
-				reasoningContent: result.reasoningContent,
-				params: result.params,
-				timestamp: os.date("!%Y-%m-%dT%H:%M:%SZ"),
-			};
-			const output = await executeToolAction(shared, action);
-			if (output.success !== true || action.control?.concludeTask !== true) {
-				shared.error = typeof output.message === "string" ? output.message : "finish execution failed";
-				shared.response = getFailureSummaryFallback(shared, shared.error);
-				shared.done = true;
-				appendConversationMessage(shared, { role: "assistant", content: shared.response });
-				persistHistoryState(shared);
-				return "done";
-			}
-			const finalMessage = action.control.finalMessage ?? getFinishMessage(result.params, result.reason ?? "");
-			shared.response = finalMessage;
-			shared.completion = action.control.completion ?? getCompletionReport(result.params);
-			shared.done = true;
-			appendConversationMessage(shared, {
-				role: "assistant",
-				content: finalMessage,
-				reasoning_content: result.reasoningContent,
-			});
-			persistHistoryState(shared);
-			return "done";
-		}
 		const toolCallId = ensureToolCallId(result.toolCallId);
 		shared.step += 1;
 		shared.agentStepCount += 1;
@@ -2050,7 +2011,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 function emitCheckpointEventForAction(shared: AgentShared, action: AgentActionRecord): void {
 	const result = action.result;
 	if (!result) return;
-	if ((action.tool === "edit_file" || action.tool === "delete_file")
+	if ((action.tool === "edit_file" || action.tool === "write_file")
 		&& typeof result.checkpointId === "number"
 		&& typeof result.checkpointSeq === "number"
 		&& isArray(result.files)) {
@@ -2190,18 +2151,20 @@ async function executeToolActionSafely(shared: AgentShared, action: AgentActionR
 
 function sanitizeToolActionResultForHistory(action: AgentActionRecord, result: Record<string, unknown>): Record<string, unknown> {
 	if (action.tool === "read_file") {
+		if (result.kind === "image") return result;  // image metadata flows to blocks assembly
 		return sanitizeReadResultForHistory(action.tool, result);
 	}
 	if (action.tool === "grep_files" || action.tool === "search_dora_doc") {
-		return sanitizeSearchResultForHistory(action.tool, result);
-	}
-	if (action.tool === "glob_files") {
-		return sanitizeListFilesResultForHistory(result);
+		// grep_files also serves enumeration when pattern is omitted; each sanitizer
+		// passes through results that do not match its expected shape.
+		return sanitizeListFilesResultForHistory(
+			sanitizeSearchResultForHistory(action.tool, result)
+		);
 	}
 	if (action.tool === "build") {
 		return sanitizeBuildResultForHistory(result);
 	}
-	if (action.tool === "edit_file" || action.tool === "delete_file") {
+	if (action.tool === "edit_file" || action.tool === "write_file") {
 		if (result.success !== true) return result;
 		if (typeof result.checkpointId !== "number" || typeof result.checkpointSeq !== "number") return result;
 		if (isArray(result.fileContext)) return result;
@@ -2422,11 +2385,11 @@ class BatchToolAction extends Node<AgentShared> {
 		let didDelegatedForegroundWork = false;
 		for (let i = 0; i < input.actions.length; i++) {
 			const action = input.actions[i];
-			if (action.tool === "spawn_sub_agent") {
+			if (action.tool === "spawn_agent") {
 				if (action.result?.success === true) spawnSeen = true;
 				continue;
 			}
-			if (spawnSeen && action.tool !== "finish") {
+			if (spawnSeen) {
 				didDelegatedForegroundWork = true;
 			}
 		}

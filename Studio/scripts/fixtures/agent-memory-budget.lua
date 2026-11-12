@@ -187,3 +187,25 @@ local scoped = await(M.compactSessionMemoryScope({projectDir = 'fixture', llmCon
 M.MemoryCompressor.prototype.____constructor = constructor
 assert(scoped.success and consolidated == #scopeMessages and #requests > 3)
 print('Native Lua memory budget regressions passed (full history coverage, packing, provider options, tool boundaries, XML fallback, cancellation, raw archive, invalid output reserve).')
+
+local V = require('Agent.Tool.Validation')
+assert(V.validateAgentToolInput('write_file', {path='game.ts',new_str='content'}).success)
+assert(not V.validateAgentToolInput('write_file', {path='game.ts',old_str='x',new_str='y'}).success)
+assert(not V.validateAgentToolInput('edit_file', {path='game.ts',old_str='',new_str='content'}).success)
+assert(V.validateAgentToolInput('edit_file', {path='game.ts',delete=true}).success)
+assert(not V.validateAgentToolInput('edit_file', {path='game.ts',delete=true,new_str='x'}).success)
+assert(V.validateAgentToolInput('grep_files', {}).success)
+assert(V.validateAgentToolInput('spawn_agent', {}).success)
+assert(not V.validateAgentToolInput('spawn_agent', {prompt='work',title='task',status='RUNNING'}).success)
+local H = require('Agent.Runtime.HistoryProjection')
+local function read(startLine,endLine,success)
+ return {role='tool',name='read_file',content=J.encode({success=success,results={{path='game.ts',success=success,startLine=startLine,endLine=endLine,content=string.rep('X',350)}}})}
+end
+-- No range-based reads or failed results may disappear merely because the same file was read later.
+local a,b=read(1,100,true),read(101,200,true)
+local projected=H.projectMessagesForLLMContext({a,b})
+assert(projected[1].content:find(string.rep('X',350),1,true))
+local errorText=string.rep('prefix ',80)..'UNIQUE_ERROR_DETAIL_AT_END'
+projected=H.projectMessagesForLLMContext({{role='tool',name='edit_file',content=J.encode({success=false,message=errorText})}})
+assert(projected[1].content:find('UNIQUE_ERROR_DETAIL_AT_END',1,true))
+print('Tool consolidation and lossless history regressions passed.')

@@ -76,13 +76,7 @@ export function classifyToolCallingTurnWithoutCalls(
 	}
 	const content = messageContent?.trim() ?? "";
 	if (content === "") return undefined;
-	if (role === "sub") {
-		return {
-			success: false,
-			message: "sub agents must call finish with structured completion metadata; plain-text completion is not accepted",
-			raw: content,
-		};
-	}
+	// Sub agents complete with plain text; engine generates structured handoff.
 	return {
 		success: true,
 		kind: "plain_text_completion",
@@ -100,7 +94,7 @@ export function parseDecisionObject(rawObj: Record<string, unknown>): DecisionSu
 	const reason = typeof rawObj.reason === "string"
 		? rawObj.reason.trim()
 		: undefined;
-	if (tool !== "finish" && (!reason || reason === "")) {
+	if (!reason || reason === "") {
 		return { success: false, message: `${tool} requires top-level reason` };
 	}
 	const params = isRecord(rawObj.params) ? rawObj.params : {};
@@ -170,21 +164,10 @@ export function validateDecision(
 }
 
 export function validateCompletionForRole(
-	role: AgentRole,
-	tool: AgentToolName,
-	params: Record<string, unknown>
+	_role: AgentRole,
+	_tool: AgentToolName,
+	_params: Record<string, unknown>
 ): { success: true } | { success: false; message: string } {
-	if (tool !== "finish") return { success: true };
-	if (role !== "sub") return { success: false, message: "finish is reserved for sub agents" };
-	if (params.outcome !== "completed" && params.outcome !== "partial" && params.outcome !== "blocked") {
-		return { success: false, message: "sub-agent finish requires params.outcome" };
-	}
-	const requiredArrays = ["validation", "knownIssues", "assumptions", "learningCandidates"];
-	for (let i = 0; i < requiredArrays.length; i++) {
-		const name = requiredArrays[i];
-		if (!isArray(params[name])) {
-			return { success: false, message: `sub-agent finish requires params.${name} as an array` };
-		}
-	}
+	// finish tool removed; the engine generates handoff from telemetry.
 	return { success: true };
 }
