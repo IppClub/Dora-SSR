@@ -19,7 +19,9 @@ import { MacScrollbar } from 'mac-scrollbar';
 import { useTranslation } from 'react-i18next';
 import { BsArrowDown } from 'react-icons/bs';
 import AgentMessageList from './AgentMessageList';
+import {AgentAttachmentProjectContext} from './AgentMessageAttachments';
 import AgentComposer from './AgentComposer';
+import {uploadAgentAttachment} from './AgentAttachments';
 import AgentStepList from './AgentStepList';
 import AgentChangeSetSummaryCard from './AgentChangeSetSummary';
 import AgentQuestionnaire from './AgentQuestionnaire';
@@ -1036,9 +1038,9 @@ export default function AgentPanel(props: AgentPanelProps) {
 		await sendPromptText(t("agent.plan.startPrompt"), selectedSessionId, "code");
 	}, [addAlert, loading, selectedSessionId, sendPromptText, session?.currentTaskStatus, t]);
 
-	const onSend = async (delivery?: "queue"|"steer") => {
-		const text = prompt.trim();
-		await sendPromptText(text, selectedSessionId, workMode, {delivery,requestId:crypto.randomUUID()});
+	const onSend = async (delivery?: "queue"|"steer", submittedText?:string, requestId?:string) => {
+		const text = submittedText ?? prompt.trim();
+		return Boolean(await sendPromptText(text, selectedSessionId, workMode, {delivery,requestId:requestId??crypto.randomUUID()}));
 	};
 
 	useEffect(() => {
@@ -1263,6 +1265,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 	const emptyStateMinHeight = Math.max(260, height - 390);
 
 	return (
+        <AgentAttachmentProjectContext.Provider value={projectRoot}>
 		<Box
 			data-agent-session-id={session?.id}
 			data-agent-task-status={session?.currentTaskStatus ?? session?.status}
@@ -1721,7 +1724,9 @@ export default function AgentPanel(props: AgentPanelProps) {
 					onPromptChange={setPrompt}
                     pendingInputs={session?.pendingInputs??[]} canSteer={!localBackendSelected}
                     onInputAction={async(command,content)=>{const accepted=await sendPromptText(content??"",selectedSessionId,workMode,{...command,requestId:crypto.randomUUID()});if(!accepted)throw new Error("队列操作未完成，请刷新后重试");}}
-					onSend={delivery => void onSend(delivery)}
+					attachmentScopeKey={`${projectRoot}:${selectedSessionId}`}
+                    onUploadAttachment={(file,id,signal)=>uploadAgentAttachment(projectRoot,file,id,signal)}
+                    onSend={onSend}
 					onStop={() => void onStop()}
 					onNewSession={localBackendSelected ? () => void newLocalSession() : undefined}
 					onFetchUrlEnabledChange={session?.kind === "main" && !localBackendSelected ? setFetchUrlEnabled : undefined}
@@ -1784,5 +1789,6 @@ export default function AgentPanel(props: AgentPanelProps) {
 				</Tooltip>
 			) : null}
 		</Box>
+        </AgentAttachmentProjectContext.Provider>
 	);
 }

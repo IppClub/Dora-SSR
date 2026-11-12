@@ -421,6 +421,8 @@ pnpm --filter @dora-studio/web preview --port 8898 --strictPort
 
 Agent 使用 `analyze_image` 读取项目相对路径的 PNG/JPEG，不限于 `.agent/vision` 截图目录，例如 `art/player.png`。可直接要求 Agent 分析该路径。
 
+Web IDE 的“自定义参数（JSON，可选）”可以整体留空，留空使用默认请求配置。也可只填写所需覆盖参数，不强制要求 `auxiliaryOptions`；显式填写时仍须是对象，空对象保持默认辅助请求配置。保存并重新打开空配置时不会自动补入参数。
+
 Web IDE 的大模型 API 配置提供“视觉模型（可选）”。其值保存在现有自定义参数 JSON 的 `visionModel`，例如 `{"visionModel":"my-vision-model","auxiliaryOptions":{}}`。填写后使用当前 URL 与密钥请求该模型；接口须兼容 Chat Completions 的 `image_url` 输入。官方已支持服务保留其请求配置，自定义服务使用通用图片请求。留空保持原有默认绑定；未知服务不会自动启用视觉。此字段不会发到主模型或记忆压缩请求。平台托管 Studio 的视觉模型仍由服务端授权确定。
 
 The optional Vision model field is stored as `customOptions.visionModel`. `analyze_image` accepts any project-relative PNG/JPEG. An explicit model uses the configured Chat Completions endpoint and key; an empty value preserves existing default routing. This metadata is excluded from text/compression provider requests. Managed Studio model grants remain server-controlled.
@@ -448,3 +450,25 @@ The optional Vision model field is stored as `customOptions.visionModel`. `analy
 这不是完整可部署服务：仍需带 `studioAgentHost` 标记的专用引擎、可信配置服务和独立来源部署。`host.js` 导出存储命名空间、独占占用和初始化桥接；Agent Lua 直接编译自原实现，不维护第二份决策源码。清单校验只证明文件一致性，不提供来源认证或用户授权。
 
 真实 WASM 回归 `node tests/agent-host-callback.browser.mjs` 现在读取该构建产物，因此运行前须先完成构建；它仍需专用引擎构建和 Playwright/Chrome 环境。不要把该测试服务作为正式产品服务使用。
+
+## macOS 内置 WebView 编辑快捷键回归
+
+从 Dora-Example 运行 `DORA_SSR_ROOT=/path/to/Dora-SSR node Test/Native/test_webview_command_shortcuts.mjs`。需要 macOS、Xcode 命令行工具和已构建的 `build/macosx/arm64/release/libSDL2.a`（其他构建可通过 `DORA_SDL_LIBRARY` 指定）。测试从生产 `Application.mm` 提取实际 WebView、编辑桥接和菜单实现，在真实 SDL 事件循环、WKWebView 和 Monaco 中验证 Command 编辑快捷键、网页优先处理、输入法保护策略及隐藏 IDE 的焦点隔离。临时窗口自动关闭，剪贴板内容在测试后恢复；不重启引擎、不修改用户配置。日志写入 `build/webview-command-qa/regression.log`。
+
+Run the same command on macOS to exercise the production shortcut bridge in SDL/WKWebView with real Monaco. The harness restores the clipboard, closes its temporary window, and leaves the running engine and saved configuration unchanged. `DORA_SDL_LIBRARY` can select another existing SDL build.
+
+## Web IDE composer 附件
+
+Web IDE（含内置 WebView）的 Agent composer 支持通过加号选择任意文件，也支持粘贴 PNG/JPEG。附件先保留在浏览器草稿中，图片显示缩略图，发送前可移除；发送时才通过现有上传接口写入当前项目 `.agent/tmp/attachments/<唯一编号>/`，消息中附带原文件名与项目相对路径。Agent 可用 `read_file` 读取文本、用 `analyze_image` 分析图片。文件内容不直接拼进模型上下文。
+
+上传或消息发送失败会保留草稿，重试复用已上传路径和同一次投递编号；上传期间新输入的文本不会被清空。切换项目或会话会清除该草稿的附件并取消未完成上传。上传后的文件保留在临时目录，当前没有自动过期删除策略。共享 composer 的附件能力由宿主 `onUploadAttachment` 接入；未接入的宿主不显示加号。
+
+测试位于 Dora-Example：`DORA_SSR_ROOT=/path/to/Dora-SSR node Test/DoraStudio/run.mjs --no-build agent-attachments.browser.mjs test-agent-followup.mjs`。附件测试需要运行中的原生引擎，模型投递使用桩，文件实际经原生上传接口落盘并逐字节比对。`Test/Agent/test_composer_uploaded_files_runtime.mjs` 可继续验证正式工具读取上传文件；设置 `DORA_VISION_CONFIG_ID` 会额外发起一次真实视觉模型请求。macOS 原生图片粘贴单独使用 `DORA_CLIPBOARD_ONLY=1 DORA_SSR_ROOT=/path/to/Dora-SSR node Test/Native/test_webview_command_shortcuts.mjs` 验证。
+
+The Web IDE composer keeps selected files in the local draft until send, uploads them to project-relative `.agent/tmp/attachments/<unique-id>/`, and gives the Agent paths rather than inline file contents. Failed submissions retain their draft and reuse uploaded paths; project/session changes abort pending uploads. Shared-composer hosts opt in with `onUploadAttachment`. Uploaded temporary files currently have no automatic expiry.
+
+### 已发送附件消息的显示
+
+消息持久化内容仍包含供 Agent 读取的附件相对路径；会话界面解析现有中英文附件尾部，将图片缩略图展示在用户正文上方，其他文件仅显示文件名，不显示内部说明与 JSON。编辑框仅编辑正文，重发及队列编辑保留原附件引用。缩略图通过现有认证静态文件通道读取，不持久化额外图片副本；临时图片失效时显示占位图。普通 JSON 示例或不完整/越界的附件尾部保持原文，不作为本地文件地址使用。
+
+回归：从 Dora-Example 运行 `DORA_SSR_ROOT=/path/to/Dora-SSR node Test/DoraStudio/run.mjs --no-build agent-message-attachments.browser.mjs`，验证真实原生文件读取、图片位于正文上方、内部信息隐藏、编辑重发、刷新恢复和窄屏显示。

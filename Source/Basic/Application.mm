@@ -102,11 +102,44 @@ static void ideState(NSString* state, NSString* message = @"") {
 
 // A run-log dialog may request DOM focus after the native view has switched.
 @interface DoraIDEWebView : WKWebView
+@property(strong) NSUndoManager* editingUndoManager;
 @end
 @implementation DoraIDEWebView
+- (NSUndoManager*)undoManager {
+ // The SDL responder chain does not provide a window undo manager.
+ if (!_editingUndoManager) _editingUndoManager = [NSUndoManager new];
+ return _editingUndoManager;
+}
 - (BOOL)acceptsFirstResponder { return !self.hidden && [super acceptsFirstResponder]; }
 - (BOOL)becomeFirstResponder { return !self.hidden && [super becomeFirstResponder]; }
 @end
+
+// Paste must remain in the native key-event stack. Deferring it through a
+// script message loses WebKit's clipboard user gesture for external images.
+static BOOL idePasteKeyEquivalent(WKWebView* view, NSEvent* event) {
+ NSEventModifierFlags mods = event.modifierFlags & (NSEventModifierFlagCommand | NSEventModifierFlagShift | NSEventModifierFlagControl | NSEventModifierFlagOption);
+ if (event.type != NSEventTypeKeyDown || mods != NSEventModifierFlagCommand || ![event.charactersIgnoringModifiers.lowercaseString isEqualToString:@"v"] || view.hidden) return NO;
+ NSResponder* responder = view.window.firstResponder;
+ if (![responder isKindOfClass:NSView.class] || ![(NSView*)responder isDescendantOf:view]) return NO;
+ if ([responder conformsToProtocol:@protocol(NSTextInputClient)] && [(id<NSTextInputClient>)responder hasMarkedText]) return NO;
+ return [NSApp sendAction:@selector(paste:) to:view from:nil];
+}
+
+// WebKit may consume editing key equivalents without reaching the Edit menu.
+// Preserve trusted DOM events (Monaco handles its own editing), then bridge
+// only unhandled standard editing commands to Cocoa.
+static NSString* ideEditingShortcutScript() {
+ return @"window.addEventListener('keydown', function(event) {"
+  "if (!event.isTrusted || event.defaultPrevented || event.isComposing || event.keyCode === 229"
+  " || !event.metaKey || event.ctrlKey || event.altKey) return;"
+  "var key = event.key.toLowerCase();"
+  "var action = event.shiftKey ? (key === 'z' ? 'redo' : null)"
+  " : ({a:'selectAll',x:'cut',c:'copy',z:'undo'})[key];"
+  "if (!action) return;"
+  "event.preventDefault();"
+  "window.webkit.messageHandlers.doraIDEEdit.postMessage(action);"
+  "});";
+}
 
 @interface DoraIDEHost : NSObject <WKNavigationDelegate, WKUIDelegate, WKDownloadDelegate, WKScriptMessageHandler>
 @property(weak) NSWindow* window;
@@ -222,6 +255,7 @@ static void ideState(NSString* state, NSString* message = @"") {
   if (!host.visible || !(event.modifierFlags & NSEventModifierFlagCommand)) return event;
   id responder = host.window.firstResponder;
   if ([responder conformsToProtocol:@protocol(NSTextInputClient)] && [(id<NSTextInputClient>)responder hasMarkedText]) return event;
+  if (idePasteKeyEquivalent(host.view, event)) return nil;
   BOOL shift = (event.modifierFlags & NSEventModifierFlagShift) != 0;
   if (shift && [key isEqualToString:@"l"]) { [host reload]; return nil; }
   if ([key isEqualToString:@"w"]) {
@@ -282,6 +316,8 @@ static void ideState(NSString* state, NSString* message = @"") {
  WKWebViewConfiguration* config = [[WKWebViewConfiguration alloc] init];
  config.websiteDataStore = [WKWebsiteDataStore defaultDataStore];
  [config.userContentController addScriptMessageHandler:self name:@"doraIDERun"];
+ [config.userContentController addScriptMessageHandler:self name:@"doraIDEEdit"];
+ [config.userContentController addUserScript:[[WKUserScript alloc] initWithSource:ideEditingShortcutScript() injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:YES]];
  if (@available(macOS 14.0, *)) config.preferences.inactiveSchedulingPolicy = WKInactiveSchedulingPolicyNone;
  NSView* root = _window.contentView;
  _view = [[DoraIDEWebView alloc] initWithFrame:root.bounds configuration:config];
@@ -323,6 +359,7 @@ static void ideState(NSString* state, NSString* message = @"") {
  _view = nil; _loaded = NO;
  [closing stopLoading];
  [closing.configuration.userContentController removeScriptMessageHandlerForName:@"doraIDERun"];
+ [closing.configuration.userContentController removeScriptMessageHandlerForName:@"doraIDEEdit"];
  closing.navigationDelegate = nil; closing.UIDelegate = nil;
  [closing removeFromSuperview];
  // Stop reconnect timers and in-flight warmup before releasing the document.
@@ -348,6 +385,19 @@ static void ideState(NSString* state, NSString* message = @"") {
  if (message.webView != _view || !message.frameInfo.mainFrame || ![message.body isKindOfClass:NSString.class]) return;
  NSURL* url = message.frameInfo.request.URL;
  if (![url.host isEqualToString:@"localhost"] || url.port.intValue != 8866 || ![url.scheme isEqualToString:@"http"]) return;
+ if ([message.name isEqualToString:@"doraIDEEdit"]) {
+  NSResponder* responder = _window.firstResponder;
+  if (!_visible || ![responder isKindOfClass:NSView.class] || ![(NSView*)responder isDescendantOf:_view]) return;
+  if ([responder conformsToProtocol:@protocol(NSTextInputClient)] && [(id<NSTextInputClient>)responder hasMarkedText]) return;
+  NSDictionary<NSString*, NSString*>* actions = @{@"selectAll":@"selectAll:", @"cut":@"cut:", @"copy":@"copy:", @"paste":@"paste:", @"undo":@"undo:", @"redo":@"redo:"};
+  NSString* selector = actions[message.body];
+  if ([message.body isEqualToString:@"undo"]) {
+   if (_view.undoManager.canUndo) [_view.undoManager undo];
+  } else if ([message.body isEqualToString:@"redo"]) {
+   if (_view.undoManager.canRedo) [_view.undoManager redo];
+  } else if (selector) [NSApp sendAction:NSSelectorFromString(selector) to:nil from:_view];
+  return;
+ }
  NSArray<NSString*>* parts = [message.body componentsSeparatedByString:@":"];
  if (parts.count != 3 || ![parts[0] isEqualToString:@"dora-ide-run"] || parts[2].length == 0) return;
  if ([parts[1] isEqualToString:@"start"]) { _pendingRun = _visible ? parts[2] : nil; return; }

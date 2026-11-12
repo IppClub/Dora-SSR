@@ -1,3 +1,6 @@
+import {parseAgentMessageAttachments,SharedAgentAttachmentGallery} from './AgentMessageAttachments';
+export {parseAgentMessageAttachments,replaceAgentMessageText,SharedAgentAttachmentGallery} from './AgentMessageAttachments';
+export type {AgentMessageAttachment,AgentAttachmentImageLoader} from './AgentMessageAttachments';
 import {AgentReasoning, hasAgentStepCard} from './AgentReasoning';
 export {AgentReasoning, hasAgentStepCard} from './AgentReasoning';
 import React, {useMemo, useState} from 'react';
@@ -100,7 +103,8 @@ export {AgentFollowupQueue} from './AgentFollowup';
 export type {AgentInputDelivery,AgentInputCommand,AgentPendingInput,AgentInputControls} from './AgentFollowup';
 
 export function SharedAgentUserMessage({message}:{message:AgentSessionMessage}){
- return <article className="agent-message user" data-agent-message-id={message.id}><header>你</header><SharedAgentMarkdown content={message.displayContent??message.content}/></article>;
+ const parsed=parseAgentMessageAttachments(message.displayContent??message.content);
+ return <article className="agent-message user" data-agent-message-id={message.id}><header>你</header><SharedAgentAttachmentGallery attachments={parsed.attachments}/><SharedAgentMarkdown content={parsed.text}/></article>;
 }
 
 export function SharedAgentStepList(props:{steps:readonly AgentSessionStep[];steeringMessages?:readonly AgentSessionMessage[];running?:boolean;onOpenFile?:(path:string)=>void}){

@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import * as Service from './Service';
@@ -67,6 +68,28 @@ const inputStyle = {
 	"& .MuiInputBase-root": {
 		backgroundColor: Color.BackgroundDark,
 	},
+	// Safari can mispaint a hidden legend inside flex layouts (MUI #46891).
+	// Keep its layout box visible; MUI's inner span remains transparent.
+	"@supports (-webkit-appearance: none)": {
+		"& .MuiOutlinedInput-notchedOutline legend": { visibility: 'visible' },
+	},
+};
+
+const ConfigHelp = ({label, text}: {label: string; text: string}) => {
+	const [open, setOpen] = useState(false);
+	return <InputAdornment position="end">
+		<Tooltip title={text} describeChild open={open} onOpen={() => setOpen(true)} onClose={() => setOpen(false)} enterTouchDelay={0} leaveTouchDelay={3000}>
+			<IconButton size="small" edge="end" aria-label={label} onClick={() => setOpen(true)}
+				onKeyDown={(event) => {
+					if (open && event.key === 'Escape') {
+						event.stopPropagation();
+						setOpen(false);
+					}
+				}}>
+				<HelpOutlineIcon fontSize="small" />
+			</IconButton>
+		</Tooltip>
+	</InputAdornment>;
 };
 
 const normalizeFormNumber = (value: unknown, fallback: number) => {
@@ -101,10 +124,11 @@ const parseCustomOptionsObject = (value: string): Record<string, unknown> | unde
 	}
 };
 
-const hasAuxiliaryOptions = (value: string) => {
+const validateAuxiliaryOptions = (value: string) => {
 	const parsed = parseCustomOptionsObject(value);
 	if (!parsed) return false;
 	const auxiliaryOptions = parsed.auxiliaryOptions;
+	if (auxiliaryOptions === undefined) return true;
 	return auxiliaryOptions !== null
 		&& typeof auxiliaryOptions === 'object'
 		&& !Array.isArray(auxiliaryOptions);
@@ -309,31 +333,6 @@ const BUILTIN_TEMPLATES: LLMTemplate[] = [
 	},
 ];
 
-const getDefaultAuxiliaryOptions = (config?: Pick<Service.LLMConfigItem, 'url'>): Record<string, unknown> => {
-	const template = config
-		? BUILTIN_TEMPLATES.find((item) => item.url === config.url.trim())
-		: undefined;
-	const templateOptions = parseCustomOptionsObject(template?.customOptions ?? '');
-	const auxiliaryOptions = templateOptions?.auxiliaryOptions;
-	if (auxiliaryOptions !== null && typeof auxiliaryOptions === 'object' && !Array.isArray(auxiliaryOptions)) {
-		return auxiliaryOptions as Record<string, unknown>;
-	}
-	return {};
-};
-
-const ensureAuxiliaryOptions = (
-	value: unknown,
-	config?: Pick<Service.LLMConfigItem, 'url'>,
-) => {
-	const normalized = normalizeCustomOptions(value);
-	const parsed = parseCustomOptionsObject(normalized);
-	if (!parsed || Object.prototype.hasOwnProperty.call(parsed, 'auxiliaryOptions')) return normalized;
-	return JSON.stringify({
-		...parsed,
-		auxiliaryOptions: getDefaultAuxiliaryOptions(config),
-	}, null, 2);
-};
-
 type LocalAgentFormState = {
 	id: number;
 	name: string;
@@ -433,7 +432,7 @@ const LLMConfigDialog = ({ open, onClose }: LLMConfigDialogProps) => {
 					temperature: normalizeFormNumber(item.temperature, DEFAULT_TEMPERATURE),
 					maxTokens: Number(item.maxTokens) > 0 ? Number(item.maxTokens) : DEFAULT_MAX_TOKENS,
 					reasoningEffort: typeof item.reasoningEffort === 'string' ? item.reasoningEffort : '',
-					customOptions: ensureAuxiliaryOptions(item.customOptions, item),
+					customOptions: normalizeCustomOptions(item.customOptions),
 				}));
 				setItems(normalized);
 			} else {
@@ -566,7 +565,7 @@ const LLMConfigDialog = ({ open, onClose }: LLMConfigDialogProps) => {
 			temperature: normalizeFormNumber(item.temperature, DEFAULT_TEMPERATURE),
 			maxTokens: Number(item.maxTokens) > 0 ? Number(item.maxTokens) : DEFAULT_MAX_TOKENS,
 			reasoningEffort: typeof item.reasoningEffort === 'string' ? item.reasoningEffort : '',
-			customOptions: ensureAuxiliaryOptions(item.customOptions, item),
+			customOptions: normalizeCustomOptions(item.customOptions),
 		});
 		setShowApiKey(false);
 		setFormOpen(true);
@@ -607,8 +606,8 @@ const LLMConfigDialog = ({ open, onClose }: LLMConfigDialogProps) => {
 			setError(t('llm.visionModelInvalid'));
 			return;
 		}
-		if (!hasAuxiliaryOptions(payload.customOptions)) {
-			setError(t('llm.auxiliaryOptionsRequired'));
+		if (!validateAuxiliaryOptions(payload.customOptions)) {
+			setError(t('llm.auxiliaryOptionsInvalid'));
 			return;
 		}
 		const res = mode === 'create'
@@ -828,7 +827,6 @@ const LLMConfigDialog = ({ open, onClose }: LLMConfigDialogProps) => {
 				<DialogTitle>{isEditing ? t('llm.editTitle') : t('llm.createTitle')}</DialogTitle>
 				<DialogContent>
 					<Stack spacing={2} sx={{ marginTop: 1 }}>
-						<Typography variant="body2" color="text.secondary">{t('llm.functionCallingRequired')}</Typography>
 						{isEditing ? null : (
 							<TextField
 								select
@@ -867,6 +865,7 @@ const LLMConfigDialog = ({ open, onClose }: LLMConfigDialogProps) => {
 						<Stack direction="row" spacing={2}>
 							<TextField
 								label={t('llm.model')}
+								slotProps={{input: {endAdornment: <ConfigHelp label={t('llm.fieldHelp', {field: t('llm.model')})} text={t('llm.functionCallingRequired')} />}}}
 								value={form.model}
 								onChange={(event) => setForm({ ...form, model: event.target.value })}
 								fullWidth
@@ -888,7 +887,7 @@ const LLMConfigDialog = ({ open, onClose }: LLMConfigDialogProps) => {
 						</Stack>
 						<TextField
 							label={t('llm.visionModel')}
-							helperText={t('llm.visionModelHelp')}
+							slotProps={{input: {endAdornment: <ConfigHelp label={t('llm.fieldHelp', {field: t('llm.visionModel')})} text={t('llm.visionModelHelp')} />}}}
 							value={typeof parseCustomOptionsObject(form.customOptions ?? '')?.visionModel === 'string' ? parseCustomOptionsObject(form.customOptions ?? '')!.visionModel : ''}
 							disabled={parseCustomOptionsObject(form.customOptions ?? '') === undefined}
 							onChange={(event) => {
@@ -935,6 +934,7 @@ const LLMConfigDialog = ({ open, onClose }: LLMConfigDialogProps) => {
 						</Stack>
 						<TextField
 							label={t('llm.customOptions')}
+							slotProps={{input: {endAdornment: <ConfigHelp label={t('llm.fieldHelp', {field: t('llm.customOptions')})} text={t('llm.customOptionsHelp')} />}}}
 							value={form.customOptions ?? ''}
 							onChange={(event) => setForm({ ...form, customOptions: event.target.value })}
 							fullWidth

@@ -1,4 +1,5 @@
 import React from 'react';
+import {parseAgentMessageAttachments,replaceAgentMessageText} from './AgentMessageAttachments';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
@@ -28,7 +29,7 @@ export function AgentFollowupQueue({pendingInputs=[],canSteer=true,onInputAction
   };
   const finishEdit=async(save:boolean)=>{
     if(!editing)return;
-    if(save&&!await perform({action:'edit',inputId:editing.id},editing.text))return;
+    if(save&&!await perform({action:'edit',inputId:editing.id},replaceAgentMessageText(pendingInputs.find(item=>item.id===editing.id)?.content??'',editing.text)))return;
     if(!await perform({action:'release',inputId:editing.id}))return;
     setEditing(null);
   };
@@ -38,11 +39,11 @@ export function AgentFollowupQueue({pendingInputs=[],canSteer=true,onInputAction
     {pendingInputs.map((item,index)=><Box key={item.id} data-agent-input-id={item.id} sx={{borderLeft:`2px solid ${item.delivery==='steer'?Color.Theme:Color.Line}`,pl:1.25,py:.5,mb:.5,backgroundColor:Color.BackgroundDark,borderRadius:'0 6px 6px 0'}}>
       <Box sx={{display:'flex',alignItems:'center',gap:.5,pr:.5}}>
         <Box sx={{fontSize:10,color:item.delivery==='steer'?Color.Theme:Color.TextSecondary,minWidth:60}}>{item.delivery==='steer'?'等待引导…':`排队 ${pendingInputs.slice(0,index+1).filter(input=>input.delivery==='queue').length}`}</Box>
-        {editing?.id!==item.id&&<Box sx={{fontSize:12,flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}} title={item.content}>{item.content}</Box>}
+        {editing?.id!==item.id&&<Box sx={{fontSize:12,flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}} title={parseAgentMessageAttachments(item.content).text}>{parseAgentMessageAttachments(item.content).text||'附件消息'}</Box>}
         {item.status==='editing'&&!editing&&<Button size="small" disabled={busy||!onInputAction} onClick={()=>void perform({action:'release',inputId:item.id})}>解除编辑</Button>}
         {item.status==='pending'&&!editing&&<>
           {item.delivery==='queue'&&canSteer&&<Button size="small" disabled={busy||!onInputAction} onClick={()=>void perform({action:'steer',inputId:item.id})} sx={{fontSize:11,minWidth:0}}>引导</Button>}
-          <Tooltip title="编辑消息"><IconButton size="small" aria-label="编辑消息" disabled={busy||!onInputAction} onClick={async()=>{if(await perform({action:'hold',inputId:item.id}))setEditing({id:item.id,text:item.content});}} sx={{fontSize:13,color:Color.TextSecondary}}>✎</IconButton></Tooltip>
+          <Tooltip title="编辑消息"><IconButton size="small" aria-label="编辑消息" disabled={busy||!onInputAction} onClick={async()=>{if(await perform({action:'hold',inputId:item.id}))setEditing({id:item.id,text:parseAgentMessageAttachments(item.content).text});}} sx={{fontSize:13,color:Color.TextSecondary}}>✎</IconButton></Tooltip>
           <Tooltip title="删除消息"><IconButton size="small" aria-label="删除消息" disabled={busy||!onInputAction} onClick={()=>void perform({action:'cancel',inputId:item.id})} sx={{fontSize:15,color:Color.TextSecondary}}>×</IconButton></Tooltip>
         </>}
       </Box>

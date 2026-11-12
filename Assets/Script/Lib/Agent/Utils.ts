@@ -1190,6 +1190,7 @@ export function validateAgentLLMConfig(config: LLMConfig): { success: true } | {
 		return {success: false, message: "视觉模型名称 visionModel 必须是字符串；留空使用默认行为。"};
 	}
 	const auxiliaryOptions = config.customOptions?.auxiliaryOptions;
+	if (auxiliaryOptions === undefined) return { success: true };
 	const emptyOptions = typeof auxiliaryOptions === "object" && auxiliaryOptions !== undefined
 		&& auxiliaryOptions !== json.null && Object.keys(auxiliaryOptions as object).length === 0;
 	if (isPlainRecord(auxiliaryOptions) || emptyOptions) {
@@ -1200,7 +1201,7 @@ export function validateAgentLLMConfig(config: LLMConfig): { success: true } | {
 	}
 	return {
 		success: false,
-		message: "LLM 配置的 customOptions 必须包含 auxiliaryOptions 对象（可以为空），请检查 LLM 配置",
+		message: "LLM 配置的 auxiliaryOptions 如有填写必须是对象（可以为空），请检查 LLM 配置",
 	};
 }
 

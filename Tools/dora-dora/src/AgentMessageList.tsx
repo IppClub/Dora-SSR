@@ -1,3 +1,5 @@
+import {parseAgentMessageAttachments,replaceAgentMessageText} from '@dora-studio/agent-ui';
+import AgentMessageAttachments from './AgentMessageAttachments';
 import React from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -73,7 +75,7 @@ function AgentMessageList(props: AgentMessageListProps) {
 
 	const startEdit = (message: AgentSessionMessage) => {
 		setEditingMessageId(message.id);
-		setEditingPrompt(message.content);
+		setEditingPrompt(parseAgentMessageAttachments(message.content).text);
 	};
 
 	const cancelEdit = () => {
@@ -87,7 +89,7 @@ function AgentMessageList(props: AgentMessageListProps) {
 		if (prompt === "" || sending) return;
 		setSending(true);
 		try {
-			const success = await props.onResendPrompt?.(message, prompt);
+			const success = await props.onResendPrompt?.(message, replaceAgentMessageText(message.content,prompt));
 			if (success) {
 				cancelEdit();
 			}
@@ -131,7 +133,8 @@ function AgentMessageList(props: AgentMessageListProps) {
 				}
 				const editable = message.role === "user" && message.displayContent === undefined && message.id === props.editableMessageId && !props.editDisabled && props.onResendPrompt !== undefined;
 				const editing = editingMessageId === message.id;
-				const visibleContent = message.displayContent ?? message.content;
+				const parsed=message.role==="user"?parseAgentMessageAttachments(message.displayContent??message.content):{text:message.displayContent??message.content,attachments:[]};
+                const visibleContent=parsed.text;
 				return (
 					<Box key={message.id} data-agent-message-id={message.id} sx={{
 						display: "flex",
@@ -153,6 +156,7 @@ function AgentMessageList(props: AgentMessageListProps) {
 								pointerEvents: "auto",
 							},
 						}}>
+                            <AgentMessageAttachments attachments={parsed.attachments}/>
 							<Box sx={{
 								borderRadius: message.role === "user" ? 3 : 0,
 								px: message.role === "user" ? 2 : 0,
