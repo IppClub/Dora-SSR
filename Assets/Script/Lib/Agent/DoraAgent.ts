@@ -853,10 +853,8 @@ async function executeToolActionWithGuidance(shared: AgentShared, action: AgentA
 	if (action.tool === "spawn_agent" && action.params.prompt === undefined && shared.workflow.hasSpawnedSubAgentThisTask === true) {
 		guidance.push("Sub-agent results arrive asynchronously. Avoid polling repeatedly; finish the current turn when no independent foreground work remains.");
 	}
-	if (shared.workflow.freshProjectBuildPending === true && action.tool !== "build") {
-		guidance.push(shared.workflow.unbuiltEdits === true
-			? "A fresh project now has an authored implementation. Prefer an early build so later work uses compiler feedback."
-			: "This is a fresh project. Prefer creating a compilable first implementation, then build early.");
+	if (shared.workflow.freshProjectBuildPending === true && shared.workflow.unbuiltEdits === true && action.tool !== "build") {
+		guidance.push("A fresh project now has an authored implementation. Prefer an early build so later work uses compiler feedback.");
 	}
 	if (shared.workflow.buildRepairPending === true) {
 		if (action.tool === "build") {

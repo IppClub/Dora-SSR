@@ -98,6 +98,17 @@ assert(parts.historyBudget > 20000, 'large raw memories incorrectly collapsed th
 result = compress(c, options, history(12, 4000))
 assert(result.success and result.compressedCount == 12)
 
+-- Quoted placeholders are source data, not another template expansion. This
+-- exact history shape triggered a real post-merge compression budget failure.
+c, options = fixture(131072, 65536, string.rep('project', 3000), 'summary')
+local literalHistory = 'SOURCE {{CURRENT_MEMORY}} {{CURRENT_PROJECT_MEMORY}} {{CURRENT_SESSION_SUMMARY}} {{HISTORY_TEXT}} {{LAST_ERROR}} END'
+local literalCore = 'core quotes {{HISTORY_TEXT}} and {{CURRENT_PROJECT_MEMORY}}'
+local expanded = c:buildCompressionPromptBody(literalCore, literalHistory, options)
+assert(expanded:find(literalHistory, 1, true), 'history placeholders were recursively expanded')
+assert(expanded:find(literalCore, 1, true), 'memory placeholders were recursively expanded')
+result = compress(c, options, {{role='assistant',content=literalHistory}})
+assert(result.success and #requests==1 and requests[1].messages[2].content:find(literalHistory,1,true))
+
 -- Caller overrides and the provider's max_completion_tokens field use the same
 -- output reserve as HTTP. Impossible configurations do not call or mutate memory.
 c, options = fixture(64000, 8000)
@@ -209,3 +220,82 @@ local errorText=string.rep('prefix ',80)..'UNIQUE_ERROR_DETAIL_AT_END'
 projected=H.projectMessagesForLLMContext({{role='tool',name='edit_file',content=J.encode({success=false,message=errorText})}})
 assert(projected[1].content:find('UNIQUE_ERROR_DETAIL_AT_END',1,true))
 print('Tool consolidation and lossless history regressions passed.')
+
+-- The production estimator weights CJK differently from bytes. Clipping must
+-- honor the requested budget even for tiny budgets and mixed UTF-8 content.
+local D = require('Dora')
+local originalEstimator = D.App.estimateTokens
+D.App.estimateTokens = function(_, text)
+  local tokens = 0
+  for _, cp in utf8.codes(text) do tokens = tokens + (cp < 128 and .4 or 2) end
+  return math.ceil(tokens)
+end
+for _, text in ipairs({string.rep('中', 1000), string.rep('🙂', 500), string.rep('abc中文🙂\n', 250), string.rep('abc', 1000)}) do
+  for _, budget in ipairs({0, 1, 2, 3, 8, 99, 100, 500, 10000}) do
+    local clipped = U.clipTextToTokenBudget(text, budget)
+    assert(utf8.len(clipped), 'clipped text is not valid UTF-8')
+    assert(D.App:estimateTokens(clipped) <= budget, 'clipping exceeded token budget')
+    if D.App:estimateTokens(text) <= budget then assert(clipped == text, 'fitting text changed') end
+  end
+end
+-- Stress stored Chinese memories and real chunk packing with strict clipping.
+c, options, config = fixture(131072, 65536, string.rep('项目记忆中文🙂', 5000), string.rep('当前进度中文', 2500))
+result = compress(c, options, {{role='user',content='保留约束'}, {role='assistant',content=string.rep('历史上下文中文', 1800)}})
+assert(result.success and #requests == 1 and archives == 0)
+fit = U.fitMessagesToContext(requests[1].messages, requests[1].options, config)
+assert(not fit.trimmed and fit.originalTokens <= fit.budgetTokens, 'Chinese compression request exceeded budget')
+D.App.estimateTokens = originalEstimator
+
+-- Run the real write/edit/delete handlers and policy against an in-memory
+-- checkpoint adapter. Documentation must not create or clear source-build debt.
+D.Path = setmetatable({
+  getExt = function(_, path) return path:match('%.([^./]+)$') or '' end,
+  getFilename = function(_, path) return path:match('([^/]+)$') or path end,
+}, {__call = function(_, ...) return table.concat({...}, '/') end})
+local files, checkpoints = {}, 0
+local tools = {
+  inspectWorkspaceTextTarget = function(_, path) return {success=true,exists=files[path]~=nil,content=files[path] or ''} end,
+  readFileRaw = function(_, path) return {success=files[path]~=nil,content=files[path]} end,
+  applyFileChanges = function(_, _, changes)
+    checkpoints = checkpoints + 1
+    for _, change in ipairs(changes) do files[change.path] = change.content end
+    return {success=true,checkpointId=checkpoints,checkpointSeq=checkpoints}
+  end,
+  deleteFile = function(_, _, path)
+    if not files[path] then return {success=false,message='missing file'} end
+    files[path]=nil;checkpoints=checkpoints+1
+    return {success=true,checkpointed=true,checkpointId=checkpoints,checkpointSeq=checkpoints}
+  end,
+}
+package.loaded['Agent.Tools'] = tools
+package.loaded['Agent.Tool.VisionAnalysis'] = {}
+local policy = require('Agent.Runtime.Policy')
+local handlers = require('Agent.Tool.Handlers').AGENT_TOOL_HANDLERS
+for _, path in ipairs({'AUDIT.md','docs/Guide.MD','notes.rst','README','LICENSE.txt','.agent/main/MEMORY.md'}) do
+  assert(not policy.requiresAgentBuildForPath(path), path)
+end
+for _, path in ipairs({'init.ts','main.lua','data.txt','settings.json','image.png','README.ts'}) do
+  assert(policy.requiresAgentBuildForPath(path), path)
+end
+local ctx = {workingDir='/fixture',taskId=1,workMode='code',workflow={}}
+local function tool(name, input) local output=await(handlers[name](ctx,input)).output;assert(output.success, output.message);return output end
+local checkpoint=tool('write_file',{path='AUDIT.md',new_str='first draft'}).checkpointId
+assert(checkpoint and not ctx.workflow.unbuiltEdits)
+tool('edit_file',{path='AUDIT.md',old_str='first',new_str='second'})
+assert(not ctx.workflow.unbuiltEdits and not ctx.workflow.editedPathsSinceBuild)
+tool('edit_file',{path='AUDIT.md',delete=true})
+assert(not ctx.workflow.unbuiltEdits)
+ctx.workflow={failedTestNeedsBuild=true,lastBuildSucceeded=false}
+tool('write_file',{path='README.md',new_str='documentation'})
+assert(ctx.workflow.failedTestNeedsBuild and not ctx.workflow.failedTestHasSourceEdit and ctx.workflow.lastBuildSucceeded==false)
+tool('write_file',{path='init.ts',new_str='source v1'})
+assert(ctx.workflow.unbuiltEdits and ctx.workflow.failedTestHasSourceEdit and ctx.workflow.editsSinceBuild==1)
+tool('write_file',{path='FINAL.md',new_str='summary'})
+assert(ctx.workflow.unbuiltEdits and ctx.workflow.editsSinceBuild==1 and #ctx.workflow.editedPathsSinceBuild==1)
+ctx.workflow={}
+tool('edit_file',{edits={{path='README.md',old_str='documentation',new_str='updated docs'},{path='init.ts',old_str='v1',new_str='v2'}}})
+assert(ctx.workflow.unbuiltEdits and ctx.workflow.editsSinceBuild==1 and ctx.workflow.editedPathsSinceBuild[1]=='init.ts')
+ctx.workflow={}
+tool('edit_file',{path='init.ts',delete=true})
+assert(ctx.workflow.unbuiltEdits and ctx.workflow.editsSinceBuild==1)
+print('UTF-8 budget enforcement, Chinese compression packing, and document/source build-debt regressions passed.')

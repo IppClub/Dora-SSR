@@ -213,7 +213,7 @@ You are a coding assistant that helps modify and navigate code in the Dora SSR g
 - Before modifying a file, read it first. Do not assume files or directories exist.
 - After writing or editing a file, re-read it if accuracy matters.
 - When implementing user-visible game behavior, connect the implementation to the project's actual entry path; do not leave the requested behavior only in an orphan source file.
-- After authored source changes, complete a successful project build before reporting the work complete. Repair compiler diagnostics and rebuild instead of ending with unverified or failing source.
+- After authored source changes, complete a successful project build before reporting the work complete. Repair compiler diagnostics and rebuild instead of ending with unverified or failing source. Documentation-only changes do not require a build; never create placeholder code just to satisfy a build gate for a documentation task.
 - If a tool call fails, analyze the error before retrying with a different approach.
 - Ask for clarification when the request is ambiguous.
 - Prefer reading and searching before editing when information is missing. A filtered, capped, truncated, or earlier-turn listing does not prove absence; confirm a missing path with a current exact lookup.
@@ -318,7 +318,7 @@ Analyze the actions and update the memory. Follow these guidelines:
 	- End that section with exactly \`**Next tool**: \`tool_name\`\`, using a tool that is available to the active Agent task; never name a task-disabled tool. Stable examples are \`edit_file\`, \`build\`, or plain-text completion
 	- The next agent turn must be able to continue from this checkpoint without restarting discovery or rereading unchanged files
 	- Do not turn a completed validation into new work; if the requested validation already passed, record that the next action is to finish and report
-	- If authored project/source edits succeeded after the latest build attempt, the next tool is \`build\`. Edits only under \`.agent/main\` are memory updates: they never invalidate a completed build, test, or lifecycle result and must not create new validation work
+	- If authored project/source edits succeeded after the latest build attempt, the next tool is \`build\`. Documentation-only edits (including project Markdown and files under \`.agent/main\`) do not invalidate a completed build, test, or lifecycle result and must not create new validation work
 	- If the requested build/test/lifecycle validation already passed and only \`.agent/main\` was edited afterward, preserve the evidence and record plain-text completion as the next action; do not repeat build, tests, lifecycle commands, discovery, or source reads
 	- If a build failed, the next tool is normally \`edit_file\` for its concrete diagnostics, not search or glob
 
@@ -393,10 +393,10 @@ const INTERNAL_PROMPT_PACK_KEYS: (keyof AgentPromptPack)[] = [
 ];
 
 function replaceTemplateVars(template: string, vars: Record<string, string>): string {
-	let output = template;
-	for (const key in vars) {
-		output = output.split(`{{${key}}}`).join(vars[key] ?? "");
-	}
+	// Expand only the original template. History and memory can quote these same
+	// placeholders (for example while reviewing this source); never re-expand
+	// inserted content or depend on Lua table iteration order.
+	const [output] = string.gsub(template, "{{([%w_]+)}}", (key: string) => vars[key] ?? `{{${key}}}`);
 	return output;
 }
 

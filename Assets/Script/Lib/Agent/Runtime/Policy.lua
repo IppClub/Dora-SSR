@@ -3,6 +3,8 @@ local ____lualib = require("lualib_bundle") -- 1
 local __TS__StringSplit = ____lualib.__TS__StringSplit -- 1
 local __TS__StringStartsWith = ____lualib.__TS__StringStartsWith -- 1
 local __TS__StringTrim = ____lualib.__TS__StringTrim -- 1
+local __TS__ArrayIndexOf = ____lualib.__TS__ArrayIndexOf -- 1
+local __TS__StringEndsWith = ____lualib.__TS__StringEndsWith -- 1
 local __TS__ArraySlice = ____lualib.__TS__ArraySlice -- 1
 local __TS__ObjectAssign = ____lualib.__TS__ObjectAssign -- 1
 local ____exports = {} -- 1
@@ -56,105 +58,135 @@ end -- 84
 function ____exports.isAgentInternalDocumentPath(path) -- 89
 	return ____exports.isMainAgentMemoryPath(path) or ____exports.isAgentPlanPath(path) -- 90
 end -- 89
-local function ensureDirectory(dir) -- 93
-	if Content:exist(dir) then -- 93
-		return Content:isdir(dir) -- 94
-	end -- 94
-	local parent = Path:getPath(dir) -- 95
-	if parent ~= "" and parent ~= dir and not Content:exist(parent) and not ensureDirectory(parent) then -- 95
-		return false -- 96
-	end -- 96
-	return Content:mkdir(dir) -- 97
-end -- 93
-function ____exports.ensureAgentPlanDocuments(workDir) -- 100
-	local dir = Path(workDir, ____exports.AGENT_PLAN_DIR) -- 101
-	if not ensureDirectory(dir) then -- 101
-		return {success = false, message = "failed to create " .. ____exports.AGENT_PLAN_DIR} -- 102
-	end -- 102
-	local created = {} -- 103
-	local documents = {{____exports.AGENT_PLAN_FILE, DEFAULT_PLAN_DOCUMENT}, {____exports.AGENT_PROGRESS_FILE, DEFAULT_PROGRESS_DOCUMENT}} -- 104
-	do -- 104
-		local i = 0 -- 108
-		while i < #documents do -- 108
-			do -- 108
-				local relative, content = table.unpack(documents[i + 1], 1, 2) -- 109
-				local path = Path(workDir, relative) -- 110
-				if Content:exist(path) then -- 110
-					goto __continue17 -- 111
-				end -- 111
-				if not Content:save(path, content) then -- 111
-					return {success = false, message = "failed to create " .. relative} -- 112
-				end -- 112
-				sendWebIDEFileUpdate(path, true, content) -- 113
-				created[#created + 1] = relative -- 114
-			end -- 114
-			::__continue17:: -- 114
-			i = i + 1 -- 108
-		end -- 108
-	end -- 108
-	return {success = true, created = created} -- 116
-end -- 100
-function ____exports.isEditBudgetExhausted(state) -- 127
-	local mustCreateFreshEntry = state.freshProjectBuildPending == true and state.freshProjectCodeFile == nil and state.hasBuilt ~= true -- 128
-	return state.unbuiltEdits == true and (state.editsSinceBuild or 0) >= 3 and not mustCreateFreshEntry -- 131
-end -- 127
-function ____exports.getUncoveredConversationMessages(messages, lastConsolidatedIndex) -- 136
-	return __TS__ArraySlice(messages, lastConsolidatedIndex) -- 137
-end -- 136
-function ____exports.normalizeLineEndings(text) -- 140
-	return table.concat( -- 141
-		__TS__StringSplit( -- 141
-			table.concat( -- 141
-				__TS__StringSplit(text, "\r\n"), -- 141
-				"\n" -- 141
-			), -- 141
-			"\r" -- 141
-		), -- 141
-		"\n" -- 141
-	) -- 141
-end -- 140
-function ____exports.countOccurrences(text, needle) -- 144
-	if needle == "" then -- 144
-		return 0 -- 145
-	end -- 145
-	local count = 0 -- 146
-	local start = 0 -- 147
-	while start <= #text - #needle do -- 147
-		local index = (string.find( -- 149
-			text, -- 149
-			needle, -- 149
-			math.max(start + 1, 1), -- 149
-			true -- 149
-		) or 0) - 1 -- 149
-		if index < 0 then -- 149
-			break -- 150
-		end -- 150
-		count = count + 1 -- 151
-		start = index + #needle -- 152
-	end -- 152
-	return count -- 154
-end -- 144
-function ____exports.containsWholeFileDuplicate(existing, replacement) -- 157
-	local normalizedExisting = ____exports.normalizeLineEndings(existing) -- 158
-	local normalizedReplacement = ____exports.normalizeLineEndings(replacement) -- 159
-	if #normalizedExisting < 16 or #normalizedReplacement <= #normalizedExisting then -- 159
-		return false -- 160
-	end -- 160
-	return ____exports.countOccurrences(normalizedReplacement, normalizedExisting) > 1 -- 161
-end -- 157
-function ____exports.successfulEditResult(workDir, path, base) -- 164
-	local current = Tools.readFileRaw(workDir, path) -- 169
-	local currentCharacters = current.success and type(current.content) == "string" and #current.content or 0 -- 170
-	return __TS__ObjectAssign( -- 171
-		{}, -- 171
-		base, -- 172
-		{ -- 171
-			actualSaved = current.success, -- 173
-			actualSavedCharacters = currentCharacters, -- 174
-			currentFileExists = current.success, -- 175
-			currentCharacters = currentCharacters, -- 176
-			currentState = current.success and (("saved " .. tostring(currentCharacters)) .. " characters to ") .. path or "file state unavailable after edit: " .. sanitizeUTF8(current.message) -- 177
-		} -- 177
-	) -- 177
-end -- 164
-return ____exports -- 164
+--- Documentation edits do not invalidate a game/source build. Unknown files do.
+function ____exports.requiresAgentBuildForPath(path) -- 94
+	if ____exports.isAgentInternalDocumentPath(path) then -- 94
+		return false -- 95
+	end -- 95
+	local normalized = string.lower(____exports.normalizeAgentPath(path)) -- 96
+	local ext = Path:getExt(normalized) -- 97
+	if __TS__ArrayIndexOf({ -- 97
+		"md", -- 98
+		"markdown", -- 98
+		"rst", -- 98
+		"adoc", -- 98
+		"asciidoc" -- 98
+	}, ext) >= 0 then -- 98
+		return false -- 98
+	end -- 98
+	local name = Path:getFilename(normalized) -- 99
+	local stem = __TS__StringEndsWith(name, ".txt") and string.sub(name, 1, -5) or name -- 100
+	return __TS__ArrayIndexOf({ -- 101
+		"readme", -- 101
+		"license", -- 101
+		"licence", -- 101
+		"notice", -- 101
+		"changelog", -- 101
+		"changes", -- 101
+		"copying", -- 101
+		"authors", -- 101
+		"contributing" -- 101
+	}, stem) < 0 -- 101
+end -- 94
+local function ensureDirectory(dir) -- 104
+	if Content:exist(dir) then -- 104
+		return Content:isdir(dir) -- 105
+	end -- 105
+	local parent = Path:getPath(dir) -- 106
+	if parent ~= "" and parent ~= dir and not Content:exist(parent) and not ensureDirectory(parent) then -- 106
+		return false -- 107
+	end -- 107
+	return Content:mkdir(dir) -- 108
+end -- 104
+function ____exports.ensureAgentPlanDocuments(workDir) -- 111
+	local dir = Path(workDir, ____exports.AGENT_PLAN_DIR) -- 112
+	if not ensureDirectory(dir) then -- 112
+		return {success = false, message = "failed to create " .. ____exports.AGENT_PLAN_DIR} -- 113
+	end -- 113
+	local created = {} -- 114
+	local documents = {{____exports.AGENT_PLAN_FILE, DEFAULT_PLAN_DOCUMENT}, {____exports.AGENT_PROGRESS_FILE, DEFAULT_PROGRESS_DOCUMENT}} -- 115
+	do -- 115
+		local i = 0 -- 119
+		while i < #documents do -- 119
+			do -- 119
+				local relative, content = table.unpack(documents[i + 1], 1, 2) -- 120
+				local path = Path(workDir, relative) -- 121
+				if Content:exist(path) then -- 121
+					goto __continue20 -- 122
+				end -- 122
+				if not Content:save(path, content) then -- 122
+					return {success = false, message = "failed to create " .. relative} -- 123
+				end -- 123
+				sendWebIDEFileUpdate(path, true, content) -- 124
+				created[#created + 1] = relative -- 125
+			end -- 125
+			::__continue20:: -- 125
+			i = i + 1 -- 119
+		end -- 119
+	end -- 119
+	return {success = true, created = created} -- 127
+end -- 111
+function ____exports.isEditBudgetExhausted(state) -- 138
+	local mustCreateFreshEntry = state.freshProjectBuildPending == true and state.freshProjectCodeFile == nil and state.hasBuilt ~= true -- 139
+	return state.unbuiltEdits == true and (state.editsSinceBuild or 0) >= 3 and not mustCreateFreshEntry -- 142
+end -- 138
+function ____exports.getUncoveredConversationMessages(messages, lastConsolidatedIndex) -- 147
+	return __TS__ArraySlice(messages, lastConsolidatedIndex) -- 148
+end -- 147
+function ____exports.normalizeLineEndings(text) -- 151
+	return table.concat( -- 152
+		__TS__StringSplit( -- 152
+			table.concat( -- 152
+				__TS__StringSplit(text, "\r\n"), -- 152
+				"\n" -- 152
+			), -- 152
+			"\r" -- 152
+		), -- 152
+		"\n" -- 152
+	) -- 152
+end -- 151
+function ____exports.countOccurrences(text, needle) -- 155
+	if needle == "" then -- 155
+		return 0 -- 156
+	end -- 156
+	local count = 0 -- 157
+	local start = 0 -- 158
+	while start <= #text - #needle do -- 158
+		local index = (string.find( -- 160
+			text, -- 160
+			needle, -- 160
+			math.max(start + 1, 1), -- 160
+			true -- 160
+		) or 0) - 1 -- 160
+		if index < 0 then -- 160
+			break -- 161
+		end -- 161
+		count = count + 1 -- 162
+		start = index + #needle -- 163
+	end -- 163
+	return count -- 165
+end -- 155
+function ____exports.containsWholeFileDuplicate(existing, replacement) -- 168
+	local normalizedExisting = ____exports.normalizeLineEndings(existing) -- 169
+	local normalizedReplacement = ____exports.normalizeLineEndings(replacement) -- 170
+	if #normalizedExisting < 16 or #normalizedReplacement <= #normalizedExisting then -- 170
+		return false -- 171
+	end -- 171
+	return ____exports.countOccurrences(normalizedReplacement, normalizedExisting) > 1 -- 172
+end -- 168
+function ____exports.successfulEditResult(workDir, path, base) -- 175
+	local current = Tools.readFileRaw(workDir, path) -- 180
+	local currentCharacters = current.success and type(current.content) == "string" and #current.content or 0 -- 181
+	return __TS__ObjectAssign( -- 182
+		{}, -- 182
+		base, -- 183
+		{ -- 182
+			actualSaved = current.success, -- 184
+			actualSavedCharacters = currentCharacters, -- 185
+			currentFileExists = current.success, -- 186
+			currentCharacters = currentCharacters, -- 187
+			currentState = current.success and (("saved " .. tostring(currentCharacters)) .. " characters to ") .. path or "file state unavailable after edit: " .. sanitizeUTF8(current.message) -- 188
+		} -- 188
+	) -- 188
+end -- 175
+return ____exports -- 175

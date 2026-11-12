@@ -90,6 +90,17 @@ export function isAgentInternalDocumentPath(path: string): boolean {
 	return isMainAgentMemoryPath(path) || isAgentPlanPath(path);
 }
 
+/** Documentation edits do not invalidate a game/source build. Unknown files do. */
+export function requiresAgentBuildForPath(path: string): boolean {
+	if (isAgentInternalDocumentPath(path)) return false;
+	const normalized = normalizeAgentPath(path).toLowerCase();
+	const ext = Path.getExt(normalized);
+	if (["md", "markdown", "rst", "adoc", "asciidoc"].indexOf(ext) >= 0) return false;
+	const name = Path.getFilename(normalized);
+	const stem = name.endsWith(".txt") ? name.slice(0, -4) : name;
+	return ["readme", "license", "licence", "notice", "changelog", "changes", "copying", "authors", "contributing"].indexOf(stem) < 0;
+}
+
 function ensureDirectory(dir: string): boolean {
 	if (Content.exist(dir)) return Content.isdir(dir);
 	const parent = Path.getPath(dir);

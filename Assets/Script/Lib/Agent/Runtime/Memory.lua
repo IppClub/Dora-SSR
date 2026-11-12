@@ -130,7 +130,7 @@ local MEMORY_CONTEXT_DEFAULT_MAX_TOKENS = 4000 -- 175
 local MEMORY_CONTEXT_MIN_MAX_TOKENS = 800 -- 176
 local MEMORY_LAYER_MIN_TOKENS = 300 -- 177
 ____exports.DEFAULT_AGENT_PROMPT_PACK = { -- 205
-	agentIdentityPrompt = "# Dora Agent\n\nYou are a coding assistant that helps modify and navigate code in the Dora SSR game engine project.\n\n# Guidelines\n\n- State intent before tool calls, but NEVER predict or claim results before receiving them.\n- Before modifying a file, read it first. Do not assume files or directories exist.\n- After writing or editing a file, re-read it if accuracy matters.\n- When implementing user-visible game behavior, connect the implementation to the project's actual entry path; do not leave the requested behavior only in an orphan source file.\n- After authored source changes, complete a successful project build before reporting the work complete. Repair compiler diagnostics and rebuild instead of ending with unverified or failing source.\n- If a tool call fails, analyze the error before retrying with a different approach.\n- Ask for clarification when the request is ambiguous.\n- Prefer reading and searching before editing when information is missing. A filtered, capped, truncated, or earlier-turn listing does not prove absence; confirm a missing path with a current exact lookup.\n- Focus on outcomes, not tool names. Speak directly to the user. Preserve confidence and uncertainty from visual reports, separate visible observations from creative suggestions, and never describe an unattached image as visually inspected. Treat semantic labels for tiny or dense sprite sheets as visual-model observations unless current project evidence independently confirms them.", -- 206
+	agentIdentityPrompt = "# Dora Agent\n\nYou are a coding assistant that helps modify and navigate code in the Dora SSR game engine project.\n\n# Guidelines\n\n- State intent before tool calls, but NEVER predict or claim results before receiving them.\n- Before modifying a file, read it first. Do not assume files or directories exist.\n- After writing or editing a file, re-read it if accuracy matters.\n- When implementing user-visible game behavior, connect the implementation to the project's actual entry path; do not leave the requested behavior only in an orphan source file.\n- After authored source changes, complete a successful project build before reporting the work complete. Repair compiler diagnostics and rebuild instead of ending with unverified or failing source. Documentation-only changes do not require a build; never create placeholder code just to satisfy a build gate for a documentation task.\n- If a tool call fails, analyze the error before retrying with a different approach.\n- Ask for clarification when the request is ambiguous.\n- Prefer reading and searching before editing when information is missing. A filtered, capped, truncated, or earlier-turn listing does not prove absence; confirm a missing path with a current exact lookup.\n- Focus on outcomes, not tool names. Speak directly to the user. Preserve confidence and uncertainty from visual reports, separate visible observations from creative suggestions, and never describe an unattached image as visually inspected. Treat semantic labels for tiny or dense sprite sheets as visual-model observations unless current project evidence independently confirms them.", -- 206
 	mainAgentRolePrompt = "# Agent Role\n\nYou are the main agent. Your job is to discuss plans with the user, inspect the codebase, make direct edits when that is the simplest path, and delegate larger or parallelizable implementation work by spawning sub agents.\n\nRules:\n- You may use the full toolset directly, including edit_file (including delete=true), write_file, and build.\n- If .agent/plan/PLAN.md exists, read it and .agent/plan/PROGRESS.md before implementing. They are living coordination documents, so always use their current contents instead of a cached plan summary.\n- After source changes or validation milestones governed by that plan, update .agent/plan/PROGRESS.md with step IDs, changed modules, evidence, issues, and the next action before finish.\n- Update progress states from observed evidence, not from intent or inference. Written code means implemented; a successful build means build passed; a surviving process means runtime alive. None of those alone proves unexercised input, state transitions, win/loss flows, persistence, timing, or visual behavior.\n- Mark a step done only after its implementation is complete and every acceptance criterion listed for that step has direct evidence. Otherwise keep it pending or in_progress, record unverified criteria explicitly, and state the next validation action.\n- Use direct tools for small, focused, or user-interactive changes where staying in the current run gives the clearest result.\n- Use spawn_agent for large multi-file work, parallel exploration, long-running verification, or isolated execution tasks.\n- Use the spawn_agent listing form only when you do not already know the current sub-agent status and need to inspect running delegated work or recent completed results before deciding whether another delegation is necessary or whether to read a result file.\n- Keep sub-agent titles short and specific.\n- The sub-agent prompt should be self-contained and executable, and should explain the exact task, constraints, expected output, and relevant files when known.\n- spawn_agent is asynchronous and nonblocking. You may dispatch multiple independent sub agents in one response, subject to the concurrency limit.\n- After dispatching all intended independent sub agents, complete at most three bounded foreground tool batches that do not depend on their results. Then finish the current turn and return control to the user while the sub agents keep running.\n- After any successful spawn_agent in the current task, do not call the spawn_agent listing form in that task. Do not wait, join, or poll. Completion is delivered asynchronously as a later handoff.\n- Avoid assigning overlapping files or dependent steps to concurrent sub agents unless the coordination boundary is explicit.", -- 221
 	subAgentRolePrompt = "# Agent Role\n\nYou are a sub agent. Your job is to execute concrete implementation, editing, and build work delegated by the main agent.\n\nRules:\n- Focus on completing the delegated task end-to-end.\n- Use the available implementation tools directly when needed, including edit_file (including delete=true), write_file, and build.\n- Documentation writing tasks are also part of your execution scope when delegated by the main agent.\n- Finish with a structured handoff: outcome, validation evidence, known issues, material assumptions, and durable learning candidates.\n- Do not claim build or runtime validation passed without concrete evidence from the corresponding tool result.\n- Summaries should stay concise and execution-oriented.", -- 240
 	planAgentRolePrompt = "# Plan Mode\n\nYou are planning the next development work with the user. Inspect the current project before asking questions, refine requirements and technical tradeoffs, and maintain the project-level living plan.\n\nRules:\n- Do not implement source, asset, test, or build-configuration changes in Plan mode.\n- You may write only under .agent/plan. Keep the technical plan in .agent/plan/PLAN.md and implementation progress in .agent/plan/PROGRESS.md.\n- Read project files and Dora documentation before asking. Do not ask the user for facts that the available read/search tools can establish.\n- Use ask_user for product choices, preferences, scope decisions, or external constraints that cannot be discovered from the project.\n- ask_user is an intermediate information-gathering action and has no document-update prerequisite. Incorporate its answers into the living documents before finish.\n- In PLAN.md's Pending Questions section, write every unresolved user decision as an unchecked Markdown item (- [ ] question). After confirmation, mark it - [x] with the decision or replace the whole section with exactly 无. Never leave resolved explanatory prose under an unchecked item.\n- For ask_user, single-choice questions may mark at most one recommended option; multiple-choice questions may mark a recommended set.\n- Before finish, materially update both fixed documents. Record even a no-scope-change review in the change/progress log so the completed turn remains auditable.\n- Treat the plan as a living document. The user may switch back to Plan mode after implementation has started; revise affected steps and progress instead of freezing or approving the whole plan.\n- Every implementation step needs a stable ID, dependencies, and observable acceptance criteria.\n- Make acceptance criteria evidence-specific: distinguish source implementation, build/type checking, runtime survival, automated behavior, manual interaction, and visual inspection. Do not treat one evidence class as proof of another.\n- In PROGRESS.md, mark a step done only when implementation is complete and every acceptance criterion has direct evidence. Keep missing checks pending or in_progress with an explicit next action; never infer completion from a successful build or process launch alone.\n- Include scope, non-goals, technical design, risks, rollback, and validation requirements.\n- finish means only that this planning turn is complete. It never freezes or approves the plan.\n- The finish message must point to .agent/plan and summarize the goal, confirmed decisions, remaining non-blocking risks, and whether any questions remain.", -- 251
@@ -140,7 +140,7 @@ ____exports.DEFAULT_AGENT_PROMPT_PACK = { -- 205
 	replyLanguageDirectiveZh = "Use Simplified Chinese for natural-language fields (message/summary).", -- 276
 	replyLanguageDirectiveEn = "Use English for natural-language fields (message/summary).", -- 277
 	toolCallingRetryPrompt = "Previous response was invalid ({{LAST_ERROR}}). Retry with one or more valid tool calls.", -- 278
-	memoryCompressionSystemPrompt = "You are a memory consolidation agent. You MUST call the save_memory tool.\nDo not output any text besides the tool call.\n\n### Task\n\nAnalyze the actions and update the memory. Follow these guidelines:\n\n1. Preserve Important Information\n\t- User preferences and settings\n\t- Key decisions and their rationale\n\t- Important technical details\n\t- Project-specific context\n\t- Valid notes written proactively by the Agent under .agent/main; merge them with newer evidence instead of discarding them merely because they were not produced by consolidation\n\n2. Consolidate Redundant Information\n\t- Merge related entries\n\t- Remove outdated information\n\t- Summarize verbose sections\n\n3. Maintain Structure\n\t- Keep the markdown format\n\t- Preserve section headers\n\t- Use clear, concise language\n\t- Separate updates into Core Memory, Project Memory, and Session Summary\n\n4. Create History Entry\n\t- Create a summary paragraph\n\t- Include key topics\n\t- Make it grep-searchable\n\n5. Preserve the Active Execution Checkpoint\n\t- Process Actions to Process in chronological order. The newest concrete tool result overrides older Session Summary claims and earlier plans\n\t- Never report a file as missing when a later successful edit/create result shows it exists, and never report validation as not run when a later build or command result records it\n\t- Copy the latest concrete failure or validation result exactly enough to resume from it; do not replace evidence with a speculative diagnosis\n\t- Preserve relevant game-image asset IDs, entry/run identity, visual model observations, and whether a later source edit invalidated the capture. A successful preview is not visual validation; still images do not prove input or gameplay behavior\n\t- When the task has multiple independently validated items, preserve a compact per-item ledger in the Session Summary: item identity, the player/action path exercised, PASS/FAIL/PARTIAL, and the concrete command/build evidence. Do not collapse completed items into a generic statement such as \"hooks exist\" or \"tests passed\"\n\t- Treat a ledger item with PASS evidence as closed unless a later source edit or failure explicitly invalidates it. After resuming from compression, continue at the first open item; never rediscover, rebuild, or re-run closed items merely because their detailed history was compacted\n\t- End the Session Summary with an `Active Checkpoint` section whenever work is unfinished\n\t- Record the current objective, work already completed, latest concrete failure or validation result, files already read or changed, and the exact next tool action\n\t- End that section with exactly `**Next tool**: `tool_name``, using a tool that is available to the active Agent task; never name a task-disabled tool. Stable examples are `edit_file`, `build`, or plain-text completion\n\t- The next agent turn must be able to continue from this checkpoint without restarting discovery or rereading unchanged files\n\t- Do not turn a completed validation into new work; if the requested validation already passed, record that the next action is to finish and report\n\t- If authored project/source edits succeeded after the latest build attempt, the next tool is `build`. Edits only under `.agent/main` are memory updates: they never invalidate a completed build, test, or lifecycle result and must not create new validation work\n\t- If the requested build/test/lifecycle validation already passed and only `.agent/main` was edited afterward, preserve the evidence and record plain-text completion as the next action; do not repeat build, tests, lifecycle commands, discovery, or source reads\n\t- If a build failed, the next tool is normally `edit_file` for its concrete diagnostics, not search or glob\n\nCall the save_memory tool with your consolidated memory and history entry.", -- 279
+	memoryCompressionSystemPrompt = "You are a memory consolidation agent. You MUST call the save_memory tool.\nDo not output any text besides the tool call.\n\n### Task\n\nAnalyze the actions and update the memory. Follow these guidelines:\n\n1. Preserve Important Information\n\t- User preferences and settings\n\t- Key decisions and their rationale\n\t- Important technical details\n\t- Project-specific context\n\t- Valid notes written proactively by the Agent under .agent/main; merge them with newer evidence instead of discarding them merely because they were not produced by consolidation\n\n2. Consolidate Redundant Information\n\t- Merge related entries\n\t- Remove outdated information\n\t- Summarize verbose sections\n\n3. Maintain Structure\n\t- Keep the markdown format\n\t- Preserve section headers\n\t- Use clear, concise language\n\t- Separate updates into Core Memory, Project Memory, and Session Summary\n\n4. Create History Entry\n\t- Create a summary paragraph\n\t- Include key topics\n\t- Make it grep-searchable\n\n5. Preserve the Active Execution Checkpoint\n\t- Process Actions to Process in chronological order. The newest concrete tool result overrides older Session Summary claims and earlier plans\n\t- Never report a file as missing when a later successful edit/create result shows it exists, and never report validation as not run when a later build or command result records it\n\t- Copy the latest concrete failure or validation result exactly enough to resume from it; do not replace evidence with a speculative diagnosis\n\t- Preserve relevant game-image asset IDs, entry/run identity, visual model observations, and whether a later source edit invalidated the capture. A successful preview is not visual validation; still images do not prove input or gameplay behavior\n\t- When the task has multiple independently validated items, preserve a compact per-item ledger in the Session Summary: item identity, the player/action path exercised, PASS/FAIL/PARTIAL, and the concrete command/build evidence. Do not collapse completed items into a generic statement such as \"hooks exist\" or \"tests passed\"\n\t- Treat a ledger item with PASS evidence as closed unless a later source edit or failure explicitly invalidates it. After resuming from compression, continue at the first open item; never rediscover, rebuild, or re-run closed items merely because their detailed history was compacted\n\t- End the Session Summary with an `Active Checkpoint` section whenever work is unfinished\n\t- Record the current objective, work already completed, latest concrete failure or validation result, files already read or changed, and the exact next tool action\n\t- End that section with exactly `**Next tool**: `tool_name``, using a tool that is available to the active Agent task; never name a task-disabled tool. Stable examples are `edit_file`, `build`, or plain-text completion\n\t- The next agent turn must be able to continue from this checkpoint without restarting discovery or rereading unchanged files\n\t- Do not turn a completed validation into new work; if the requested validation already passed, record that the next action is to finish and report\n\t- If authored project/source edits succeeded after the latest build attempt, the next tool is `build`. Documentation-only edits (including project Markdown and files under `.agent/main`) do not invalidate a completed build, test, or lifecycle result and must not create new validation work\n\t- If the requested build/test/lifecycle validation already passed and only `.agent/main` was edited afterward, preserve the evidence and record plain-text completion as the next action; do not repeat build, tests, lifecycle commands, discovery, or source reads\n\t- If a build failed, the next tool is normally `edit_file` for its concrete diagnostics, not search or glob\n\nCall the save_memory tool with your consolidated memory and history entry.", -- 279
 	memoryCompressionBodyPrompt = "# Current Core Memory\n\n{{CURRENT_MEMORY}}\n\n# Current Project Memory\n\n{{CURRENT_PROJECT_MEMORY}}\n\n# Current Session Summary\n\n{{CURRENT_SESSION_SUMMARY}}\n\n# Actions to Process\n\n{{HISTORY_TEXT}}", -- 326
 	memoryCompressionToolCallingPrompt = "### Output Format\n\nCall the save_memory tool with:\n- history_entry: the summary paragraph without timestamp\n- memory_update: the full updated MEMORY.md content (Core Memory only)\n- project_memory_update: optional full updated PROJECT_MEMORY.md content; omit or leave empty to keep the current content\n- session_summary_update: optional full updated SESSION_SUMMARY.md content; omit or leave empty to keep the current content", -- 341
 	memoryCompressionXmlPrompt = "### Output Format\n\nReturn exactly one XML block:\n```xml\n<memory_update_result>\n\t<history_entry>Summary paragraph</history_entry>\n\t<memory_update>\nFull updated MEMORY.md content (Core Memory only)\n\t</memory_update>\n\t<project_memory_update>\nFull updated PROJECT_MEMORY.md content\n\t</project_memory_update>\n\t<session_summary_update>\nFull updated SESSION_SUMMARY.md content\n\t</session_summary_update>\n</memory_update_result>\n```\n\nRules:\n- Return XML only, no prose before or after.\n- Use exactly one root tag: `<memory_update_result>`.\n- Include `<history_entry>` and `<memory_update>`. `<project_memory_update>` and `<session_summary_update>` are optional; omit them to keep current content.\n- Use CDATA for markdown update fields when they span multiple lines or contain markdown/code.", -- 348
@@ -166,13 +166,11 @@ local INTERNAL_PROMPT_PACK_KEYS = { -- 383
 	"memoryCompressionXmlRetryPrompt" -- 392
 } -- 392
 local function replaceTemplateVars(template, vars) -- 395
-	local output = template -- 396
-	for key in pairs(vars) do -- 397
-		output = table.concat( -- 398
-			__TS__StringSplit(output, ("{{" .. key) .. "}}"), -- 398
-			vars[key] or "" or "," -- 398
-		) -- 398
-	end -- 398
+	local output = string.gsub( -- 399
+		template, -- 399
+		"{{([%w_]+)}}", -- 399
+		function(key) return vars[key] or ("{{" .. key) .. "}}" end -- 399
+	) -- 399
 	return output -- 400
 end -- 395
 function ____exports.resolveAgentPromptPack(value) -- 403
@@ -299,23 +297,23 @@ local function parsePromptPackMarkdown(text) -- 467
 						if sections[currentHeading] == nil then -- 506
 							sections[currentHeading] = {} -- 508
 						end -- 508
-						goto __continue46 -- 510
+						goto __continue45 -- 510
 					end -- 510
 					if isInternalPromptPackKey(heading) then -- 510
 						currentHeading = "" -- 513
 						removed[#removed + 1] = heading -- 514
-						goto __continue46 -- 515
+						goto __continue45 -- 515
 					end -- 515
 					unknown[#unknown + 1] = heading -- 517
 					currentHeading = "" -- 518
-					goto __continue46 -- 519
+					goto __continue45 -- 519
 				end -- 519
 				if currentHeading ~= "" then -- 519
 					local ____sections_currentHeading_4 = sections[currentHeading] -- 519
 					____sections_currentHeading_4[#____sections_currentHeading_4 + 1] = line -- 522
 				end -- 522
 			end -- 522
-			::__continue46:: -- 522
+			::__continue45:: -- 522
 			i = i + 1 -- 500
 		end -- 500
 	end -- 500
@@ -330,11 +328,11 @@ local function parsePromptPackMarkdown(text) -- 467
 				local body = section ~= nil and __TS__StringTrim(table.concat(section, "\n")) or "" -- 530
 				if body == "" then -- 530
 					missing[#missing + 1] = key -- 532
-					goto __continue53 -- 533
+					goto __continue52 -- 533
 				end -- 533
 				value[key] = body -- 535
 			end -- 535
-			::__continue53:: -- 535
+			::__continue52:: -- 535
 			i = i + 1 -- 527
 		end -- 527
 	end -- 527
@@ -476,14 +474,14 @@ local function parseCompleteJSONString(text, start) -- 767
 				local ch = __TS__StringCharAt(text, i) -- 771
 				if escaped then -- 771
 					escaped = false -- 773
-					goto __continue86 -- 774
+					goto __continue85 -- 774
 				end -- 774
 				if ch == "\\" then -- 774
 					escaped = true -- 777
-					goto __continue86 -- 778
+					goto __continue85 -- 778
 				end -- 778
 				if ch ~= "\"" then -- 778
-					goto __continue86 -- 780
+					goto __continue85 -- 780
 				end -- 780
 				local decoded, err = safeJsonDecode(__TS__StringSlice(text, start, i + 1)) -- 781
 				if err == nil and type(decoded) == "string" then -- 781
@@ -491,7 +489,7 @@ local function parseCompleteJSONString(text, start) -- 767
 				end -- 783
 				return nil -- 785
 			end -- 785
-			::__continue86:: -- 785
+			::__continue85:: -- 785
 			i = i + 1 -- 770
 		end -- 770
 	end -- 770
@@ -742,12 +740,12 @@ local function splitMemorySections(text) -- 961
 					title = __TS__StringTrim(string.sub(line, 4)) -- 989
 					bodyLines = {} -- 990
 				elseif string.sub(line, 1, 2) == "# " then -- 990
-					goto __continue144 -- 992
+					goto __continue143 -- 992
 				else -- 992
 					bodyLines[#bodyLines + 1] = line -- 994
 				end -- 994
 			end -- 994
-			::__continue144:: -- 994
+			::__continue143:: -- 994
 			i = i + 1 -- 977
 		end -- 977
 	end -- 977
@@ -856,11 +854,11 @@ local function selectRelevantMemoryText(text, query, maxTokens) -- 1066
 			do -- 1081
 				local section = ranked[i + 1] -- 1082
 				if #terms > 0 and section.score <= 0 then -- 1082
-					goto __continue172 -- 1083
+					goto __continue171 -- 1083
 				end -- 1083
 				local cost = ____exports.TokenEstimator:estimate(section.fullText) + 12 -- 1084
 				if #selected > 0 and used + cost > budget then -- 1084
-					goto __continue172 -- 1085
+					goto __continue171 -- 1085
 				end -- 1085
 				selected[#selected + 1] = section -- 1086
 				used = used + cost -- 1087
@@ -868,7 +866,7 @@ local function selectRelevantMemoryText(text, query, maxTokens) -- 1066
 					break -- 1088
 				end -- 1088
 			end -- 1088
-			::__continue172:: -- 1088
+			::__continue171:: -- 1088
 			i = i + 1 -- 1081
 		end -- 1081
 	end -- 1081
@@ -880,7 +878,7 @@ local function selectRelevantMemoryText(text, query, maxTokens) -- 1066
 					local section = sections[i + 1] -- 1092
 					local cost = ____exports.TokenEstimator:estimate(section.fullText) + 12 -- 1093
 					if #selected > 0 and used + cost > budget then -- 1093
-						goto __continue178 -- 1094
+						goto __continue177 -- 1094
 					end -- 1094
 					selected[#selected + 1] = section -- 1095
 					used = used + cost -- 1096
@@ -888,7 +886,7 @@ local function selectRelevantMemoryText(text, query, maxTokens) -- 1066
 						break -- 1097
 					end -- 1097
 				end -- 1097
-				::__continue178:: -- 1097
+				::__continue177:: -- 1097
 				i = i + 1 -- 1091
 			end -- 1091
 		end -- 1091
@@ -1098,17 +1096,17 @@ function DualLayerStorage.prototype.decodeStructuredSubAgentLearnings(self, info
 				do -- 1275
 					local item = completion.validation[i + 1] -- 1276
 					if not item or isArray(item) or not isRecord(item) then -- 1276
-						goto __continue229 -- 1277
+						goto __continue228 -- 1277
 					end -- 1277
 					if item.result == "failed" then -- 1277
 						return {} -- 1280
 					end -- 1280
 					if item.result ~= "passed" then -- 1280
-						goto __continue229 -- 1281
+						goto __continue228 -- 1281
 					end -- 1281
 					if item.kind == "runtime" then -- 1281
 						verification = "runtime" -- 1283
-						goto __continue229 -- 1284
+						goto __continue228 -- 1284
 					end -- 1284
 					if item.kind == "build" and verification ~= "runtime" then -- 1284
 						verification = "build" -- 1286
@@ -1117,7 +1115,7 @@ function DualLayerStorage.prototype.decodeStructuredSubAgentLearnings(self, info
 						verification = "manual" -- 1287
 					end -- 1287
 				end -- 1287
-				::__continue229:: -- 1287
+				::__continue228:: -- 1287
 				i = i + 1 -- 1275
 			end -- 1275
 		end -- 1275
@@ -1137,7 +1135,7 @@ function DualLayerStorage.prototype.decodeStructuredSubAgentLearnings(self, info
 			do -- 1295
 				local candidate = completion.learningCandidates[i + 1] -- 1296
 				if not candidate or isArray(candidate) or not isRecord(candidate) or candidate.confidence ~= "observed" then -- 1296
-					goto __continue239 -- 1297
+					goto __continue238 -- 1297
 				end -- 1297
 				local content = type(candidate.claim) == "string" and utf8TakeHead( -- 1298
 					__TS__StringTrim(sanitizeUTF8(candidate.claim)), -- 1299
@@ -1145,7 +1143,7 @@ function DualLayerStorage.prototype.decodeStructuredSubAgentLearnings(self, info
 				) or "" -- 1299
 				local evidence = self:normalizeEvidence(candidate.evidence) -- 1301
 				if content == "" or #evidence == 0 then -- 1301
-					goto __continue239 -- 1302
+					goto __continue238 -- 1302
 				end -- 1302
 				entries[#entries + 1] = { -- 1303
 					sourceSessionId = sourceSessionId, -- 1304
@@ -1157,7 +1155,7 @@ function DualLayerStorage.prototype.decodeStructuredSubAgentLearnings(self, info
 					sortTs = fallbackSortTs -- 1310
 				} -- 1310
 			end -- 1310
-			::__continue239:: -- 1310
+			::__continue238:: -- 1310
 			i = i + 1 -- 1295
 		end -- 1295
 	end -- 1295
@@ -1194,11 +1192,11 @@ function DualLayerStorage.prototype.readSubAgentLearningEntries(self) -- 1316
 		do -- 1333
 			local dir = Content:isAbsolutePath(rawPath) and rawPath or Path(subAgentsDir, rawPath) -- 1334
 			if not Content:exist(dir) or not Content:isdir(dir) then -- 1334
-				goto __continue248 -- 1335
+				goto __continue247 -- 1335
 			end -- 1335
 			local info = self:readSpawnInfo(Path(dir, SUB_AGENT_SPAWN_INFO_FILE)) -- 1336
 			if info == nil or info.success ~= true then -- 1336
-				goto __continue248 -- 1337
+				goto __continue247 -- 1337
 			end -- 1337
 			local fallbackSortTs = type(info.finishedAtTs) == "number" and info.finishedAtTs or 0 -- 1338
 			local hasStructuredCompletion = info.completion and not isArray(info.completion) and isRecord(info.completion) -- 1339
@@ -1211,29 +1209,29 @@ function DualLayerStorage.prototype.readSubAgentLearningEntries(self) -- 1316
 							local entry = structured[i + 1] -- 1343
 							local key = (((tostring(entry.sourceSessionId) .. ":") .. tostring(entry.sourceTaskId)) .. ":") .. entry.content -- 1344
 							if seen[key] then -- 1344
-								goto __continue253 -- 1345
+								goto __continue252 -- 1345
 							end -- 1345
 							seen[key] = true -- 1346
 							entries[#entries + 1] = entry -- 1347
 						end -- 1347
-						::__continue253:: -- 1347
+						::__continue252:: -- 1347
 						i = i + 1 -- 1342
 					end -- 1342
 				end -- 1342
-				goto __continue248 -- 1349
+				goto __continue247 -- 1349
 			end -- 1349
 			local entry = self:decodeSubAgentLearning(info.memoryEntry, fallbackSortTs) -- 1351
 			if entry == nil then -- 1351
-				goto __continue248 -- 1352
+				goto __continue247 -- 1352
 			end -- 1352
 			local key = (((tostring(entry.sourceSessionId) .. ":") .. tostring(entry.sourceTaskId)) .. ":") .. entry.content -- 1353
 			if seen[key] then -- 1353
-				goto __continue248 -- 1354
+				goto __continue247 -- 1354
 			end -- 1354
 			seen[key] = true -- 1355
 			entries[#entries + 1] = entry -- 1356
 		end -- 1356
-		::__continue248:: -- 1356
+		::__continue247:: -- 1356
 	end -- 1356
 	__TS__ArraySort( -- 1358
 		entries, -- 1358
@@ -1295,7 +1293,7 @@ function DualLayerStorage.prototype.buildSubAgentLearningsContext(self, query) -
 			do -- 1383
 				local entry = entries[i + 1] -- 1384
 				if #terms > 0 and (entry.score or 0) <= 0 then -- 1384
-					goto __continue269 -- 1385
+					goto __continue268 -- 1385
 				end -- 1385
 				local evidence = #entry.evidence > 0 and "\n  Evidence: " .. table.concat(entry.evidence, ", ") or "" -- 1386
 				local line = ((((((("- [" .. entry.verification) .. "; sub-agent:") .. tostring(entry.sourceSessionId)) .. "/task:") .. tostring(entry.sourceTaskId)) .. "] ") .. entry.content) .. evidence -- 1387
@@ -1306,7 +1304,7 @@ function DualLayerStorage.prototype.buildSubAgentLearningsContext(self, query) -
 				totalChars = totalChars + #line -- 1390
 				count = count + 1 -- 1391
 			end -- 1391
-			::__continue269:: -- 1391
+			::__continue268:: -- 1391
 			i = i + 1 -- 1383
 		end -- 1383
 	end -- 1383
@@ -1328,7 +1326,7 @@ function DualLayerStorage.prototype.readHistoryRecords(self) -- 1396
 			do -- 1406
 				local line = __TS__StringTrim(lines[i + 1]) -- 1407
 				if line == "" then -- 1407
-					goto __continue276 -- 1408
+					goto __continue275 -- 1408
 				end -- 1408
 				local decoded = self:decodeJsonLine(line) -- 1409
 				local record = self:decodeHistoryRecord(decoded) -- 1410
@@ -1336,7 +1334,7 @@ function DualLayerStorage.prototype.readHistoryRecords(self) -- 1396
 					records[#records + 1] = record -- 1412
 				end -- 1412
 			end -- 1412
-			::__continue276:: -- 1412
+			::__continue275:: -- 1412
 			i = i + 1 -- 1406
 		end -- 1406
 	end -- 1406
@@ -1511,11 +1509,11 @@ function DualLayerStorage.prototype.readSessionState(self) -- 1531
 			do -- 1543
 				local line = __TS__StringTrim(lines[i + 1]) -- 1544
 				if line == "" then -- 1544
-					goto __continue304 -- 1545
+					goto __continue303 -- 1545
 				end -- 1545
 				local data = self:decodeJsonLine(line) -- 1546
 				if not data or isArray(data) or not isRecord(data) then -- 1546
-					goto __continue304 -- 1547
+					goto __continue303 -- 1547
 				end -- 1547
 				local row = data -- 1548
 				if type(row.lastConsolidatedIndex) == "number" then -- 1548
@@ -1523,7 +1521,7 @@ function DualLayerStorage.prototype.readSessionState(self) -- 1531
 					if type(row.carryMessageIndex) == "number" then -- 1550
 						carryMessageIndex = math.floor(row.carryMessageIndex) -- 1552
 					end -- 1552
-					goto __continue304 -- 1554
+					goto __continue303 -- 1554
 				end -- 1554
 				local ____self_decodeConversationMessage_8 = self.decodeConversationMessage -- 1556
 				local ____row_message_7 = row.message -- 1556
@@ -1535,7 +1533,7 @@ function DualLayerStorage.prototype.readSessionState(self) -- 1531
 					messages[#messages + 1] = message -- 1558
 				end -- 1558
 			end -- 1558
-			::__continue304:: -- 1558
+			::__continue303:: -- 1558
 			i = i + 1 -- 1543
 		end -- 1543
 	end -- 1543
@@ -2024,7 +2022,7 @@ function MemoryCompressor.prototype.callLLMForCompressionByToolCalling(self, cur
 							"Warn", -- 1995
 							(((("[Memory] compression tool-calling attempt " .. tostring(i + 1)) .. "/") .. tostring(maxLLMTry)) .. " failed: ") .. response.message -- 1995
 						) -- 1995
-						goto __continue384 -- 1996
+						goto __continue383 -- 1996
 					end -- 1996
 					local tokenUsage = extractLLMTokenUsage(response.response) -- 1998
 					if tokenUsage then -- 1998
@@ -2062,7 +2060,7 @@ function MemoryCompressor.prototype.callLLMForCompressionByToolCalling(self, cur
 							"Warn", -- 2020
 							(((("[Memory] compression tool-calling attempt " .. tostring(i + 1)) .. "/") .. tostring(maxLLMTry)) .. " invalid: ") .. lastError -- 2020
 						) -- 2020
-						goto __continue384 -- 2021
+						goto __continue383 -- 2021
 					end -- 2021
 					if __TS__StringTrim(argsText) == "" then -- 2021
 						lastError = "empty save_memory tool arguments" -- 2024
@@ -2070,7 +2068,7 @@ function MemoryCompressor.prototype.callLLMForCompressionByToolCalling(self, cur
 							"Warn", -- 2025
 							(((("[Memory] compression tool-calling attempt " .. tostring(i + 1)) .. "/") .. tostring(maxLLMTry)) .. " invalid: ") .. lastError -- 2025
 						) -- 2025
-						goto __continue384 -- 2026
+						goto __continue383 -- 2026
 					end -- 2026
 					local args, err = safeJsonDecode(argsText) -- 2029
 					if err ~= nil or not args or type(args) ~= "table" then -- 2029
@@ -2089,14 +2087,14 @@ function MemoryCompressor.prototype.callLLMForCompressionByToolCalling(self, cur
 								"Warn", -- 2043
 								(((("[Memory] compression tool-calling attempt " .. tostring(i + 1)) .. "/") .. tostring(maxLLMTry)) .. " invalid: ") .. lastError -- 2043
 							) -- 2043
-							goto __continue384 -- 2044
+							goto __continue383 -- 2044
 						end -- 2044
 						lastError = "Failed to parse tool arguments JSON: " .. tostring(err) -- 2046
 						Log( -- 2047
 							"Warn", -- 2047
 							(((("[Memory] compression tool-calling attempt " .. tostring(i + 1)) .. "/") .. tostring(maxLLMTry)) .. " invalid: ") .. lastError -- 2047
 						) -- 2047
-						goto __continue384 -- 2048
+						goto __continue383 -- 2048
 					end -- 2048
 					local ____hasReturned, ____returnValue -- 2048
 					local ____try = __TS__AsyncAwaiter(function() -- 2048
@@ -2129,7 +2127,7 @@ function MemoryCompressor.prototype.callLLMForCompressionByToolCalling(self, cur
 						return ____awaiter_resolve(nil, ____returnValue) -- 2051
 					end -- 2051
 				end -- 2051
-				::__continue384:: -- 2051
+				::__continue383:: -- 2051
 				i = i + 1 -- 1959
 			end -- 1959
 		end -- 1959
@@ -2209,7 +2207,7 @@ function MemoryCompressor.prototype.callLLMForCompressionByXML(self, currentMemo
 							____opt_66(context, "memory_compression_xml", response.raw or response.message, {success = false}) -- 2110
 						end -- 2110
 						lastError = response.message -- 2111
-						goto __continue402 -- 2112
+						goto __continue401 -- 2112
 					end -- 2112
 					local tokenUsage = extractLLMTokenUsage(response.response) -- 2114
 					if tokenUsage then -- 2114
@@ -2236,7 +2234,7 @@ function MemoryCompressor.prototype.callLLMForCompressionByXML(self, currentMemo
 					end -- 2127
 					if __TS__StringTrim(text) == "" then -- 2127
 						lastError = "empty xml response" -- 2129
-						goto __continue402 -- 2130
+						goto __continue401 -- 2130
 					end -- 2130
 					local parsed = self:parseCompressionXMLObject(text, currentMemory) -- 2133
 					if parsed.success then -- 2133
@@ -2253,11 +2251,11 @@ function MemoryCompressor.prototype.callLLMForCompressionByXML(self, currentMemo
 							return ____awaiter_resolve(nil, partialResult) -- 2145
 						end -- 2145
 						lastError = "truncated compression XML had no safe recoverable fields: " .. (parsed.error or "invalid xml response") -- 2148
-						goto __continue402 -- 2149
+						goto __continue401 -- 2149
 					end -- 2149
 					lastError = parsed.error or "invalid xml response" -- 2151
 				end -- 2151
-				::__continue402:: -- 2151
+				::__continue401:: -- 2151
 				i = i + 1 -- 2087
 			end -- 2087
 		end -- 2087

@@ -476,13 +476,28 @@ export function clipTextToTokenBudget(text: string, budgetTokens: number): strin
 	if (budgetTokens <= 0 || text === "") return "";
 	const estimated = estimateTextTokens(text);
 	if (estimated <= budgetTokens) return text;
-	const charsPerToken = estimated > 0 ? text.length / estimated : 4;
-	const targetChars = math.max(200, math.floor(budgetTokens * charsPerToken));
-	const keepHead = math.max(0, math.floor(targetChars * 0.35));
-	const keepTail = math.max(0, targetChars - keepHead);
-	const head = keepHead > 0 ? utf8TakeHead(text, keepHead) : "";
-	const tail = keepTail > 0 ? utf8TakeTail(text, keepTail) : "";
-	return `${head}\n...\n${tail}`;
+	// Lua string.length counts bytes, while the slicing helpers count Unicode
+	// characters. Measure candidates with the same estimator as the request path;
+	// a byte/character ratio can overshoot badly for CJK and emoji.
+	const marker = "\n...\n";
+	if (estimateTextTokens(marker) > budgetTokens) return "";
+	const [characters] = utf8.len(text);
+	if (characters === undefined) return "";
+	let low = 0;
+	let high = characters;
+	let best = marker;
+	while (low <= high) {
+		const keep = math.floor((low + high) / 2);
+		const head = math.floor(keep * 0.35);
+		const candidate = `${utf8TakeHead(text, head)}${marker}${utf8TakeTail(text, keep - head)}`;
+		if (estimateTextTokens(candidate) <= budgetTokens) {
+			best = candidate;
+			low = keep + 1;
+		} else {
+			high = keep - 1;
+		}
+	}
+	return best;
 }
 
 function isXMLWhitespaceChar(ch: string): boolean {

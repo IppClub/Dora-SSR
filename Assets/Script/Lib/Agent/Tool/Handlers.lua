@@ -443,12 +443,12 @@ editFile = function(context, input) -- 304
 				return ____awaiter_resolve(nil, {output = {success = false, message = "delete requires path"}}) -- 307
 			end -- 307
 			local normalizedTargetFile = AgentRuntimePolicy.normalizeAgentPath(targetFile) -- 309
-			local isInternalDocumentEdit = AgentRuntimePolicy.isAgentInternalDocumentPath(normalizedTargetFile) -- 310
+			local requiresBuild = AgentRuntimePolicy.requiresAgentBuildForPath(normalizedTargetFile) -- 310
 			local result = Tools.deleteFile(context.taskId, context.workingDir, targetFile, {summary = "edit_file delete: " .. targetFile, toolName = "edit_file"}) -- 311
 			if not result.success then -- 311
 				return ____awaiter_resolve(nil, {output = result}) -- 311
 			end -- 311
-			if not isInternalDocumentEdit then -- 311
+			if requiresBuild then -- 311
 				context.workflow.unbuiltEdits = true -- 317
 				context.workflow.lastBuildSucceeded = false -- 318
 				if context.workflow.failedTestNeedsBuild == true then -- 318
@@ -683,7 +683,7 @@ editFile = function(context, input) -- 304
 		for ____, operation in ipairs(successfulOperations) do -- 510
 			do -- 510
 				local path = AgentRuntimePolicy.normalizeAgentPath(operation.path) -- 511
-				if AgentRuntimePolicy.isAgentInternalDocumentPath(path) then -- 511
+				if not AgentRuntimePolicy.requiresAgentBuildForPath(path) then -- 511
 					goto __continue101 -- 512
 				end -- 512
 				authoredOperations = authoredOperations + 1 -- 513

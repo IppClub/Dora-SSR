@@ -307,13 +307,13 @@ const editFile: AgentToolHandler = async (context, input) => {
 		const targetFile = typeof input.path === "string" ? input.path : "";
 		if (targetFile.trim() === "") return { output: { success: false, message: "delete requires path" } };
 		const normalizedTargetFile = AgentRuntimePolicy.normalizeAgentPath(targetFile);
-		const isInternalDocumentEdit = AgentRuntimePolicy.isAgentInternalDocumentPath(normalizedTargetFile);
+		const requiresBuild = AgentRuntimePolicy.requiresAgentBuildForPath(normalizedTargetFile);
 		const result = Tools.deleteFile(context.taskId, context.workingDir, targetFile, {
 			summary: `edit_file delete: ${targetFile}`,
 			toolName: "edit_file",
 		});
 		if (!result.success) return { output: result as unknown as Record<string, unknown> };
-		if (!isInternalDocumentEdit) {
+		if (requiresBuild) {
 			context.workflow.unbuiltEdits = true;
 			context.workflow.lastBuildSucceeded = false;
 			if (context.workflow.failedTestNeedsBuild === true) context.workflow.failedTestHasSourceEdit = true;
@@ -509,7 +509,7 @@ const editFile: AgentToolHandler = async (context, input) => {
 	const editedPaths = context.workflow.editedPathsSinceBuild ?? [];
 	for (const operation of successfulOperations) {
 		const path = AgentRuntimePolicy.normalizeAgentPath(operation.path);
-		if (AgentRuntimePolicy.isAgentInternalDocumentPath(path)) continue;
+		if (!AgentRuntimePolicy.requiresAgentBuildForPath(path)) continue;
 		authoredOperations++;
 		if (editedPaths.indexOf(path) < 0) editedPaths.push(path);
 	}
