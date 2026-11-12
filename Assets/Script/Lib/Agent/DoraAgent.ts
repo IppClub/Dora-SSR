@@ -1803,15 +1803,12 @@ class MainDecisionAgent extends Node<AgentShared> {
 			AgentUtils.Log("Info", `[CodingAgent] tool-calling selected tool=${decisions[0].tool}`);
 			return decisions[0];
 		}
-		for (let i = 0; i < decisions.length; i++) {
-			if (decisions[i].tool === "ask_user"
-				&& decisions[i].preExecutionFailure === undefined) {
-				decisions[i].preExecutionFailure = {
-					code: "INVALID_TOOL_COMBINATION",
-					message: `${decisions[i].tool} cannot be mixed with other tool calls`,
-				};
-			}
-		}
+		// The complete model response is available: finish ordinary work before
+		// publishing a questionnaire, preserving relative order within each group.
+		decisions = [
+			...decisions.filter(decision => decision.tool !== "ask_user"),
+			...decisions.filter(decision => decision.tool === "ask_user"),
+		];
 		AgentUtils.Log("Info", `[CodingAgent] tool-calling selected batch tools=${decisions.map(decision => decision.tool).join(",")}`);
 		return {
 			success: true,
