@@ -1783,7 +1783,7 @@ export class MemoryCompressor {
 			}
 			const next = compressionMessages[i + 1];
 			const closed = pendingCount === 0 && (
-				!next || (next.role === "user" && next.inputKind !== "steer")
+				next === undefined || (next.role === "user" && next.inputKind !== "steer")
 				|| message.role === "tool"
 				|| (message.role === "assistant" && (!message.tool_calls || message.tool_calls.length === 0))
 			);
@@ -1791,7 +1791,7 @@ export class MemoryCompressor {
 				lastBoundary = i + 1;
 				// A partial chunk carries its latest task instruction back into the
 				// decision request; those tokens are not reclaimed by compression.
-				const retainedTokens = next || message.role === "user" ? carriedInstructionTokens : 0;
+				const retainedTokens = next !== undefined || message.role === "user" ? carriedInstructionTokens : 0;
 				if (targetTokens !== undefined && removedTokens - retainedTokens >= targetTokens) break;
 			}
 		}

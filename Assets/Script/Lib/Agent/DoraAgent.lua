@@ -871,7 +871,7 @@ local function maybeCompressHistory(shared, includePendingUserPrompt, pendingUse
 				)} -- 930
 			) -- 930
 			local fitted = AgentUtils.fitMessagesToContext(triggerMessages, triggerOptions, shared.llmConfig) -- 933
-			if fitted.originalTokens < fitted.budgetTokens * 0.9 then -- 933
+			if fitted.originalTokens < fitted.budgetTokens then -- 933
 				return ____awaiter_resolve(nil) -- 933
 			end -- 933
 			if getActiveRealMessageCount(shared) <= 0 or fitted.budgetTokens <= 0 then -- 933

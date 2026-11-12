@@ -1775,10 +1775,10 @@ function MemoryCompressor.prototype.findCompressionBoundary(self, boundaryMessag
 				pendingCount = pendingCount - 1 -- 1782
 			end -- 1782
 			local next = compressionMessages[i + 1 + 1] -- 1784
-			local closed = pendingCount == 0 and (not next or next.role == "user" and next.inputKind ~= "steer" or message.role == "tool" or message.role == "assistant" and (not message.tool_calls or #message.tool_calls == 0)) -- 1785
+			local closed = pendingCount == 0 and (next == nil or next.role == "user" and next.inputKind ~= "steer" or message.role == "tool" or message.role == "assistant" and (not message.tool_calls or #message.tool_calls == 0)) -- 1785
 			if closed then -- 1785
 				lastBoundary = i + 1 -- 1791
-				local retainedTokens = (next or message.role == "user") and carriedInstructionTokens or 0 -- 1794
+				local retainedTokens = (next ~= nil or message.role == "user") and carriedInstructionTokens or 0 -- 1794
 				if targetTokens ~= nil and removedTokens - retainedTokens >= targetTokens then -- 1794
 					break -- 1795
 				end -- 1795

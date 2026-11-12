@@ -931,9 +931,9 @@ async function maybeCompressHistory(
 			}),
 		};
 		const fitted = AgentUtils.fitMessagesToContext(triggerMessages, triggerOptions, shared.llmConfig);
-		// Trigger at 90% of the exact effective input budget used by the normal
+		// Trigger at 100% of the exact effective input budget used by the normal
 		// request path. The compression payload below remains independently projected.
-		if (fitted.originalTokens < fitted.budgetTokens * 0.9) return;
+		if (fitted.originalTokens < fitted.budgetTokens) return;
 		if (getActiveRealMessageCount(shared) <= 0 || fitted.budgetTokens <= 0) {
 			throw new Error("The current instructions and configured output limit leave insufficient context space. Reduce the output limit or shorten the instructions; history was preserved.");
 		}

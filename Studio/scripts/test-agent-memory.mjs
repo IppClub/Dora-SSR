@@ -70,9 +70,12 @@ function setup({count = 50, chunk = 15, fixed = 0, growMemory = false, carry = f
 const belowTrigger = setup({count: 21});
 await belowTrigger.context.maybeCompressHistory(belowTrigger.shared);
 assert.equal(belowTrigger.calls(), 0);
-const proactive = setup({count: 22});
-await proactive.context.maybeCompressHistory(proactive.shared);
-assert.equal(proactive.calls(), 1, "compact at 90 percent before the input budget is exhausted");
+const nearBudget = setup({count: 23});
+await nearBudget.context.maybeCompressHistory(nearBudget.shared);
+assert.equal(nearBudget.calls(), 0, 'do not compact while the request still fits the effective input budget');
+const atBudget = setup({count: 24});
+await atBudget.context.maybeCompressHistory(atBudget.shared);
+assert.equal(atBudget.calls(), 1, 'compact at the exact effective input budget boundary');
 const normal = setup();
 await normal.context.maybeCompressHistory(normal.shared);
 assert.equal(normal.calls(), 2);
