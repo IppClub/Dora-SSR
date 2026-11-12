@@ -10,10 +10,7 @@
     "build:server": "go build -trimpath -o build/bin/dora-studio-server ./cmd/studio-server",
     "test:server": "go test -race ./...",
     "server": "go run ./cmd/studio-server",
-    "invite:bootstrap": "go run ./cmd/issue-bootstrap-invite",
-    "test:agent-followup": "node scripts/test-agent-followup.mjs",
-    "test:agent-followup:user": "node scripts/test-agent-followup.mjs --user-test",
-    "test:agent-vision-input": "node scripts/test-agent-vision-input.mjs"
+    "invite:bootstrap": "go run ./cmd/issue-bootstrap-invite"
   },
   "devDependencies": {
     "@dora-studio/tstl": "workspace:*",

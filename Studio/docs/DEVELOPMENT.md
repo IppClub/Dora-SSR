@@ -419,7 +419,7 @@ pnpm --filter @dora-studio/web preview --port 8898 --strictPort
 
 ## 图片分析参数回归
 
-`pnpm test:agent-vision-input` 编译生产 Agent 并在 Lua 中检查 `analyze_image` 的原生参数解析、注册表校验及视觉请求执行器。需要 `lua` 和 `dkjson`。`paths` 严格要求数组，不接受 JSON 编码的数组字符串；工具描述只提供原生函数调用示例。测试同时覆盖数量、路径范围、PNG/JPEG 内容与大小、中文文本边界、路径去空格后的实际读取、三图附件顺序、响应失败/截断/模型不匹配、持久化预算、超时及取消时序。特别检查响应已到达时取消仍保留已发出请求的计数和 usage，但不发布分析正文；无效参数不会读取文件或发出视觉请求。回归日志写入仓库 `build/agent-vision-input-qa/regression.log`。
+从 Dora-Example 运行 `DORA_SSR_ROOT=/path/to/Dora-SSR node Test/DoraStudio/run.mjs --no-build test-agent-vision-input.mjs` 编译生产 Agent 并在 Lua 中检查 `analyze_image` 的原生参数解析、注册表校验及视觉请求执行器。需要 `lua` 和 `dkjson`。`paths` 严格要求数组，不接受 JSON 编码的数组字符串；工具描述只提供原生函数调用示例。测试同时覆盖数量、路径范围、PNG/JPEG 内容与大小、中文文本边界、路径去空格后的实际读取、三图附件顺序、响应失败/截断/模型不匹配、持久化预算、超时及取消时序。特别检查响应已到达时取消仍保留已发出请求的计数和 usage，但不发布分析正文；无效参数不会读取文件或发出视觉请求。回归日志写入仓库 `build/agent-vision-input-qa/regression.log`。
 
 ## 运行中的后续消息
 
@@ -429,9 +429,9 @@ pnpm --filter @dora-studio/web preview --port 8898 --strictPort
 
 后端 `AgentSessionInput` 保存接收、投递及暂停状态，按会话和 requestId 去重；已投递消息以带 inputId/inputKind 元数据的 user 消息进入会话历史，调用模型时仅投影受支持字段。数据库 v1→v2 采用增量迁移。修改数据库模块后须重启原生 Dora 进程。
 
-`pnpm test:agent-followup` 使用专用 `build/studio-agent-host` 引擎、隔离浏览器存储和本地模型桩，覆盖真实 Lua/WASM 的工具批次边界引导、最终答复引导、FIFO、去重、编辑、停止保留、重启恢复及桌面/手机视口的输入交互。需要 Playwright 与 Chromium，可用 `STUDIO_PLAYWRIGHT_MODULE`、`STUDIO_CHROMIUM_EXECUTABLE` 指定本机路径；结果与截图位于仓库 `build/agent-followup-qa/`。
+从 Dora-Example 运行 `DORA_SSR_ROOT=/path/to/Dora-SSR node Test/DoraStudio/run.mjs --no-build test-agent-followup.mjs` 使用专用 `build/studio-agent-host` 引擎、隔离浏览器存储和本地模型桩，覆盖真实 Lua/WASM 的工具批次边界引导、最终答复引导、FIFO、去重、编辑、停止保留、重启恢复及桌面/手机视口的输入交互。需要 Playwright 与 Chromium，可用 `STUDIO_PLAYWRIGHT_MODULE`、`STUDIO_CHROMIUM_EXECUTABLE` 指定本机路径；结果与截图位于仓库 `build/agent-followup-qa/`。
 
-`pnpm test:agent-followup:user` 用浏览器点击和键盘操作正式共享输入组件，经测试专用传输连接真实 Lua/WASM Session。覆盖运行中排队、编辑保存/取消、删除、转引导、停止/继续、中文组合输入保护、快捷键设置、刷新保留偏好及窄屏操作；本地模型桩避免依赖外部密钥。此测试使用隔离宿主页面，不替代完整原生 Web IDE、已部署 Studio 或真实手机/输入法的验收。生成 `user-test-report.json` 和 `user-test-*.png`。
+从 Dora-Example 运行 `DORA_SSR_ROOT=/path/to/Dora-SSR node Test/DoraStudio/run.mjs --no-build --user-test test-agent-followup.mjs` 用浏览器点击和键盘操作正式共享输入组件，经测试专用传输连接真实 Lua/WASM Session。覆盖运行中排队、编辑保存/取消、删除、转引导、停止/继续、中文组合输入保护、快捷键设置、刷新保留偏好及窄屏操作；本地模型桩避免依赖外部密钥。此测试使用隔离宿主页面，不替代完整原生 Web IDE、已部署 Studio 或真实手机/输入法的验收。生成 `user-test-report.json` 和 `user-test-*.png`。
 
 `node tests/agent-host-page.browser.mjs` 验证构建后页面的配置 401/超大响应/重定向和资源缺失处理，不加载实际 WASM；实际引擎链路仍由 `agent-host-callback.browser.mjs` 验证。两者都使用 Playwright/Chrome，自动化通过不等于人工验收。
 
