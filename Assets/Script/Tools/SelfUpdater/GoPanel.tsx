@@ -11,12 +11,12 @@ const vertices = (width: number, height: number, radius = 14) => {
  return result;
 };
 function MobilePanelSurface(props: {width: number; height: number; renderOrder?: number}) {
- return <draw-node renderOrder={props.renderOrder}><polygon-shape verts={vertices(props.width,props.height,24)} fillColor={0xff1b2330} borderWidth={1} borderColor={0xff4a5568} /></draw-node>;
+ return <draw-node renderOrder={props.renderOrder}><polygon-shape verts={vertices(props.width,props.height,24)} fillColor={0xff212225} borderWidth={1} borderColor={0xff525458} /></draw-node>;
 }
 function MobileButton(props: {x:number;y:number;width:number;height?:number;text:string;tag?:string;fontSize?:number;primary?:boolean;renderOrder?:number;onTapped():void}) {
  const height=props.height??48;
  return <node tag={props.tag} x={props.x} y={props.y} width={props.width} height={height} anchorX={0} anchorY={0} touchEnabled={true} swallowTouches={true} onTapped={props.onTapped}>
-  <draw-node renderOrder={props.renderOrder}><polygon-shape verts={vertices(props.width,height)} fillColor={props.primary?0xffffcc33:0xff293140} borderWidth={1} borderColor={props.primary?0xffffdd63:0xff4a5568} /></draw-node>
+  <draw-node renderOrder={props.renderOrder}><polygon-shape verts={vertices(props.width,height)} fillColor={props.primary?0xffffcc33:0xff2f3134} borderWidth={1} borderColor={props.primary?0xffffdd63:0xff525458} /></draw-node>
   <label x={props.width/2} y={height/2} renderOrder={0} fontName="sarasa-mono-sc-regular" fontSize={props.fontSize??17} text={props.text} color3={props.primary?0x17130a:0xf4f1e8} />
  </node>;
 }
@@ -104,7 +104,7 @@ export const createGoUpdaterPanel = (onClosed: (this: void) => void) => {
   };
   const scene = toNode(<node>
    <node x={-App.visualSize.width / 2} y={-App.visualSize.height / 2} width={App.visualSize.width} height={App.visualSize.height} anchorX={0} anchorY={0} touchEnabled={true} swallowTouches={true}>
-    <draw-node renderOrder={0}><rect-shape width={App.visualSize.width} height={App.visualSize.height} centerX={App.visualSize.width / 2} centerY={App.visualSize.height / 2} fillColor={0xb0050810} /></draw-node>
+    <draw-node renderOrder={0}><rect-shape width={App.visualSize.width} height={App.visualSize.height} centerX={App.visualSize.width / 2} centerY={App.visualSize.height / 2} fillColor={0xb007080a} /></draw-node>
    </node>
    <node x={x} y={y} width={width} height={height} anchorX={0} anchorY={0} touchEnabled={true} swallowTouches={true}>
     <MobilePanelSurface width={width} height={height} renderOrder={0} />

@@ -34,7 +34,7 @@ function createMobileNewButton(options: {
 	root.renderOrder = renderOrder; root.touchEnabled = true; root.swallowTouches = true; root.onTapped(options.onTapped);
 	const shape = DrawNode();
 	shape.renderOrder = renderOrder;
-	shape.drawPolygon(roundedVerts(70, 44, 22), Color(0x33151921), 0.5, Color(0xffffcc33));
+	shape.drawPolygon(roundedVerts(70, 44, 22), Color(0x3318191b), 0.5, Color(0xffffcc33));
 	shape.addTo(root);
 	const label = Label(fontName, 14, true)!;
 	label.text = options.text; label.color3 = Color3(0xffffcc33); label.position = Vec2(35, 22);
@@ -75,9 +75,9 @@ export function MobileButton(props: {
 		width={props.width} height={height} renderOrder={props.renderOrder}
 		touchEnabled={true} swallowTouches={true} onTapped={props.onTapped}>
 		<RoundedSurface width={props.width} height={height} radius={14} renderOrder={surfaceRenderOrder}
-			topColor={props.danger ? 0xffff8585 : props.primary ? 0xffffdf6b : 0xff293140}
-			bottomColor={props.danger ? 0xffdf4e56 : props.primary ? 0xffffbd2e : 0xff1b202b}
-			borderWidth={1} borderColor={props.danger ? 0xffff6b6b : props.primary ? 0xffffdd63 : 0xff343b48} shadow={props.primary || props.danger} />
+			topColor={props.danger ? 0xffff8585 : props.primary ? 0xffffdf6b : 0xff2f3134}
+			bottomColor={props.danger ? 0xffdf4e56 : props.primary ? 0xffffbd2e : 0xff1f2022}
+			borderWidth={1} borderColor={props.danger ? 0xffff6b6b : props.primary ? 0xffffdd63 : 0xff393b3d} shadow={props.primary || props.danger} />
 		<label x={props.width / 2} y={height / 2} fontName={fontName}
 			fontSize={props.fontSize ?? 17} text={props.text}
 			color3={props.primary ? 0x17130a : 0xf4f1e8} />
@@ -87,12 +87,12 @@ export function MobileButton(props: {
 export function MobileChoiceButton(props: { x: number; y: number; width: number; text: string; tag?: string; selected: boolean; disabled?: boolean; renderOrder?: number; onTapped(): void }) {
 	return <node tag={props.tag} x={props.x} y={props.y} width={props.width} height={40} anchorX={0} anchorY={0} renderOrder={props.renderOrder} opacity={props.disabled ? 0.45 : 1} touchEnabled={!props.disabled} swallowTouches={true} onTapped={props.onTapped}>
 		<RoundedSurface width={props.width} height={40} radius={12} renderOrder={props.renderOrder === undefined ? undefined : props.renderOrder + 1}
-			topColor={props.selected ? 0xffffdf6b : 0xff202836}
-			bottomColor={props.selected ? 0xffffbd2e : 0xff10151d}
-			borderWidth={1} borderColor={props.selected ? 0xffffdd63 : 0xff343b48} />
+			topColor={props.selected ? 0xffffdf6b : 0xff26272b}
+			bottomColor={props.selected ? 0xffffbd2e : 0xff141516}
+			borderWidth={1} borderColor={props.selected ? 0xffffdd63 : 0xff393b3d} />
 		<draw-node tag={props.tag ? `${props.tag}-radio` : undefined} x={17} y={20}>
 			<dot-shape radius={7} color={props.selected ? 0xff17130a : 0xffa8afbd} />
-			<dot-shape radius={5} color={props.selected ? 0xffffcf48 : 0xff171c26} />
+			<dot-shape radius={5} color={props.selected ? 0xffffcf48 : 0xff1b1c1e} />
 			{props.selected ? <draw-node tag={props.tag ? `${props.tag}-radio-dot` : undefined}><dot-shape radius={2.5} color={0xff17130a} /></draw-node> : undefined}
 		</draw-node>
 		<label x={32} y={20} anchorX={0} fontName={fontName} fontSize={14} text={props.text} textWidth={props.width - 44} alignment={TextAlign.Left} color3={props.selected ? 0x17130a : 0xf4f1e8} />
@@ -101,6 +101,6 @@ export function MobileChoiceButton(props: { x: number; y: number; width: number;
 
 export function MobilePanelSurface(props: { width: number; height: number; renderOrder?: number }) {
 	return <RoundedSurface width={props.width} height={props.height} radius={24}
-			topColor={0xff242d3c} bottomColor={0xff111620}
-			borderWidth={1} borderColor={0xff4a5568} shadow={true} renderOrder={props.renderOrder} />;
+			topColor={0xff2a2c30} bottomColor={0xff151618}
+			borderWidth={1} borderColor={0xff525458} shadow={true} renderOrder={props.renderOrder} />;
 }

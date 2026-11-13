@@ -47,9 +47,9 @@ local function MobilePanelSurface(props) -- 13
 			"polygon-shape", -- 14
 			{ -- 14
 				verts = vertices(props.width, props.height, 24), -- 14
-				fillColor = 4279968560, -- 14
+				fillColor = 4280361509, -- 14
 				borderWidth = 1, -- 14
-				borderColor = 4283061608 -- 14
+				borderColor = 4283585624 -- 14
 			} -- 14
 		) -- 14
 	) -- 14
@@ -77,9 +77,9 @@ local function MobileButton(props) -- 16
 				"polygon-shape", -- 18
 				{ -- 18
 					verts = vertices(props.width, height), -- 18
-					fillColor = props.primary and 4294954035 or 4280889664, -- 18
+					fillColor = props.primary and 4294954035 or 4281282868, -- 18
 					borderWidth = 1, -- 18
-					borderColor = props.primary and 4294958435 or 4283061608 -- 18
+					borderColor = props.primary and 4294958435 or 4283585624 -- 18
 				} -- 18
 			) -- 18
 		), -- 18
@@ -474,7 +474,7 @@ ____exports.createGoUpdaterPanel = function(onClosed) -- 31
 					height = App.visualSize.height, -- 105
 					centerX = App.visualSize.width / 2, -- 105
 					centerY = App.visualSize.height / 2, -- 105
-					fillColor = 2953119760 -- 105
+					fillColor = 2953250826 -- 105
 				}) -- 105
 			) -- 105
 		) -- 105

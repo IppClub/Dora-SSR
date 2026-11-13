@@ -439,8 +439,8 @@ export function startMobileLLMManager(options: MobileLLMManagerOptions) {
 						const y = sheetHeight - 126 - index * 68;
 						const selected = item.id === selectedId;
 						return <node key={`${item.id}`} tag={`mobile-llm-config-${item.id}`} x={20} y={y} width={contentWidth} height={54} anchorX={0} anchorY={0} touchEnabled={true} swallowTouches={true} onTapped={() => select(item.id)}>
-							<RoundedSurface width={contentWidth} height={54} radius={14} topColor={selected ? 0xff3a3420 : 0xff252c39} bottomColor={selected ? 0xff211d12 : 0xff171c25} borderWidth={1} borderColor={selected ? 0xffffcc33 : 0xff343b48} />
-							<draw-node x={20} y={27}><dot-shape radius={8} color={selected ? 0xffffcc33 : 0xff6f7888} /><dot-shape radius={selected ? 3 : 5} color={selected ? 0xff17130a : 0xff171c25} /></draw-node>
+							<RoundedSurface width={contentWidth} height={54} radius={14} topColor={selected ? 0xff3a3420 : 0xff2a2c2e} bottomColor={selected ? 0xff211d12 : 0xff1b1c1e} borderWidth={1} borderColor={selected ? 0xffffcc33 : 0xff393b3d} />
+							<draw-node x={20} y={27}><dot-shape radius={8} color={selected ? 0xffffcc33 : 0xff6f7888} /><dot-shape radius={selected ? 3 : 5} color={selected ? 0xff17130a : 0xff1b1c1e} /></draw-node>
 							<label x={38} y={34} anchorX={0} fontName={fontName} fontSize={15} text={compactText(item.name, shortLandscape ? 34 : 22)} color3={0xf4f1e8} />
 							<label x={38} y={15} anchorX={0} fontName={fontName} fontSize={11} text={compactText(item.model, shortLandscape ? 52 : 30)} color3={0xa8afbd} />
 							{selected ? <label x={contentWidth - 54} y={27} anchorX={1} fontName={fontName} fontSize={11} text={switchPending ? (zh ? "下一轮" : "Next") : options.taskRunning ? (zh ? "本轮" : "Running") : (zh ? "当前" : "Current")} color3={0xffcc33} /> : undefined}

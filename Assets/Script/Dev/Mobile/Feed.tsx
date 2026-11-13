@@ -37,13 +37,13 @@ interface MobileFeedOptions {
 }
 
 const colors = {
-	background: 0xff0b0d12,
-	panel: 0xff151922,
-	panelRaised: 0xff202632,
+	background: 0xff0d0d0e,
+	panel: 0xff18191b,
+	panelRaised: 0xff242628,
 	text: 0xfff4f1e8,
 	muted: 0xffa8afbd,
 	brand: 0xffffcc33,
-	border: 0xff343b48,
+	border: 0xff393b3d,
 	danger: 0xffff6b6b,
 };
 
@@ -58,7 +58,7 @@ function OverlayActionButton(props: { key?: string; tag: string; x: number; y?: 
 	return <node key={props.key} tag={props.tag} x={props.x} y={props.y ?? 20} width={props.width} height={48} anchorX={0} anchorY={0}
 		touchEnabled={true} swallowTouches={true} onTapped={props.onTapped}>
 		<draw-node renderOrder={2}><polygon-shape verts={roundedRectVerts(props.width, 48, 14)}
-			fillColor={props.danger ? 0xffdf4e56 : 0xff293140} borderWidth={1} borderColor={props.danger ? 0xffff8585 : colors.border} /></draw-node>
+			fillColor={props.danger ? 0xffdf4e56 : 0xff2f3134} borderWidth={1} borderColor={props.danger ? 0xffff8585 : colors.border} /></draw-node>
 		<label x={props.width / 2} y={24} fontName={fontName} fontSize={props.fontSize ?? 17} text={props.text} color3={0xf4f1e8} renderOrder={3} />
 	</node>;
 }
@@ -90,13 +90,13 @@ function Cover(props: { key?: string; entry: FeedEntry; x: number; y: number; wi
 	};
 	return <node x={props.x} y={props.y} width={props.width} height={props.height} anchorX={0} anchorY={0}>
 		<RoundedSurface width={props.width} height={props.height} radius={22}
-			topColor={stableCoverColor(props.entry.id)} bottomColor={0xff111723} shadow={true} />
+			topColor={stableCoverColor(props.entry.id)} bottomColor={0xff151719} shadow={true} />
 		{file ? <clip-node width={props.width} height={props.height} anchorX={0} anchorY={0} stencil={<RoundedStencil width={props.width} height={props.height} radius={22} />}>
 			<sprite file={file} x={props.width / 2 - 5} y={props.height / 2} opacity={0.08} onMount={sprite => scaleSprite(sprite, "cover")} />
 			<sprite file={file} x={props.width / 2 + 5} y={props.height / 2} opacity={0.08} onMount={sprite => scaleSprite(sprite, "cover")} />
 			<sprite file={file} x={props.width / 2} y={props.height / 2 - 5} opacity={0.08} onMount={sprite => scaleSprite(sprite, "cover")} />
 			<draw-node x={props.width / 2} y={props.height / 2}>
-				<rect-shape width={props.width} height={props.height} fillColor={0xb00b0d12} />
+				<rect-shape width={props.width} height={props.height} fillColor={0xb00d0d0e} />
 			</draw-node>
 			<sprite file={file} x={props.width / 2} y={props.height / 2} onMount={sprite => scaleSprite(sprite, "contain")} />
 		</clip-node> : <label
@@ -117,7 +117,7 @@ function Cover(props: { key?: string; entry: FeedEntry; x: number; y: number; wi
 			color3={0xffcc33}
 		/>}
 		{file ? undefined : <DoraMascot state="idle" x={props.width - 46} y={64} size={42} />}
-		<RoundedSurface width={props.width} height={props.height} radius={22} fillColor={0x00000000} borderWidth={1} borderColor={0xff3b4556} />
+		<RoundedSurface width={props.width} height={props.height} radius={22} fillColor={0x00000000} borderWidth={1} borderColor={0xff424448} />
 	</node>;
 }
 
@@ -573,7 +573,7 @@ export function startMobileFeed(options: MobileFeedOptions) {
 			}}
 			onMouseWheel={delta => commit(delta.y > 0 ? "previous" : "next")}
 		>
-			<VerticalGradient width={width} height={height} topColor={0xff111725} bottomColor={0xff080a0f} />
+			<VerticalGradient width={width} height={height} topColor={0xff15171a} bottomColor={0xff0a0a0b} />
 			<node visible={!projectIndexOpen}>
 				{createOpen ? undefined : item !== undefined ? <node tag={`mobile-feed-card-${item.id}`} ref={cardRef} key={`${tab}-${item.id}`}>
 					{cardIndices.map(cardIndex => <Cover
@@ -589,11 +589,11 @@ export function startMobileFeed(options: MobileFeedOptions) {
 						{/* Scene geometry keeps the entire badge above Sprite covers; NanoVG surfaces render before them. */}
 						<clip-node width={48} height={26} anchorX={0} anchorY={0} stencil={<RoundedStencil width={48} height={26} radius={13} />}>
 							<draw-node><verts-shape verts={[
-								[Vec2(0, 0), 0xe012161e], [Vec2(48, 0), 0xe012161e], [Vec2(48, 26), 0xe028303d],
-								[Vec2(0, 0), 0xe012161e], [Vec2(48, 26), 0xe028303d], [Vec2(0, 26), 0xe028303d],
+								[Vec2(0, 0), 0xe0151618], [Vec2(48, 0), 0xe0151618], [Vec2(48, 26), 0xe02e2f32],
+								[Vec2(0, 0), 0xe0151618], [Vec2(48, 26), 0xe02e2f32], [Vec2(0, 26), 0xe02e2f32],
 							]} /></draw-node>
 						</clip-node>
-						<draw-node x={0.5} y={0.5}><polygon-shape verts={roundedRectVerts(47, 25, 12.5)} fillColor={0x00000000} borderWidth={0.5} borderColor={0x88505a6c} /></draw-node>
+						<draw-node x={0.5} y={0.5}><polygon-shape verts={roundedRectVerts(47, 25, 12.5)} fillColor={0x00000000} borderWidth={0.5} borderColor={0x8857595d} /></draw-node>
 						<draw-node x={18} y={2}><polygon-shape verts={roundedRectVerts(12, 2, 1)} fillColor={colors.brand} /></draw-node>
 						<label x={24} y={13} fontName={fontName} fontSize={11} text={`${index + 1} / ${data.length}`} color3={0xd7dbe3} />
 					</node>
@@ -603,7 +603,7 @@ export function startMobileFeed(options: MobileFeedOptions) {
 					<label tag="mobile-feed-description" x={infoX} y={descriptionY} anchorX={0} anchorY={0.5} fontName={fontName} fontSize={math.floor(15 * fontScale)}
 						text={conciseDescription(item.description, wide ? 80 : compact ? 28 : 42)} textWidth={infoWidth} alignment={TextAlign.Left} color3={0xa8afbd} />
 					{compact || shortLandscape ? undefined : <node x={infoX} y={metadataY} width={wide ? 176 : 164} height={28} anchorX={0} anchorY={0}>
-						<RoundedSurface width={wide ? 176 : 164} height={28} radius={14} topColor={0x66303a4b} bottomColor={0x6618202b} borderWidth={1} borderColor={0x88606b7d} />
+						<RoundedSurface width={wide ? 176 : 164} height={28} radius={14} topColor={0x6637393d} bottomColor={0x661e1f22} borderWidth={1} borderColor={0x88686a6e} />
 						<label x={12} y={14} anchorX={0} fontName={fontName} fontSize={12}
 							text={item.webPlayUrl ? (zh ? "发现  ·  在线试玩" : "Discover  ·  Web game") : item.kind === "local" ? (zh ? "本地作品  ·  可 Remix" : "Local  ·  Remixable") : item.installed ? (zh ? "发现  ·  已安装" : "Discover  ·  Installed") : (zh ? "发现  ·  可安装" : "Discover  ·  Installable")}
 							textWidth={(wide ? 176 : 164) - 24} alignment={TextAlign.Left} color3={0xdce1ea} />
@@ -613,7 +613,7 @@ export function startMobileFeed(options: MobileFeedOptions) {
 					<label tag="mobile-feed-download-percent" x={infoWidth - 92} y={38} anchorX={1} fontName={fontName} fontSize={14}
 						text={`${math.floor(prepareProgress * 100)}%${prepareTransferredBytes > 0 ? ` · ${formatTransferBytes(prepareTransferredBytes)}` : ""}`} color3={0xffcc33} />
 					<node tag="mobile-feed-download-track" width={infoWidth - 92} height={8} y={8} anchorX={0} anchorY={0}>
-						<RoundedSurface width={infoWidth - 92} height={8} radius={4} fillColor={0xff293140} />
+						<RoundedSurface width={infoWidth - 92} height={8} radius={4} fillColor={0xff2f3134} />
 						<node tag="mobile-feed-download-fill" width={(infoWidth - 92) * prepareProgress} height={8} anchorX={0} anchorY={0}>
 							{prepareProgress > 0 ? <RoundedSurface width={(infoWidth - 92) * prepareProgress} height={8} radius={4} topColor={0xffffdf6b} bottomColor={0xffffbd2e} /> : undefined}
 						</node>
@@ -689,11 +689,11 @@ export function startMobileFeed(options: MobileFeedOptions) {
 			})() : undefined}
 			{syncConfirmation ? <node tag="mobile-feed-sync-confirmation" order={2000} renderOrder={2000} renderGroup={true}
 				width={width} height={height} anchorX={0} anchorY={0} touchEnabled={true} swallowTouches={true} onTapped={() => {}}>
-				<draw-node><rect-shape centerX={width / 2} centerY={height / 2} width={width} height={height} fillColor={0xd0080a0f} /></draw-node>
+				<draw-node><rect-shape centerX={width / 2} centerY={height / 2} width={width} height={height} fillColor={0xd00a0a0b} /></draw-node>
 				<node x={left + (usableWidth - math.min(440, usableWidth - 24)) / 2} y={bottom + (usableHeight - math.min(310, usableHeight - 24)) / 2}
 					width={math.min(440, usableWidth - 24)} height={math.min(310, usableHeight - 24)} anchorX={0} anchorY={0}>
 					<draw-node renderOrder={1}><polygon-shape verts={roundedRectVerts(math.min(440, usableWidth - 24), math.min(310, usableHeight - 24), 24)}
-						fillColor={0xff151922} borderWidth={1} borderColor={0xff4a5568} /></draw-node>
+						fillColor={0xff18191b} borderWidth={1} borderColor={0xff525458} /></draw-node>
 					<label x={20} y={math.min(310, usableHeight - 24) - 32} anchorX={0} fontName={fontName} fontSize={20}
 						text={zh ? "同步失败，是否强制同步？" : "Sync failed. Force sync?"} textWidth={math.min(440, usableWidth - 24) - 40} alignment={TextAlign.Left} renderOrder={2} />
 					<label x={20} y={math.min(310, usableHeight - 24) - 82} anchorX={0} fontName={fontName} fontSize={13} color3={0xa8afbd}

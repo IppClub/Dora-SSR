@@ -53,7 +53,7 @@ local function createMobileNewButton(options) -- 25
 	shape.renderOrder = renderOrder -- 36
 	shape:drawPolygon( -- 37
 		roundedVerts(70, 44, 22), -- 37
-		Color(857020705), -- 37
+		Color(857217307), -- 37
 		0.5, -- 37
 		Color(4294954035) -- 37
 	) -- 37
@@ -102,10 +102,10 @@ function ____exports.MobileButton(props) -- 57
 			height = height, -- 74
 			radius = 14, -- 74
 			renderOrder = surfaceRenderOrder, -- 74
-			topColor = props.danger and 4294935941 or (props.primary and 4294958955 or 4280889664), -- 74
-			bottomColor = props.danger and 4292824662 or (props.primary and 4294950190 or 4279967787), -- 74
+			topColor = props.danger and 4294935941 or (props.primary and 4294958955 or 4281282868), -- 74
+			bottomColor = props.danger and 4292824662 or (props.primary and 4294950190 or 4280229922), -- 74
 			borderWidth = 1, -- 74
-			borderColor = props.danger and 4294929259 or (props.primary and 4294958435 or 4281613128), -- 74
+			borderColor = props.danger and 4294929259 or (props.primary and 4294958435 or 4281940797), -- 74
 			shadow = props.primary or props.danger -- 74
 		}), -- 74
 		React.createElement("label", { -- 74
@@ -148,17 +148,17 @@ function ____exports.MobileChoiceButton(props) -- 87
 		height = 40, -- 89
 		radius = 12, -- 89
 		renderOrder = ____temp_0, -- 89
-		topColor = props.selected and 4294958955 or 4280297526, -- 89
-		bottomColor = props.selected and 4294950190 or 4279244061, -- 89
+		topColor = props.selected and 4294958955 or 4280690475, -- 89
+		bottomColor = props.selected and 4294950190 or 4279506198, -- 89
 		borderWidth = 1, -- 89
-		borderColor = props.selected and 4294958435 or 4281613128 -- 89
+		borderColor = props.selected and 4294958435 or 4281940797 -- 89
 	}) -- 89
 	local ____React_createElement_6 = React.createElement -- 89
 	local ____array_5 = __TS__SparseArrayNew( -- 89
 		"draw-node", -- 89
 		{tag = props.tag and props.tag .. "-radio" or nil, x = 17, y = 20}, -- 89
 		React.createElement("dot-shape", {radius = 7, color = props.selected and 4279702282 or 4289245117}), -- 89
-		React.createElement("dot-shape", {radius = 5, color = props.selected and 4294954824 or 4279704614}) -- 89
+		React.createElement("dot-shape", {radius = 5, color = props.selected and 4294954824 or 4279966750}) -- 89
 	) -- 89
 	local ____props_selected_4 -- 96
 	if props.selected then -- 96
@@ -194,10 +194,10 @@ function ____exports.MobilePanelSurface(props) -- 102
 		width = props.width, -- 103
 		height = props.height, -- 103
 		radius = 24, -- 103
-		topColor = 4280560956, -- 103
-		bottomColor = 4279309856, -- 103
+		topColor = 4280953904, -- 103
+		bottomColor = 4279571992, -- 103
 		borderWidth = 1, -- 103
-		borderColor = 4283061608, -- 103
+		borderColor = 4283585624, -- 103
 		shadow = true, -- 103
 		renderOrder = props.renderOrder -- 103
 	}) -- 103

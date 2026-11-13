@@ -56,13 +56,13 @@ local Updater = require("Tools.SelfUpdater.Service") -- 14
 local ____GoPanel = require("Tools.SelfUpdater.GoPanel") -- 15
 local createGoUpdaterPanel = ____GoPanel.createGoUpdaterPanel -- 15
 local colors = { -- 39
-	background = 4278914322, -- 40
-	panel = 4279572770, -- 41
-	panelRaised = 4280297010, -- 42
+	background = 4279045390, -- 40
+	panel = 4279769371, -- 41
+	panelRaised = 4280559144, -- 42
 	text = 4294242792, -- 43
 	muted = 4289245117, -- 44
 	brand = 4294954035, -- 45
-	border = 4281613128, -- 46
+	border = 4281940797, -- 46
 	danger = 4294929259 -- 47
 } -- 47
 local fontName = "sarasa-mono-sc-regular" -- 50
@@ -92,7 +92,7 @@ local function OverlayActionButton(props) -- 57
 				"polygon-shape", -- 58
 				{ -- 58
 					verts = roundedRectVerts(props.width, 48, 14), -- 58
-					fillColor = props.danger and 4292824662 or 4280889664, -- 58
+					fillColor = props.danger and 4292824662 or 4281282868, -- 58
 					borderWidth = 1, -- 58
 					borderColor = props.danger and 4294935941 or colors.border -- 58
 				} -- 58
@@ -154,7 +154,7 @@ local function Cover(props) -- 84
 			height = props.height, -- 92
 			radius = 22, -- 92
 			topColor = stableCoverColor(props.entry.id), -- 92
-			bottomColor = 4279310115, -- 92
+			bottomColor = 4279572249, -- 92
 			shadow = true -- 92
 		} -- 92
 	) -- 92
@@ -202,7 +202,7 @@ local function Cover(props) -- 84
 			React.createElement( -- 94
 				"draw-node", -- 94
 				{x = props.width / 2, y = props.height / 2}, -- 94
-				React.createElement("rect-shape", {width = props.width, height = props.height, fillColor = 2953514258}) -- 94
+				React.createElement("rect-shape", {width = props.width, height = props.height, fillColor = 2953645326}) -- 94
 			), -- 94
 			React.createElement( -- 94
 				"sprite", -- 94
@@ -263,7 +263,7 @@ local function Cover(props) -- 84
 			radius = 22, -- 91
 			fillColor = 0, -- 91
 			borderWidth = 1, -- 91
-			borderColor = 4282074454 -- 91
+			borderColor = 4282532936 -- 91
 		}) -- 91
 	) -- 91
 end -- 84
@@ -932,7 +932,7 @@ function ____exports.startMobileFeed(options) -- 124
 				end, -- 563
 				onMouseWheel = function(delta) return commit(delta.y > 0 and "previous" or "next") end -- 563
 			}, -- 563
-			React.createElement(VerticalGradient, {width = width, height = height, topColor = 4279310117, bottomColor = 4278716943}) -- 563
+			React.createElement(VerticalGradient, {width = width, height = height, topColor = 4279572250, bottomColor = 4278848011}) -- 563
 		) -- 563
 		local ____React_createElement_68 = React.createElement -- 563
 		local ____temp_66 = {visible = not projectIndexOpen} -- 563
@@ -991,27 +991,27 @@ function ____exports.startMobileFeed(options) -- 124
 									{verts = { -- 579
 										{ -- 592
 											Vec2(0, 0), -- 592
-											3759281694 -- 592
+											3759478296 -- 592
 										}, -- 592
 										{ -- 592
 											Vec2(48, 0), -- 592
-											3759281694 -- 592
+											3759478296 -- 592
 										}, -- 592
 										{ -- 592
 											Vec2(48, 26), -- 592
-											3760730173 -- 592
+											3761123122 -- 592
 										}, -- 592
 										{ -- 593
 											Vec2(0, 0), -- 593
-											3759281694 -- 593
+											3759478296 -- 593
 										}, -- 593
 										{ -- 593
 											Vec2(48, 26), -- 593
-											3760730173 -- 593
+											3761123122 -- 593
 										}, -- 593
 										{ -- 593
 											Vec2(0, 26), -- 593
-											3760730173 -- 593
+											3761123122 -- 593
 										} -- 593
 									}} -- 593
 								) -- 593
@@ -1026,7 +1026,7 @@ function ____exports.startMobileFeed(options) -- 124
 									verts = roundedRectVerts(47, 25, 12.5), -- 593
 									fillColor = 0, -- 593
 									borderWidth = 0.5, -- 593
-									borderColor = 2286967404 -- 593
+									borderColor = 2287425885 -- 593
 								} -- 593
 							) -- 593
 						), -- 593
@@ -1123,10 +1123,10 @@ function ____exports.startMobileFeed(options) -- 124
 							width = wide and 176 or 164, -- 605
 							height = 28, -- 605
 							radius = 14, -- 605
-							topColor = 1714436683, -- 605
-							bottomColor = 1712857131, -- 605
+							topColor = 1714895165, -- 605
+							bottomColor = 1713250082, -- 605
 							borderWidth = 1, -- 605
-							borderColor = 2288020349 -- 605
+							borderColor = 2288544366 -- 605
 						}), -- 605
 						React.createElement("label", { -- 605
 							x = 12, -- 605
@@ -1188,7 +1188,7 @@ function ____exports.startMobileFeed(options) -- 124
 						anchorX = 0, -- 611
 						anchorY = 0 -- 611
 					} -- 611
-					local ____React_createElement_result_38 = React.createElement(RoundedSurface, {width = infoWidth - 92, height = 8, radius = 4, fillColor = 4280889664}) -- 611
+					local ____React_createElement_result_38 = React.createElement(RoundedSurface, {width = infoWidth - 92, height = 8, radius = 4, fillColor = 4281282868}) -- 611
 					local ____React_createElement_36 = React.createElement -- 611
 					local ____temp_35 = { -- 611
 						tag = "mobile-feed-download-fill", -- 611
@@ -1610,7 +1610,7 @@ function ____exports.startMobileFeed(options) -- 124
 						centerY = height / 2, -- 691
 						width = width, -- 691
 						height = height, -- 691
-						fillColor = 3490187791 -- 691
+						fillColor = 3490318859 -- 691
 					}) -- 691
 				), -- 691
 				React.createElement( -- 691
@@ -1634,9 +1634,9 @@ function ____exports.startMobileFeed(options) -- 124
 									math.min(310, usableHeight - 24), -- 695
 									24 -- 695
 								), -- 695
-								fillColor = 4279572770, -- 695
+								fillColor = 4279769371, -- 695
 								borderWidth = 1, -- 695
-								borderColor = 4283061608 -- 695
+								borderColor = 4283585624 -- 695
 							} -- 695
 						) -- 695
 					), -- 695

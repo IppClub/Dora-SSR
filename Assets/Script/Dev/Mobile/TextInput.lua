@@ -71,14 +71,14 @@ function ____exports.createTextInputView(input, fontSize, singleLine, background
 		singleLine = false -- 36
 	end -- 36
 	if background == nil then -- 36
-		background = 4279704614 -- 36
+		background = 4279966750 -- 36
 	end -- 36
 	if nativeSurface == nil then -- 36
 		nativeSurface = false -- 36
 	end -- 36
 	local border = Node() -- 37
 	border.tag = input.tag .. "-border" -- 37
-	border.color3 = Color3(3423048) -- 38
+	border.color3 = Color3(3750717) -- 38
 	input:addChild(border, -1) -- 38
 	if nativeSurface then -- 38
 		local w = input.width -- 42
@@ -91,7 +91,7 @@ function ____exports.createTextInputView(input, fontSize, singleLine, background
 			w, -- 45
 			h, -- 45
 			r, -- 45
-			{topColor = 4280560955, bottomColor = background} -- 45
+			{topColor = 4280953903, bottomColor = background} -- 45
 		) -- 45
 		input:addChild(fill, -2) -- 46
 		local outline = DrawNode() -- 47
@@ -119,7 +119,7 @@ function ____exports.createTextInputView(input, fontSize, singleLine, background
 				input.height, -- 51
 				0, -- 51
 				0, -- 51
-				Color(4280560955), -- 51
+				Color(4280953903), -- 51
 				Color(background) -- 51
 			)) -- 51
 			nvg.Fill() -- 52
@@ -306,7 +306,7 @@ function ____exports.createTextInputView(input, fontSize, singleLine, background
 			end -- 132
 			placeholder.text = hint -- 133
 			placeholder.visible = text == "" and not focused -- 133
-			border.color3 = Color3(focused and 16763955 or 3423048) -- 134
+			border.color3 = Color3(focused and 16763955 or 3750717) -- 134
 			active = focused -- 135
 			index = math.max( -- 135
 				0, -- 135

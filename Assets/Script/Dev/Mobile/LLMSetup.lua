@@ -1338,16 +1338,16 @@ function ____exports.startMobileLLMManager(options) -- 256
 								width = contentWidth, -- 440
 								height = 54, -- 440
 								radius = 14, -- 440
-								topColor = selected and 4282004512 or 4280626233, -- 440
-								bottomColor = selected and 4280360210 or 4279704613, -- 440
+								topColor = selected and 4282004512 or 4280953902, -- 440
+								bottomColor = selected and 4280360210 or 4279966750, -- 440
 								borderWidth = 1, -- 440
-								borderColor = selected and 4294954035 or 4281613128 -- 440
+								borderColor = selected and 4294954035 or 4281940797 -- 440
 							}), -- 440
 							React.createElement( -- 440
 								"draw-node", -- 440
 								{x = 20, y = 27}, -- 440
 								React.createElement("dot-shape", {radius = 8, color = selected and 4294954035 or 4285495432}), -- 440
-								React.createElement("dot-shape", {radius = selected and 3 or 5, color = selected and 4279702282 or 4279704613}) -- 440
+								React.createElement("dot-shape", {radius = selected and 3 or 5, color = selected and 4279702282 or 4279966750}) -- 440
 							), -- 440
 							React.createElement( -- 440
 								"label", -- 440

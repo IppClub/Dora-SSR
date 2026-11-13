@@ -48,7 +48,7 @@ export interface RemixOptions {
 }
 
 const fontName = "sarasa-mono-sc-regular";
-const colors = { background: 0xff0b0d12, panel: 0xff171c26, text: 0xfff4f1e8, muted: 0xffa8afbd, brand: 0xffffcc33, border: 0xff343b48, danger: 0xffff6b6b };
+const colors = { background: 0xff0d0d0e, panel: 0xff1b1c1e, text: 0xfff4f1e8, muted: 0xffa8afbd, brand: 0xffffcc33, border: 0xff393b3d, danger: 0xffff6b6b };
 // One layout rhythm for both composer rows, in logical (not framebuffer) pixels.
 const composerGap = 12;
 const composerBottom = 76;
@@ -94,8 +94,8 @@ function ActionButton(props: { x: number; y: number; width: number; height?: num
 	const height = props.height ?? 46;
 	return <node tag={props.tag} x={props.x} y={props.y} width={props.width} height={height} anchorX={0} anchorY={0} opacity={props.disabled ? 0.45 : 1} touchEnabled={!props.disabled} swallowTouches={true} onTapped={props.onTapped}>
 		<RoundedSurface width={props.width} height={height} radius={14}
-			topColor={props.danger ? 0xffff8585 : props.primary ? 0xffffdf6b : 0xff293140}
-			bottomColor={props.danger ? 0xffdf4e56 : props.primary ? 0xffffbd2e : 0xff171d27}
+			topColor={props.danger ? 0xffff8585 : props.primary ? 0xffffdf6b : 0xff2f3134}
+			bottomColor={props.danger ? 0xffdf4e56 : props.primary ? 0xffffbd2e : 0xff1b1d1f}
 			borderWidth={1} borderColor={props.danger ? colors.danger : props.primary ? 0xffffdd63 : colors.border} shadow={props.primary || props.danger} />
 		<label x={props.width / 2} y={height / 2} fontName={fontName} fontSize={15} text={props.text} color3={props.primary ? 0x17130a : 0xf4f1e8} />
 	</node>;
@@ -594,7 +594,7 @@ export function startMobileRemix(options: RemixOptions) {
 						else page.position = Vec2.zero;
 					});
 				}} />
-			<VerticalGradient width={width} height={height} topColor={0xff111725} bottomColor={0xff080a0f} />
+			<VerticalGradient width={width} height={height} topColor={0xff15171a} bottomColor={0xff0a0a0b} />
 			<node tag="remix-page" ref={pageRef}>
 			<clip-node x={left + 16} y={headerY} width={headerTitleWidth} height={44} anchorX={0} anchorY={0}
 				stencil={<draw-node x={headerTitleWidth / 2} y={22}><rect-shape width={headerTitleWidth} height={44} fillColor={0xffffffff} /></draw-node>}>
@@ -606,7 +606,7 @@ export function startMobileRemix(options: RemixOptions) {
 			</node>
 			<node tag="remix-model-config" x={headerSettingsX} y={headerY + 6} width={modelButtonWidth} height={32}
 				anchorX={0} anchorY={0} touchEnabled={true} swallowTouches={true} onTapped={configureLLM}>
-				<RoundedSurface width={modelButtonWidth} height={32} radius={16} topColor={0x332c3442} bottomColor={0x33121921}
+				<RoundedSurface width={modelButtonWidth} height={32} radius={16} topColor={0x33323337} bottomColor={0x3317181a}
 					borderWidth={1} borderColor={needsLLMSetup ? colors.brand : colors.border} />
 				<label x={modelButtonWidth / 2} y={16} fontName={fontName} fontSize={11} text={modelLabel} color3={needsLLMSetup || switchPending ? 0xffcc33 : 0xa8afbd} />
 				{needsLLMSetup ? <draw-node x={modelButtonWidth - 4} y={28}><dot-shape radius={3} color={0xffffcc33} /></draw-node> : undefined}
@@ -626,7 +626,7 @@ export function startMobileRemix(options: RemixOptions) {
 				</clip-node>
 			</node>
 			{questionnaire && question ? <node tag="remix-questionnaire" x={left + 16} y={bottom + 164} width={contentWidth} height={questionCardHeight} anchorX={0} anchorY={0}>
-				<RoundedSurface width={contentWidth} height={questionCardHeight} radius={20} topColor={0xff222b3a} bottomColor={0xff121720} borderWidth={1} borderColor={0xff414b5d} shadow={true} />
+				<RoundedSurface width={contentWidth} height={questionCardHeight} radius={20} topColor={0xff282a2e} bottomColor={0xff161719} borderWidth={1} borderColor={0xff484a4e} shadow={true} />
 				<label x={16} y={questionCardHeight - 30} anchorX={0} fontName={fontName} fontSize={13} text={`${questionIndex + 1} / ${questionnaire.schema.questions.length} · ${questionnaire.schema.title}`} textWidth={contentWidth - 32} alignment={TextAlign.Left} color3={0xffcc33} />
 				<label tag="remix-question-prompt" x={16} y={questionCardHeight - 75} anchorX={0} fontName={fontName} fontSize={16} text={question.prompt} textWidth={questionPromptWidth} alignment={TextAlign.Left} color3={0xf4f1e8} />
 				{question.type !== "text" ? (question.options ?? []).slice(0, 8).map((option, optionIndex) => <ChoiceButton

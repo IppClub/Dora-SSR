@@ -247,8 +247,8 @@ function ____exports.start(repository) -- 12
 				width = contentWidth, -- 89
 				height = 10, -- 89
 				radius = 5, -- 89
-				topColor = 4279309856, -- 89
-				bottomColor = 4279309856 -- 89
+				topColor = 4279571992, -- 89
+				bottomColor = 4279571992 -- 89
 			}) -- 89
 			local ____temp_16 -- 91
 			if p > 0 then -- 91
@@ -370,7 +370,7 @@ function ____exports.start(repository) -- 12
 		local ____React_createElement_result_30 = React.createElement( -- 112
 			"draw-node", -- 112
 			nil, -- 112
-			React.createElement("rect-shape", {width = App.visualSize.width, height = App.visualSize.height, fillColor = 4279244061}) -- 112
+			React.createElement("rect-shape", {width = App.visualSize.width, height = App.visualSize.height, fillColor = 4279506198}) -- 112
 		) -- 112
 		local ____React_createElement_29 = React.createElement -- 112
 		local ____array_28 = __TS__SparseArrayNew( -- 112

@@ -87,7 +87,7 @@ export function start(repository?: string) {
 		if (phase === "busy") {
 			text(zh ? "下载 → 校验 → 导入" : "Clone → Verify → Import", 13);
 			add(toNode(<node width={contentWidth} height={10} anchorX={0} anchorY={0}>
-				<RoundedSurface width={contentWidth} height={10} radius={5} topColor={0xff111620} bottomColor={0xff111620} />
+				<RoundedSurface width={contentWidth} height={10} radius={5} topColor={0xff151618} bottomColor={0xff151618} />
 				{p > 0 ? <RoundedSurface width={math.max(10, contentWidth * p)} height={10} radius={5} topColor={0xffffdf6b} bottomColor={0xffffbd2e} /> : undefined}
 			</node>), 10);
 			text(`${math.floor(p * 100)}%${operation?.status?.transferredBytes ? `  ${string.format("%.1f", operation.status.transferredBytes / 1048576)} MiB` : ""}`, 13);
@@ -110,7 +110,7 @@ export function start(repository?: string) {
 		for (const item of items) {item.node.y = contentHeight - item.top - (item.label ? 0 : item.node.height); body.addChild(item.node);}
 		body.addTo(scroll.view);
 		const scene = toNode(<node>
-			<draw-node><rect-shape width={App.visualSize.width} height={App.visualSize.height} fillColor={0xff10151d} /></draw-node>
+			<draw-node><rect-shape width={App.visualSize.width} height={App.visualSize.height} fillColor={0xff141516} /></draw-node>
 			<node x={left} y={bottom} width={width} height={height} anchorX={0} anchorY={0}>
 				<MobilePanelSurface width={width} height={height} />
 				<label x={24} y={height - 24} anchorX={0} anchorY={1} fontName="sarasa-mono-sc-regular" fontSize={22} text={title} color3={0xf4f1e8} />

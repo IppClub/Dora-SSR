@@ -33,22 +33,22 @@ export function layoutInput(text: string, width: number, advance: (this: void, c
 	return { text: display.join(""), stops, rows: row + 1 };
 }
 
-export function createTextInputView(input: Node.Type, fontSize: number, singleLine = false, background = 0xff171c26, nativeSurface = false) {
+export function createTextInputView(input: Node.Type, fontSize: number, singleLine = false, background = 0xff1b1c1e, nativeSurface = false) {
 	const border = Node(); border.tag = `${input.tag}-border`;
-	border.color3 = Color3(0x343b48); input.addChild(border, -1);
+	border.color3 = Color3(0x393b3d); input.addChild(border, -1);
 	if (nativeSurface) {
 		// Native tool panels need their background and clipped labels in one
 		// render queue; a NanoVG pass would otherwise cover the text.
 		const w = input.width, h = input.height, r = math.min(12, w / 2, h / 2);
 		const verts = roundedSurfaceVertices(w, h, r);
 		const fill = DrawNode();
-		paintSurface(fill, w, h, r, {topColor: 0xff242d3b, bottomColor: background});
+		paintSurface(fill, w, h, r, {topColor: 0xff2a2c2f, bottomColor: background});
 		input.addChild(fill, -2);
 		const outline = DrawNode(); outline.drawPolygon(verts, Color(0), 1.5, Color(0xffffffff)); border.addChild(outline);
 	} else input.onRender(() => {
 		nvg.Save(); nvg.ApplyTransform(input);
 		nvg.BeginPath(); nvg.RoundedRect(0, 0, input.width, input.height, 12);
-		nvg.FillPaint(nvg.LinearGradient(0, input.height, 0, 0, Color(0xff242d3b), Color(background)));
+		nvg.FillPaint(nvg.LinearGradient(0, input.height, 0, 0, Color(0xff2a2c2f), Color(background)));
 		nvg.Fill();
 		nvg.BeginPath(); nvg.RoundedRect(0.75, 0.75, input.width - 1.5, input.height - 1.5, 11.25);
 		nvg.StrokeWidth(1.5); nvg.StrokeColor(Color(border.color3)); nvg.Stroke(); nvg.Restore();
@@ -131,7 +131,7 @@ export function createTextInputView(input: Node.Type, fontSize: number, singleLi
 			if (singleLine) text = string.gsub(text, "[\r\n]", "")[0];
 			if (lastText !== text) { layout = layoutInput(text, singleLine ? math.huge : width, advance); label.text = layout.text; lastText = text; }
 			placeholder.text = hint; placeholder.visible = text === "" && !focused;
-			border.color3 = Color3(focused ? 0xffcc33 : 0x343b48);
+			border.color3 = Color3(focused ? 0xffcc33 : 0x393b3d);
 			active = focused; index = math.max(0, math.min(layout.stops.length - 1, cursor));
 			blink = 0; caret.visible = active; follow();
 		},

@@ -69,12 +69,12 @@ local ____Controls = require("Dev.Mobile.Controls") -- 18
 local ChoiceButton = ____Controls.MobileChoiceButton -- 18
 local fontName = "sarasa-mono-sc-regular" -- 50
 local colors = { -- 51
-	background = 4278914322, -- 51
-	panel = 4279704614, -- 51
+	background = 4279045390, -- 51
+	panel = 4279966750, -- 51
 	text = 4294242792, -- 51
 	muted = 4289245117, -- 51
 	brand = 4294954035, -- 51
-	border = 4281613128, -- 51
+	border = 4281940797, -- 51
 	danger = 4294929259 -- 51
 } -- 51
 local composerGap = 12 -- 53
@@ -151,8 +151,8 @@ local function ActionButton(props) -- 93
 			width = props.width, -- 95
 			height = height, -- 95
 			radius = 14, -- 95
-			topColor = props.danger and 4294935941 or (props.primary and 4294958955 or 4280889664), -- 95
-			bottomColor = props.danger and 4292824662 or (props.primary and 4294950190 or 4279704871), -- 95
+			topColor = props.danger and 4294935941 or (props.primary and 4294958955 or 4281282868), -- 95
+			bottomColor = props.danger and 4292824662 or (props.primary and 4294950190 or 4279967007), -- 95
 			borderWidth = 1, -- 95
 			borderColor = props.danger and colors.danger or (props.primary and 4294958435 or colors.border), -- 95
 			shadow = props.primary or props.danger -- 95
@@ -884,7 +884,7 @@ function ____exports.startMobileRemix(options) -- 104
 					end -- 575
 				} -- 575
 			), -- 575
-			React.createElement(VerticalGradient, {width = width, height = height, topColor = 4279310117, bottomColor = 4278716943}) -- 575
+			React.createElement(VerticalGradient, {width = width, height = height, topColor = 4279572250, bottomColor = 4278848011}) -- 575
 		) -- 575
 		local ____React_createElement_61 = React.createElement -- 575
 		local ____array_60 = __TS__SparseArrayNew( -- 575
@@ -960,8 +960,8 @@ function ____exports.startMobileRemix(options) -- 104
 				width = modelButtonWidth, -- 575
 				height = 32, -- 575
 				radius = 16, -- 575
-				topColor = 858534978, -- 575
-				bottomColor = 856824097, -- 575
+				topColor = 858927927, -- 575
+				bottomColor = 857151514, -- 575
 				borderWidth = 1, -- 575
 				borderColor = needsLLMSetup and colors.brand or colors.border -- 575
 			}), -- 575
@@ -1070,10 +1070,10 @@ function ____exports.startMobileRemix(options) -- 104
 					width = contentWidth, -- 628
 					height = questionCardHeight, -- 628
 					radius = 20, -- 628
-					topColor = 4280429370, -- 628
-					bottomColor = 4279375648, -- 628
+					topColor = 4280822318, -- 628
+					bottomColor = 4279637785, -- 628
 					borderWidth = 1, -- 628
-					borderColor = 4282469213, -- 628
+					borderColor = 4282927694, -- 628
 					shadow = true -- 628
 				}), -- 628
 				React.createElement( -- 628

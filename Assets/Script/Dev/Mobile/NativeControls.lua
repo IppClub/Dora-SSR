@@ -32,9 +32,9 @@ function ____exports.NativePanelSurface(props) -- 13
 		____exports.NativeRoundedSurface, -- 14
 		__TS__ObjectAssign({}, props, { -- 14
 			radius = 24, -- 14
-			topColor = 4280560956, -- 14
-			bottomColor = 4279309856, -- 14
-			borderColor = 4283061608, -- 14
+			topColor = 4280953904, -- 14
+			bottomColor = 4279571992, -- 14
+			borderColor = 4283585624, -- 14
 			shadow = true -- 14
 		}) -- 14
 	) -- 14
@@ -60,9 +60,9 @@ function ____exports.NativeButton(props) -- 17
 			height = height, -- 19
 			radius = 14, -- 19
 			renderOrder = props.renderOrder, -- 19
-			topColor = props.primary and 4294958955 or 4280889664, -- 19
-			bottomColor = props.primary and 4294950190 or 4279967787, -- 19
-			borderColor = props.primary and 4294958435 or 4281613128, -- 19
+			topColor = props.primary and 4294958955 or 4281282868, -- 19
+			bottomColor = props.primary and 4294950190 or 4280229922, -- 19
+			borderColor = props.primary and 4294958435 or 4281940797, -- 19
 			shadow = props.primary -- 19
 		}), -- 19
 		React.createElement("label", { -- 19

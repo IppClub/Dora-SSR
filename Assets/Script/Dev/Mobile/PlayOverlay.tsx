@@ -119,7 +119,7 @@ export function startMobilePlayOverlay(options: PlayOverlayOptions) {
 				}}>
 				{expanded ? <node>
 					<RoundedSurface width={controlWidth} height={controlHeight} radius={12}
-						topColor={0xe82b3442} bottomColor={0xe811151d}
+						topColor={0xe8313336} bottomColor={0xe8141517}
 						borderWidth={1} borderColor={0x88ffffff} shadow={true} />
 					<label x={controlWidth / 2} y={gamepadExit ? 29 : controlHeight / 2} fontName={fontName}
 						fontSize={math.floor(14 * mobileFontScale)} text={zh ? "退出试玩" : "Exit"} color3={0xf4f1e8} />

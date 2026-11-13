@@ -100,7 +100,7 @@ export function ProjectIndex(props: {
 			heading.size = Size(listWidth, groupHeight); heading.addTo(scroll.view);
 			const groupTitle = group.key === "#" ? (props.zh ? "其它" : "Other") : group.key;
 			const headingBg = DrawNode();
-			headingBg.drawSegment(Vec2(38, 18), Vec2(listWidth - 4, 18), 0.5, Color(0xff343b48));
+			headingBg.drawSegment(Vec2(38, 18), Vec2(listWidth - 4, 18), 0.5, Color(0xff393b3d));
 			headingBg.addTo(heading);
 			addLabel(heading, groupTitle, 12, 0xffffcc33, 8, 18);
 			total += groupHeight;
@@ -111,7 +111,7 @@ export function ProjectIndex(props: {
 				const selected = entry === props.current || (entry.fileName !== undefined && entry.fileName === props.current?.fileName)
 					|| (entry.workDir !== undefined && entry.workDir === props.current?.workDir);
 				const rowBg = DrawNode();
-				rowBg.drawSegment(Vec2(8, 1), Vec2(listWidth - 8, 1), 0.5, Color(0xff242b37));
+				rowBg.drawSegment(Vec2(8, 1), Vec2(listWidth - 8, 1), 0.5, Color(0xff292b2d));
 				if (selected) rowBg.drawSegment(Vec2(5, 13), Vec2(5, rowHeight - 13), 1.5, Color(0xffffcc33));
 				rowBg.addTo(row);
 				addLabel(row, ellipsize(entry.title, math.max(8, math.floor((listWidth - 54) / 9))), 14,
@@ -137,7 +137,7 @@ export function ProjectIndex(props: {
 
 		const popup = Node(); popup.visible = false; popup.position = Vec2(railWidth + 48, props.height / 2); popup.addTo(root);
 		const popupShape = DrawNode();
-		popupShape.drawPolygon(roundedVerts(-28, -28, 56, 56, 16), Color(0xff171c26), 1, Color(0xff806b1c)); popupShape.addTo(popup);
+		popupShape.drawPolygon(roundedVerts(-28, -28, 56, 56, 16), Color(0xff1b1c1e), 1, Color(0xff806b1c)); popupShape.addTo(popup);
 		const popupLabel = addLabel(popup, "", 18, 0xffffcc33, 0, 0, Vec2(0.5, 0.5));
 		popupLabel.tag = "mobile-project-index-popup-label";
 		const rail = Node(); rail.tag = "mobile-project-index-rail"; rail.anchor = Vec2.zero;
@@ -178,7 +178,7 @@ export function ProjectIndex(props: {
 			refresh.touchEnabled = !props.refreshing; refresh.swallowTouches = true;
 			refresh.onTapped(() => { if (!props.refreshing) props.onRefresh?.(); }); refresh.addTo(root);
 			const border = DrawNode(); border.renderOrder = 15001;
-			border.drawPolygon(roundedVerts(0, 6, 76, 32, 16), Color(0), 0.5, Color(props.refreshing ? 0xff343b48 : 0xff806b1c)); border.addTo(refresh);
+			border.drawPolygon(roundedVerts(0, 6, 76, 32, 16), Color(0), 0.5, Color(props.refreshing ? 0xff393b3d : 0xff806b1c)); border.addTo(refresh);
 			addLabel(refresh, props.refreshing ? (props.zh ? "刷新中…" : "Syncing…") : (props.zh ? "刷新" : "Refresh"), 12,
 				props.refreshing ? 0xffa8afbd : 0xffffcc33, 38, 22, Vec2(0.5, 0.5));
 			const status = addLabel(root, "", 11, 0xffa8afbd, 104, 32);

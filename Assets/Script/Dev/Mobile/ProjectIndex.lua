@@ -142,7 +142,7 @@ function ____exports.ProjectIndex(props) -- 51
 					Vec2(38, 18), -- 103
 					Vec2(listWidth - 4, 18), -- 103
 					0.5, -- 103
-					Color(4281613128) -- 103
+					Color(4281940797) -- 103
 				) -- 103
 				headingBg:addTo(heading) -- 104
 				addLabel( -- 105
@@ -190,7 +190,7 @@ function ____exports.ProjectIndex(props) -- 51
 						Vec2(8, 1), -- 114
 						Vec2(listWidth - 8, 1), -- 114
 						0.5, -- 114
-						Color(4280560439) -- 114
+						Color(4280888109) -- 114
 					) -- 114
 					if selected then -- 114
 						rowBg:drawSegment( -- 115
@@ -295,7 +295,7 @@ function ____exports.ProjectIndex(props) -- 51
 				56, -- 140
 				16 -- 140
 			), -- 140
-			Color(4279704614), -- 140
+			Color(4279966750), -- 140
 			1, -- 140
 			Color(4286606108) -- 140
 		) -- 140
@@ -433,7 +433,7 @@ function ____exports.ProjectIndex(props) -- 51
 				), -- 181
 				Color(0), -- 181
 				0.5, -- 181
-				Color(props.refreshing and 4281613128 or 4286606108) -- 181
+				Color(props.refreshing and 4281940797 or 4286606108) -- 181
 			) -- 181
 			border:addTo(refresh) -- 181
 			addLabel( -- 182

@@ -192,8 +192,8 @@ function ____exports.startMobilePlayOverlay(options) -- 36
 				width = controlWidth, -- 120
 				height = controlHeight, -- 120
 				radius = 12, -- 120
-				topColor = 3895145538, -- 120
-				bottomColor = 3893433629, -- 120
+				topColor = 3895538486, -- 120
+				bottomColor = 3893630231, -- 120
 				borderWidth = 1, -- 120
 				borderColor = 2298478591, -- 120
 				shadow = true -- 120

@@ -108,7 +108,7 @@ export const resolveFeedGesture = (
 export const stableCoverColor = (id: string) => {
 	let hash = 17;
 	for (let i = 0; i < id.length; i++) hash = (hash * 31 + id.charCodeAt(i)) % 9973;
-	const palette = [0xff203049, 0xff273c35, 0xff3a2948, 0xff463128, 0xff263c48, 0xff3f3540];
+	const palette = [0xff2a2f37, 0xff323936, 0xff332d37, 0xff3a3431, 0xff32393d, 0xff3a373b];
 	return palette[hash % palette.length];
 };
 

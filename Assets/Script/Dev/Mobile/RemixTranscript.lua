@@ -201,12 +201,12 @@ local function makeActionRow(actions, width, scale) -- 82
 			if action.primary then -- 100
 				drawCapsule(bg, buttonWidth, 38, 4294954035) -- 101
 			else -- 101
-				drawCapsule(bg, buttonWidth, 38, 4282798180) -- 103
+				drawCapsule(bg, buttonWidth, 38, 4283256660) -- 103
 				drawCapsule( -- 104
 					bg, -- 104
 					buttonWidth, -- 104
 					38, -- 104
-					4279704614, -- 104
+					4279966750, -- 104
 					1 -- 104
 				) -- 104
 			end -- 104
@@ -280,9 +280,9 @@ local function makeCard(item, width, scale, zh) -- 119
 			Vec2(width, card.height), -- 146
 			Vec2(0, card.height) -- 146
 		}, -- 146
-		Color(item.user and 4280297010 or 4279704614), -- 147
+		Color(item.user and 4280559144 or 4279966750), -- 147
 		1, -- 147
-		Color(4281613128) -- 147
+		Color(4281940797) -- 147
 	) -- 147
 	card:addChild(bg) -- 148
 	for ____, row in ipairs(labels) do -- 149
@@ -339,7 +339,7 @@ function ____exports.createRemixTranscript() -- 153
 				Vec2(width / 2 + half, 28), -- 172
 				Vec2(width / 2 - half, 28) -- 172
 			}, -- 172
-			Color(4280297010) -- 172
+			Color(4280559144) -- 172
 		) -- 172
 	end -- 166
 	scroll:slot( -- 174

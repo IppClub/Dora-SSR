@@ -100,8 +100,8 @@ function makeActionRow(actions: RemixTranscriptAction[], width: number, scale: n
 		const bg = DrawNode();
 		if (action.primary) drawCapsule(bg, buttonWidth, 38, 0xffffcc33);
 		else {
-			drawCapsule(bg, buttonWidth, 38, 0xff465064);
-			drawCapsule(bg, buttonWidth, 38, 0xff171c26, 1);
+			drawCapsule(bg, buttonWidth, 38, 0xff4d4f54);
+			drawCapsule(bg, buttonWidth, 38, 0xff1b1c1e, 1);
 		}
 		button.addChild(bg);
 		const label = Label(font, math.floor(14 * scale), true);
@@ -144,7 +144,7 @@ function makeCard(item: Item, width: number, scale: number, zh: boolean): Node.T
 	card.height = top + 4;
 	const bg = DrawNode();
 	bg.drawPolygon([Vec2.zero, Vec2(width, 0), Vec2(width, card.height), Vec2(0, card.height)],
-		Color(item.user ? 0xff202632 : 0xff171c26), 1, Color(0xff343b48));
+		Color(item.user ? 0xff242628 : 0xff1b1c1e), 1, Color(0xff393b3d));
 	card.addChild(bg);
 	for (const row of labels) { row.label.y = card.height - row.top; card.addChild(row.label); }
 	return card;
@@ -169,7 +169,7 @@ export function createRemixTranscript() {
 		hintBackground.visible = latest.visible;
 		hintBackground.clear();
 		const half = math.min(width / 2, latest.width / 2 + 10);
-		hintBackground.drawPolygon([Vec2(width / 2 - half, 0), Vec2(width / 2 + half, 0), Vec2(width / 2 + half, 28), Vec2(width / 2 - half, 28)], Color(0xff202632));
+		hintBackground.drawPolygon([Vec2(width / 2 - half, 0), Vec2(width / 2 + half, 0), Vec2(width / 2 + half, 28), Vec2(width / 2 - half, 28)], Color(0xff242628));
 	};
 	scroll.slot("ScrollTouchBegan", () => { touching = true; });
 	scroll.slot("ScrollTouchEnded", () => { touching = false; following = maxOffset() - scroll.offset.y <= 24; updateHint(); });
