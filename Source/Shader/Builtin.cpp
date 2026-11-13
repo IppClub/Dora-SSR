@@ -19,6 +19,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Shader/Model3D/fs_model3d.bin.h"
 #include "Shader/Model3D/fs_model3d_simple.bin.h"
+#include "Shader/Model3D/fs_model3d_base_color.bin.h"
+#include "Shader/Model3D/fs_model3d_base_color_normal.bin.h"
+#include "Shader/Model3D/fs_model3d_base_color_mr.bin.h"
+#include "Shader/Model3D/fs_model3d_base_color_normal_mr.bin.h"
+#include "Shader/Model3D/fs_model3d_standard.bin.h"
 #include "Shader/Model3D/fs_model3d_sheen.bin.h"
 #include "Shader/Model3D/fs_model3d_thickness_sheen.bin.h"
 #include "Shader/Model3D/fs_shadow_model3d.bin.h"
@@ -69,6 +74,11 @@ static const bgfx::EmbeddedShader doraShaders[] = {
 	BGFX_EMBEDDED_SHADER(vs_model3d),
 	BGFX_EMBEDDED_SHADER(fs_model3d),
 	BGFX_EMBEDDED_SHADER(fs_model3d_simple),
+	BGFX_EMBEDDED_SHADER(fs_model3d_base_color),
+	BGFX_EMBEDDED_SHADER(fs_model3d_base_color_normal),
+	BGFX_EMBEDDED_SHADER(fs_model3d_base_color_mr),
+	BGFX_EMBEDDED_SHADER(fs_model3d_base_color_normal_mr),
+	BGFX_EMBEDDED_SHADER(fs_model3d_standard),
 	BGFX_EMBEDDED_SHADER(fs_model3d_sheen),
 	BGFX_EMBEDDED_SHADER(fs_model3d_thickness_sheen),
 	BGFX_EMBEDDED_SHADER(vs_shadow_model3d),

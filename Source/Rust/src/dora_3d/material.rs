@@ -62,6 +62,16 @@ pub enum MaterialType {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum PbrVariant {
+	Untextured,
+	BaseColor,
+	BaseColorNormal,
+	BaseColorMetallicRoughness,
+	BaseColorNormalMetallicRoughness,
+	Standard,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum AlphaMode {
 	Opaque,
 	Mask,
@@ -146,18 +156,62 @@ impl Drop for MaterialData {
 }
 
 impl MaterialData {
-	pub(crate) fn uses_simple_pbr(&self) -> bool {
-		matches!(self.material_type, MaterialType::PbrMetallicRoughness)
-			&& self.program.is_none()
-			&& !self
-				.shader_params
-				.values()
-				.any(|param| matches!(param, ShaderParam::Texture(_)))
-			&& self.clearcoat_factor <= 0.0001
-			&& self.transmission_factor <= 0.0001
-			&& self.thickness_factor <= 0.0001
-			&& self.sheen_color.max_element() <= 0.0001
-			&& self.anisotropy_strength <= 0.0001
+	pub(crate) fn pbr_variant(&self) -> Option<PbrVariant> {
+		if !matches!(self.material_type, MaterialType::PbrMetallicRoughness)
+			|| self.program.is_some()
+			|| self.clearcoat_factor != 0.0
+			|| self.transmission_factor != 0.0
+			|| self.thickness_factor != 0.0
+			|| self.sheen_color != Vec3::ZERO
+			|| self.anisotropy_strength != 0.0
+			|| self.anisotropy_texture
+		{
+			return None;
+		}
+		let mut textures = 0u8;
+		for (name, param) in &self.shader_params {
+			// Generic uniform setters can override the typed material properties.
+			let value = match param {
+				ShaderParam::Float(value) => Vec4::new(*value, 0.0, 0.0, 0.0),
+				ShaderParam::Vec3(value) => value.extend(0.0),
+				ShaderParam::Vec4(value) => *value,
+				_ => Vec4::ZERO,
+			};
+			let advanced = match name.as_str() {
+				"u_clearcoat" | "u_transmission" | "u_volume" => value.x != 0.0,
+				"u_sheen" => value.truncate() != Vec3::ZERO,
+				"u_anisotropy" => value.x != 0.0 || value.w != 0.0,
+				"u_materialExt" => value.z != 0.0,
+				_ => false,
+			};
+			if advanced {
+				return None;
+			}
+			if let ShaderParam::Texture(param) = param {
+				let stage = match name.as_str() {
+					DEFAULT_BASE_COLOR_SLOT => 0,
+					DEFAULT_METALLIC_ROUGHNESS_SLOT => 1,
+					DEFAULT_NORMAL_SLOT => 2,
+					DEFAULT_EMISSIVE_SLOT => 3,
+					DEFAULT_OCCLUSION_SLOT => 4,
+					_ => return None,
+				};
+				if param.stage != stage {
+					return None;
+				}
+				textures |= 1 << stage;
+			}
+		}
+		// A small set of precompiled supersets covers all core glTF texture combinations.
+		// Missing maps use the same fallback textures as the full shader.
+		Some(match textures {
+			0 => PbrVariant::Untextured,
+			1 => PbrVariant::BaseColor,
+			5 => PbrVariant::BaseColorNormal,
+			3 => PbrVariant::BaseColorMetallicRoughness,
+			7 => PbrVariant::BaseColorNormalMetallicRoughness,
+			_ => PbrVariant::Standard,
+		})
 	}
 
 	fn new(handle: Dora3DHandle) -> Self {
@@ -361,6 +415,152 @@ impl MaterialData {
 		}
 		state
 	}
+}
+
+#[cfg(test)]
+mod base_color_pbr_tests {
+	use super::*;
+	use std::mem::ManuallyDrop;
+
+	// Selection tests do not create GPU resources or call the bgfx-backed constructor.
+	fn material() -> ManuallyDrop<MaterialData> {
+		ManuallyDrop::new(MaterialData {
+			handle: 0,
+			material_type: MaterialType::PbrMetallicRoughness,
+			alpha_mode: AlphaMode::Opaque,
+			transparent: false,
+			double_sided: false,
+			depth_test: true,
+			depth_write: true,
+			base_color: Vec4::ONE,
+			emissive_factor: Vec3::ZERO,
+			metallic: 0.0,
+			roughness: 0.85,
+			normal_scale: 1.0,
+			occlusion_strength: 1.0,
+			alpha_cutoff: 0.5,
+			specular_factor: 1.0,
+			specular_color: Vec3::ONE,
+			ior: 1.5,
+			clearcoat_factor: 0.0,
+			clearcoat_roughness: 0.0,
+			clearcoat_normal_scale: 1.0,
+			transmission_factor: 0.0,
+			thickness_factor: 0.0,
+			attenuation_distance: 0.0,
+			attenuation_color: Vec3::ONE,
+			sheen_color: Vec3::ZERO,
+			sheen_roughness: 0.0,
+			anisotropy_strength: 0.0,
+			anisotropy_rotation: 0.0,
+			anisotropy_texture: false,
+			shader_params: BTreeMap::from([(
+				DEFAULT_BASE_COLOR_SLOT.to_owned(),
+				texture(0),
+			)]),
+			applied_params: Vec::new(),
+			uniforms: HashMap::new(),
+			program: None,
+		})
+	}
+
+	fn texture(stage: u8) -> ShaderParam {
+		ShaderParam::Texture(TextureParam {
+			texture: 1,
+			bgfx_texture: bgfx_sys::bgfx_texture_handle_t { idx: 1 },
+			stage,
+			flags: u32::MAX,
+		})
+	}
+
+	#[test]
+	fn all_core_texture_subsets_select_the_smallest_available_variant() {
+		let slots = [DEFAULT_BASE_COLOR_SLOT, DEFAULT_METALLIC_ROUGHNESS_SLOT,
+			DEFAULT_NORMAL_SLOT, DEFAULT_EMISSIVE_SLOT, DEFAULT_OCCLUSION_SLOT];
+		for mask in 0u8..32 {
+			let mut m = material();
+			m.shader_params.clear();
+			for (stage, slot) in slots.iter().enumerate() {
+				if mask & (1 << stage) != 0 {
+					m.shader_params.insert((*slot).to_owned(), texture(stage as u8));
+				}
+			}
+			let expected = match mask {
+				0 => PbrVariant::Untextured,
+				1 => PbrVariant::BaseColor,
+				3 => PbrVariant::BaseColorMetallicRoughness,
+				5 => PbrVariant::BaseColorNormal,
+				7 => PbrVariant::BaseColorNormalMetallicRoughness,
+				_ => PbrVariant::Standard,
+			};
+			for mode in [AlphaMode::Opaque, AlphaMode::Mask, AlphaMode::Blend] {
+				m.alpha_mode = mode;
+				assert_eq!(m.pbr_variant(), Some(expected), "texture mask {mask}");
+			}
+		}
+	}
+
+	#[test]
+	fn binding_changes_reselect_variants_and_unknown_maps_fall_back() {
+		let mut m = material();
+		assert_eq!(m.pbr_variant(), Some(PbrVariant::BaseColor));
+		m.shader_params.insert(DEFAULT_NORMAL_SLOT.to_owned(), texture(2));
+		assert_eq!(m.pbr_variant(), Some(PbrVariant::BaseColorNormal));
+		m.shader_params.insert(DEFAULT_METALLIC_ROUGHNESS_SLOT.to_owned(), texture(1));
+		assert_eq!(m.pbr_variant(), Some(PbrVariant::BaseColorNormalMetallicRoughness));
+		m.shader_params.insert(DEFAULT_OCCLUSION_SLOT.to_owned(), texture(4));
+		assert_eq!(m.pbr_variant(), Some(PbrVariant::Standard));
+		m.shader_params.remove(DEFAULT_OCCLUSION_SLOT);
+		assert_eq!(m.pbr_variant(), Some(PbrVariant::BaseColorNormalMetallicRoughness));
+		for slot in [DEFAULT_SPECULAR_SLOT, DEFAULT_SPECULAR_COLOR_SLOT,
+			DEFAULT_CLEARCOAT_SLOT, DEFAULT_CLEARCOAT_NORMAL_SLOT,
+			DEFAULT_TRANSMISSION_SLOT, DEFAULT_THICKNESS_SLOT,
+			DEFAULT_THICKNESS_SHEEN_SLOT, DEFAULT_SHEEN_COLOR_SLOT,
+			DEFAULT_SHEEN_ROUGHNESS_SLOT, "customSampler"] {
+			m.shader_params.insert(slot.to_owned(), texture(5));
+			assert_eq!(m.pbr_variant(), None, "unexpected fast path for {slot}");
+			m.shader_params.remove(slot);
+			assert!(m.pbr_variant().is_some());
+		}
+		m.shader_params.insert(DEFAULT_NORMAL_SLOT.to_owned(), texture(1));
+		assert_eq!(m.pbr_variant(), None, "wrong sampler stage");
+	}
+
+	#[test]
+	fn raw_uniform_overrides_must_not_be_discarded_by_specialization() {
+		for (name, value) in [
+			("u_clearcoat", Vec4::X), ("u_transmission", Vec4::X),
+			("u_volume", Vec4::X), ("u_sheen", Vec4::Y),
+			("u_anisotropy", Vec4::W), ("u_materialExt", Vec4::Z),
+		] {
+			let mut m = material();
+			m.shader_params.insert(name.to_owned(), ShaderParam::Vec4(value));
+			assert_eq!(m.pbr_variant(), None, "uniform override {name}");
+			m.shader_params.clear();
+			m.shader_params.insert(name.to_owned(), ShaderParam::Vec4(value));
+			assert_eq!(m.pbr_variant(), None, "untextured uniform override {name}");
+		}
+	}
+
+	#[test]
+	fn advanced_material_features_and_custom_programs_require_full_path() {
+		for field in ["clearcoat", "transmission", "thickness", "sheen", "anisotropy", "anisotropy_texture", "custom", "unlit"] {
+			let mut m = material();
+			match field {
+				"clearcoat" => m.clearcoat_factor = 0.00001,
+				"transmission" => m.transmission_factor = 0.00001,
+				"thickness" => m.thickness_factor = 0.00001,
+				"sheen" => m.sheen_color = Vec3::splat(0.00001),
+				"anisotropy" => m.anisotropy_strength = 0.00001,
+				"anisotropy_texture" => m.anisotropy_texture = true,
+				"custom" => m.program = Some(bgfx_sys::bgfx_program_handle_t { idx: 1 }),
+				"unlit" => m.material_type = MaterialType::Unlit,
+				_ => unreachable!(),
+			}
+			assert_eq!(m.pbr_variant(), None, "unexpected fast path for {field}");
+		}
+	}
+
 }
 
 fn registry() -> &'static Mutex<HashMap<Dora3DHandle, MaterialData>> {

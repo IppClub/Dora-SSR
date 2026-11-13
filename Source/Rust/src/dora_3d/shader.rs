@@ -35,6 +35,11 @@ pub struct ShaderPrograms {
 	pub unlit: bgfx_sys::bgfx_program_handle_t,
 	pub lambert: bgfx_sys::bgfx_program_handle_t,
 	pub simple_pbr: bgfx_sys::bgfx_program_handle_t,
+	pub base_color_pbr: bgfx_sys::bgfx_program_handle_t,
+	pub base_color_normal_pbr: bgfx_sys::bgfx_program_handle_t,
+	pub base_color_mr_pbr: bgfx_sys::bgfx_program_handle_t,
+	pub base_color_normal_mr_pbr: bgfx_sys::bgfx_program_handle_t,
+	pub standard_pbr: bgfx_sys::bgfx_program_handle_t,
 	pub sheen_roughness: bgfx_sys::bgfx_program_handle_t,
 	pub thickness_sheen: bgfx_sys::bgfx_program_handle_t,
 	pub shadow: bgfx_sys::bgfx_program_handle_t,
@@ -1171,6 +1176,11 @@ fn shader_state() -> &'static ShaderState {
 	SHADER_STATE.get_or_init(|| {
 		let unlit = create_builtin_program("vs_model3d", "fs_model3d");
 		let simple_pbr = create_builtin_program("vs_model3d", "fs_model3d_simple");
+		let base_color_pbr = create_builtin_program("vs_model3d", "fs_model3d_base_color");
+		let base_color_normal_pbr = create_builtin_program("vs_model3d", "fs_model3d_base_color_normal");
+		let base_color_mr_pbr = create_builtin_program("vs_model3d", "fs_model3d_base_color_mr");
+		let base_color_normal_mr_pbr = create_builtin_program("vs_model3d", "fs_model3d_base_color_normal_mr");
+		let standard_pbr = create_builtin_program("vs_model3d", "fs_model3d_standard");
 		let sheen_roughness = create_builtin_program("vs_model3d", "fs_model3d_sheen");
 		let thickness_sheen = create_builtin_program("vs_model3d", "fs_model3d_thickness_sheen");
 		let shadow = create_builtin_program("vs_shadow_model3d", "fs_shadow_model3d");
@@ -1189,6 +1199,11 @@ fn shader_state() -> &'static ShaderState {
 				unlit,
 				lambert: unlit,
 				simple_pbr,
+				base_color_pbr,
+				base_color_normal_pbr,
+				base_color_mr_pbr,
+				base_color_normal_mr_pbr,
+				standard_pbr,
 				sheen_roughness,
 				thickness_sheen,
 				shadow,
@@ -1336,6 +1351,11 @@ pub fn clear_shader_resources() {
 	let programs = [
 		state.programs.unlit,
 		state.programs.simple_pbr,
+		state.programs.base_color_pbr,
+		state.programs.base_color_normal_pbr,
+		state.programs.base_color_mr_pbr,
+		state.programs.base_color_normal_mr_pbr,
+		state.programs.standard_pbr,
 		state.programs.sheen_roughness,
 		state.programs.thickness_sheen,
 		state.programs.shadow,
@@ -1408,11 +1428,22 @@ fn choose_program(
 				return program;
 			}
 		}
+		if let Some(variant) = material.pbr_variant() {
+			use material::PbrVariant;
+			let program = match variant {
+				PbrVariant::Untextured => state.programs.simple_pbr,
+				PbrVariant::BaseColor => state.programs.base_color_pbr,
+				PbrVariant::BaseColorNormal => state.programs.base_color_normal_pbr,
+				PbrVariant::BaseColorMetallicRoughness => state.programs.base_color_mr_pbr,
+				PbrVariant::BaseColorNormalMetallicRoughness => state.programs.base_color_normal_mr_pbr,
+				PbrVariant::Standard => state.programs.standard_pbr,
+			};
+			if program.idx != u16::MAX {
+				return program;
+			}
+		}
 		match material.material_type {
 			MaterialType::Unlit => state.programs.unlit,
-			MaterialType::PbrMetallicRoughness if material.uses_simple_pbr() => {
-				state.programs.simple_pbr
-			}
 			MaterialType::PbrMetallicRoughness
 				if matches!(
 					material
