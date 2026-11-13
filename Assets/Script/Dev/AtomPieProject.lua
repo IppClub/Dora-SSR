@@ -15,10 +15,15 @@ local sequence = 0
 
 local function repositoryOf(asset, id)
 	if type(asset) ~= "table" or asset.id ~= tonumber(id) or asset.asset_type ~= "game"
-		or type(asset.tags) ~= "table" or type(asset.repository_url) ~= "string" then return nil end
+		or type(asset.repository_url) ~= "string" then return nil end
 	local url = asset.repository_url:match("^%s*(.-)%s*$")
 	local host, owner, repo = url:match("^https://([%w%.%-]+)/([%w_.%-]+)/([%w_.%-]+)/?$")
 	if not hosts[host] or owner == "." or owner == ".." or repo == "." or repo == ".." then return nil end
+	if type(asset.game_metadata) == "table" then
+		if asset.game_metadata.engine == "dora_ssr" then return url:gsub("/$", "") end
+		return nil
+	end
+	if type(asset.tags) ~= "table" then return nil end
 	for _, tag in ipairs(asset.tags) do
 		if type(tag) == "table" and type(tag.name) == "string" and tag.name:lower():match("^dora[%s%-]*ssr$") then
 			return url:gsub("/$", "")
