@@ -15,15 +15,15 @@ void main()
 
 	// 3x3 sample sampling, calculate average SDF value
 	float sdfValue = (
-		texture2D(s_texColor, v_texcoord0 + vec2(-1, -1) * texelSize).a +
-		texture2D(s_texColor, v_texcoord0 + vec2( 0, -1) * texelSize).a +
-		texture2D(s_texColor, v_texcoord0 + vec2( 1, -1) * texelSize).a +
-		texture2D(s_texColor, v_texcoord0 + vec2(-1,  0) * texelSize).a +
-		texture2D(s_texColor, v_texcoord0 + vec2( 0,  0) * texelSize).a +
-		texture2D(s_texColor, v_texcoord0 + vec2( 1,  0) * texelSize).a +
-		texture2D(s_texColor, v_texcoord0 + vec2(-1,  1) * texelSize).a +
-		texture2D(s_texColor, v_texcoord0 + vec2( 0,  1) * texelSize).a +
-		texture2D(s_texColor, v_texcoord0 + vec2( 1,  1) * texelSize).a
+		texture2D(s_texColor, v_texcoord0 + vec2(-1, -1) * texelSize).r +
+		texture2D(s_texColor, v_texcoord0 + vec2( 0, -1) * texelSize).r +
+		texture2D(s_texColor, v_texcoord0 + vec2( 1, -1) * texelSize).r +
+		texture2D(s_texColor, v_texcoord0 + vec2(-1,  0) * texelSize).r +
+		texture2D(s_texColor, v_texcoord0 + vec2( 0,  0) * texelSize).r +
+		texture2D(s_texColor, v_texcoord0 + vec2( 1,  0) * texelSize).r +
+		texture2D(s_texColor, v_texcoord0 + vec2(-1,  1) * texelSize).r +
+		texture2D(s_texColor, v_texcoord0 + vec2( 0,  1) * texelSize).r +
+		texture2D(s_texColor, v_texcoord0 + vec2( 1,  1) * texelSize).r
 	) / 9.0;
 
 	// Define outline range (dynamically adjusted based on u_smooth.z)

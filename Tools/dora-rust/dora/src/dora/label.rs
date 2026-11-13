@@ -64,12 +64,12 @@ impl Label {
 		return unsafe { core::mem::transmute(label_get_alignment(self.raw())) };
 	}
 	/// Sets the alpha threshold value. Pixels with alpha values below this value will not be drawn.
-	/// Only works with `label.effect = SpriteEffect::new("builtin:vs_sprite", "builtin:fs_spritealphatest")`.
+	/// Only works with `label.effect = SpriteEffect::new("builtin:vs_sprite", "builtin:fs_fontalphatest")`.
 	pub fn set_alpha_ref(&mut self, val: f32) {
 		unsafe { label_set_alpha_ref(self.raw(), val) };
 	}
 	/// Gets the alpha threshold value. Pixels with alpha values below this value will not be drawn.
-	/// Only works with `label.effect = SpriteEffect::new("builtin:vs_sprite", "builtin:fs_spritealphatest")`.
+	/// Only works with `label.effect = SpriteEffect::new("builtin:vs_sprite", "builtin:fs_fontalphatest")`.
 	pub fn get_alpha_ref(&self) -> f32 {
 		return unsafe { label_get_alpha_ref(self.raw()) };
 	}
@@ -109,19 +109,25 @@ impl Label {
 	pub fn get_outline_color(&self) -> crate::dora::Color {
 		return unsafe { crate::dora::Color::from(label_get_outline_color(self.raw())) };
 	}
-	/// Sets the outline width in normalized SDF distance units, not pixels. A typical visible outline uses 0.12 to 0.18; values are clamped to 0 to 0.25.
+	/// Sets the outline width in normalized SDF distance units, not pixels. Only works with SDF labels.
+	/// A typical visible outline uses 0.12 to 0.18. Values are clamped to the supported range of 0 to 0.25.
 	pub fn set_outline_width(&mut self, val: f32) {
 		unsafe { label_set_outline_width(self.raw(), val) };
 	}
-	/// Gets the outline width in normalized SDF distance units, not pixels.
+	/// Gets the outline width in normalized SDF distance units, not pixels. Only works with SDF labels.
+	/// A typical visible outline uses 0.12 to 0.18. Values are clamped to the supported range of 0 to 0.25.
 	pub fn get_outline_width(&self) -> f32 {
 		return unsafe { label_get_outline_width(self.raw()) };
 	}
-	/// Sets the lower and upper normalized SDF thresholds. Components are clamped to 0 to 1 and kept in ascending order; values around 0.5 to 0.8 are recommended.
+	/// Sets the lower and upper normalized SDF thresholds used to smooth the text edge.
+	/// Each component is clamped to 0 to 1 and the lower value is kept below the upper value.
+	/// Automatic smoothing is used by default; for manual tuning, values around 0.5 to 0.8 are recommended.
 	pub fn set_smooth(&mut self, val: &crate::dora::Vec2) {
 		unsafe { label_set_smooth(self.raw(), val.into_i64()) };
 	}
 	/// Gets the lower and upper normalized SDF thresholds used to smooth the text edge.
+	/// Each component is clamped to 0 to 1 and the lower value is kept below the upper value.
+	/// Automatic smoothing is used by default; for manual tuning, values around 0.5 to 0.8 are recommended.
 	pub fn get_smooth(&self) -> crate::dora::Vec2 {
 		return unsafe { crate::dora::Vec2::from(label_get_smooth(self.raw())) };
 	}
@@ -160,10 +166,12 @@ impl Label {
 		return unsafe { label_is_batched(self.raw()) != 0 };
 	}
 	/// Sets the sprite effect used to render the text.
+	/// Custom text shaders read glyph coverage from the R8 texture red channel.
 	pub fn set_effect(&mut self, val: &crate::dora::SpriteEffect) {
 		unsafe { label_set_effect(self.raw(), val.raw()) };
 	}
 	/// Gets the sprite effect used to render the text.
+	/// Custom text shaders read glyph coverage from the R8 texture red channel.
 	pub fn get_effect(&self) -> crate::dora::SpriteEffect {
 		return unsafe { crate::dora::SpriteEffect::from(label_get_effect(self.raw())).unwrap() };
 	}

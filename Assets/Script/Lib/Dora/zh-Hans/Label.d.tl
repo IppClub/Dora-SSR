@@ -19,7 +19,7 @@ local record Label
 	end
 
 	-- Alpha阈值值。Alpha值低于此值的像素将不会被绘制。
-	-- 仅适用于 `label.effect = SpriteEffect("builtin:vs_sprite", "builtin:fs_spritealphatest")`。
+	-- 仅适用于 `label.effect = SpriteEffect("builtin:vs_sprite", "builtin:fs_fontalphatest")`。
 	alphaRef: number
 
 	-- 用于文本换行的文本宽度。
@@ -58,6 +58,7 @@ local record Label
 	batched: boolean
 
 	-- 用于渲染文本的图元着色器特效。
+	-- 自定义文字着色器需从 R8 纹理的红通道读取字形覆盖率。
 	effect: SpriteEffect
 
 	-- 文本对齐设置。

@@ -268,7 +268,8 @@ Atlas::Atlas(uint16_t _textureSize, Type type, bool antiAlias, uint16_t _maxRegi
 	m_textureBuffer = new uint8_t[ _textureSize * _textureSize * bytes ];
 	bx::memSet(m_textureBuffer, 0, _textureSize * _textureSize * bytes);
 
-	bgfx::TextureFormat::Enum format = m_type == Gray ? bgfx::TextureFormat::A8 : bgfx::TextureFormat::RGBA8;
+	// Glyph coverage lives in red; R8 is native on modern graphics backends.
+	bgfx::TextureFormat::Enum format = m_type == Gray ? bgfx::TextureFormat::R8 : bgfx::TextureFormat::RGBA8;
 
 	const uint32_t textureFlags = antiAlias ? (BGFX_SAMPLER_NONE) : (BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
 

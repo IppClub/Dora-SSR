@@ -2304,7 +2304,7 @@ object class Label : public INode
 	/// the text alignment setting.
 	common TextAlign alignment;
 	/// the alpha threshold value. Pixels with alpha values below this value will not be drawn.
-	/// Only works with `label.effect = SpriteEffect::new("builtin:vs_sprite", "builtin:fs_spritealphatest")`.
+	/// Only works with `label.effect = SpriteEffect::new("builtin:vs_sprite", "builtin:fs_fontalphatest")`.
 	common float alphaRef;
 	/// the width of the text used for text wrapping.
 	/// Set to `Label::AutomaticWidth` to disable wrapping.
@@ -2333,6 +2333,7 @@ object class Label : public INode
 	/// When using batched rendering the `label.get_character()` function will no longer work, but it provides better rendering performance. Default is true.
 	boolean bool batched;
 	/// the sprite effect used to render the text.
+	/// Custom text shaders read glyph coverage from the R8 texture red channel.
 	common SpriteEffect* effect;
 	/// the number of characters in the label.
 	readonly common int characterCount;

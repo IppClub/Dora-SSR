@@ -1330,7 +1330,12 @@ int Application::run(MainFunc mainFunc) {
 #if BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX
 			activateGuiWindow(_sdlWindow);
 #else
-			if (!projectLink.empty()) SDL_RaiseWindow(_sdlWindow);
+			if (!projectLink.empty()) {
+				// Raising an iconic X11 window does not restore it. Only project
+				// links restore the GUI; ordinary duplicate launches keep their policy.
+				if (SDL_GetWindowFlags(_sdlWindow) & SDL_WINDOW_MINIMIZED) SDL_RestoreWindow(_sdlWindow);
+				SDL_RaiseWindow(_sdlWindow);
+			}
 #endif
 		}
 #endif

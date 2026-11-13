@@ -1,5 +1,16 @@
 # Label font fallback
 
+Dynamic glyph atlases store coverage in the red channel of an R8 texture.
+Both bitmap and SDF font shaders sample that channel, including glyphs from
+the monochrome fallback font.
+
+The native ImGui Alpha8 atlas also uses an R8 GPU texture and samples coverage
+from red. RGBA image textures keep their original shader path.
+
+Custom Label effects must sample glyph coverage from `.r`. For alpha testing,
+use `SpriteEffect("builtin:vs_sprite", "builtin:fs_fontalphatest")` with
+`label.alphaRef`. The sprite alpha-test shader continues to use image alpha.
+
 When the selected Label font has no glyph for a code point, FontCache tries
 `Font/NotoEmoji.ttf` at the same baked size and with the same SDF setting.
 The original font is used if neither font contains that code point.

@@ -112,7 +112,7 @@ namespace Dora
 		}
 		/// <summary>
 		/// The alpha threshold value. Pixels with alpha values below this value will not be drawn.
-		/// Only works with `label.effect = SpriteEffect::new("builtin:vs_sprite", "builtin:fs_spritealphatest")`.
+		/// Only works with `label.effect = SpriteEffect::new("builtin:vs_sprite", "builtin:fs_fontalphatest")`.
 		/// </summary>
 		public float AlphaRef
 		{
@@ -207,6 +207,7 @@ namespace Dora
 		}
 		/// <summary>
 		/// The sprite effect used to render the text.
+		/// Custom text shaders read glyph coverage from the R8 texture red channel.
 		/// </summary>
 		public SpriteEffect Effect
 		{

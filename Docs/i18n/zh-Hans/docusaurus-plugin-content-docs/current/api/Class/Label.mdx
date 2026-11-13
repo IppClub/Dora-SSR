@@ -32,7 +32,7 @@ end
 **描述：**
 
 &emsp;&emsp;Alpha阈值值。Alpha值低于此值的像素将不会被绘制。
-仅适用于 `label.effect = SpriteEffect("builtin:vs_sprite", "builtin:fs_spritealphatest")`。
+仅适用于 `label.effect = SpriteEffect("builtin:vs_sprite", "builtin:fs_fontalphatest")`。
 
 **签名：**
 ```tl
@@ -179,6 +179,7 @@ batched: boolean
 **描述：**
 
 &emsp;&emsp;用于渲染文本的图元着色器特效。
+自定义文字着色器需从 R8 字体图集的红通道读取字形覆盖率。
 
 **签名：**
 ```tl

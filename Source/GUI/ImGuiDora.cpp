@@ -1402,7 +1402,7 @@ void ImGuiDora::render() {
 						auto format = bgfx::TextureFormat::Unknown;
 						switch (tex->Format) {
 							case ImTextureFormat_Alpha8:
-								format = bgfx::TextureFormat::A8;
+								format = bgfx::TextureFormat::R8;
 								break;
 							case ImTextureFormat_RGBA32:
 								format = bgfx::TextureFormat::RGBA8;
@@ -1476,7 +1476,7 @@ void ImGuiDora::render() {
 					if (ImTextureID_Invalid != texID) {
 						auto texture = r_cast<Texture2D*>(texID);
 						textureHandle = r_cast<Texture2D*>(texID)->getHandle();
-						if (texture->getInfo().format == bgfx::TextureFormat::A8) {
+						if (texture->getInfo().format == bgfx::TextureFormat::R8) {
 							program = _defaultPass->apply();
 						} else {
 							program = _imagePass->apply();

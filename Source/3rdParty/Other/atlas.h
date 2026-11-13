@@ -35,7 +35,7 @@ class Atlas
 {
 public:
 	enum Type {
-		Gray,
+		Gray, // R8 coverage, sampled from the red channel.
 		RGBA8
 	};
 	/// create an empty dynamic atlas (region can be updated and added)

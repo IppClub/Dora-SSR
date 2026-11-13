@@ -19,7 +19,7 @@ local record Label
 	end
 
 	-- The alpha threshold value. Pixels with alpha values below this value will not be drawn.
-	-- Only works with `label.effect = SpriteEffect("builtin:vs_sprite", "builtin:fs_spritealphatest")`.
+	-- Only works with `label.effect = SpriteEffect("builtin:vs_sprite", "builtin:fs_fontalphatest")`.
 	alphaRef: number
 
 	-- The width of the text used for text wrapping.
@@ -59,6 +59,7 @@ local record Label
 	batched: boolean
 
 	-- The sprite effect used to render the text.
+	-- Custom text shaders read glyph coverage from the R8 texture red channel.
 	effect: SpriteEffect
 
 	-- The text alignment setting.

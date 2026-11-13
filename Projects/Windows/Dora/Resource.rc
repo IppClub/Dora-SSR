@@ -84,7 +84,7 @@ BEGIN
         BLOCK "040004b0"
         BEGIN
             VALUE "CompanyName", "IppClub"
-            VALUE "FileDescription", "A game engine for rapid game development."
+            VALUE "FileDescription", "Dora SSR - A game engine for rapid development"
             VALUE "FileVersion", "1.10.2.0"
             VALUE "InternalName", "Dora.exe"
             VALUE "LegalCopyright", "Copyright (C) 2025"

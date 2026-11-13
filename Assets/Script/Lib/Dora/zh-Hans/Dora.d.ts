@@ -7382,7 +7382,7 @@ class Label extends Node {
 
 	/**
 	 * Alpha 阈值。透明度低于此值的像素将不会被绘制。
-	 * 仅在 `label.effect = SpriteEffect("builtin:vs_sprite", "builtin:fs_spritealphatest")` 时有效。
+	 * 仅在 `label.effect = SpriteEffect("builtin:vs_sprite", "builtin:fs_fontalphatest")` 时有效。
 	 */
 	alphaRef: number;
 
@@ -7443,6 +7443,7 @@ class Label extends Node {
 
 	/**
 	 * 用于渲染文本的图元着色器特效。
+	 * 自定义文字着色器需从 R8 纹理的红通道读取字形覆盖率。
 	 */
 	effect: SpriteEffect;
 

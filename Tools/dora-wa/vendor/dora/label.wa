@@ -138,13 +138,13 @@ func Label.GetAlignment() => TextAlign {
 }
 
 /// Sets the alpha threshold value. Pixels with alpha values below this value will not be drawn.
-/// Only works with `label.effect = SpriteEffect::new("builtin:vs_sprite", "builtin:fs_spritealphatest")`.
+/// Only works with `label.effect = SpriteEffect::new("builtin:vs_sprite", "builtin:fs_fontalphatest")`.
 func Label.SetAlphaRef(val: f32) {
 	label_set_alpha_ref(*this.raw, val)
 }
 
 /// Gets the alpha threshold value. Pixels with alpha values below this value will not be drawn.
-/// Only works with `label.effect = SpriteEffect::new("builtin:vs_sprite", "builtin:fs_spritealphatest")`.
+/// Only works with `label.effect = SpriteEffect::new("builtin:vs_sprite", "builtin:fs_fontalphatest")`.
 func Label.GetAlphaRef() => f32 {
 	return label_get_alpha_ref(*this.raw)
 }
@@ -193,22 +193,28 @@ func Label.GetOutlineColor() => Color {
 	return NewColor(label_get_outline_color(*this.raw))
 }
 
-/// Sets the outline width in normalized SDF distance units, not pixels. A typical visible outline uses 0.12 to 0.18; values are clamped to 0 to 0.25.
+/// Sets the outline width in normalized SDF distance units, not pixels. Only works with SDF labels.
+/// A typical visible outline uses 0.12 to 0.18. Values are clamped to the supported range of 0 to 0.25.
 func Label.SetOutlineWidth(val: f32) {
 	label_set_outline_width(*this.raw, val)
 }
 
-/// Gets the outline width in normalized SDF distance units, not pixels.
+/// Gets the outline width in normalized SDF distance units, not pixels. Only works with SDF labels.
+/// A typical visible outline uses 0.12 to 0.18. Values are clamped to the supported range of 0 to 0.25.
 func Label.GetOutlineWidth() => f32 {
 	return label_get_outline_width(*this.raw)
 }
 
-/// Sets the lower and upper normalized SDF thresholds. Components are clamped to 0 to 1 and kept in ascending order; values around 0.5 to 0.8 are recommended.
+/// Sets the lower and upper normalized SDF thresholds used to smooth the text edge.
+/// Each component is clamped to 0 to 1 and the lower value is kept below the upper value.
+/// Automatic smoothing is used by default; for manual tuning, values around 0.5 to 0.8 are recommended.
 func Label.SetSmooth(val: Vec2) {
 	label_set_smooth(*this.raw, val.ToValue())
 }
 
 /// Gets the lower and upper normalized SDF thresholds used to smooth the text edge.
+/// Each component is clamped to 0 to 1 and the lower value is kept below the upper value.
+/// Automatic smoothing is used by default; for manual tuning, values around 0.5 to 0.8 are recommended.
 func Label.GetSmooth() => Vec2 {
 	return Vec2FromValue(label_get_smooth(*this.raw))
 }
@@ -256,11 +262,13 @@ func Label.IsBatched() => bool {
 }
 
 /// Sets the sprite effect used to render the text.
+/// Custom text shaders read glyph coverage from the R8 texture red channel.
 func Label.SetEffect(val: SpriteEffect) {
 	label_set_effect(*this.raw, val.GetRaw())
 }
 
 /// Gets the sprite effect used to render the text.
+/// Custom text shaders read glyph coverage from the R8 texture red channel.
 func Label.GetEffect() => SpriteEffect {
 	return *SpriteEffectFrom(label_get_effect(*this.raw))
 }

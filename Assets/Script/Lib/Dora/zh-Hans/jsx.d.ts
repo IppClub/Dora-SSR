@@ -885,7 +885,7 @@ class Label extends Node {
 
 	/**
 	 * Alpha 阈值。透明度低于此值的像素将不会被绘制。
-	 * 仅在 `label.effect = SpriteEffect("builtin:vs_sprite", "builtin:fs_spritealphatest")` 时有效。
+	 * 仅在 `label.effect = SpriteEffect("builtin:vs_sprite", "builtin:fs_fontalphatest")` 时有效。
 	 */
 	alphaRef?: number;
 

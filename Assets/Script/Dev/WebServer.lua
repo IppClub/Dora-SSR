@@ -34,6 +34,7 @@ local emit <const> = emit -- 10
 local Node <const> = Node -- 10
 local Director <const> = Director -- 10
 local yarncompile <const> = yarncompile -- 10
+local once <const> = once -- 10
 HttpServer:stop() -- 12
 HttpServer.wwwPath = Path(Content.appPath, ".www") -- 14
 HttpServer.authToken = "" -- 16
@@ -7757,62 +7758,62 @@ HttpServer:postSchedule("/git/commit-files", function(req) -- 3160
 	end -- 3161
 	return invalidArguments -- 3160
 end) -- 3160
-thread(function() -- 3169
-	local doraWeb = Path(Content.assetPath, "www", "index.html") -- 3170
-	local doraReady = Path(Content.appPath, ".www", "dora-ready") -- 3171
-	if Content:exist(doraWeb) or Content:exist(doraWeb .. ".gz") then -- 3172
-		local storedAsset -- 3175
-		storedAsset = function(file) -- 3175
-			if Content:exist(file) then -- 3176
-				return Content:load(file) -- 3177
-			elseif Content:exist(file .. ".gz") then -- 3178
-				return Content:load(file .. ".gz") -- 3179
-			else -- 3180
-				return "" -- 3180
-			end -- 3176
-		end -- 3175
-		local heavyAssets = Path(Content.assetPath, "www", "heavy-assets.json") -- 3181
-		local runtimeIndex = Path(Content.assetPath, "www", "web-player", "runtime.json") -- 3182
-		local compilerIndex = Path(Content.assetPath, "www", "compiler.html") -- 3183
-		local manifest = Path(Content.assetPath, "www", "precompressed-assets.json") -- 3184
-		local readyContent = table.concat({ -- 3186
-			App.version, -- 3186
-			storedAsset(doraWeb), -- 3187
-			storedAsset(heavyAssets), -- 3188
-			storedAsset(runtimeIndex), -- 3189
-			storedAsset(compilerIndex), -- 3190
-			storedAsset(manifest) -- 3191
-		}, "\n") -- 3185
-		local needReload -- 3193
-		if Content:exist(doraReady) then -- 3193
-			needReload = readyContent ~= Content:load(doraReady) -- 3194
-		else -- 3195
-			needReload = true -- 3195
-		end -- 3193
-		if needReload then -- 3196
-			Content:remove(Path(Content.appPath, ".www")) -- 3197
-			Content:copyAsync(Path(Content.assetPath, "www"), Path(Content.appPath, ".www")) -- 3198
-			Content:save(doraReady, readyContent) -- 3202
-			print("Dora Dora is ready!") -- 3203
-		end -- 3196
-	end -- 3172
-	if App.platform == "Emscripten" then -- 3204
-		status.url = nil -- 3205
-		return print("HttpServer is unavailable in the browser; use the hosting web server.") -- 3206
-	end -- 3204
-	HttpServer:clearStaticCacheControls() -- 3207
-	HttpServer:setStaticCacheControl("no-cache") -- 3208
-	HttpServer:addStaticCacheControl("^/((assets|monacoeditorwork)/.*|typescript)-[A-Za-z0-9_-]{8,}[.][^/]+$", "public, max-age=31536000, immutable") -- 3209
-	if HttpServer:start(8866) then -- 3213
-		local localIP = HttpServer.localIP -- 3214
-		if localIP == "" then -- 3215
-			localIP = "localhost" -- 3215
-		end -- 3215
-		status.url = "http://" .. tostring(localIP) .. ":8866" -- 3216
-		return HttpServer:startWS(8868) -- 3217
-	else -- 3219
-		status.url = nil -- 3219
-		return print("8866 Port not available!") -- 3220
-	end -- 3213
-end) -- 3169
+Director.systemScheduler:schedule(once(function() -- 3171
+	local doraWeb = Path(Content.assetPath, "www", "index.html") -- 3172
+	local doraReady = Path(Content.appPath, ".www", "dora-ready") -- 3173
+	if Content:exist(doraWeb) or Content:exist(doraWeb .. ".gz") then -- 3174
+		local storedAsset -- 3177
+		storedAsset = function(file) -- 3177
+			if Content:exist(file) then -- 3178
+				return Content:load(file) -- 3179
+			elseif Content:exist(file .. ".gz") then -- 3180
+				return Content:load(file .. ".gz") -- 3181
+			else -- 3182
+				return "" -- 3182
+			end -- 3178
+		end -- 3177
+		local heavyAssets = Path(Content.assetPath, "www", "heavy-assets.json") -- 3183
+		local runtimeIndex = Path(Content.assetPath, "www", "web-player", "runtime.json") -- 3184
+		local compilerIndex = Path(Content.assetPath, "www", "compiler.html") -- 3185
+		local manifest = Path(Content.assetPath, "www", "precompressed-assets.json") -- 3186
+		local readyContent = table.concat({ -- 3188
+			App.version, -- 3188
+			storedAsset(doraWeb), -- 3189
+			storedAsset(heavyAssets), -- 3190
+			storedAsset(runtimeIndex), -- 3191
+			storedAsset(compilerIndex), -- 3192
+			storedAsset(manifest) -- 3193
+		}, "\n") -- 3187
+		local needReload -- 3195
+		if Content:exist(doraReady) then -- 3195
+			needReload = readyContent ~= Content:load(doraReady) -- 3196
+		else -- 3197
+			needReload = true -- 3197
+		end -- 3195
+		if needReload then -- 3198
+			Content:remove(Path(Content.appPath, ".www")) -- 3199
+			Content:copyAsync(Path(Content.assetPath, "www"), Path(Content.appPath, ".www")) -- 3200
+			Content:save(doraReady, readyContent) -- 3204
+			print("Dora Dora is ready!") -- 3205
+		end -- 3198
+	end -- 3174
+	if App.platform == "Emscripten" then -- 3206
+		status.url = nil -- 3207
+		return print("HttpServer is unavailable in the browser; use the hosting web server.") -- 3208
+	end -- 3206
+	HttpServer:clearStaticCacheControls() -- 3209
+	HttpServer:setStaticCacheControl("no-cache") -- 3210
+	HttpServer:addStaticCacheControl("^/((assets|monacoeditorwork)/.*|typescript)-[A-Za-z0-9_-]{8,}[.][^/]+$", "public, max-age=31536000, immutable") -- 3211
+	if HttpServer:start(8866) then -- 3215
+		local localIP = HttpServer.localIP -- 3216
+		if localIP == "" then -- 3217
+			localIP = "localhost" -- 3217
+		end -- 3217
+		status.url = "http://" .. tostring(localIP) .. ":8866" -- 3218
+		return HttpServer:startWS(8868) -- 3219
+	else -- 3221
+		status.url = nil -- 3221
+		return print("8866 Port not available!") -- 3222
+	end -- 3215
+end)) -- 3171
 return _module_0 -- 1

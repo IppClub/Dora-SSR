@@ -3166,7 +3166,9 @@ HttpServer\postSchedule "/git/commit-files", (req): invalidArguments ->
 		return res unless res.success
 		return success: true, status: res.status, data: res.status and res.status.data
 
-thread ->
+-- Server startup belongs to the persistent runtime, not the current game.
+-- A cold project link can clear game routines while web assets are still copying.
+Director.systemScheduler\schedule once ->
 	doraWeb = Path Content.assetPath, "www", "index.html"
 	doraReady = Path Content.appPath, ".www", "dora-ready"
 	if Content\exist(doraWeb) or Content\exist(doraWeb .. ".gz")

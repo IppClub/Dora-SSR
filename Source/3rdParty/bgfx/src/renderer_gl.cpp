@@ -6062,7 +6062,7 @@ namespace bgfx { namespace gl
 
 	void TextureGL::update(uint8_t _side, uint8_t _mip, const Rect& _rect, uint16_t _z, uint16_t _depth, uint16_t _pitch, const Memory* _mem)
 	{
-		const uint32_t bpp = bimg::getBitsPerPixel(bimg::TextureFormat::Enum(m_textureFormat) );
+		const uint32_t bpp = bimg::getBitsPerPixel(bimg::TextureFormat::Enum(m_requestedFormat) );
 		const uint32_t rectpitch = _rect.m_width*bpp/8;
 		uint32_t srcpitch  = UINT16_MAX == _pitch ? rectpitch : _pitch;
 
@@ -6082,7 +6082,7 @@ namespace bgfx { namespace gl
 		const bool unpackRowLength = !!BGFX_CONFIG_RENDERER_OPENGL || s_extension[Extension::EXT_unpack_subimage].m_supported;
 		const bool compressed      = bimg::isCompressed(bimg::TextureFormat::Enum(m_requestedFormat) );
 		const bool convert         = false
-			|| (compressed && m_textureFormat != m_requestedFormat)
+			|| m_textureFormat != m_requestedFormat
 			|| swizzle
 			;
 
@@ -6101,7 +6101,7 @@ namespace bgfx { namespace gl
 		if (convert
 		||  !unpackRowLength)
 		{
-			temp = (uint8_t*)bx::alloc(g_allocator, rectpitch*height);
+			temp = (uint8_t*)bx::alloc(g_allocator, (convert ? width*4 : rectpitch)*height);
 		}
 		else if (unpackRowLength)
 		{
@@ -6141,9 +6141,26 @@ namespace bgfx { namespace gl
 
 			if (convert)
 			{
-				bimg::imageDecodeToRgba8(g_allocator, temp, data, width, height, srcpitch, bimg::TextureFormat::Enum(m_requestedFormat) );
+				// Updates still contain the requested format when texture creation
+				// falls back to RGBA8 (e.g. A8 font atlases on core OpenGL).
+				// The decoder expects packed input and a destination row pitch.
+				uint8_t* packed = NULL;
+				if (!compressed && srcpitch != width*bpp/8)
+				{
+					packed = (uint8_t*)bx::alloc(g_allocator, width*height*bpp/8);
+					bimg::imageCopy(packed, width, height, 1, bpp, srcpitch, data);
+					data = packed;
+				}
+				bimg::imageDecodeToRgba8(g_allocator, temp, data, width, height, width*4, bimg::TextureFormat::Enum(m_requestedFormat) );
+				if (NULL != packed)
+				{
+					bx::free(g_allocator, packed);
+				}
 				data = temp;
-				srcpitch = rectpitch;
+				if (unpackRowLength)
+				{
+					GL_CHECK(glPixelStorei(GL_UNPACK_ROW_LENGTH, 0) );
+				}
 			}
 
 			if (BX_IGNORE_C4127(true
