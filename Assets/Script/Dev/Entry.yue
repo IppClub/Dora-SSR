@@ -1861,14 +1861,18 @@ startMobileUI = ->
 		mobileLaunchErrors[entry.id] = nil
 		entry.launchError = nil
 		playActive = true
+		playHost = nil
 		restoreMobileFeed = ->
 			return unless playActive
 			playActive = false
+			-- allClear preserves systemUI; every return path owns the play HUD cleanup.
+			playHost\removeFromParent true if playHost and playHost.parent
+			playHost = nil
 			allClear!
 			isInEntry = true
 			currentEntry = nil
 			restartMobileFeed entry
-		trackMobileHost playOverlay.startMobilePlayOverlay {
+		playHost = trackMobileHost playOverlay.startMobilePlayOverlay {
 			onExit: -> restoreMobileFeed!
 			onRuntimeError: ->
 				mobileLaunchErrors[entry.id] = useChinese and "作品运行异常，已安全返回作品卡，请修改后重试。" or "The game stopped after a runtime error. Fix it and try again."

@@ -1,3 +1,4 @@
+import { paintSurface, roundedSurfaceVertices } from "Dev/Mobile/Surface";
 import { App, ClipNode, Color, Color3, DrawNode, Keyboard, KeyName, Label, Node, Size, sleep, TextAlign, thread, Vec2 } from "Dora";
 // Keep the native module name independent of the declaration file path.
 const nvg = require("nvg") as typeof import("nvg");
@@ -39,14 +40,10 @@ export function createTextInputView(input: Node.Type, fontSize: number, singleLi
 		// Native tool panels need their background and clipped labels in one
 		// render queue; a NanoVG pass would otherwise cover the text.
 		const w = input.width, h = input.height, r = math.min(12, w / 2, h / 2);
-		const verts: Vec2.Type[] = [];
-		for (const corner of [{x:w-r,y:r,a:-math.pi/2},{x:w-r,y:h-r,a:0},{x:r,y:h-r,a:math.pi/2},{x:r,y:r,a:math.pi}]) {
-			for (let i = 0; i <= 8; i++) {
-				const a = corner.a + i * math.pi / 16;
-				verts.push(Vec2(corner.x + math.cos(a) * r, corner.y + math.sin(a) * r));
-			}
-		}
-		const fill = DrawNode(); fill.drawPolygon(verts, Color(background)); input.addChild(fill, -2);
+		const verts = roundedSurfaceVertices(w, h, r);
+		const fill = DrawNode();
+		paintSurface(fill, w, h, r, {topColor: 0xff242d3b, bottomColor: background});
+		input.addChild(fill, -2);
 		const outline = DrawNode(); outline.drawPolygon(verts, Color(0), 1.5, Color(0xffffffff)); border.addChild(outline);
 	} else input.onRender(() => {
 		nvg.Save(); nvg.ApplyTransform(input);

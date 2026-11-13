@@ -1,38 +1,10 @@
 import { React, reference, toNode } from "DoraX";
-import { App, Color, Director, DrawNode, HttpServer, Label, Node, TextAlign, Vec2, thread } from "Dora";
+import { App, Director, HttpServer, Label, Node, TextAlign, Vec2, thread } from "Dora";
 import { attachGamepad } from "Dev/Mobile/Gamepad";
 import { discardPackage, exportPackage, inspectPackage, installPackage, type PackagePreview } from "Dev/Mobile/Package";
 import type { FeedEntry } from "Dev/Mobile/FeedModel";
 
-// SystemUI NanoVG is a background pass. Modal surfaces use DrawNode so they
-// cover the Feed text and sprites as well as its background surfaces.
-function PackageSurface(props: { width: number; height: number; color: number; radius: number }) {
-	return <custom-node onCreate={() => {
-		const draw = DrawNode();
-		const vertices: Vec2.Type[] = [];
-		const r = props.radius;
-		for (const corner of [
-			{ x: props.width - r, y: r, angle: -math.pi / 2 },
-			{ x: props.width - r, y: props.height - r, angle: 0 },
-			{ x: r, y: props.height - r, angle: math.pi / 2 },
-			{ x: r, y: r, angle: math.pi },
-		]) {
-			for (let i = 0; i <= 8; i++) {
-				const angle = corner.angle + i * math.pi / 16;
-				vertices.push(Vec2(corner.x + math.cos(angle) * r, corner.y + math.sin(angle) * r));
-			}
-		}
-		draw.drawPolygon(vertices, Color(props.color), 1, Color(0xff343b48));
-		return draw;
-	}} />;
-}
-
-function PackageButton(props: { tag: string; x: number; y: number; width: number; text: string; fontSize?: number; primary?: boolean; onTapped: (this: void) => void }) {
-	return <node tag={props.tag} x={props.x} y={props.y} width={props.width} height={48} anchorX={0} anchorY={0} touchEnabled={true} swallowTouches={true} onTapped={props.onTapped}>
-		<PackageSurface width={props.width} height={48} radius={14} color={props.primary ? 0xffffd34b : 0xff242c3a} />
-		<label x={props.width / 2} y={24} fontName="sarasa-mono-sc-regular" fontSize={props.fontSize ?? 17} text={props.text} color3={props.primary ? 0x17130a : 0xf4f1e8} />
-	</node>;
-}
+import { NativeButton as PackageButton, NativePanelSurface } from "Dev/Mobile/NativeControls";
 
 export function startPackagePanel(options: {
 	mode: "add" | "share" | "receive";
@@ -135,7 +107,7 @@ export function startPackagePanel(options: {
 		const node = toNode(<node x={-App.visualSize.width / 2} y={-App.visualSize.height / 2} anchorX={0} anchorY={0} width={App.visualSize.width} height={App.visualSize.height} touchEnabled={true} swallowTouches={true}>
 			<draw-node><rect-shape centerX={App.visualSize.width / 2} centerY={App.visualSize.height / 2} width={App.visualSize.width} height={App.visualSize.height} fillColor={0xaa000000} /></draw-node>
 			<node tag="mobile-package-sheet" x={safe.left + (safe.width - width) / 2} y={safe.bottom + 8} width={width} height={height} anchorX={0} anchorY={0}>
-				<PackageSurface width={width} height={height} radius={24} color={0xff151d2b} />
+				<NativePanelSurface width={width} height={height} />
 				<label x={20} y={height - titleTop} anchorX={0} anchorY={1} fontName="sarasa-mono-sc-regular" fontSize={22} text={title} textWidth={width - 40} alignment={TextAlign.Left} />
 				{detail === "" ? undefined : <label tag="mobile-package-detail" ref={detailRef} x={20} y={height - detailTop} anchorX={0} anchorY={1} fontName="sarasa-mono-sc-regular" fontSize={14} text={detail} color3={0xa8afbd} textWidth={width - 40} alignment={TextAlign.Left} />}
 				<label tag="mobile-package-status" x={20} y={height - messageTop} anchorX={0} anchorY={1} fontName="sarasa-mono-sc-regular" fontSize={14} text={message} color3={failed ? 0xff6b6b : 0xa8afbd} textWidth={width - 40} alignment={TextAlign.Left} />
