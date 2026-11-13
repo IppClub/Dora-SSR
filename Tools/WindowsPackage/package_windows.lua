@@ -93,6 +93,12 @@ function package_windows(stage, output, backend, format, version, mode)
             local parent = relative:match("^(.*)/") or ""
             element(component(directory(parent), relative), "File", {Id = ident("F", relative), Source = file, Name = path.filename(file)})
         end
+        local protocol = component(install, "protocol:dora-ssr")
+        local protocol_key = "Software\\Classes\\dora-ssr"
+        element(protocol, "RegistryValue", {Root = "HKCU", Key = protocol_key, Type = "string", Value = "URL:Dora SSR"})
+        element(protocol, "RegistryValue", {Root = "HKCU", Key = protocol_key, Name = "URL Protocol", Type = "string", Value = ""})
+        local command = '"[#' .. ident("F", "Dora.exe") .. ']" "%1"'
+        element(protocol, "RegistryValue", {Root = "HKCU", Key = protocol_key .. "\\shell\\open\\command", Type = "string", Value = command})
         for _, relative in ipairs(C.keys(directories)) do element(component(directories[relative], "directory:" .. relative), "RemoveFolder", {Id = ident("R", relative), On = "uninstall"}) end
         local menu = element(element(product, "StandardDirectory", {Id = "ProgramMenuFolder"}), "Directory", {Id = "DoraMenu", Name = "Dora SSR"})
         local shortcut = component(menu, "shortcut")

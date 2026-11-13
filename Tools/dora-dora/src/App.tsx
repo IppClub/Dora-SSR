@@ -5305,6 +5305,21 @@ export default function PersistentDrawerLeft() {
 		openFileInTab(targetPath, path.basename(targetPath), false);
 	}, [openFileInTab]);
 
+	useEffect(() => {
+		const openImportedProject = async (message: Service.ImportIDEOpenMessage) => {
+			try {
+				await loadAssets();
+				await revealTreeNode(message.root);
+				openProjectWorkspaceTab(message.root, "git");
+				Service.acknowledgeImportIDEOpen(message.requestId, true);
+			} catch {
+				Service.acknowledgeImportIDEOpen(message.requestId, false);
+			}
+		};
+		Service.addImportIDEOpenListener(openImportedProject);
+		return () => { Service.removeImportIDEOpenListener(openImportedProject); };
+	}, [loadAssets, revealTreeNode, openProjectWorkspaceTab]);
+
 	const onGitOpenProject = useCallback((projectPath: string) => {
 		openProjectWorkspaceTab(projectPath, "git");
 	}, [openProjectWorkspaceTab]);

@@ -1,5 +1,6 @@
 import { App, ClipNode, Color, Color3, DrawNode, Keyboard, KeyName, Label, Node, Size, sleep, TextAlign, thread, Vec2 } from "Dora";
-import * as nvg from "nvg";
+// Keep the native module name independent of the declaration file path.
+const nvg = require("nvg") as typeof import("nvg");
 
 export const inputLength = (text: string) => utf8.len(text)[0] ?? 0;
 export const inputSlice = (text: string, start: number, end = inputLength(text)) => {
@@ -31,10 +32,23 @@ export function layoutInput(text: string, width: number, advance: (this: void, c
 	return { text: display.join(""), stops, rows: row + 1 };
 }
 
-export function createTextInputView(input: Node.Type, fontSize: number, singleLine = false, background = 0xff171c26) {
+export function createTextInputView(input: Node.Type, fontSize: number, singleLine = false, background = 0xff171c26, nativeSurface = false) {
 	const border = Node(); border.tag = `${input.tag}-border`;
 	border.color3 = Color3(0x343b48); input.addChild(border, -1);
-	input.onRender(() => {
+	if (nativeSurface) {
+		// Native tool panels need their background and clipped labels in one
+		// render queue; a NanoVG pass would otherwise cover the text.
+		const w = input.width, h = input.height, r = math.min(12, w / 2, h / 2);
+		const verts: Vec2.Type[] = [];
+		for (const corner of [{x:w-r,y:r,a:-math.pi/2},{x:w-r,y:h-r,a:0},{x:r,y:h-r,a:math.pi/2},{x:r,y:r,a:math.pi}]) {
+			for (let i = 0; i <= 8; i++) {
+				const a = corner.a + i * math.pi / 16;
+				verts.push(Vec2(corner.x + math.cos(a) * r, corner.y + math.sin(a) * r));
+			}
+		}
+		const fill = DrawNode(); fill.drawPolygon(verts, Color(background)); input.addChild(fill, -2);
+		const outline = DrawNode(); outline.drawPolygon(verts, Color(0), 1.5, Color(0xffffffff)); border.addChild(outline);
+	} else input.onRender(() => {
 		nvg.Save(); nvg.ApplyTransform(input);
 		nvg.BeginPath(); nvg.RoundedRect(0, 0, input.width, input.height, 12);
 		nvg.FillPaint(nvg.LinearGradient(0, input.height, 0, 0, Color(0xff242d3b), Color(background)));
@@ -135,6 +149,7 @@ export interface TextInputOptions {
 	fontSize: number;
 	singleLine?: boolean;
 	background?: number;
+	nativeSurface?: boolean;
 	isSecure?(): boolean;
 	getText(this: void): string;
 	setText(this: void, text: string): void;
@@ -226,7 +241,7 @@ export function createTextInput(options: TextInputOptions) {
 		},
 		mount: (target: Node.Type) => {
 			unmount(); node = target;
-			view = createTextInputView(target, options.fontSize, options.singleLine, options.background);
+			view = createTextInputView(target, options.fontSize, options.singleLine, options.background, options.nativeSurface);
 			target.touchEnabled = true; target.swallowTouches = true;
 			target.slot("GamepadActivate", () => { if (options.isEnabled()) focus(); });
 			target.onAttachIME(() => { focused = true; composition = ""; compositionCursor = 0; target.keyboardEnabled = true; refresh(); });

@@ -91,6 +91,7 @@ public class MainActivity extends SDLActivity {
 	private static final long MAX_GAME_BYTES = 256L * 1024 * 1024;
 	private static final ExecutorService gameFileWorker = Executors.newSingleThreadExecutor();
 	private static native void nativeReceiveFile(String path, boolean picked);
+	private static native boolean nativeOpenProjectLink(String link);
 	private String pendingGameExport;
 
 	private static native void nativeSetPath(String path);
@@ -150,6 +151,13 @@ public class MainActivity extends SDLActivity {
 	public static boolean waGitDispose(long jobId) { return Wa.waGitDispose(jobId); }
 	@Override
 	protected void onCreate(final Bundle savedInstanceState) {
+		Intent launchIntent = getIntent();
+		// SDL treats the data URI's path as a dropped file during onCreate.
+		// Project links belong to the import queue, not the ZIP/file inbox.
+		if (launchIntent != null && Intent.ACTION_VIEW.equals(launchIntent.getAction())
+			&& launchIntent.getData() != null && "dora-ssr".equals(launchIntent.getData().getScheme())) {
+			setIntent(new Intent(this, MainActivity.class));
+		}
 		super.onCreate(savedInstanceState);
 		vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 		configureEdgeToEdgeWindow();
@@ -163,7 +171,7 @@ public class MainActivity extends SDLActivity {
 		MainActivity.nativeSetScreenDensity(this.getResources().getDisplayMetrics().density);
 		MainActivity.nativeSetMainActivityClass(MainActivity.class);
 		hideSystemUI();
-		receiveGameIntent(getIntent());
+		receiveGameIntent(launchIntent);
 	}
 
 	@Override
@@ -178,6 +186,17 @@ public class MainActivity extends SDLActivity {
 		Uri uri = null;
 		if (Intent.ACTION_VIEW.equals(intent.getAction())) uri = intent.getData();
 		else if (Intent.ACTION_SEND.equals(intent.getAction())) uri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
+		if (uri != null && Intent.ACTION_VIEW.equals(intent.getAction()) && "dora-ssr".equals(uri.getScheme())) {
+			// Queue the original encoded URI: the shared native parser validates
+			// and decodes it once, including during SDL's cold startup.
+			if (!nativeOpenProjectLink(uri.toString())) {
+				showToast(gameText("无法打开此项目链接", "Could not open this project link"));
+			}
+			// New clicks still arrive through onNewIntent; recreation must not
+			// replay this delivery and unexpectedly restart the running program.
+			setIntent(new Intent(this, MainActivity.class));
+			return;
+		}
 		if (uri != null && ("content".equals(uri.getScheme()) || "file".equals(uri.getScheme()))) {
 			copyGameFile(uri, false);
 			// Do not replay the original delivery after activity recreation.

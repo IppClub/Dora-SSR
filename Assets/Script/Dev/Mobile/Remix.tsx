@@ -359,7 +359,7 @@ export function startMobileRemix(options: RemixOptions) {
 		const pending = detail.pendingQuestionnaire;
 		const questions = pending.schema.questions;
 		const question = questions[questionIndex];
-		if (!question) return;
+		if (question === undefined) return;
 		const selected = questionnaireSelections[question.id] ?? [];
 		const text = (questionnaireTexts[question.id] ?? "").trim();
 		if (skipCurrent) {

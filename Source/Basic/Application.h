@@ -17,6 +17,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include <random>
 #include <atomic>
+#include <string_view>
 #include <thread>
 #if BX_PLATFORM_WINDOWS
 #include <malloc.h>
@@ -106,6 +107,7 @@ public:
 	bool saveFileDialog(String path);
 	std::string takeReceivedFile();
 	static void queueReceivedFile(std::string path);
+	static bool queueOpenProjectLink(std::string_view link);
 	std::string getExecutablePath() const;
 	void install(String path);
 	bool saveLog(String filename);

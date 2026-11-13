@@ -59,7 +59,7 @@ local function collect(host)
 		if not node.visible then return end
 		local tag = node.tag
 		if node.touchEnabled and node.width > 0 and node.height > 0 and
-			(targets[tag] or tag:match("^mobile%-project%-index%-entry%-%d+$") or
+			(targets[tag] or tag:match("^import%-") or tag == "repository-input" or tag:match("^mobile%-project%-index%-entry%-%d+$") or
 			tag:match("^remix%-question%-.+%-option%-") or
 			(tag:match("^mobile%-llm%-") and not tag:match("backdrop$"))) then
 			local center = node:convertToWorldSpace(Vec2(node.width / 2, node.height / 2))

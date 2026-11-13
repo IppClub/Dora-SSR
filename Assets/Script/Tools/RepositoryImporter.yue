@@ -1,0 +1,3 @@
+return (repository) ->
+	import "Tools.RepositoryImporter.View"
+	View.start repository

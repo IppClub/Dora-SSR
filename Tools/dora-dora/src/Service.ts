@@ -32,7 +32,10 @@ export interface OpenFileMessage {
 	readOnly?: boolean;
 };
 
+export interface ImportIDEOpenMessage {target: string; requestId: string; root: string;}
+
 type ServiceEvents = {
+	ImportIDEOpen: [ImportIDEOpenMessage];
 	[WsEvent.Log]: [string];
 	[WsEvent.Profiler]: [ProfilerInfo];
 	[WsEvent.UpdateFile]: [string, boolean, string];
@@ -192,6 +195,22 @@ export const addWSCloseListener = (listener: () => void) => {
 	eventEmitter.on(WsCloseEvent, listener);
 };
 
+export const importIDEClientId = crypto.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+export const addImportIDEOpenListener = (listener: (message: ImportIDEOpenMessage) => void) => eventEmitter.on("ImportIDEOpen", listener);
+export const removeImportIDEOpenListener = (listener: (message: ImportIDEOpenMessage) => void) => eventEmitter.off("ImportIDEOpen", listener);
+export const acknowledgeImportIDEOpen = (requestId: string, success: boolean) => sendWebSocketMessage({name: "ImportIDEOpened", id: importIDEClientId, requestId, success});
+const announceImportIDE = (active = false) => sendWebSocketMessage({name: "ImportIDEClient", id: importIDEClientId, embedded: isNativeIDE(), active});
+let lastImportIDEActivity = 0;
+const announceImportIDEActivity = () => {
+	if (Date.now() - lastImportIDEActivity < 1000) return;
+	lastImportIDEActivity = Date.now(); announceImportIDE(true);
+};
+window.addEventListener("focus", announceImportIDEActivity);
+window.addEventListener("pointerdown", announceImportIDEActivity, {passive: true});
+window.addEventListener("keydown", announceImportIDEActivity);
+window.addEventListener("pagehide", () => sendWebSocketMessage({name: "ImportIDEClosed", id: importIDEClientId}));
+window.setInterval(() => announceImportIDE(), 15000);
+
 type WebSocketPayload = Record<string, unknown>;
 
 const sendWebSocketMessage = (payload: WebSocketPayload) => {
@@ -345,6 +364,16 @@ export function openWebSocket() {
 								}
 								break;
 							}
+							case "ImportIDEProbe": {
+								announceImportIDE();
+								break;
+							}
+							case "ImportIDEOpen": {
+								if (result.target === importIDEClientId && typeof result.root === "string" && typeof result.requestId === "string") {
+									eventEmitter.emit("ImportIDEOpen", result as unknown as ImportIDEOpenMessage);
+								}
+								break;
+							}
 							case WsEvent.Download: {
 								eventEmitter.emit(result.name, result.url, result.status, result.progress);
 								break;
@@ -387,6 +416,7 @@ export function openWebSocket() {
 				};
 				socket.onopen = () => {
 					connected = true;
+					announceImportIDE(document.hasFocus());
 					eventEmitter.emit(WsOpenEvent);
 				};
 				socket.onclose = () => {

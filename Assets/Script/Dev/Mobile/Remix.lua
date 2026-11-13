@@ -584,7 +584,7 @@ function ____exports.startMobileRemix(options) -- 104
 		local pending = detail.pendingQuestionnaire -- 359
 		local questions = pending.schema.questions -- 360
 		local question = questions[questionIndex + 1] -- 361
-		if not question then -- 361
+		if question == nil then -- 361
 			return -- 362
 		end -- 362
 		local selected = questionnaireSelections[question.id] or ({}) -- 363

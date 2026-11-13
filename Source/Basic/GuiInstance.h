@@ -40,21 +40,20 @@ public:
 
 	~GuiInstance() {
 #ifdef _WIN32
-		if (_pid) UnmapViewOfFile(const_cast<LONG*>(_pid));
+		if (_activation) UnmapViewOfFile(_activation);
 		if (_mapping) CloseHandle(_mapping);
 		if (_event) CloseHandle(_event);
 		if (_owned) ReleaseMutex(_mutex);
 		if (_mutex) CloseHandle(_mutex);
 #else
-#if !defined(__linux__)
 		if (_requests >= 0) close(_requests);
-#endif
 		// Never unlink the lock: waiters must all lock the same inode.
 		if (_lock >= 0) close(_lock);
 #endif
 	}
 
-	Result acquire() {
+	Result acquire(const std::string& projectLink = {}) {
+		if (projectLink.size() > 2048) return Result::Error;
 #ifdef _WIN32
 		// Local scopes the objects to a Windows login session; include the user so
 		// Run As another user does not suppress that user's window.
@@ -72,7 +71,6 @@ public:
 		struct stat info{};
 		if (lstat(directory.c_str(), &info) != 0 || !S_ISDIR(info.st_mode)
 			|| info.st_uid != geteuid() || (info.st_mode & 077) != 0) return Result::Error;
-#if !defined(__linux__)
 		_path = directory + "/activate";
 		_address.sun_family = AF_UNIX;
 		if (_path.size() >= sizeof(_address.sun_path)) return Result::Error;
@@ -80,7 +78,6 @@ public:
 		_requests = socket(AF_UNIX, SOCK_DGRAM, 0);
 		if (_requests < 0 || fcntl(_requests, F_SETFD, FD_CLOEXEC) != 0
 			|| fcntl(_requests, F_SETFL, O_NONBLOCK) != 0) return Result::Error;
-#endif
 		_lock = open((directory + "/lock").c_str(), O_CREAT | O_RDWR | O_CLOEXEC | O_NOFOLLOW, 0600);
 		if (_lock < 0 || fstat(_lock, &info) != 0 || !S_ISREG(info.st_mode)
 			|| info.st_uid != geteuid()) return Result::Error;
@@ -94,91 +91,108 @@ public:
 			if (wait == WAIT_OBJECT_0 || wait == WAIT_ABANDONED) {
 				_owned = true;
 				_event = CreateEventW(nullptr, FALSE, FALSE, (name + L".Activate").c_str());
-				_mapping = CreateFileMappingW(INVALID_HANDLE_VALUE, nullptr, PAGE_READWRITE, 0, sizeof(LONG), (name + L".PID").c_str());
+				_mapping = CreateFileMappingW(INVALID_HANDLE_VALUE, nullptr, PAGE_READWRITE, 0, sizeof(Activation), (name + L".ProjectLinks").c_str());
 				if (!_event || !_mapping) return Result::Error;
-				_pid = static_cast<volatile LONG*>(MapViewOfFile(_mapping, FILE_MAP_ALL_ACCESS, 0, 0, sizeof(LONG)));
-				if (!_pid) return Result::Error;
-				InterlockedExchange(_pid, static_cast<LONG>(GetCurrentProcessId()));
+				_activation = static_cast<Activation*>(MapViewOfFile(_mapping, FILE_MAP_ALL_ACCESS, 0, 0, sizeof(Activation)));
+				if (!_activation) return Result::Error;
+				for (auto& pending : _activation->requests) InterlockedExchange(&pending.length, 0);
+				InterlockedExchange(&_activation->pid, static_cast<LONG>(GetCurrentProcessId()));
 				return Result::Primary;
 			}
 			if (wait != WAIT_TIMEOUT) return Result::Error;
 			HANDLE event = OpenEventW(EVENT_MODIFY_STATE, FALSE, (name + L".Activate").c_str());
-			HANDLE mapping = OpenFileMappingW(FILE_MAP_READ, FALSE, (name + L".PID").c_str());
+			HANDLE mapping = OpenFileMappingW(FILE_MAP_ALL_ACCESS, FALSE, (name + L".ProjectLinks").c_str());
 			bool notified = false;
 			if (event && mapping) {
-				const auto pid = static_cast<const DWORD*>(MapViewOfFile(mapping, FILE_MAP_READ, 0, 0, sizeof(DWORD)));
-				if (pid && *pid != 0) {
+				auto activation = static_cast<Activation*>(MapViewOfFile(mapping, FILE_MAP_ALL_ACCESS, 0, 0, sizeof(Activation)));
+				if (activation && activation->pid != 0) {
+					bool queued = projectLink.empty();
+					if (!projectLink.empty()) {
+						for (auto& pending : activation->requests) {
+							if (InterlockedCompareExchange(&pending.length, -1, 0) == 0) {
+								std::memcpy(pending.link, projectLink.data(), projectLink.size());
+								InterlockedExchange(&pending.length, static_cast<LONG>(projectLink.size()));
+								queued = true;
+								break;
+							}
+						}
+					}
 					// Transfer foreground permission from the new launch to the existing GUI.
-					AllowSetForegroundWindow(*pid);
-					notified = SetEvent(event) != FALSE;
+					if (queued) {
+						AllowSetForegroundWindow(static_cast<DWORD>(activation->pid));
+						notified = SetEvent(event) != FALSE;
+					}
 				}
-				if (pid) UnmapViewOfFile(pid);
+				if (activation) UnmapViewOfFile(activation);
 			}
 			if (mapping) CloseHandle(mapping);
 			if (event) CloseHandle(event);
 			if (notified) return Result::Notified;
 #else
 			if (flock(_lock, LOCK_EX | LOCK_NB) == 0) {
-#if defined(__linux__)
-				return Result::Primary;
-#else
 				if (unlink(_path.c_str()) != 0 && errno != ENOENT) return Result::Error;
 				return bind(_requests, reinterpret_cast<const sockaddr*>(&_address), sizeof(_address)) == 0
 					? Result::Primary : Result::Error;
-#endif
 			}
 			if (errno != EWOULDBLOCK && errno != EAGAIN && errno != EINTR) return Result::Error;
 #if defined(__linux__)
 			// Linux deliberately does not activate windows: X11 and Wayland
 			// must share one predictable single-instance policy.
-			if (errno == EWOULDBLOCK || errno == EAGAIN) return Result::Existing;
-#else
-			// Queue activation until the owner's window thread can handle it.
-			if (sendto(_requests, "A", 1, 0, reinterpret_cast<const sockaddr*>(&_address), sizeof(_address)) == 1)
-				return Result::Notified;
+			if (projectLink.empty() && (errno == EWOULDBLOCK || errno == EAGAIN)) return Result::Existing;
 #endif
+			// Queue activation until the owner's window thread can handle it.
+			const auto request = projectLink.empty() ? std::string("A") : projectLink;
+			if (sendto(_requests, request.data(), request.size(), 0, reinterpret_cast<const sockaddr*>(&_address), sizeof(_address))
+				== static_cast<ssize_t>(request.size())) return Result::Notified;
 #endif
 			std::this_thread::sleep_for(std::chrono::milliseconds(10));
 		} while (std::chrono::steady_clock::now() < deadline);
 		return Result::Error;
 	}
 
-	// Call only on the window thread. Coalesce bursts into one activation.
-	bool takeActivationRequest(std::string& activationToken) {
-		activationToken.clear();
+	// Call only on the window thread. A non-empty request carries a project link.
+	bool takeActivationRequest(std::string& projectLink) {
+		projectLink.clear();
 #ifdef _WIN32
-		return _event && WaitForSingleObject(_event, 0) == WAIT_OBJECT_0;
-#elif defined(__linux__)
-		return false;
-#else
-		bool requested = false;
-		char buffer[4096];
-		// Bound each poll so a flood of launches cannot starve the render thread.
-		for (int i = 0; i < 16; ++i) {
-			const auto size = recv(_requests, buffer, sizeof(buffer), 0);
-			if (size <= 0) break;
-			if (buffer[0] != 'A') continue;
-			requested = true;
+		if (_activation) {
+			for (auto& pending : _activation->requests) {
+				const LONG length = InterlockedCompareExchange(&pending.length, 0, 0);
+				if (length > 0 && length <= 2048 && InterlockedCompareExchange(&pending.length, -1, length) == length) {
+					projectLink.assign(pending.link, length);
+					InterlockedExchange(&pending.length, 0);
+					if (_event) WaitForSingleObject(_event, 0);
+					return true;
+				}
+			}
 		}
-		return requested;
+		return _event && WaitForSingleObject(_event, 0) == WAIT_OBJECT_0;
+#else
+		char buffer[2049];
+		const auto size = recv(_requests, buffer, sizeof(buffer), 0);
+		if (size <= 0 || size == sizeof(buffer)) return false;
+		if (size != 1 || buffer[0] != 'A') projectLink.assign(buffer, size);
+		return true;
 #endif
 	}
 
 private:
 	std::string _name;
 #ifdef _WIN32
+	struct Activation {
+		volatile LONG pid;
+		struct Request { volatile LONG length; char link[2048]; };
+		Request requests[16];
+	};
 	HANDLE _mutex = nullptr;
 	HANDLE _event = nullptr;
 	HANDLE _mapping = nullptr;
-	volatile LONG* _pid = nullptr;
+	Activation* _activation = nullptr;
 	bool _owned = false;
 #else
 	int _lock = -1;
-#if !defined(__linux__)
 	int _requests = -1;
 	std::string _path;
 	sockaddr_un _address{};
-#endif
 #endif
 };
 

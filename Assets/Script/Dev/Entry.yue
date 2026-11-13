@@ -19,9 +19,9 @@ oldRequire = _G.require
 const require = (path) ->
 	loaded = package.loaded[path]
 	if loaded == nil
-		-- AgentHost owns these caches across scene run/stop and runtime reloads.
+		-- Shared Promise identity and AgentHost caches must survive scene run/stop.
 		-- Do not accumulate their generations in the game module cleanup list.
-		unless path == "Script.Dev.AgentHost" or path == "Script.Dev.AgentStoragePanel" or path\match "^Agent[./]"
+		unless path == "lualib_bundle" or path == "Script.Dev.AgentHost" or path == "Script.Dev.AgentStoragePanel" or path\match "^Agent[./]"
 			moduleCache[] = path
 		return oldRequire path
 	loaded
@@ -96,6 +96,9 @@ config = Config(
 	"webIDEEnabled"
 )
 config\load!
+
+-- This connection registry outlives project unloads, like the WebServer.
+oldRequire "Dev.ImportIDE"
 
 unless config.webIDEEnabled?
 	config.webIDEEnabled = true
@@ -303,7 +306,13 @@ local allEntries = {dirty: {}, hasDirty: false, runId: 0}
 allEntries.scanDir = (path, dir, noPreview = false) ->
 	entries = []
 	unless dir\match "^%."
-		for file in *getAllFiles Path(path, dir), ["lua", "xml", yueext, "tl", "wasm"]
+		root = Path path, dir
+		imported = Content\exist Path(root, ".git", "dora-import-repository")
+		exts = ["lua", "xml", yueext, "tl", "wasm"]
+		if imported
+			exts[] = "ts"
+			exts[] = "tsx"
+		for file in *getAllFiles root, exts
 			if "init" == Path\getName(file)\lower!
 				fileName = Path\replaceExt file, ""
 				fileName = Path path, dir, fileName
@@ -338,6 +347,7 @@ allEntries.scanDir = (path, dir, noPreview = false) ->
 						}
 						tests[] = entry
 				entry = :entryName, :fileName, :projectPath, :examples, :tests, :repo
+				entry.needsBuild = imported and Path\getExt(file) in ["ts", "tsx"] and not Content\exist(fileName .. ".lua")
 				bannerFile = repeat
 					break nil if noPreview
 					break nil unless config.showPreview
@@ -412,6 +422,8 @@ updateEntries = ->
 	for tool in *allEntries.builtinTools
 		tool.kind = "tool"
 		tool.builtin = true
+		if tool.entryName == "RepositoryImporter"
+			tool.repo = title: {en: "Import repository", zh: "从仓库导入"}
 	allEntries.rebuildEntries!
 
 allEntries.refreshDirtyProjects = ->
@@ -466,6 +478,7 @@ export getMobileFeedEntries = (refresh = false, dirtyProjectPath = nil) ->
 			fileName: entry.fileName
 			workDir: Path\getPath entry.fileName
 			bannerFile: entry.bannerFile
+			needsBuild: entry.needsBuild
 			kind: "local"
 		}
 	items
@@ -722,6 +735,7 @@ applyUIMode = (enabled) ->
 	true
 
 setupEventHandlers = nil
+enterEntryAsync = nil
 
 export allClear = ->
 	-- Remote runs own the scene: do not retain stale local HUDs across run/stop.
@@ -911,6 +925,38 @@ setupEventHandlers = ->
 					if data.id == nil or data.id == activeSearchId
 						activeSearchId = 0
 		\slot "UpdateEntries", -> updateEntries!
+		\gslot "RepositoryImport", (repository) ->
+			Director.systemScheduler\schedule once ->
+				unless currentEntry and currentEntry.entryName == "RepositoryImporter"
+					importIDE = oldRequire "Dev.ImportIDE"
+					allEntries.importRestoreIDE = importIDE.getNativeState! == "visible"
+				-- The Go launcher lives in systemUI and would cover a tool scene.
+				-- Stop recreates it through the normal idle launcher path.
+				clearMobileUI! if mobileMode
+				allClear!
+				-- Reveal the running tool just as a normal IDE Run does. Restore
+				-- the embedded view only on an explicit open/finish action.
+				emit "AppWebView", "/ide/hide", false if App.platform in ["Windows", "macOS", "Android"] and App.webIDEEnabled
+				enterEntryAsync {
+					entryName: "RepositoryImporter"
+					fileName: Path Content.assetPath, "Script", "Tools", "RepositoryImporter"
+					runKind: "tool"
+					argument: repository
+				}
+		\gslot "RepositoryImported", -> updateEntries!
+		\gslot "RepositoryImportDone", ->
+			Director.systemScheduler\schedule once ->
+				stop!
+				if allEntries.importRestoreIDE
+					allEntries.importRestoreIDE = false
+					emit "AppWebView", "/ide/show", true
+		\gslot "RepositoryImportReveal", (file) ->
+			Director.systemScheduler\schedule once ->
+				stop!
+				updateEntries!
+				allEntries.importFocusedFile = Path\replaceExt file, ""
+				allEntries.importReveal = true
+
 
 setupEventHandlers!
 clearTempFiles!
@@ -932,12 +978,14 @@ export downloadFile = (url, target) -> Director.systemScheduler\schedule once ->
 
 export enterEntryAsync = (entry) ->
 	allEntries.runId += 1
+	launchRunId = allEntries.runId
 	isInEntry = false
 	App.idled = false
 	emit Profiler.EventName, "ClearLoader"
 	currentEntry = entry
 	fileName: file, :workDir = entry
 	sleep!
+	return false, "superseded" if launchRunId ~= allEntries.runId or isInEntry or currentEntry ~= entry
 	try
 		workDir ??= Path\getPath file
 		Content\insertSearchPath 1, workDir
@@ -945,7 +993,7 @@ export enterEntryAsync = (entry) ->
 		if Content\exist scriptPath
 			Content\insertSearchPath 1, scriptPath
 		result = require file
-		result! if "function" == type result
+		result entry.argument if "function" == type result
 		nil
 	catch msg
 		err = debug.traceback msg
@@ -1482,6 +1530,12 @@ entryWindow = do
 			pendingUIMode = nil
 			applyUIMode nextMode
 		if mobileMode and not connected
+			if allEntries.importReveal and feedHost and feedHost.visible
+				for entry in *getMobileFeedEntries!
+					if entry.fileName == allEntries.importFocusedFile
+						feedHost\emit "RestoreFeedEntry", entry
+						allEntries.importReveal = false
+						break
 			applyUIMode true if isInEntry and not feedHost
 			return
 		if App.fpsLimited ~= config.fpsLimited
@@ -1540,12 +1594,18 @@ entryWindow = do
 				SetNextItemWidth zh and -95 or -140
 				if InputText zh and '筛选' or 'Filter', filterBuf, ["AutoSelectAll",]
 					config.filter = filterBuf.text
+					allEntries.importFocusedFile = nil
+					allEntries.importReveal = false
 				SameLine!
-				if Button zh and '下载' or 'Download'
-					allClear!
-					enterDemoEntry
-						entryName: "ResourceDownloader"
-						fileName: Path Content.assetPath, "Script", "Tools", "ResourceDownloader"
+				ImGui.OpenPopup "project-download" if Button zh and '下载' or 'Download'
+				ImGui.BeginPopup "project-download", ->
+					if ImGui.Selectable zh and "从 Git 仓库导入…" or "Import Git repository…"
+						emit "RepositoryImport", nil
+					if ImGui.Selectable zh and "浏览资源目录…" or "Browse resource catalog…"
+						allClear!
+						enterDemoEntry
+							entryName: "ResourceDownloader"
+							fileName: Path Content.assetPath, "Script", "Tools", "ResourceDownloader"
 			Separator!
 
 		allEntries.anyEntryMatched = false
@@ -1583,10 +1643,17 @@ entryWindow = do
 					displayName = if repo
 						if zh then repo.title.zh else repo.title.en
 					displayName ??= gameName
-					if allEntries.match displayName
+					if allEntries.match(displayName) or allEntries.importFocusedFile == fileName
+						allEntries.anyEntryMatched = true
 						TextColored themeColor, zh and "项目：" or "Project:"
 						SameLine!
-						TextWrapped displayName
+						if allEntries.importFocusedFile == fileName
+							PushStyleColor "Text", themeColor, -> TextWrapped displayName
+						else
+							TextWrapped displayName
+						if allEntries.importFocusedFile == fileName and allEntries.importReveal
+							ImGui.SetScrollHereY 0.5
+							allEntries.importReveal = false
 						if columns > 1
 							if bannerFile and bannerTex
 								width: texWidth, height: texHeight = bannerTex
@@ -1596,7 +1663,9 @@ entryWindow = do
 								Dummy Vec2.zero
 								SameLine!
 								Image bannerFile, Vec2 texWidth + 10, texHeight
-							if Button "#{zh and "开始测试" or "Game Test"}###{fileName}", Vec2 -1, 40
+							if game.needsBuild
+								ImGui.TextDisabled zh and "请先在 IDE 中编译项目" or "Build in the IDE first"
+							elseif Button "#{zh and "开始测试" or "Game Test"}###{fileName}", Vec2 -1, 40
 								enterDemoEntry game
 						else
 							if bannerFile and bannerTex
@@ -1613,7 +1682,9 @@ entryWindow = do
 								Dummy Vec2 padding, 0
 								SameLine!
 								Image bannerFile, Vec2 texWidth, texHeight
-							if Button "#{zh and "开始测试" or "Game Test"}###{fileName}", Vec2 -1, 40
+							if game.needsBuild
+								ImGui.TextDisabled zh and "请先在 IDE 中编译项目" or "Build in the IDE first"
+							elseif Button "#{zh and "开始测试" or "Game Test"}###{fileName}", Vec2 -1, 40
 								enterDemoEntry game
 						if #tests == 0 and #examples == 0
 							allEntries.thinSep!
@@ -1780,6 +1851,10 @@ startMobileUI = ->
 		feedHost = trackMobileHost mobileFeed.startMobileFeed feedOptions
 	startMobilePlay = (entry) ->
 		return if HttpServer.wsConnectionCount > 0
+		if entry.needsBuild
+			mobileLaunchErrors[entry.id] = useChinese and "请先在 IDE 中编译项目" or "Build the project in the IDE first"
+			restartMobileFeed entry
+			return
 		originFeed = feedHost
 		remixHost\removeFromParent true if remixHost
 		remixHost = nil

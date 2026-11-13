@@ -1,6 +1,6 @@
 import { React } from "DoraX";
 import { Color, Node, Size, Vec2 } from "Dora";
-import * as nvg from "nvg";
+const nvg = require("nvg") as typeof import("nvg");
 
 interface RoundedSurfaceProps {
 	x?: number;

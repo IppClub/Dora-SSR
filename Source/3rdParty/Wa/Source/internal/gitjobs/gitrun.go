@@ -60,6 +60,7 @@ type gitCommand struct {
 	authorEmail  string
 	action       string
 	depth        int
+	skipLFS      bool
 	limit        int
 	force        bool
 	all          bool
@@ -252,6 +253,8 @@ func parseClone(_ string, args []string) (gitCommand, error) {
 	for i := 0; i < len(args); i++ {
 		arg := args[i]
 		switch arg {
+		case "--no-lfs":
+			cmd.skipLFS = true
 		case "--branch", "-b":
 			i++
 			if i >= len(args) {
@@ -890,17 +893,19 @@ func execClone(ctx context.Context, j *job, cmd gitCommand) (map[string]any, err
 	if err != nil {
 		return nil, err
 	}
-	lfsData, err := fetchLFS(ctx, j, targetPath, "origin", true, false)
-	if err != nil {
-		return nil, err
-	}
 	head, _ := repo.Head()
 	data := hashData(head)
 	if data == nil {
 		data = map[string]any{}
 	}
 	data["path"] = targetPath
-	data["lfs"] = lfsData
+	if !cmd.skipLFS {
+		lfsData, err := fetchLFS(ctx, j, targetPath, "origin", true, false)
+		if err != nil {
+			return nil, err
+		}
+		data["lfs"] = lfsData
+	}
 	return data, nil
 }
 

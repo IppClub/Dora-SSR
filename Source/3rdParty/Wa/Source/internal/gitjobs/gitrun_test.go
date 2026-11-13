@@ -148,6 +148,38 @@ func TestWaitGitDataWithContextReturnsOnCancel(t *testing.T) {
 	close(release)
 }
 
+func TestCloneCanSkipLFS(t *testing.T) {
+	remote, _ := createTestRepository(t, 1)
+	workspace := t.TempDir()
+	for _, test := range []struct {
+		target  string
+		skipLFS bool
+	}{
+		{target: "normal"},
+		{target: "skip-lfs", skipLFS: true},
+	} {
+		args := []string{remote, test.target}
+		if test.skipLFS {
+			args = append(args, "--no-lfs")
+		}
+		cmd, err := parseClone(workspace, args)
+		if err != nil {
+			t.Fatal(err)
+		}
+		j := &job{ctx: context.Background(), req: cloneRequest{cmd: commandRequest{repoPath: workspace}}}
+		data, err := execClone(j.ctx, j, cmd)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if _, hydrated := data["lfs"]; hydrated == test.skipLFS {
+			t.Fatalf("clone %q: unexpected LFS result: %v", test.target, data)
+		}
+		if _, err := os.Stat(filepath.Join(workspace, test.target, "tracked.txt")); err != nil {
+			t.Fatal(err)
+		}
+	}
+}
+
 func TestPullRepairsDetachedTagClone(t *testing.T) {
 	remotePath := t.TempDir()
 	remote, err := git.PlainInit(remotePath, false)

@@ -315,6 +315,7 @@ local function package_windows(mode, arch, api)
     for _, name in ipairs({"Dora.exe", "wa.dll"}) do
         os.cp(path.join(targetdir, name), path.join(stage, name))
     end
+    os.cp(path.join(projectdir, "Projects/packaging/windows/RegisterDoraLinks.cmd"), stage)
     for _, name in ipairs({
         "www", "dora-wa", "Audio", "Doc", "Font", "Image",
         "gamecontrollerdb.txt", "LICENSES", "Script"

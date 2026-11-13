@@ -39,95 +39,95 @@ function ____exports.DoraMascot(props) -- 30
 	end -- 33
 	local spriteRef = reference() -- 34
 	local elapsed = props.animationStartedAt ~= nil and not App.reducedMotion and math.max(0, App.runningTime - props.animationStartedAt) or 0 -- 35
-	local frame = mascotFrameAt(elapsed, props.state == "idle" and 0.34 or 0.2) -- 36
-	local ____React_createElement_4 = React.createElement -- 36
-	local ____temp_2 = { -- 36
-		tag = "mascot-" .. props.state, -- 36
-		x = snap(props.x), -- 36
-		y = snap(props.y), -- 36
-		onMount = function(node) return node:schedule(function(dt) -- 36
-			elapsed = mascotAnimationTime(elapsed, dt, App.reducedMotion) -- 38
-			local nextFrame = mascotFrameAt(elapsed, props.state == "idle" and 0.34 or 0.2) -- 39
-			if nextFrame == frame then -- 39
-				return false -- 40
-			end -- 40
-			frame = nextFrame -- 41
-			local sprite = spriteRef.current -- 42
-			if sprite then -- 42
-				sprite.textureRect = frameRect(props.state, frame) -- 44
-				sprite.anchor = Vec2( -- 45
-					mascotFramePivotX( -- 45
-						stateRow(props.state), -- 45
-						frame -- 45
-					) / MASCOT_CELL_SIZE, -- 45
-					1 - MASCOT_PIVOT_Y / MASCOT_CELL_SIZE -- 45
-				) -- 45
-			end -- 45
-			return false -- 47
-		end) end -- 37
-	} -- 37
-	local ____React_createElement_result_3 = React.createElement( -- 37
-		"sprite", -- 37
-		{ -- 37
-			tag = "mascot-sprite", -- 37
-			ref = spriteRef, -- 37
-			file = "Image/Mobile/dora-remix-states.png", -- 37
-			textureRect = frameRect(props.state, frame), -- 37
-			anchorX = mascotFramePivotX( -- 37
-				stateRow(props.state), -- 50
-				frame -- 50
-			) / MASCOT_CELL_SIZE, -- 50
-			anchorY = 1 - MASCOT_PIVOT_Y / MASCOT_CELL_SIZE, -- 50
-			y = layout.feetY, -- 50
-			scaleX = layout.scale, -- 50
-			scaleY = layout.scale, -- 50
-			filter = "Point", -- 50
-			onMount = function(sprite) -- 50
-				sprite.width = MASCOT_CELL_SIZE -- 52
-				sprite.height = MASCOT_CELL_SIZE -- 52
-			end -- 52
-		} -- 52
-	) -- 52
-	local ____temp_0 -- 53
-	if props.state ~= "idle" then -- 53
-		____temp_0 = React.createElement( -- 53
-			"draw-node", -- 53
-			nil, -- 53
-			React.createElement( -- 53
-				"dot-shape", -- 53
-				{ -- 53
-					x = size * 0.36, -- 53
-					y = -size * 0.38, -- 53
-					radius = size * 0.17, -- 53
-					color = stateColor(props.state) -- 53
-				} -- 53
-			) -- 53
-		) -- 53
-	else -- 53
-		____temp_0 = nil -- 55
-	end -- 55
-	local ____temp_1 -- 56
-	if props.state ~= "idle" then -- 56
-		____temp_1 = React.createElement( -- 56
-			"label", -- 56
-			{ -- 56
-				x = size * 0.36, -- 56
-				y = -size * 0.38, -- 56
-				fontName = "sarasa-mono-sc-regular", -- 56
-				fontSize = math.floor(size * 0.22), -- 56
-				text = stateMark(props.state), -- 56
-				color3 = 1512202 -- 56
-			} -- 56
-		) -- 56
-	else -- 56
-		____temp_1 = nil -- 57
+	local frame = mascotFrameAt(elapsed, props.state == "idle" and 0.34 or 0.2) -- 38
+	local ____React_createElement_4 = React.createElement -- 38
+	local ____temp_2 = { -- 38
+		tag = "mascot-" .. props.state, -- 38
+		x = snap(props.x), -- 38
+		y = snap(props.y), -- 38
+		onMount = function(node) return node:schedule(function(dt) -- 38
+			elapsed = mascotAnimationTime(elapsed, dt, App.reducedMotion) -- 40
+			local nextFrame = mascotFrameAt(elapsed, props.state == "idle" and 0.34 or 0.2) -- 41
+			if nextFrame == frame then -- 41
+				return false -- 42
+			end -- 42
+			frame = nextFrame -- 43
+			local sprite = spriteRef.current -- 44
+			if sprite then -- 44
+				sprite.textureRect = frameRect(props.state, frame) -- 46
+				sprite.anchor = Vec2( -- 47
+					mascotFramePivotX( -- 47
+						stateRow(props.state), -- 47
+						frame -- 47
+					) / MASCOT_CELL_SIZE, -- 47
+					1 - MASCOT_PIVOT_Y / MASCOT_CELL_SIZE -- 47
+				) -- 47
+			end -- 47
+			return false -- 49
+		end) end -- 39
+	} -- 39
+	local ____React_createElement_result_3 = React.createElement( -- 39
+		"sprite", -- 39
+		{ -- 39
+			tag = "mascot-sprite", -- 39
+			ref = spriteRef, -- 39
+			file = "Image/Mobile/dora-remix-states.png", -- 39
+			textureRect = frameRect(props.state, frame), -- 39
+			anchorX = mascotFramePivotX( -- 39
+				stateRow(props.state), -- 52
+				frame -- 52
+			) / MASCOT_CELL_SIZE, -- 52
+			anchorY = 1 - MASCOT_PIVOT_Y / MASCOT_CELL_SIZE, -- 52
+			y = layout.feetY, -- 52
+			scaleX = layout.scale, -- 52
+			scaleY = layout.scale, -- 52
+			filter = "Point", -- 52
+			onMount = function(sprite) -- 52
+				sprite.width = MASCOT_CELL_SIZE -- 54
+				sprite.height = MASCOT_CELL_SIZE -- 54
+			end -- 54
+		} -- 54
+	) -- 54
+	local ____temp_0 -- 55
+	if props.state ~= "idle" then -- 55
+		____temp_0 = React.createElement( -- 55
+			"draw-node", -- 55
+			nil, -- 55
+			React.createElement( -- 55
+				"dot-shape", -- 55
+				{ -- 55
+					x = size * 0.36, -- 55
+					y = -size * 0.38, -- 55
+					radius = size * 0.17, -- 55
+					color = stateColor(props.state) -- 55
+				} -- 55
+			) -- 55
+		) -- 55
+	else -- 55
+		____temp_0 = nil -- 57
 	end -- 57
-	return ____React_createElement_4( -- 37
-		"node", -- 37
-		____temp_2, -- 37
-		____React_createElement_result_3, -- 37
-		____temp_0, -- 37
-		____temp_1 -- 37
-	) -- 37
+	local ____temp_1 -- 58
+	if props.state ~= "idle" then -- 58
+		____temp_1 = React.createElement( -- 58
+			"label", -- 58
+			{ -- 58
+				x = size * 0.36, -- 58
+				y = -size * 0.38, -- 58
+				fontName = "sarasa-mono-sc-regular", -- 58
+				fontSize = math.floor(size * 0.22), -- 58
+				text = stateMark(props.state), -- 58
+				color3 = 1512202 -- 58
+			} -- 58
+		) -- 58
+	else -- 58
+		____temp_1 = nil -- 59
+	end -- 59
+	return ____React_createElement_4( -- 39
+		"node", -- 39
+		____temp_2, -- 39
+		____React_createElement_result_3, -- 39
+		____temp_0, -- 39
+		____temp_1 -- 39
+	) -- 39
 end -- 30
 return ____exports -- 30
