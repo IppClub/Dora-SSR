@@ -10,6 +10,32 @@ export function setLogLevel(level: number) {
 
 const LLM_TIMEOUT = 600;
 const LLM_STREAM_TIMEOUT = 600;
+// Adaptive timeout floor/ceiling: providers need more time to prefill a
+// 50K-token prompt than a 5K one, and a fixed 600s is either overkill for
+// small requests or marginal for large prefills on slow endpoints.
+const LLM_TIMEOUT_MIN_SECONDS = 60;
+const LLM_TIMEOUT_PER_10K_TOKENS = 30;
+
+function estimateRequestTimeout(messages: Message[], stream: boolean): number {
+	const base = stream ? LLM_STREAM_TIMEOUT : LLM_TIMEOUT;
+	let estimatedTokens = 0;
+	for (let i = 0; i < messages.length; i++) {
+		const message = messages[i];
+		if (typeof message.content === "string") estimatedTokens += message.content.length / 4;
+		if (typeof message.reasoning_content === "string") estimatedTokens += message.reasoning_content.length / 4;
+		if (message.tool_calls) {
+			for (let j = 0; j < message.tool_calls.length; j++) {
+				const fn = message.tool_calls[j].function;
+				if (fn !== undefined && typeof fn.arguments === "string") estimatedTokens += fn.arguments.length / 4;
+			}
+		}
+	}
+	const adaptive = math.max(
+		LLM_TIMEOUT_MIN_SECONDS,
+		math.floor(estimatedTokens / 10000) * LLM_TIMEOUT_PER_10K_TOKENS + LLM_TIMEOUT_MIN_SECONDS
+	);
+	return math.min(base, adaptive);
+}
 const LLM_STREAM_RAW_DEBUG_MAX = 12000;
 const LLM_STREAM_CHUNK_DEBUG_LOG_LIMIT = 5;
 
@@ -31,9 +57,15 @@ export interface ToolCall {
 	function?: ToolCallFunction;
 }
 
+export interface MessageContentBlock {
+	type: "text" | "image_url";
+	text?: string;
+	image_url?: { url: string };
+}
+
 export interface Message {
 	role: string;
-	content?: string;
+	content?: string | MessageContentBlock[];
 	name?: string;
 	tool_call_id?: string;
 	reasoning_content?: string;
@@ -431,13 +463,26 @@ export function estimateTextTokens(text: string): number {
 	return App.estimateTokens(text);
 }
 
+function stringifyMessageContent(content: string | MessageContentBlock[] | undefined): string {
+	if (typeof content === "string") return content;
+	if (Array.isArray(content)) {
+		const parts: string[] = [];
+		for (const block of content) {
+			if (block.type === "text" && block.text !== undefined) parts.push(block.text);
+			else if (block.type === "image_url") parts.push("[image]");
+		}
+		return parts.join("\n");
+	}
+	return "";
+}
+
 function estimateMessagesTokens(messages: Message[]): number {
 	let total = 0;
 	for (let i = 0; i < messages.length; i++) {
 		const message = messages[i];
 		total += 8;
 		total += estimateTextTokens(message.role ?? "");
-		total += estimateTextTokens(message.content ?? "");
+		total += estimateTextTokens(typeof message.content === "string" ? message.content : stringifyMessageContent(message.content));
 		total += estimateTextTokens(message.name ?? "");
 		total += estimateTextTokens(message.tool_call_id ?? "");
 		total += estimateTextTokens(message.reasoning_content ?? "");
@@ -462,42 +507,27 @@ function getReservedOutputTokens(options: Record<string, unknown>, contextWindow
 	return math.max(1024, math.floor(contextWindow * 0.2));
 }
 
-export function getInputTokenBudget(messages: Message[], options: Record<string, unknown>, config: LLMConfig): number {
+function getInputTokenBudget(messages: Message[], options: Record<string, unknown>, config: LLMConfig): number {
 	const contextWindow = config.contextWindow > 0
 		? math.floor(config.contextWindow)
 		: 64000;
 	const reservedOutputTokens = getReservedOutputTokens(options, contextWindow);
 	const optionTokens = estimateOptionsTokens(options);
 	const structuralOverhead = math.max(256, messages.length * 16);
-	return math.max(0, contextWindow - reservedOutputTokens - optionTokens - structuralOverhead);
+	return math.max(512, contextWindow - reservedOutputTokens - optionTokens - structuralOverhead);
 }
 
 export function clipTextToTokenBudget(text: string, budgetTokens: number): string {
 	if (budgetTokens <= 0 || text === "") return "";
 	const estimated = estimateTextTokens(text);
 	if (estimated <= budgetTokens) return text;
-	// Lua string.length counts bytes, while the slicing helpers count Unicode
-	// characters. Measure candidates with the same estimator as the request path;
-	// a byte/character ratio can overshoot badly for CJK and emoji.
-	const marker = "\n...\n";
-	if (estimateTextTokens(marker) > budgetTokens) return "";
-	const [characters] = utf8.len(text);
-	if (characters === undefined) return "";
-	let low = 0;
-	let high = characters;
-	let best = marker;
-	while (low <= high) {
-		const keep = math.floor((low + high) / 2);
-		const head = math.floor(keep * 0.35);
-		const candidate = `${utf8TakeHead(text, head)}${marker}${utf8TakeTail(text, keep - head)}`;
-		if (estimateTextTokens(candidate) <= budgetTokens) {
-			best = candidate;
-			low = keep + 1;
-		} else {
-			high = keep - 1;
-		}
-	}
-	return best;
+	const charsPerToken = estimated > 0 ? text.length / estimated : 4;
+	const targetChars = math.max(200, math.floor(budgetTokens * charsPerToken));
+	const keepHead = math.max(0, math.floor(targetChars * 0.35));
+	const keepTail = math.max(0, targetChars - keepHead);
+	const head = keepHead > 0 ? utf8TakeHead(text, keepHead) : "";
+	const tail = keepTail > 0 ? utf8TakeTail(text, keepTail) : "";
+	return `${head}\n...\n${tail}`;
 }
 
 function isXMLWhitespaceChar(ch: string): boolean {
@@ -730,7 +760,7 @@ export function fitMessagesToContext(messages: Message[], options: Record<string
 	const contentBudget = math.max(64, budgetTokens - fixedOverhead);
 	if (contentIndexes.length === 1) {
 		const idx = contentIndexes[0];
-		cloned[idx].content = clipTextToTokenBudget(cloned[idx].content ?? "", contentBudget);
+		cloned[idx].content = clipTextToTokenBudget(typeof cloned[idx].content === "string" ? cloned[idx].content : stringifyMessageContent(cloned[idx].content), contentBudget);
 		const fittedTokens = estimateMessagesTokens(cloned);
 		return {
 			messages: cloned,
@@ -754,8 +784,8 @@ export function fitMessagesToContext(messages: Message[], options: Record<string
 		const message = cloned[idx];
 		const minBudget = message.role === "system" ? 96 : 192;
 		const target = math.max(minBudget, math.floor(remainingContentBudget / math.max(1, i + 1)));
-		message.content = clipTextToTokenBudget(message.content ?? "", target);
-		remainingContentBudget -= estimateTextTokens(message.content ?? "");
+		message.content = clipTextToTokenBudget(typeof message.content === "string" ? message.content : stringifyMessageContent(message.content), target);
+		remainingContentBudget -= estimateTextTokens(typeof message.content === "string" ? message.content : stringifyMessageContent(message.content));
 		remainingContentBudget = math.max(0, remainingContentBudget);
 	}
 
@@ -764,10 +794,10 @@ export function fitMessagesToContext(messages: Message[], options: Record<string
 		for (let i = 0; i < priorityIndexes.length && fittedTokens > budgetTokens; i++) {
 			const idx = priorityIndexes[i];
 			const message = cloned[idx];
-			const currentTokens = estimateTextTokens(message.content ?? "");
+			const currentTokens = estimateTextTokens(typeof message.content === "string" ? message.content : stringifyMessageContent(message.content));
 			const excess = fittedTokens - budgetTokens;
 			const nextBudget = math.max(message.role === "system" ? 48 : 96, currentTokens - excess - 16);
-			message.content = clipTextToTokenBudget(message.content ?? "", nextBudget);
+			message.content = clipTextToTokenBudget(typeof message.content === "string" ? message.content : stringifyMessageContent(message.content), nextBudget);
 			fittedTokens = estimateMessagesTokens(cloned);
 		}
 	}
@@ -775,7 +805,7 @@ export function fitMessagesToContext(messages: Message[], options: Record<string
 		for (let i = 0; i < priorityIndexes.length && fittedTokens > budgetTokens; i++) {
 			const idx = priorityIndexes[i];
 			if (cloned[idx].role === "system") continue;
-			cloned[idx].content = clipTextToTokenBudget(cloned[idx].content ?? "", 48);
+			cloned[idx].content = clipTextToTokenBudget(typeof cloned[idx].content === "string" ? cloned[idx].content : stringifyMessageContent(cloned[idx].content), 48);
 			fittedTokens = estimateMessagesTokens(cloned);
 		}
 	}
@@ -800,11 +830,14 @@ const postLLM = (
 	stopToken?: StopToken,
 	studioGateway?: boolean
 ) => {
-	const requestTimeout = stream ? LLM_STREAM_TIMEOUT : LLM_TIMEOUT;
+	const requestTimeout = estimateRequestTimeout(messages, stream);
 	const requestOptions = applyCustomLLMOptions(options, customOptions);
+	// `model` spreads before the merged options so an explicit model override
+	// (e.g. the memory compressor's auxiliaryOptions.model) can take effect;
+	// spreading it after silently clobbered every model override.
 	const data: Record<string, unknown> = {
-		...requestOptions,
 		model,
+		...requestOptions,
 		messages,
 		stream,
 	};
@@ -1176,6 +1209,9 @@ export type LLMConfig = {
 	maxTokens: number;
 	reasoningEffort?: string;
 	customOptions?: Record<string, unknown>;
+	supportsFunctionCalling: boolean;
+	/** Input modalities; defaults to text+image (Codex-style tolerant default). */
+	modalities?: string[];
 	studioGateway?: boolean;
 	studioVision?: {
 		provider: "deepseek" | "glm-coding-cn";
@@ -1185,23 +1221,15 @@ export type LLMConfig = {
 };
 
 export function validateAgentLLMConfig(config: LLMConfig): { success: true } | { success: false; message: string } {
-	const visionModel = config.customOptions?.visionModel;
-	if (visionModel !== undefined && visionModel !== json.null && typeof visionModel !== "string") {
-		return {success: false, message: "视觉模型名称 visionModel 必须是字符串；留空使用默认行为。"};
-	}
 	const auxiliaryOptions = config.customOptions?.auxiliaryOptions;
-	if (auxiliaryOptions === undefined) return { success: true };
-	const emptyOptions = typeof auxiliaryOptions === "object" && auxiliaryOptions !== undefined
-		&& auxiliaryOptions !== json.null && Object.keys(auxiliaryOptions as object).length === 0;
-	if (isPlainRecord(auxiliaryOptions) || emptyOptions) {
-		// Lua represents an empty JSON object as an empty table too.
-		// An empty object keeps the defaults for auxiliary calls.
-		// Provider-specific overrides are optional.
-		return { success: true };
+	if (isPlainRecord(auxiliaryOptions)) {
+		for (const _key in auxiliaryOptions) {
+			return { success: true };
+		}
 	}
 	return {
 		success: false,
-		message: "LLM 配置的 auxiliaryOptions 如有填写必须是对象（可以为空），请检查 LLM 配置",
+		message: "LLM 配置的 customOptions 必须包含非空 auxiliaryOptions，请检查 LLM 配置",
 	};
 }
 
@@ -1210,6 +1238,10 @@ function normalizeContextWindow(value: unknown): number {
 		return math.floor(value);
 	}
 	return 64000;
+}
+
+function normalizeSupportsFunctionCalling(value: unknown): boolean {
+	return value === undefined || value !== 0;
 }
 
 function normalizeLLMTemperature(value: unknown): number {
@@ -1249,7 +1281,7 @@ export function applyCustomLLMOptions(
 	for (const key in customOptions) {
 		// Dora-owned auxiliary request settings are consumed by MemoryCompressor.
 		// They are not provider API fields and must never leak into normal calls.
-		if (key === "auxiliaryOptions" || key === "visionModel") continue;
+		if (key === "auxiliaryOptions") continue;
 		const value = customOptions[key];
 		if (value === json.null) {
 			delete merged[key];
@@ -1313,6 +1345,7 @@ function parseLLMConfig(config: Record<string, unknown> | undefined): { success:
 			maxTokens: normalizeLLMMaxTokens(config["max_tokens"]),
 			reasoningEffort: normalizeReasoningEffort(config["reasoning_effort"]),
 			customOptions: normalizeLLMCustomOptions(config["custom_options"]),
+			supportsFunctionCalling: normalizeSupportsFunctionCalling(config["supports_function_calling"]),
 		},
 	};
 }
@@ -1374,9 +1407,6 @@ export const callLLMStream = (
 	}
 	const { url, model, apiKey } = config;
 	const fitted = fitMessagesToContext(messages, options, config);
-	if (fitted.fittedTokens > fitted.budgetTokens) {
-		return { success: false, message: "LLM context budget is insufficient for the configured output limit and request. Reduce max_tokens/max_completion_tokens or increase contextWindow." };
-	}
 	if (fitted.trimmed) {
 		Log("Warn", `[Agent.Utils] callLLMStream trimmed input tokens=${fitted.originalTokens} budget=${fitted.budgetTokens} fitted=${fitted.fittedTokens}`);
 	}
@@ -1563,9 +1593,6 @@ export async function callLLMStreamAggregated(
 	}
 	const { url, model, apiKey } = resolvedConfig;
 	const fitted = fitMessagesToContext(messages, options, resolvedConfig);
-	if (fitted.fittedTokens > fitted.budgetTokens) {
-		return { success: false, message: "LLM context budget is insufficient for the configured output limit and request. Reduce max_tokens/max_completion_tokens or increase contextWindow." };
-	}
 	const toolCount = Array.isArray(options.tools) ? options.tools.length : 0;
 	const toolChoice = typeof options.tool_choice === "string"
 		? options.tool_choice
@@ -1762,9 +1789,6 @@ export async function callLLM(
 	}
 	const { url, model, apiKey } = resolvedConfig;
 	const fitted = fitMessagesToContext(messages, options, resolvedConfig);
-	if (fitted.fittedTokens > fitted.budgetTokens) {
-		return { success: false, message: "LLM context budget is insufficient for the configured output limit and request. Reduce max_tokens/max_completion_tokens or increase contextWindow." };
-	}
 	Log("Info", `[Agent.Utils] callLLMOnce request model=${model} url=${url} messages=${messages.length}${fitted.trimmed ? ` trimmed_tokens=${fitted.originalTokens}->${fitted.fittedTokens}/${fitted.budgetTokens}` : ""}`);
 	if (stopToken?.stopped) {
 		const reason = stopToken.reason ?? "request cancelled";

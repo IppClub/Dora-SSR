@@ -1,9 +1,9 @@
 // @preview-file off clear
 import { App, Content, Path } from 'Dora';
 import { AGENT_DEFAULTS } from 'Agent/Config/Defaults';
-import { Message, applyCustomLLMOptions, callLLM, Log, getInputTokenBudget, fitMessagesToContext, clipTextToTokenBudget, extractLLMTokenUsage, parseXMLObjectFromText, safeJsonDecode, safeJsonEncode, sanitizeUTF8 } from 'Agent/Utils';
+import { Message, applyCustomLLMOptions, callLLM, Log, clipTextToTokenBudget, extractLLMTokenUsage, parseXMLObjectFromText, safeJsonDecode, safeJsonEncode, sanitizeUTF8 } from 'Agent/Utils';
 import { getActiveLLMConfig } from 'Agent/Utils';
-import type { LLMConfig, LLMTokenUsage, StopToken } from 'Agent/Utils';
+import type { LLMConfig, LLMTokenUsage, ToolCall, StopToken } from 'Agent/Utils';
 import { sendWebIDEFileUpdate } from 'Agent/Tool/WebIDESync';
 import { AGENT_TOOL_DEFINITIONS_DETAILED, MAIN_AGENT_TOOL_DEFINITIONS_DETAILED } from 'Agent/Tool/Registry';
 
@@ -11,39 +11,19 @@ const MEMORY_DEFAULT_LLM_TEMPERATURE = 0.1;
 const MEMORY_DEFAULT_CONTEXT_WINDOW = 64000;
 const AGENT_MEMORY_CONTEXT_MIN_TOKENS = 1200;
 const AGENT_MEMORY_CONTEXT_WINDOW_RATIO = 0.08;
+const COMPRESSION_RESERVED_OUTPUT_MIN_TOKENS = 2048;
+const COMPRESSION_HISTORY_MIN_TOKENS = 1200;
+const COMPRESSION_HISTORY_AVAILABLE_RATIO = 0.9;
+const COMPRESSION_HISTORY_TRUNCATED_MIN_CHARS = 2000;
+const COMPRESSION_HISTORY_TRUNCATED_HEAD_RATIO = 0.35;
+const COMPRESSION_DYNAMIC_MIN_TOKENS = 1600;
+const COMPRESSION_DYNAMIC_PROMPT_OVERHEAD_TOKENS = 256;
+const COMPRESSION_SECTION_MEMORY_MIN_TOKENS = 320;
 const COMPRESSION_SECTION_MEMORY_RATIO = 0.2;
+const COMPRESSION_SECTION_SESSION_MIN_TOKENS = 240;
 const COMPRESSION_SECTION_SESSION_RATIO = 0.15;
-
-const MEMORY_COMPRESSION_TOOLS = [{
-	type: "function" as const,
-	function: {
-		name: "save_memory",
-		description: "Save the memory consolidation result to persistent storage.",
-		parameters: {
-			type: "object",
-			properties: {
-				history_entry: {
-					type: "string",
-					description: "A paragraph summarizing key events/decisions/topics. " +
-						"Include detail useful for grep search."
-				},
-				memory_update: {
-					type: "string",
-					description: "Full updated MEMORY.md as markdown. Core memory only: user preferences, stable facts, decisions, known issues."
-				},
-				project_memory_update: {
-					type: "string",
-					description: "Full updated PROJECT_MEMORY.md as markdown. Project facts, build/run, files/architecture, project decisions and issues."
-				},
-				session_summary_update: {
-					type: "string",
-					description: "Full updated SESSION_SUMMARY.md as markdown. Current goal, recent progress, open issues, and an Active Checkpoint with the exact next tool action when work is unfinished."
-				},
-			},
-			required: ["history_entry", "memory_update"],
-		},
-	},
-}];
+const COMPRESSION_SECTION_HISTORY_MIN_TOKENS = 800;
+const COMPRESSION_SECTION_HISTORY_RATIO = 0.45;
 
 function buildMemoryLLMOptions(llmConfig: LLMConfig, overrides?: Record<string, unknown>): Record<string, unknown> {
 	const options: Record<string, unknown> = {
@@ -76,6 +56,12 @@ function getAuxiliaryLLMOptions(llmConfig: LLMConfig): Record<string, unknown> {
 	return options;
 }
 
+function getSharedOutputTokenLimit(llmConfig: LLMConfig): number {
+	const options = applyCustomLLMOptions(buildMemoryLLMOptions(llmConfig), llmConfig.customOptions);
+	const value = options.max_tokens ?? options.max_completion_tokens;
+	return typeof value === "number" && value > 0 ? math.floor(value) : AGENT_DEFAULTS.llmMaxTokens;
+}
+
 function buildCompressionLLMConfig(llmConfig: LLMConfig): LLMConfig {
 	// All provider options were resolved before retries. Applying them again at
 	// the HTTP boundary can restore fields intentionally removed by compression.
@@ -95,10 +81,6 @@ function isArray(value: unknown): value is unknown[] {
 const optStr = (str: string, def: string) => str === '' ? def : str;
 
 export interface AgentConversationMessage extends Message {
-	inputId?: number;
-	afterStep?: number;
-	inputKind?: "prompt" | "steer";
-	taskId?: number;
 	timestamp?: string;
 }
 
@@ -213,7 +195,8 @@ You are a coding assistant that helps modify and navigate code in the Dora SSR g
 - Before modifying a file, read it first. Do not assume files or directories exist.
 - After writing or editing a file, re-read it if accuracy matters.
 - When implementing user-visible game behavior, connect the implementation to the project's actual entry path; do not leave the requested behavior only in an orphan source file.
-- After authored source changes, complete a successful project build before reporting the work complete. Repair compiler diagnostics and rebuild instead of ending with unverified or failing source. Documentation-only changes do not require a build; never create placeholder code just to satisfy a build gate for a documentation task.
+- When creating a game, separate the game logic into a pure module with a step(game, dt, input) interface (no rendering or input polling inside). This enables headless play-testing: after building, load the compiled module in execute_command lua mode with require(), write an AI strategy function, and play it in batch (e.g., 100 rounds). Compare against a random strategy to verify the game rewards skill. Report mean, max, min, survival rate, and whether perfect play shows zero variance (which indicates a design problem). This is the standard verification step for game creation.
+- After authored source changes, complete a successful project build before reporting the work complete. Repair compiler diagnostics and rebuild instead of ending with unverified or failing source.
 - If a tool call fails, analyze the error before retrying with a different approach.
 - Ask for clarification when the request is ambiguous.
 - Prefer reading and searching before editing when information is missing. A filtered, capped, truncated, or earlier-turn listing does not prove absence; confirm a missing path with a current exact lookup.
@@ -223,19 +206,19 @@ You are a coding assistant that helps modify and navigate code in the Dora SSR g
 You are the main agent. Your job is to discuss plans with the user, inspect the codebase, make direct edits when that is the simplest path, and delegate larger or parallelizable implementation work by spawning sub agents.
 
 Rules:
-- You may use the full toolset directly, including edit_file (including delete=true), write_file, and build.
+- You may use the full toolset directly, including edit_file and build.
 - If .agent/plan/PLAN.md exists, read it and .agent/plan/PROGRESS.md before implementing. They are living coordination documents, so always use their current contents instead of a cached plan summary.
 - After source changes or validation milestones governed by that plan, update .agent/plan/PROGRESS.md with step IDs, changed modules, evidence, issues, and the next action before finish.
 - Update progress states from observed evidence, not from intent or inference. Written code means implemented; a successful build means build passed; a surviving process means runtime alive. None of those alone proves unexercised input, state transitions, win/loss flows, persistence, timing, or visual behavior.
 - Mark a step done only after its implementation is complete and every acceptance criterion listed for that step has direct evidence. Otherwise keep it pending or in_progress, record unverified criteria explicitly, and state the next validation action.
 - Use direct tools for small, focused, or user-interactive changes where staying in the current run gives the clearest result.
 - Use spawn_agent for large multi-file work, parallel exploration, long-running verification, or isolated execution tasks.
-- Use the spawn_agent listing form only when you do not already know the current sub-agent status and need to inspect running delegated work or recent completed results before deciding whether another delegation is necessary or whether to read a result file.
+- Use the spawn_agent listing form (prompt omitted) only when you do not already know the current sub-agent status and need to inspect running delegated work or recent completed results before deciding whether another delegation is necessary or whether to read a result file.
 - Keep sub-agent titles short and specific.
 - The sub-agent prompt should be self-contained and executable, and should explain the exact task, constraints, expected output, and relevant files when known.
-- spawn_agent is asynchronous and nonblocking. You may dispatch multiple independent sub agents in one response, subject to the concurrency limit.
+- spawn_agent dispatch is asynchronous and nonblocking. You may dispatch multiple independent sub agents in one response, subject to the concurrency limit.
 - After dispatching all intended independent sub agents, complete at most three bounded foreground tool batches that do not depend on their results. Then finish the current turn and return control to the user while the sub agents keep running.
-- After any successful spawn_agent in the current task, do not call the spawn_agent listing form in that task. Do not wait, join, or poll. Completion is delivered asynchronously as a later handoff.
+- After any successful spawn_agent dispatch in the current task, do not use its listing form in that task. Do not wait, join, or poll. Completion is delivered asynchronously as a later handoff.
 - Avoid assigning overlapping files or dependent steps to concurrent sub agents unless the coordination boundary is explicit.`,
 	subAgentRolePrompt: `# Agent Role
 
@@ -243,7 +226,7 @@ You are a sub agent. Your job is to execute concrete implementation, editing, an
 
 Rules:
 - Focus on completing the delegated task end-to-end.
-- Use the available implementation tools directly when needed, including edit_file (including delete=true), write_file, and build.
+- Use the available implementation tools directly when needed, including edit_file and build.
 - Documentation writing tasks are also part of your execution scope when delegated by the main agent.
 - Finish with a structured handoff: outcome, validation evidence, known issues, material assumptions, and durable learning candidates.
 - Do not claim build or runtime validation passed without concrete evidence from the corresponding tool result.
@@ -315,11 +298,11 @@ Analyze the actions and update the memory. Follow these guidelines:
 	- Treat a ledger item with PASS evidence as closed unless a later source edit or failure explicitly invalidates it. After resuming from compression, continue at the first open item; never rediscover, rebuild, or re-run closed items merely because their detailed history was compacted
 	- End the Session Summary with an \`Active Checkpoint\` section whenever work is unfinished
 	- Record the current objective, work already completed, latest concrete failure or validation result, files already read or changed, and the exact next tool action
-	- End that section with exactly \`**Next tool**: \`tool_name\`\`, using a tool that is available to the active Agent task; never name a task-disabled tool. Stable examples are \`edit_file\`, \`build\`, or plain-text completion
+	- End that section with exactly \`**Next tool**: \`tool_name\`\`, using a tool that is available to the active Agent task; never name a task-disabled tool. Stable examples are \`edit_file\`, \`build\`, or \`finish\`
 	- The next agent turn must be able to continue from this checkpoint without restarting discovery or rereading unchanged files
 	- Do not turn a completed validation into new work; if the requested validation already passed, record that the next action is to finish and report
-	- If authored project/source edits succeeded after the latest build attempt, the next tool is \`build\`. Documentation-only edits (including project Markdown and files under \`.agent/main\`) do not invalidate a completed build, test, or lifecycle result and must not create new validation work
-	- If the requested build/test/lifecycle validation already passed and only \`.agent/main\` was edited afterward, preserve the evidence and record plain-text completion as the next action; do not repeat build, tests, lifecycle commands, discovery, or source reads
+	- If authored project/source edits succeeded after the latest build attempt, the next tool is \`build\`. Edits only under \`.agent/main\` are memory updates: they never invalidate a completed build, test, or lifecycle result and must not create new validation work
+	- If the requested build/test/lifecycle validation already passed and only \`.agent/main\` was edited afterward, preserve the evidence and set the next tool to \`finish\`; do not repeat build, tests, lifecycle commands, discovery, or source reads
 	- If a build failed, the next tool is normally \`edit_file\` for its concrete diagnostics, not search or glob
 
 Call the save_memory tool with your consolidated memory and history entry.`,
@@ -393,10 +376,10 @@ const INTERNAL_PROMPT_PACK_KEYS: (keyof AgentPromptPack)[] = [
 ];
 
 function replaceTemplateVars(template: string, vars: Record<string, string>): string {
-	// Expand only the original template. History and memory can quote these same
-	// placeholders (for example while reviewing this source); never re-expand
-	// inserted content or depend on Lua table iteration order.
-	const [output] = string.gsub(template, "{{([%w_]+)}}", (key: string) => vars[key] ?? `{{${key}}}`);
+	let output = template;
+	for (const key in vars) {
+		output = output.split(`{{${key}}}`).join(vars[key] ?? "");
+	}
 	return output;
 }
 
@@ -551,12 +534,12 @@ function migrateLegacyAgentRolePrompts(value: Record<string, unknown>): boolean 
 	if (main !== "") {
 		let migrated = main;
 		migrated = migrated.replace(
-			"- After spawn_agent succeeds, immediately finish the current turn and tell the user the work has been delegated.\n- After a successful spawn_agent, do not call the spawn_agent listing form or any other tool in the same turn.\n- Treat the sub-agent completion result as an asynchronous handoff that should be continued in later conversation turns.",
-			"- spawn_agent is asynchronous and nonblocking. You may dispatch multiple independent sub agents in one response, subject to the concurrency limit.\n- After dispatching all intended independent sub agents, complete at most three bounded foreground tool batches that do not depend on their results. Then finish the current turn and return control to the user while the sub agents keep running.\n- After any successful spawn_agent in the current task, do not call the spawn_agent listing form in that task. Do not wait, join, or poll. Completion is delivered asynchronously as a later handoff.\n- Avoid assigning overlapping files or dependent steps to concurrent sub agents unless the coordination boundary is explicit."
+			"- After spawn_agent succeeds, immediately finish the current turn and tell the user the work has been delegated.\n- After a successful spawn_agent dispatch, do not use its listing form or any other tool in the same turn.\n- Treat the sub-agent completion result as an asynchronous handoff that should be continued in later conversation turns.",
+			"- spawn_agent dispatch is asynchronous and nonblocking. You may dispatch multiple independent sub agents in one response, subject to the concurrency limit.\n- After dispatching all intended independent sub agents, complete at most three bounded foreground tool batches that do not depend on their results. Then finish the current turn and return control to the user while the sub agents keep running.\n- After any successful spawn_agent dispatch in the current task, do not use its listing form in that task. Do not wait, join, or poll. Completion is delivered asynchronously as a later handoff.\n- Avoid assigning overlapping files or dependent steps to concurrent sub agents unless the coordination boundary is explicit."
 		);
 		migrated = migrated.replace(
 			"- After dispatching, continue useful foreground work or finish the turn when there is nothing else useful to do.\n- Do not poll a newly spawned sub agent in the same turn. Its completion is delivered asynchronously as a later handoff.",
-			"- After dispatching all intended independent sub agents, complete at most three bounded foreground tool batches that do not depend on their results. Then finish the current turn and return control to the user while the sub agents keep running.\n- After any successful spawn_agent in the current task, do not call the spawn_agent listing form in that task. Do not wait, join, or poll. Completion is delivered asynchronously as a later handoff."
+			"- After dispatching all intended independent sub agents, complete at most three bounded foreground tool batches that do not depend on their results. Then finish the current turn and return control to the user while the sub agents keep running.\n- After any successful spawn_agent dispatch in the current task, do not use its listing form in that task. Do not wait, join, or poll. Completion is delivered asynchronously as a later handoff."
 		);
 		migrated = migrated.replace(
 			"- After dispatching all intended independent sub agents, continue only bounded foreground work that does not depend on their results. Then finish the current turn and return control to the user while the sub agents keep running.",
@@ -695,6 +678,15 @@ export interface CompressionResult {
 	/** 历史记录摘要 */
 	summary?: string;
 
+	/**
+	 * Codex-style handoff mode: the whole response is a free-text handoff
+	 * summary that the caller inserts into the conversation tail. Memory
+	 * files are NOT rewritten, so the system prompt stays byte-stable and
+	 * the provider prefix cache survives in-task compression. `summary`
+	 * carries the handoff text.
+	 */
+	handoff?: boolean;
+
 	/** 压缩的历史记录数量 */
 	compressedCount: number;
 
@@ -720,11 +712,7 @@ export interface CompressionResult {
 	fallbackArchived?: boolean;
 }
 
-class MemoryCompressionBudgetError extends Error {}
-
 export interface MemoryCompressionContext {
-	/** Tokens to remove from the effective decision request, including pending input. */
-	targetTokens?: number;
 	stopToken?: StopToken;
 	onInput?: (phase: string, messages: Message[], options: Record<string, unknown>) => void;
 	onOutput?: (phase: string, text: string, meta?: Record<string, unknown>) => void;
@@ -885,7 +873,7 @@ export class TokenEstimator {
 		for (let i = 0; i < messages.length; i++) {
 			const message = messages[i];
 			total += this.estimate(message.role ?? "");
-			total += this.estimate(message.content ?? "");
+			total += this.estimate(typeof message.content === "string" ? message.content : "[image content]");
 			total += this.estimate(message.name ?? "");
 			total += this.estimate(message.tool_call_id ?? "");
 			total += this.estimate(message.reasoning_content ?? "");
@@ -1189,10 +1177,6 @@ export class DualLayerStorage {
 		const role = typeof row.role === "string" ? row.role : "";
 		if (role === "") return undefined;
 		const message: AgentConversationMessage = { role };
-		if (typeof row.inputId === "number") message.inputId = row.inputId;
-		if (typeof row.afterStep === "number") message.afterStep = row.afterStep;
-		if (typeof row.taskId === "number") message.taskId = row.taskId;
-		if (row.inputKind === "steer" || row.inputKind === "prompt") message.inputKind = row.inputKind;
 		if (typeof row.content === "string") message.content = sanitizeUTF8(row.content);
 		if (typeof row.name === "string") message.name = sanitizeUTF8(row.name);
 		if (typeof row.tool_call_id === "string") message.tool_call_id = sanitizeUTF8(row.tool_call_id);
@@ -1611,7 +1595,7 @@ export class DualLayerStorage {
 			}
 		}
 		const content = lines.length > 0 ? `${lines.join("\n")}\n` : "";
-		if (!Content.save(this.sessionPath, content)) throw new Error("failed to persist Agent conversation");
+		Content.save(this.sessionPath, content);
 		sendWebIDEFileUpdate(this.sessionPath, true, content);
 	}
 }
@@ -1627,11 +1611,22 @@ export class MemoryCompressor {
 	private storage: DualLayerStorage;
 	private config: Omit<MemoryConfig, "promptPack"> & { promptPack: AgentPromptPack };
 	private consecutiveFailures: number = 0;
+	// Circuit breaker for fallback archives: each rawArchive silently drops the
+	// chunk from the model's context without a summary, so chronic compressor
+	// failure turns into periodic amnesia. After this many consecutive
+	// fallbacks, stop compressing (the caller skips until a hard-tier trigger
+	// forces one more attempt; a real success resets the counter).
+	private consecutiveFallbackArchives: number = 0;
+	private static readonly MAX_FALLBACK_ARCHIVES = 3;
 
 	// callLLMForCompression already exhausts provider retries and the XML
 	// fallback before reaching this path. Retrying the same chunk in later Agent
 	// steps only repeats cost and blocks progress, so archive it immediately.
 	private static readonly MAX_FAILURES = 1;
+
+	isCompressionBreakerOpen(): boolean {
+		return this.consecutiveFallbackArchives >= MemoryCompressor.MAX_FALLBACK_ARCHIVES;
+	}
 
 	constructor(config: MemoryConfig) {
 		const loadedPromptPack = loadAgentPromptPack(config.projectDir);
@@ -1668,44 +1663,80 @@ export class MemoryCompressor {
 		boundaryMode: MemoryCompressionBoundaryMode = "default",
 		systemPrompt = "",
 		toolDefinitions = "",
-		boundaryMessages?: AgentConversationMessage[]
+		boundaryMessages?: AgentConversationMessage[],
+		budgetTokens?: number,
+		decisionTools?: unknown[],
+		handoffMode?: boolean
 	): Promise<CompressionResult | undefined> {
 		const toCompress = messages;
 		if (toCompress.length === 0) return undefined;
 		const currentMemory = this.storage.readMemory();
-		const compressionLLMOptions = applyCustomLLMOptions({
-			...applyCustomLLMOptions(llmOptions, this.config.llmConfig.customOptions),
-			reasoning_effort: "minimal",
-		}, getAuxiliaryLLMOptions(this.config.llmConfig));
-		let chunk: AgentConversationMessage[] = [];
+		const messagesForBoundary = boundaryMessages && boundaryMessages.length === toCompress.length
+			? boundaryMessages
+			: toCompress;
+
+		const boundary = this.findCompressionBoundary(
+			messagesForBoundary,
+			currentMemory,
+			boundaryMode,
+			systemPrompt,
+			toolDefinitions,
+			budgetTokens
+		);
+		const chunk = toCompress.slice(0, boundary.chunkEnd);
+
+		if (chunk.length === 0) return undefined;
+		const historyText = this.formatMessagesForCompression(chunk);
+
 		try {
-			const historyBudget = this.buildBoundedCompressionSections(currentMemory, "", compressionLLMOptions).historyBudget;
-			const boundary = this.findCompressionBoundary(
-				boundaryMessages && boundaryMessages.length === toCompress.length ? boundaryMessages : toCompress,
-				toCompress,
-				historyBudget,
-				boundaryMode === "budget_max" ? undefined : context?.targetTokens
-			);
-			chunk = toCompress.slice(0, boundary.chunkEnd);
-			if (chunk.length === 0) throw new MemoryCompressionBudgetError(
-				"No complete historical action fits the memory compression input budget. Reduce the output limit or increase contextWindow."
-			);
-			const historyText = this.formatMessagesForCompression(chunk);
+			// Share the main request's effective output budget. Compression can
+			// still override reasoning independently, including explicit null removal.
+			const auxiliaryOptions = getAuxiliaryLLMOptions(this.config.llmConfig);
+			const compressionLLMOptions = applyCustomLLMOptions({
+				...applyCustomLLMOptions(llmOptions, this.config.llmConfig.customOptions),
+				reasoning_effort: "minimal",
+			}, auxiliaryOptions);
+		if (context?.stopToken?.stopped) throw new Error("Memory compression cancelled");
+		// In-task episodes use the Codex-style handoff: the shared-prefix request
+		// asks for one free-text handoff summary that rides in the conversation,
+		// and the three-layer memory files are left byte-stable. Task-boundary
+		// episodes (caller omits handoffMode) use the full structured path.
+		const sharedPayload = handoffMode === true
+			&& systemPrompt !== ""
+			&& decisionTools !== undefined && decisionTools.length > 0
+			&& boundaryMessages !== undefined && boundaryMessages.length > 0
+			? { systemPrompt, messages: boundaryMessages, tools: decisionTools, handoff: true }
+			: undefined;
+		const result = await this.callLLMForCompression(
+			currentMemory,
+			historyText,
+			compressionLLMOptions,
+			maxLLMTry ?? 3,
+			decisionMode,
+			context,
+			sharedPayload
+		);
 
-			if (context?.stopToken?.stopped) throw new Error("Memory compression cancelled");
-			const result = await this.callLLMForCompression(
-				currentMemory,
-				historyText,
-				compressionLLMOptions,
-				maxLLMTry ?? 3,
-				decisionMode,
-				context
-			);
-
-			if (context?.stopToken?.stopped) throw new Error("Memory compression cancelled");
-			if (result.success) {
-				// 成功：写入三层记忆存储
-				this.storage.writeMemory(result.memoryUpdate);
+		if (context?.stopToken?.stopped) throw new Error("Memory compression cancelled");
+		if (result.success && result.handoff === true) {
+			// Handoff mode: the free-text summary rides in the conversation; the
+			// three-layer memory files stay untouched so the system prompt (which
+			// injects them) keeps its bytes and the prefix cache survives.
+			this.storage.appendHistoryRecord({
+				ts: result.ts ?? os.date("%Y-%m-%d %H:%M"),
+				summary: result.summary ?? "",
+			});
+			this.consecutiveFailures = 0;
+			this.consecutiveFallbackArchives = 0;
+			return {
+				...result,
+				compressedCount: boundary.compressedCount,
+				carryMessageIndex: boundary.carryMessageIndex,
+			};
+		}
+		if (result.success) {
+			// 成功：写入三层记忆存储
+			this.storage.writeMemory(result.memoryUpdate);
 				if (typeof result.projectMemoryUpdate === "string") {
 					this.storage.writeProjectMemory(result.projectMemoryUpdate);
 				}
@@ -1719,6 +1750,7 @@ export class MemoryCompressor {
 					});
 				}
 				this.consecutiveFailures = 0;
+				this.consecutiveFallbackArchives = 0;
 
 				return {
 					...result,
@@ -1734,7 +1766,6 @@ export class MemoryCompressor {
 			// Cancellation must not be treated as a summarization failure: no
 			// fallback archive or memory mutation after the user stops the task.
 			if (context?.stopToken?.stopped) return { success: false, memoryUpdate: currentMemory, compressedCount: 0, error: context.stopToken.reason ?? "Memory compression cancelled" };
-			if (error instanceof MemoryCompressionBudgetError) return { success: false, memoryUpdate: currentMemory, compressedCount: 0, error: error.message };
 			return this.handleCompressionFailure(chunk, error instanceof Error ? error.message : "Unknown error");
 		}
 	}
@@ -1747,62 +1778,116 @@ export class MemoryCompressor {
 	 * 完成的 spawn/build/edit 一并压缩，丢失恢复时最重要的近期状态。
 	 */
 	private findCompressionBoundary(
-		boundaryMessages: AgentConversationMessage[],
-		compressionMessages: AgentConversationMessage[],
-		historyBudget: number,
-		targetTokens?: number
+		messages: AgentConversationMessage[],
+		currentMemory: string,
+		boundaryMode: MemoryCompressionBoundaryMode,
+		systemPrompt: string,
+		toolDefinitions: string,
+		budgetTokens?: number
 	): CompressionBoundarySelection {
-		let historyTokens = 0;
-		let removedTokens = 0;
-		let carriedInstructionTokens = 0;
-		let lastBoundary = 0;
+		const targetTokens = boundaryMode === "budget_max"
+			? math.max(1, this.getCompressionHistoryTokenBudget(currentMemory))
+			: math.max(1, this.getRequiredCompressionTokens(messages, systemPrompt, toolDefinitions, budgetTokens));
+		let accumulatedTokens = 0;
+		let lastSafeBoundary = 0;
+		let lastSafeBoundaryWithinBudget = 0;
+		let lastClosedBoundary = 0;
+		let lastClosedBoundaryWithinBudget = 0;
 		const pendingToolCalls: Record<string, boolean> = {};
-		let pendingCount = 0;
-		for (let i = 0; i < compressionMessages.length; i++) {
-			const message = compressionMessages[i];
-			historyTokens += this.estimateCompressionMessageTokens(message, i);
-			if (historyTokens > historyBudget) break;
-			const decisionTokens = this.estimateCompressionMessageTokens(boundaryMessages[i], i);
-			removedTokens += decisionTokens;
-			if (message.role === "user" && message.inputKind !== "steer") carriedInstructionTokens = decisionTokens;
-			if (message.role !== "tool" && pendingCount > 0) {
-				for (const id in pendingToolCalls) pendingToolCalls[id] = false;
-				pendingCount = 0;
+		let pendingToolCallCount = 0;
+		let exceededBudget = false;
+
+		for (let i = 0; i < messages.length; i++) {
+			const message = messages[i];
+			const tokens = this.estimateCompressionMessageTokens(message, i);
+			accumulatedTokens += tokens;
+
+			// A non-tool message after pending tool calls means the historical tool
+			// chain was interrupted; do not let stale calls block later boundaries.
+			if (message.role !== "tool" && pendingToolCallCount > 0) {
+				for (const id in pendingToolCalls) {
+					pendingToolCalls[id] = false;
+				}
+				pendingToolCallCount = 0;
 			}
-			if (message.role === "assistant" && message.tool_calls) {
-				for (const call of message.tool_calls) {
-					if (call.id && !pendingToolCalls[call.id]) {
-						pendingToolCalls[call.id] = true;
-						pendingCount += 1;
+
+			if (message.role === "assistant" && message.tool_calls && message.tool_calls.length > 0) {
+				for (let j = 0; j < message.tool_calls.length; j++) {
+					const toolCallEntry: ToolCall = message.tool_calls[j];
+					const idValue = toolCallEntry.id;
+					const id = typeof idValue === "string" ? idValue : "";
+					if (id !== "" && !pendingToolCalls[id]) {
+						pendingToolCalls[id] = true;
+						pendingToolCallCount += 1;
 					}
 				}
 			}
+
 			if (message.role === "tool" && message.tool_call_id && pendingToolCalls[message.tool_call_id]) {
 				pendingToolCalls[message.tool_call_id] = false;
-				pendingCount -= 1;
+				pendingToolCallCount = math.max(0, pendingToolCallCount - 1);
 			}
-			const next = compressionMessages[i + 1];
-			const closed = pendingCount === 0 && (
-				next === undefined || (next.role === "user" && next.inputKind !== "steer")
-				|| message.role === "tool"
-				|| (message.role === "assistant" && (!message.tool_calls || message.tool_calls.length === 0))
+
+			const isAtEnd = i >= messages.length - 1;
+			const nextRole = !isAtEnd ? messages[i + 1].role : "";
+			const isUserTurnBoundary = !isAtEnd && nextRole === "user";
+			const isSafeBoundary = pendingToolCallCount === 0 && (isAtEnd || isUserTurnBoundary);
+			const isClosedAgentBoundary = pendingToolCallCount === 0 && (
+				message.role === "tool"
+				|| (
+					message.role === "assistant"
+					&& (!message.tool_calls || message.tool_calls.length === 0)
+				)
 			);
-			if (closed) {
-				lastBoundary = i + 1;
-				// A partial chunk carries its latest task instruction back into the
-				// decision request; those tokens are not reclaimed by compression.
-				const retainedTokens = next !== undefined || message.role === "user" ? carriedInstructionTokens : 0;
-				if (targetTokens !== undefined && removedTokens - retainedTokens >= targetTokens) break;
+			if (isSafeBoundary) {
+				lastSafeBoundary = i + 1;
+				if (accumulatedTokens <= targetTokens) {
+					lastSafeBoundaryWithinBudget = i + 1;
+				}
+			}
+			if (isClosedAgentBoundary) {
+				lastClosedBoundary = i + 1;
+				if (accumulatedTokens <= targetTokens) {
+					lastClosedBoundaryWithinBudget = i + 1;
+				}
+			}
+
+			if (accumulatedTokens > targetTokens && !exceededBudget) {
+				exceededBudget = true;
+			}
+
+			// Stop at the first complete agent action after reaching the target.
+			// Preserve the triggering user instruction through buildCarryBoundary,
+			// while leaving newer completed actions verbatim for the next decision.
+			if (exceededBudget && isClosedAgentBoundary) {
+				return this.buildCarryBoundary(messages, i + 1);
+			}
+			// A user-only or otherwise unusual history may have no agent boundary.
+			if (exceededBudget && isSafeBoundary) {
+				return this.buildCarryBoundary(messages, i + 1);
 			}
 		}
-		if (lastBoundary === compressionMessages.length) return this.buildSafeBoundary(compressionMessages, lastBoundary);
-		return this.buildCarryBoundary(compressionMessages, lastBoundary);
+
+		if (lastSafeBoundaryWithinBudget > 0) {
+			return this.buildSafeBoundary(messages, lastSafeBoundaryWithinBudget);
+		}
+		if (lastSafeBoundary > 0) {
+			return this.buildSafeBoundary(messages, lastSafeBoundary);
+		}
+		if (lastClosedBoundaryWithinBudget > 0) {
+			return this.buildCarryBoundary(messages, lastClosedBoundaryWithinBudget);
+		}
+		if (lastClosedBoundary > 0) {
+			return this.buildCarryBoundary(messages, lastClosedBoundary);
+		}
+		const fallback = math.min(messages.length, 1);
+		return this.buildSafeBoundary(messages, fallback);
 	}
 
 	private buildCarryBoundary(messages: AgentConversationMessage[], chunkEnd: number): CompressionBoundarySelection {
 		let carryUserIndex = -1;
 		for (let i = 0; i < chunkEnd; i++) {
-			if (messages[i].role === "user" && messages[i].inputKind !== "steer") {
+			if (messages[i].role === "user") {
 				carryUserIndex = i;
 			}
 		}
@@ -1837,9 +1922,46 @@ export class MemoryCompressor {
 			const [toolCallsText] = safeJsonEncode(message.tool_calls as object);
 			lines.push(`tool_calls=${toolCallsText ?? ""}`);
 		}
-		if (message.content && message.content !== "") lines.push(message.content);
+		if (message.content && message.content !== "") lines.push(typeof message.content === "string" ? message.content : "[image content]");
 		const prefix = index > 0 ? "\n\n" : "";
 		return TokenEstimator.estimate(prefix + lines.join("\n"));
+	}
+
+	private getRequiredCompressionTokens(
+		messages: AgentConversationMessage[],
+		systemPrompt: string,
+		toolDefinitions: string,
+		budgetTokens?: number
+	): number {
+		const currentTokens = TokenEstimator.estimatePromptMessages(
+			messages,
+			systemPrompt,
+			toolDefinitions
+		);
+		// When the caller supplies the real effective input budget that triggered
+		// compression, size the chunk against it instead of a window fraction.
+		// The trigger budget (window minus maxTokens reserve) sits below
+		// window * compressionTargetThreshold, so the legacy fraction made the
+		// overflow negative at trigger time and every round consolidated only a
+		// couple of messages. Consolidate down to half the budget — the
+		// low-watermark pattern: stopping just under the trigger leaves the
+		// context riding the limit, so every later turn re-triggers and each
+		// episode's history rewrite re-bills the prefix cache at full price.
+		if (typeof budgetTokens === "number" && budgetTokens > 0) {
+			const target = budgetTokens * 0.5;
+			const budgetOverflow = math.max(0, currentTokens - target);
+			if (budgetOverflow > 0) {
+				const margin = math.max(64, math.floor(budgetTokens * 0.01));
+				return budgetOverflow + margin;
+			}
+		}
+		const threshold = this.getContextWindow() * this.config.compressionTargetThreshold;
+		const overflow = math.max(0, currentTokens - threshold);
+		if (overflow <= 0) {
+			return math.max(1, this.estimateCompressionMessageTokens(messages[0], 0));
+		}
+		const safetyMargin = math.max(64, math.floor(threshold * 0.01));
+		return overflow + safetyMargin;
 	}
 
 	private formatMessagesForCompression(messages: AgentConversationMessage[]): string {
@@ -1854,7 +1976,7 @@ export class MemoryCompressor {
 				const [toolCallsText] = safeJsonEncode(message.tool_calls as object);
 				lines.push(`tool_calls=${toolCallsText ?? ""}`);
 			}
-			if (message.content && message.content !== "") lines.push(message.content);
+			if (message.content && message.content !== "") lines.push(typeof message.content === "string" ? message.content : "[image content]");
 			if (i < messages.length - 1) lines.push("");
 		}
 		return lines.join("\n");
@@ -1869,13 +1991,14 @@ export class MemoryCompressor {
 		llmOptions: Record<string, unknown>,
 		maxLLMTry: number,
 		decisionMode: MemoryCompressionDecisionMode,
-		context?: MemoryCompressionContext
+		context?: MemoryCompressionContext,
+		shared?: { systemPrompt: string; messages: AgentConversationMessage[]; tools: unknown[]; handoff?: boolean }
 	): Promise<CompressionResult> {
-		// History is selected at complete action boundaries and must never be clipped.
+		const boundedHistoryText = this.boundCompressionHistoryText(currentMemory, historyText);
 		if (decisionMode === "xml") {
 			return this.callLLMForCompressionByXML(
 				currentMemory,
-				historyText,
+				boundedHistoryText,
 				llmOptions,
 				maxLLMTry,
 				context
@@ -1883,10 +2006,11 @@ export class MemoryCompressor {
 		}
 		return this.callLLMForCompressionByToolCalling(
 			currentMemory,
-			historyText,
+			boundedHistoryText,
 			llmOptions,
 			maxLLMTry,
-			context
+			context,
+			shared
 		);
 	}
 
@@ -1903,46 +2027,77 @@ export class MemoryCompressor {
 		);
 	}
 
-	private buildBoundedCompressionSections(currentMemory: string, historyText: string, llmOptions: Record<string, unknown>): {
+	private getCompressionHistoryTokenBudget(currentMemory: string): number {
+		const contextWindow = this.getContextWindow();
+		const reservedOutputTokens = math.max(
+			COMPRESSION_RESERVED_OUTPUT_MIN_TOKENS,
+			getSharedOutputTokenLimit(this.config.llmConfig)
+		);
+		const staticPromptTokens = TokenEstimator.estimate(this.buildCompressionStaticPrompt("tool_calling"));
+		const memoryTokens = TokenEstimator.estimate(currentMemory);
+		const available = contextWindow - reservedOutputTokens - staticPromptTokens - memoryTokens;
+		return Math.max(
+			COMPRESSION_HISTORY_MIN_TOKENS,
+			Math.floor(available * COMPRESSION_HISTORY_AVAILABLE_RATIO)
+		);
+	}
+
+	private boundCompressionHistoryText(currentMemory: string, historyText: string): string {
+		const historyTokens = TokenEstimator.estimate(historyText);
+		const tokenBudget = this.getCompressionHistoryTokenBudget(currentMemory);
+		if (historyTokens <= tokenBudget) return historyText;
+		const charsPerToken = historyTokens > 0
+			? historyText.length / historyTokens
+			: 4;
+		const targetChars = Math.max(
+			COMPRESSION_HISTORY_TRUNCATED_MIN_CHARS,
+			Math.floor(tokenBudget * charsPerToken)
+		);
+		const keepHead = Math.max(0, Math.floor(targetChars * COMPRESSION_HISTORY_TRUNCATED_HEAD_RATIO));
+		const keepTail = Math.max(0, targetChars - keepHead);
+		const head = keepHead > 0 ? utf8TakeHead(historyText, keepHead) : "";
+		const tail = keepTail > 0 ? utf8TakeTail(historyText, keepTail) : "";
+		return `[compression history truncated to fit context window; token_budget=${tokenBudget}, original_tokens=${historyTokens}]\n${head}\n...\n${tail}`;
+	}
+
+	private buildBoundedCompressionSections(currentMemory: string, historyText: string): {
 		currentMemory: string;
 		currentProjectMemory: string;
 		currentSessionSummary: string;
 		historyText: string;
-		historyBudget: number;
 	} {
-		// Use the HTTP layer's accounting, including output reserve and tool schema.
-		// Reserve for either format so XML fallback does not require clipping history.
-		let dynamicBudget = this.getContextWindow();
-		for (const mode of ["tool_calling", "xml"] as MemoryCompressionDecisionMode[]) {
-			const options = mode === "tool_calling" ? { ...llmOptions, tools: MEMORY_COMPRESSION_TOOLS } : llmOptions;
-			const emptyMessages: Message[] = [{ role: "system", content: "" }, { role: "user", content: "" }];
-			const available = getInputTokenBudget(emptyMessages, options, this.config.llmConfig)
-				- TokenEstimator.estimate(this.buildCompressionStaticPrompt(mode)) - 512;
-			dynamicBudget = math.min(dynamicBudget, available);
-		}
-		if (dynamicBudget <= 0) throw new MemoryCompressionBudgetError(
-			"Memory compression has no input space after reserving the configured output limit and prompts. Reduce max_tokens/max_completion_tokens or increase contextWindow."
+		const contextWindow = this.getContextWindow();
+		const reservedOutputTokens = math.max(
+			COMPRESSION_RESERVED_OUTPUT_MIN_TOKENS,
+			getSharedOutputTokenLimit(this.config.llmConfig)
 		);
-		const boundedMemory = clipTextToTokenBudget(optStr(currentMemory, "(empty)"), math.floor(dynamicBudget * COMPRESSION_SECTION_MEMORY_RATIO));
-		const boundedProjectMemory = clipTextToTokenBudget(optStr(this.storage.readProjectMemory(), "(empty)"), math.floor(dynamicBudget * COMPRESSION_SECTION_MEMORY_RATIO));
-		const boundedSessionSummary = clipTextToTokenBudget(optStr(this.storage.readSessionSummary(), "(empty)"), math.floor(dynamicBudget * COMPRESSION_SECTION_SESSION_RATIO));
-		// Unused memory allocations are returned to history, rather than limiting it to 45%.
-		const historyBudget = math.max(0, math.floor((dynamicBudget
-			- TokenEstimator.estimate(boundedMemory)
-			- TokenEstimator.estimate(boundedProjectMemory)
-			- TokenEstimator.estimate(boundedSessionSummary)) * 0.9));
-		if (TokenEstimator.estimate(historyText) > historyBudget) throw new MemoryCompressionBudgetError(
-			"Selected history exceeds the memory compression input budget; history was preserved."
+		const staticPromptTokens = TokenEstimator.estimate(this.buildCompressionStaticPrompt("tool_calling"));
+		const dynamicBudget = math.max(
+			COMPRESSION_DYNAMIC_MIN_TOKENS,
+			contextWindow - reservedOutputTokens - staticPromptTokens - COMPRESSION_DYNAMIC_PROMPT_OVERHEAD_TOKENS
 		);
-		return { currentMemory: boundedMemory, currentProjectMemory: boundedProjectMemory,
-			currentSessionSummary: boundedSessionSummary, historyText, historyBudget };
-	}
-
-	private ensureCompressionRequestFits(messages: Message[], options: Record<string, unknown>): void {
-		const fitted = fitMessagesToContext(messages, options, this.config.llmConfig);
-		if (fitted.trimmed || fitted.fittedTokens > fitted.budgetTokens) throw new MemoryCompressionBudgetError(
-			"Memory compression request exceeds the effective context budget; history was preserved."
-		);
+		const boundedMemory = clipTextToTokenBudget(optStr(currentMemory, "(empty)"), math.max(
+			COMPRESSION_SECTION_MEMORY_MIN_TOKENS,
+			math.floor(dynamicBudget * COMPRESSION_SECTION_MEMORY_RATIO)
+		));
+		const boundedProjectMemory = clipTextToTokenBudget(optStr(this.storage.readProjectMemory(), "(empty)"), math.max(
+			COMPRESSION_SECTION_MEMORY_MIN_TOKENS,
+			math.floor(dynamicBudget * COMPRESSION_SECTION_MEMORY_RATIO)
+		));
+		const boundedSessionSummary = clipTextToTokenBudget(optStr(this.storage.readSessionSummary(), "(empty)"), math.max(
+			COMPRESSION_SECTION_SESSION_MIN_TOKENS,
+			math.floor(dynamicBudget * COMPRESSION_SECTION_SESSION_RATIO)
+		));
+		const boundedHistory = clipTextToTokenBudget(historyText, math.max(
+			COMPRESSION_SECTION_HISTORY_MIN_TOKENS,
+			math.floor(dynamicBudget * COMPRESSION_SECTION_HISTORY_RATIO)
+		));
+		return {
+			currentMemory: boundedMemory,
+			currentProjectMemory: boundedProjectMemory,
+			currentSessionSummary: boundedSessionSummary,
+			historyText: boundedHistory,
+		};
 	}
 
 	private async callLLMForCompressionByToolCalling(
@@ -1950,9 +2105,42 @@ export class MemoryCompressor {
 		historyText: string,
 		llmOptions: Record<string, unknown>,
 		maxLLMTry: number,
-		context?: MemoryCompressionContext
+		context?: MemoryCompressionContext,
+		shared?: { systemPrompt: string; messages: AgentConversationMessage[]; tools: unknown[]; handoff?: boolean }
 	): Promise<CompressionResult> {
-		const prompt = this.buildCompressionPromptBody(currentMemory, historyText, llmOptions);
+		const prompt = this.buildCompressionPromptBody(currentMemory, historyText);
+
+		// 定义 save_memory 工具
+		const tools = [{
+			type: "function" as const,
+			function: {
+				name: "save_memory",
+				description: "Save the memory consolidation result to persistent storage.",
+				parameters: {
+					type: "object",
+					properties: {
+						history_entry: {
+							type: "string",
+							description: "A paragraph summarizing key events/decisions/topics. " +
+								"Include detail useful for grep search."
+						},
+						memory_update: {
+							type: "string",
+							description: "Full updated MEMORY.md as markdown. Core memory only: user preferences, stable facts, decisions, known issues."
+						},
+						project_memory_update: {
+							type: "string",
+							description: "Full updated PROJECT_MEMORY.md as markdown. Project facts, build/run, files/architecture, project decisions and issues."
+						},
+						session_summary_update: {
+							type: "string",
+							description: "Full updated SESSION_SUMMARY.md as markdown. Current goal, recent progress, open issues, and an Active Checkpoint with the exact next tool action when work is unfinished."
+						},
+					},
+					required: ["history_entry", "memory_update"],
+				},
+			},
+		}];
 
 		let lastError = "missing save_memory tool call";
 		let outputBudgetExhausted = false;
@@ -1962,24 +2150,42 @@ export class MemoryCompressor {
 			const feedback = i > 0
 				? `\n\nPrevious response was invalid (${lastError}). You must call the save_memory tool. Do not write prose. Required arguments: history_entry and memory_update. Optional arguments: project_memory_update and session_summary_update.`
 				: "";
-			const messages: Message[] = [
-				{
-					role: "system",
-					content: this.buildToolCallingCompressionSystemPrompt(),
-				},
-				{
-					role: "user",
-					content: `${prompt}${feedback}`
-				}
-			];
+			// Cache-sharing handoff attempt (first try only): reuse the main
+			// decision request's exact system prompt, projected history, AND tool
+			// schema (byte-identical — providers count tools toward the cached
+			// prefix) so the provider prefix cache absorbs everything but the
+			// trailing directive. The directive asks for ONE free-text handoff
+			// summary; no structured fields, nothing to mis-parse. Any failure
+			// falls back to the dedicated two-message payload below.
+			const useShared = i === 0 && shared !== undefined && shared.messages.length > 0;
+			const messages: Message[] = useShared
+				? [
+					{ role: "system", content: shared!.systemPrompt },
+					...(shared!.messages as Message[]),
+					{
+						role: "user",
+						content: `${this.buildHandoffDirective()}${feedback}`,
+					},
+				]
+				: [
+					{
+						role: "system",
+						content: this.buildToolCallingCompressionSystemPrompt(),
+					},
+					{
+						role: "user",
+						content: `${prompt}${feedback}`
+					}
+				];
 			const requestOptions = {
 				...llmOptions,
-				tools: MEMORY_COMPRESSION_TOOLS,
+				tools: useShared
+					? (shared!.tools as unknown[])
+					: tools,
 			};
 			// Some OpenAI-compatible providers reject forced tool_choice. Keep tools enabled,
 			// but repair invalid non-tool responses and fall back to XML below.
 			delete (requestOptions as Record<string, unknown>).tool_choice;
-			this.ensureCompressionRequestFits(messages, requestOptions);
 			context?.onInput?.("memory_compression_tool_calling", messages, requestOptions);
 			const response = await callLLM(
 				messages,
@@ -1996,7 +2202,12 @@ export class MemoryCompressor {
 				continue;
 			}
 			const tokenUsage = extractLLMTokenUsage(response.response);
-			if (tokenUsage) context?.onUsage?.("memory_compression_tool_calling", tokenUsage);
+			if (tokenUsage) {
+				context?.onUsage?.("memory_compression_tool_calling", tokenUsage);
+				const hit = tokenUsage.cachedInputTokens ?? 0;
+				const miss = tokenUsage.cacheMissInputTokens ?? math.max(0, tokenUsage.inputTokens - hit);
+				Log("Info", `[Memory] compression usage shared=${useShared ? 1 : 0} hit=${hit} miss=${miss} input=${tokenUsage.inputTokens} output=${tokenUsage.outputTokens}`);
+			}
 			context?.onOutput?.("memory_compression_tool_calling", encodeCompressionDebugJSON(response.response), { success: true, attempt: i + 1 });
 
 			const choice = response.response.choices && response.response.choices[0];
@@ -2007,6 +2218,24 @@ export class MemoryCompressor {
 			if (finishReason === "length") {
 				// Never silently increase the shared user-configured output budget.
 				outputBudgetExhausted = true;
+			}
+			if (useShared) {
+				// Handoff mode: any non-empty plain-text response IS the result —
+				// there is no structure to mis-parse, so only emptiness retries.
+				const contentText = message && typeof message.content === "string" ? message.content.trim() : "";
+				if (contentText !== "") {
+					return {
+						success: true,
+						handoff: true,
+						memoryUpdate: currentMemory,
+						compressedCount: 0,
+						ts: os.date("%Y-%m-%d %H:%M"),
+						summary: contentText,
+					};
+				}
+				lastError = "empty handoff response";
+				Log("Warn", `[Memory] shared-prefix handoff attempt invalid: ${lastError}`);
+				continue;
 			}
 			const toolCalls = message && message.tool_calls;
 			const toolCall = toolCalls && toolCalls[0];
@@ -2080,7 +2309,7 @@ export class MemoryCompressor {
 		maxLLMTry: number,
 		context?: MemoryCompressionContext
 	): Promise<CompressionResult> {
-		const prompt = this.buildCompressionPromptBody(currentMemory, historyText, llmOptions);
+		const prompt = this.buildCompressionPromptBody(currentMemory, historyText);
 		let lastError = "invalid xml response";
 		let outputBudgetExhausted = false;
 
@@ -2096,7 +2325,6 @@ export class MemoryCompressor {
 				{ role: "system", content: this.buildXMLCompressionSystemPrompt() },
 				{ role: "user", content: `${prompt}${feedback}` },
 			];
-			this.ensureCompressionRequestFits(requestMessages, llmOptions);
 			context?.onInput?.("memory_compression_xml", requestMessages, llmOptions);
 			const response = await callLLM(
 				requestMessages,
@@ -2162,8 +2390,17 @@ export class MemoryCompressor {
 	/**
 	 * 构建压缩提示
 	 */
-	private buildCompressionPromptBody(currentMemory: string, historyText: string, llmOptions: Record<string, unknown>): string {
-		const bounded = this.buildBoundedCompressionSections(currentMemory, historyText, llmOptions);
+	private buildCompressionPromptBodyRaw(currentMemory: string, historyText: string): string {
+		return replaceTemplateVars(this.config.promptPack.memoryCompressionBodyPrompt, {
+			CURRENT_MEMORY: optStr(currentMemory, "(empty)"),
+			CURRENT_PROJECT_MEMORY: optStr(this.storage.readProjectMemory(), "(empty)"),
+			CURRENT_SESSION_SUMMARY: optStr(this.storage.readSessionSummary(), "(empty)"),
+			HISTORY_TEXT: historyText,
+		});
+	}
+
+	private buildCompressionPromptBody(currentMemory: string, historyText: string): string {
+		const bounded = this.buildBoundedCompressionSections(currentMemory, historyText);
 		return replaceTemplateVars(this.config.promptPack.memoryCompressionBodyPrompt, {
 			CURRENT_MEMORY: bounded.currentMemory,
 			CURRENT_PROJECT_MEMORY: bounded.currentProjectMemory,
@@ -2172,12 +2409,54 @@ export class MemoryCompressor {
 		});
 	}
 
+	/**
+	 * Trailing directive for the cache-sharing handoff request. The whole
+	 * conversation history rides in the shared messages before this
+	 * instruction; the model answers with one free-text handoff summary.
+	 * Game-development sessions get fixed sections: a tuning ledger table,
+	 * evidence with [needs-human] markers for feel/visual/audio items, and a
+	 * hard length cap so chained handoffs do not creep.
+	 */
+	private buildHandoffDirective(): string {
+		return `You are performing a CONTEXT CHECKPOINT COMPACTION. Write a handoff summary for the model instance that resumes this task right after this message.
+
+Hard cap: at most 2500 characters total. Prefer tables over prose. Skip sections that do not apply. Use these fixed sections:
+
+## Goal & progress
+Current goal; what is done AND verified, what is not.
+
+## Tuning ledger
+One markdown table row per gameplay constant that was set or changed in this conversation:
+| name | value | why | last change & its evidence |
+Include only constants discussed here; do not re-enumerate an unchanged config.
+
+## Evidence
+Playtests / headless simulations worth keeping: strategy, seeds, sample size, key numbers, and what they proved. Mark anything only a human can validate (feel, visuals, audio) as [needs-human].
+
+## Assets & files
+Selected art/audio paths and why; important file paths and their current state. Files on disk are the source of truth.
+
+## Engine quirks
+Build false-failures, API pitfalls, tool bugs discovered in this conversation.
+
+## Next steps
+What remains, and the single exact next action.
+
+End with one line in exactly this format (choose the most appropriate tool):
+**Next tool**: \`tool_name\` — where tool_name is one of read_file, edit_file, write_file, grep_files, build, execute_command, spawn_agent.
+
+Do not restate these instructions. Do not call any tool. Output only the summary.`;
+	}
+
 	private buildCompressionStaticPrompt(mode: MemoryCompressionDecisionMode): string {
-		const formatPrompt = mode === "xml" ? this.config.promptPack.memoryCompressionXmlPrompt : this.config.promptPack.memoryCompressionToolCallingPrompt;
-		const body = replaceTemplateVars(this.config.promptPack.memoryCompressionBodyPrompt, {
-			CURRENT_MEMORY: "", CURRENT_PROJECT_MEMORY: "", CURRENT_SESSION_SUMMARY: "", HISTORY_TEXT: "",
-		});
-		return `${this.config.promptPack.memoryCompressionSystemPrompt}\n\n${formatPrompt}\n\n${body}`;
+		const formatPrompt = mode === "xml"
+			? this.config.promptPack.memoryCompressionXmlPrompt
+			: this.config.promptPack.memoryCompressionToolCallingPrompt;
+		return `${this.config.promptPack.memoryCompressionSystemPrompt}
+
+${formatPrompt}
+
+${this.buildCompressionPromptBodyRaw("", "")}`;
 	}
 
 	private buildToolCallingCompressionSystemPrompt(): string {
@@ -2265,11 +2544,37 @@ ${this.config.promptPack.memoryCompressionXmlPrompt}`;
 		chunk: AgentConversationMessage[],
 		error: string
 	): CompressionResult {
+		// Transport-level failures (network drops, API blips, timeouts) are
+		// transient — raw-archiving on a network blip destroys context that a
+		// retry five minutes later could have summarized. Skip compression
+		// instead; the next trigger will retry when the network recovers.
+		const errorLower = error.toLowerCase();
+		const isTransportError = errorLower.indexOf("failed to get http response") >= 0
+			|| errorLower.indexOf("timeout") >= 0
+			|| errorLower.indexOf("connection refused") >= 0
+			|| errorLower.indexOf("connection reset") >= 0
+			|| errorLower.indexOf("econnrefused") >= 0
+			|| errorLower.indexOf("econnreset") >= 0
+			|| errorLower.indexOf("502") >= 0
+			|| errorLower.indexOf("503") >= 0
+			|| errorLower.indexOf("504") >= 0;
+		if (isTransportError) {
+			Log("Warn", `[Memory] compression transport failure (network), skipping archive — will retry on next trigger: ${error}`);
+			return {
+				success: false,
+				memoryUpdate: this.storage.readMemory(),
+				compressedCount: 0,
+				error,
+			};
+		}
+
 		this.consecutiveFailures++;
 
 		if (this.consecutiveFailures >= MemoryCompressor.MAX_FAILURES) {
 			const archived = this.rawArchive(chunk);
 			this.consecutiveFailures = 0;
+			this.consecutiveFallbackArchives += 1;
+			Log("Error", `[Memory] compressor failed (${error}); RAW ARCHIVED ${chunk.length} messages without a summary (fallback ${this.consecutiveFallbackArchives}/${MemoryCompressor.MAX_FALLBACK_ARCHIVES})`);
 
 			return {
 				success: true,
@@ -2344,7 +2649,9 @@ export async function compactSessionMemoryScope(options: {
 	let lastConsolidatedIndex = persistedSession.lastConsolidatedIndex;
 	let carryMessageIndex = persistedSession.carryMessageIndex;
 	const llmOptions = buildMemoryLLMOptions(llmConfigRes.config, options.llmOptions);
-	while (lastConsolidatedIndex < messages.length) {
+	let compressionRound = 0;
+	while (lastConsolidatedIndex < messages.length && compressionRound < compressor.getMaxCompressionRounds()) {
+		compressionRound += 1;
 		const activeMessages: AgentConversationMessage[] = [];
 		if (
 			typeof carryMessageIndex === "number"
@@ -2407,6 +2714,12 @@ export async function compactSessionMemoryScope(options: {
 			carryMessageIndex = undefined;
 		}
 		storage.writeSessionState(messages, lastConsolidatedIndex, carryMessageIndex);
+	}
+	if (lastConsolidatedIndex < messages.length) {
+		return {
+			success: false,
+			message: `memory compaction stopped after ${tostring(compressor.getMaxCompressionRounds())} rounds`,
+		};
 	}
 	return { success: true, remainingMessages: 0 };
 }

@@ -1,11 +1,11 @@
 // @preview-file off clear
-import { resolveVisionBinding, VISION_UNAVAILABLE_MESSAGE } from 'Agent/Tool/VisionBinding';
+import { resolveVisionBinding } from 'Agent/Tool/VisionBinding';
 import { getVisionTaskUsage, type VisionTaskUsage } from 'Agent/Tool/VisionAnalysis';
 import { Path, Content } from 'Dora';
 import { Flow, Node } from 'Agent/Runtime/Flow';
 import { RepeatedOutputRecovery, type DecisionOutput } from 'Agent/Runtime/RepeatedOutput';
 import * as AgentUtils from 'Agent/Utils';
-import type { LLMConfig, LLMTokenUsage, Message, StopToken } from 'Agent/Utils';
+import type { LLMConfig, LLMTokenUsage, Message, MessageContentBlock, StopToken } from 'Agent/Utils';
 import * as Tools from 'Agent/Tools';
 import { MemoryCompressor } from 'Agent/Runtime/Memory';
 import type { AgentPromptPack, AgentConversationMessage } from 'Agent/Runtime/Memory';
@@ -103,14 +103,7 @@ export type {
 	AgentCompletionReport,
 } from 'Agent/Utils';
 
-export interface AgentSteeringInput {id: number; content: string}
-export interface AgentInputSource {
- pending: (this: void) => AgentSteeringInput[];
- delivered: (this: void, inputId: number, step: number) => void;
-}
 export interface CodingAgentRunOptions {
- inputId?: number;
- inputSource?: AgentInputSource;
 	prompt: string;
 	resumeConversation?: boolean;
 	resumeTask?: boolean;
@@ -413,7 +406,6 @@ interface AgentFileContextItem {
 }
 
 interface AgentShared {
- inputSource?: AgentInputSource;
 	sessionId?: number;
 	taskId: number;
 	role: AgentRole;
@@ -807,6 +799,7 @@ async function executeToolActionWithGuidance(shared: AgentShared, action: AgentA
 		shared.workflow.hasSpawnedSubAgentThisTask === true
 		&& (shared.workflow.delegatedForegroundBatches ?? 0) + 1 >= AgentConfig.AGENT_DEFAULTS.delegatedForegroundBatchLimit
 		&& action.tool !== "spawn_agent"
+		&& true
 	) {
 		guidance.push("Foreground work after delegation has reached the recommended bound. Prefer dispatching another independent sub-agent or finishing this turn so the user can continue interacting.");
 	}
@@ -853,8 +846,10 @@ async function executeToolActionWithGuidance(shared: AgentShared, action: AgentA
 	if (action.tool === "spawn_agent" && action.params.prompt === undefined && shared.workflow.hasSpawnedSubAgentThisTask === true) {
 		guidance.push("Sub-agent results arrive asynchronously. Avoid polling repeatedly; finish the current turn when no independent foreground work remains.");
 	}
-	if (shared.workflow.freshProjectBuildPending === true && shared.workflow.unbuiltEdits === true && action.tool !== "build") {
-		guidance.push("A fresh project now has an authored implementation. Prefer an early build so later work uses compiler feedback.");
+	if (shared.workflow.freshProjectBuildPending === true && action.tool !== "build") {
+		guidance.push(shared.workflow.unbuiltEdits === true
+			? "A fresh project now has an authored implementation. Prefer an early build so later work uses compiler feedback."
+			: "This is a fresh project. Prefer creating a compilable first implementation, then build early.");
 	}
 	if (shared.workflow.buildRepairPending === true) {
 		if (action.tool === "build") {
@@ -890,14 +885,16 @@ async function executeToolActionWithGuidance(shared: AgentShared, action: AgentA
 async function maybeCompressHistory(
 	shared: AgentShared,
 	includePendingUserPrompt = false,
-	pendingUserPrompt = ""
+	pendingUserPrompt = "",
+	force = false
 ): Promise<void> {
 	const { memory } = shared;
-	let compressionRound = 0;
-	while (true) {
+	const maxRounds = memory.compressor.getMaxCompressionRounds();
+	let changed = false;
+	for (let round = 0; round < maxRounds; round++) {
 		const systemPrompt = buildAgentSystemPrompt(shared);
 		const normalizedActiveMessages = sanitizeMessagesForLLMInput(getActiveConversationMessages(shared));
-		const decisionActiveMessages = projectMessagesForLLMContext(normalizedActiveMessages);
+		const decisionActiveMessages = projectMessagesForLLMContext(normalizedActiveMessages, getHistoryCharBudget(shared));
 		const activeMessages = projectMessagesForCompression(normalizedActiveMessages);
 		// Keep the projected uncovered count for diagnostics. The trigger itself is
 		// based on the exact next decision request below, including any carried prompt.
@@ -931,13 +928,33 @@ async function maybeCompressHistory(
 			}),
 		};
 		const fitted = AgentUtils.fitMessagesToContext(triggerMessages, triggerOptions, shared.llmConfig);
-		// Trigger at 100% of the exact effective input budget used by the normal
-		// request path. The compression payload below remains independently projected.
-		if (fitted.originalTokens < fitted.budgetTokens) return;
-		if (getActiveRealMessageCount(shared) <= 0 || fitted.budgetTokens <= 0) {
-			throw new Error("The current instructions and configured output limit leave insufficient context space. Reduce the output limit or shorten the instructions; history was preserved.");
+		// Trigger proactively at 90% of the exact effective input budget used by
+		// the normal request path. Waiting for 100% leaves the context riding the
+		// limit: the request is already unsendable when compression starts, and
+		// the sawtooth only buys (budget - target) of runway per episode. The 10%
+		// headroom lets the next request still go out while compression runs.
+		// The 97% hard tier additionally bypasses the fallback-archive circuit
+		// breaker: past this point a skipped compression means the request gets
+		// locally clipped, which is the most quality-destructive degradation.
+		const COMPRESSION_TRIGGER_BUDGET_FRACTION = 0.9;
+		const COMPRESSION_HARD_TRIGGER_FRACTION = 0.97;
+		const hardReached = force
+			|| (getActiveRealMessageCount(shared) > 0
+				&& fitted.originalTokens >= fitted.budgetTokens * COMPRESSION_HARD_TRIGGER_FRACTION);
+		const thresholdReached = force
+			|| (getActiveRealMessageCount(shared) > 0
+				&& fitted.originalTokens >= fitted.budgetTokens * COMPRESSION_TRIGGER_BUDGET_FRACTION);
+		if (!thresholdReached) {
+			if (changed) {
+				persistHistoryState(shared);
+			}
+			return;
 		}
-		compressionRound += 1;
+		if (!hardReached && memory.compressor.isCompressionBreakerOpen()) {
+			AgentUtils.Log("Warn", `[Memory] compression breaker open after repeated fallback archives; skipping consolidation until the hard tier (tokens=${fitted.originalTokens} budget=${fitted.budgetTokens})`);
+			return;
+		}
+		const compressionRound = round + 1;
 		AgentUtils.Log("Info", `[Memory] Effective input budget reached tokens=${fitted.originalTokens} budget=${fitted.budgetTokens} round=${compressionRound}`);
 		shared.step += 1;
 		const stepId = shared.step;
@@ -951,7 +968,7 @@ async function maybeCompressHistory(
 			reason: getMemoryCompressionStartReason(shared),
 			params: {
 				round: compressionRound,
-				maxRounds: 0,
+				maxRounds,
 				pendingMessages,
 				coveredThroughIndex: shared.lastConsolidatedIndex,
 				uncoveredMessages: uncoveredMessages.length,
@@ -965,7 +982,6 @@ async function maybeCompressHistory(
 			shared.llmMaxTry,
 			"tool_calling",
 			{
-				targetTokens: math.max(1, fitted.originalTokens - math.floor(fitted.budgetTokens * 0.5)),
 				stopToken: shared.stopToken,
 				onInput: (phase, messages, options) => {
 					saveStepLLMDebugInput(shared, stepId, phase, messages, options);
@@ -980,7 +996,10 @@ async function maybeCompressHistory(
 			"default",
 			systemPrompt,
 			toolDefinitions,
-			decisionActiveMessages
+			decisionActiveMessages,
+			fitted.budgetTokens,
+			triggerOptions.tools,
+			shared.agentStepCount > 0
 		);
 		if (!(result && result.success && result.compressedCount > 0)) {
 			emitAgentEvent(shared, {
@@ -1000,14 +1019,20 @@ async function maybeCompressHistory(
 					compressedCount: result?.compressedCount ?? 0,
 				},
 			});
-			throw new Error(result?.error ?? "Memory compression could not make progress; history was preserved.");
+			if (changed) {
+				persistHistoryState(shared);
+			}
+			return;
 		}
 		const effectiveCompressedCount = math.max(
 			0,
 			result.compressedCount - (typeof shared.carryMessageIndex === "number" ? 1 : 0)
 		);
 		if (effectiveCompressedCount <= 0) {
-			throw new Error("Memory compression covered only the carried instruction and could not reduce the active history.");
+			if (changed) {
+				persistHistoryState(shared);
+			}
+			return;
 		}
 		emitAgentEvent(shared, {
 			type: "memory_compression_finished",
@@ -1029,15 +1054,41 @@ async function maybeCompressHistory(
 				fallbackError: result.fallbackArchived === true ? result.error : undefined,
 			},
 		});
-		applyCompressedSessionState(shared, result.compressedCount, result.carryMessageIndex, result.sessionSummaryUpdate);
-		persistHistoryState(shared);
-		const nextMessages = buildDecisionMessages(shared, undefined, 1, undefined, false,
-			includePendingUserPrompt ? pendingUserPrompt : "");
-		const nextFit = AgentUtils.fitMessagesToContext(nextMessages, triggerOptions, shared.llmConfig);
-		AgentUtils.Log("Info", `[Memory] Compressed ${effectiveCompressedCount} messages (round ${compressionRound}) tokens=${fitted.originalTokens}->${nextFit.originalTokens}`);
-		if (nextFit.originalTokens >= nextFit.budgetTokens && nextFit.originalTokens >= fitted.originalTokens) {
-			throw new Error("Memory compression did not reduce the effective request size. The remaining instructions or memory exceed the context budget; task paused.");
+		applyCompressedSessionState(
+			shared,
+			result.compressedCount,
+			result.carryMessageIndex,
+			result.handoff === true ? result.summary : result.sessionSummaryUpdate
+		);
+		changed = true;
+		if (result.handoff === true && typeof result.summary === "string") {
+			// Codex-style handoff: the summary rides in the conversation tail so
+			// the resumed turn reads it as the freshest instruction, and the
+			// system prompt (memory files) keeps its bytes for the prefix cache.
+			appendConversationMessage(shared, {
+				role: "user",
+				content: (shared.useChineseResponse
+					? "[交接摘要] 之前的上下文已被压缩为以下交接记录。磁盘文件是唯一事实源；请基于此摘要确认现状后继续，不要重复已完成的工作。\n\n"
+					: "[Handoff summary] The earlier context was compacted into the handoff below. Files on disk are the source of truth; confirm current state from this summary and continue without repeating finished work.\n\n") + result.summary,
+			});
+			AgentUtils.Log("Info", `[Memory] Compressed ${effectiveCompressedCount} messages (handoff, round ${compressionRound})`);
+		} else if (result.fallbackArchived === true) {
+			// The chunk left the active context without a summary. Tell the model
+			// what happened and where truth lives, or it will keep re-deriving the
+			// archived work from stale memory.
+			AgentUtils.Log("Error", `[Memory] Compressed ${effectiveCompressedCount} messages (RAW ARCHIVED, round ${compressionRound}) — summarization failed: ${result.error ?? "unknown error"}`);
+			appendConversationMessage(shared, {
+				role: "user",
+				content: shared.useChineseResponse
+					? "[系统提示] 上一段对话上下文因记忆压缩失败被原文归档，已从当前上下文移除且不再可见。磁盘上的源码文件与 .agent/main 记忆文件是唯一事实源：请先重新读取关键文件确认现状，再继续当前任务，不要凭记忆推断未验证的细节。"
+					: "[System notice] A block of conversation context was raw-archived without a summary because memory compression failed; it is no longer visible. Files on disk and .agent/main memory files are the only source of truth: re-read the key files to confirm current state before continuing; do not infer unverified details from memory.",
+			});
+		} else {
+			AgentUtils.Log("Info", `[Memory] Compressed ${effectiveCompressedCount} messages (summarized, round ${compressionRound})`);
 		}
+	}
+	if (changed) {
+		persistHistoryState(shared);
 	}
 }
 
@@ -1365,7 +1416,92 @@ function ensureToolCallId(toolCallId?: string): string {
 	return AgentUtils.createLocalToolCallId();
 }
 
+function imageBlocksForSingleImage(shared: AgentShared, path: string, mime: string): unknown[] | undefined {
+	const modalities = shared.llmConfig.modalities;
+	if (Array.isArray(modalities) && !modalities.includes("image")) return undefined;
+	const fullPath = tostring(Path(shared.workingDir, path));
+	const imgData = Content.load(fullPath);
+	if (imgData === undefined || imgData === "") return undefined;
+	const mimeMod = require("mime") as { b64(this: void, value: string): LuaMultiReturn<[string | undefined, string | undefined]> };
+	const [encoded] = mimeMod.b64(imgData);
+	if (encoded === undefined || encoded === "") return undefined;
+	const mimeType = mime === "image/jpeg" ? "image/jpeg" : "image/png";
+	return [
+		{ type: "text", text: "[image " + path + "]" },
+		{ type: "image_url", image_url: { url: "data:" + mimeType + ";base64," + encoded } },
+	];
+}
+
+function imageBlocksForToolResult(shared: AgentShared, action: AgentActionRecord): unknown[] | undefined {
+	if (action.tool !== "read_file" || !action.result) return undefined;
+	const result = action.result as Record<string, unknown>;
+	if (result.kind === "image") {
+		return imageBlocksForSingleImage(shared, tostring(result.path), result.mime as string);
+	}
+	// Handle every image in a batch read, not just single-image batches: the
+	// old `length === 1` guard silently dropped all images when the agent
+	// batched two or more screenshot reads into one call, so the model
+	// received JSON metadata instead of seeing the actual frames.
+	const batchResults = result.results;
+	if (Array.isArray(batchResults)) {
+		let hasImage = false;
+		const blocks: unknown[] = [];
+		for (let i = 0; i < batchResults.length; i++) {
+			const entry = batchResults[i] as Record<string, unknown>;
+			if (entry.kind !== "image") continue;
+			hasImage = true;
+			const block = imageBlocksForSingleImage(shared, tostring(entry.path), entry.mime as string);
+			if (block !== undefined) {
+				for (let j = 0; j < block.length; j++) {
+					blocks.push(block[j]);
+				}
+			}
+		}
+		if (hasImage) return blocks.length > 0 ? blocks : undefined;
+	}
+	return undefined;
+}
+
+const EXECUTED_SCRIPT_ELIDE_HEAD = 140;
+
+/**
+ * Old execute_command scripts are dead weight once their result is in: the
+ * model only needs the outcome to keep working, and a probe that has to be
+ * iterated can be rewritten from the result. Shrink the stored arguments to
+ * a stub right after the run so they stop counting toward the context budget.
+ */
+function elideExecutedScriptArguments(shared: AgentShared, action: AgentActionRecord): void {
+	if (action.tool !== "execute_command") return;
+	for (let i = shared.messages.length - 1; i >= 0; i--) {
+		const message = shared.messages[i];
+		if (message.role !== "assistant" || !message.tool_calls) continue;
+		for (let j = 0; j < message.tool_calls.length; j++) {
+			const call = message.tool_calls[j];
+			if (call.id !== action.toolCallId || call.function === undefined) continue;
+			const original = call.function.arguments ?? "";
+			if (original.indexOf("scriptElided") >= 0) return;
+			call.function.arguments = toJson({
+				scriptElided: `${original.length} chars removed after run`,
+				head: original.slice(0, EXECUTED_SCRIPT_ELIDE_HEAD),
+			}, false);
+			return;
+		}
+	}
+}
+
 function appendToolResultMessage(shared: AgentShared, action: AgentActionRecord): void {
+	elideExecutedScriptArguments(shared, action);
+	const imageBlocks = imageBlocksForToolResult(shared, action);
+	if (imageBlocks !== undefined) {
+		shared.messages.push({
+			role: "tool",
+			tool_call_id: action.toolCallId,
+			name: action.providerToolName ?? action.tool,
+			content: imageBlocks as unknown as string | MessageContentBlock[] | undefined,
+			timestamp: os.date("!%Y-%m-%dT%H:%M:%SZ"),
+		});
+		return;
+	}
 	appendConversationMessage(shared, {
 		role: "tool",
 		tool_call_id: action.toolCallId,
@@ -1454,17 +1590,12 @@ function validateDecisionForShared(
 	_params: Record<string, unknown>,
 	enforceFinalTurn = false
 ): { success: true } | { success: false; message: string } {
-	if (enforceFinalTurn && isFinalDecisionTurn(shared) ) {
+	if (enforceFinalTurn && isFinalDecisionTurn(shared) && true) {
 		return shared.role === "sub"
-			? { success: false, message: "the final sub-agent turn must return a plain-text completion instead of calling another tool" }
+			? { success: false, message: "the final sub-agent turn must call finish with structured completion metadata" }
 			: { success: false, message: "the final main-agent turn must return a plain-text completion instead of calling another tool" };
 	}
 	if (!isToolAllowedForRole(shared, tool)) {
-		if (getDecisionDisabledAgentTools(shared).indexOf(tool) >= 0) {
-			return { success: false, message: tool === "analyze_image" && !resolveVisionBinding(shared.llmConfig)
-				? VISION_UNAVAILABLE_MESSAGE
-				: `${tool} is disabled for this task. Retrying will not enable it; check the task's tool settings.` };
-		}
 		return { success: false, message: `${tool} is not allowed in ${shared.workMode} mode for role ${shared.role}` };
 	}
 	return { success: true };
@@ -1480,11 +1611,6 @@ function buildAgentSystemPrompt(shared: AgentShared): string {
 		rolePrompt,
 		getReplyLanguageDirective(shared),
 	];
-	if (getDecisionDisabledAgentTools(shared).indexOf("analyze_image") >= 0) {
-		sections.push(!resolveVisionBinding(shared.llmConfig)
-			? VISION_UNAVAILABLE_MESSAGE
-			: "analyze_image is disabled for this task. Do not attempt image analysis or claim to have inspected images; explain the limitation when visual inspection is needed.");
-	}
 	if (shared.role === "main") {
 		const planPath = Path(shared.workingDir, AgentRuntimePolicy.AGENT_PLAN_FILE);
 		const progressPath = Path(shared.workingDir, AgentRuntimePolicy.AGENT_PROGRESS_FILE);
@@ -1520,10 +1646,21 @@ function buildSkillsSection(shared: AgentShared): string {
 }
 
 
+function getHistoryCharBudget(shared: AgentShared): number | undefined {
+	const config = shared.llmConfig;
+	const contextWindow = math.floor(config.contextWindow > 0 ? config.contextWindow : 0);
+	const maxTokens = math.floor(config.maxTokens > 0 ? config.maxTokens : 0);
+	if (contextWindow <= 0 || maxTokens <= 0 || maxTokens >= contextWindow) return undefined;
+	// Effective input budget measures ~85% of (window - output reserve); ~2
+	// chars per token keeps the estimate conservative for CJK-heavy traffic.
+	return math.floor((contextWindow - maxTokens) * 0.85 * 2);
+}
+
 function getUnconsolidatedMessages(shared: AgentShared): Message[] {
-	// Covered steering input is in the session summary. Retain only the carried
-	// task instruction and the uncompressed tail, so compaction can reclaim space.
-	return projectMessagesForLLMContext(sanitizeMessagesForLLMInput(getActiveConversationMessages(shared)));
+	return projectMessagesForLLMContext(
+		sanitizeMessagesForLLMInput(getActiveConversationMessages(shared)),
+		getHistoryCharBudget(shared)
+	);
 }
 
 function isFinalDecisionTurn(shared: AgentShared): boolean {
@@ -1602,29 +1739,13 @@ function buildDecisionMessages(
 	return messages;
 }
 
-function consumePendingSteering(shared: AgentShared): number {
- if (shared.stopToken.stopped || !shared.inputSource || shared.agentStepCount >= shared.maxSteps - 1) return 0;
- const inputs = shared.inputSource.pending();
- for (const input of inputs) {
-  if (!shared.messages.some(message => message.inputId === input.id)) {
-   appendConversationMessage(shared, {role: "user",content: input.content,inputKind: "steer",inputId: input.id,taskId: shared.taskId,afterStep:shared.step});
-  }
-  // Durable history is committed before acknowledging consumption to the inbox/UI.
-  persistHistoryState(shared);
-  shared.inputSource.delivered(input.id,shared.step);
- }
- return inputs.length;
-}
-
 class MainDecisionAgent extends Node<AgentShared> {
 	async prep(shared: AgentShared): Promise<{ shared: AgentShared }> {
 		if (shared.stopToken.stopped || shared.agentStepCount >= shared.maxSteps) {
 			return { shared };
 		}
 
-		consumePendingSteering(shared);
 		await maybeCompressHistory(shared);
-		consumePendingSteering(shared);
 
 		return { shared };
 	}
@@ -1803,12 +1924,15 @@ class MainDecisionAgent extends Node<AgentShared> {
 			AgentUtils.Log("Info", `[CodingAgent] tool-calling selected tool=${decisions[0].tool}`);
 			return decisions[0];
 		}
-		// The complete model response is available: finish ordinary work before
-		// publishing a questionnaire, preserving relative order within each group.
-		decisions = [
-			...decisions.filter(decision => decision.tool !== "ask_user"),
-			...decisions.filter(decision => decision.tool === "ask_user"),
-		];
+		for (let i = 0; i < decisions.length; i++) {
+			if (decisions[i].tool !== undefined
+				&& decisions[i].preExecutionFailure === undefined) {
+				decisions[i].preExecutionFailure = {
+					code: "INVALID_TOOL_COMBINATION",
+					message: `${decisions[i].tool} cannot be mixed with other tool calls`,
+				};
+			}
+		}
 		AgentUtils.Log("Info", `[CodingAgent] tool-calling selected batch tools=${decisions.map(decision => decision.tool).join(",")}`);
 		return {
 			success: true,
@@ -1832,6 +1956,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 		AgentUtils.Log("Info", `[CodingAgent] decision mode=tool_calling step=${shared.step + 1} messages=${getUnconsolidatedMessages(shared).length}`);
 		let lastError = "tool calling validation failed";
 		let lastRaw = "";
+		let contextRescueUsed = false;
 		for (let attempt = 0; attempt < shared.llmMaxTry; attempt++) {
 			AgentUtils.Log("Info", `[CodingAgent] tool-calling attempt=${attempt + 1}`);
 			const decision = await this.callDecisionByToolCalling(
@@ -1846,7 +1971,43 @@ class MainDecisionAgent extends Node<AgentShared> {
 			if (decision.success) {
 				return decision;
 			}
-			if (decision.requestFailed) return decision;
+			if (decision.requestFailed) {
+				// Provider context-length errors mean our local estimate drifted
+				// below the provider's count. Force one consolidation pass (hard
+				// tier bypasses the breaker) and retry instead of failing the task.
+				const failureText = `${decision.message}\n${decision.raw ?? ""}`.toLowerCase();
+				const isContextLengthError = failureText.indexOf("context length") >= 0
+					|| failureText.indexOf("maximum context") >= 0
+					|| failureText.indexOf("too large") >= 0
+					|| failureText.indexOf("reduce the length") >= 0
+					|| failureText.indexOf("413") >= 0;
+				if (!contextRescueUsed && isContextLengthError) {
+					contextRescueUsed = true;
+					AgentUtils.Log("Error", `[CodingAgent] provider context-length error; forcing memory compression before retry: ${truncateText(decision.message, 160)}`);
+					await maybeCompressHistory(shared, false, "", true);
+					lastError = decision.message;
+					lastRaw = decision.raw ?? "";
+					continue;
+				}
+				// Transport failures (connection drops, API blips, timeouts)
+				// are transient — retry instead of killing the task. The old
+				// behavior returned immediately here, so a 2-second API outage
+				// permanently failed the task with all work lost.
+				const isTransportError = failureText.indexOf("failed to get http response") >= 0
+					|| failureText.indexOf("timeout") >= 0
+					|| failureText.indexOf("connection refused") >= 0
+					|| failureText.indexOf("connection reset") >= 0
+					|| failureText.indexOf("502") >= 0
+					|| failureText.indexOf("503") >= 0
+					|| failureText.indexOf("504") >= 0;
+				if (isTransportError && attempt < shared.llmMaxTry - 1) {
+					AgentUtils.Log("Warn", `[CodingAgent] transport failure (attempt ${attempt + 1}/${shared.llmMaxTry}), retrying: ${truncateText(decision.message, 120)}`);
+					lastError = decision.message;
+					lastRaw = decision.raw ?? "";
+					continue;
+				}
+				return decision;
+			}
 			lastError = decision.message;
 			lastRaw = decision.raw ?? "";
 			AgentUtils.Log("Error", `[CodingAgent] tool-calling attempt failed: ${lastError}`);
@@ -1892,17 +2053,6 @@ class MainDecisionAgent extends Node<AgentShared> {
 			persistHistoryState(shared);
 			return "main";
 		}
-		if (isDecisionPlainTextCompletion(result) && shared.inputSource && shared.agentStepCount < shared.maxSteps - 1) {
-   if (shared.inputSource.pending().length > 0) {
-    appendConversationMessage(shared,{role:"assistant",content:result.content,reasoning_content:result.reasoningContent});
-    shared.agentStepCount += 1;
-    shared.step += 1;
-    emitAssistantMessageFinished(shared,shared.step,result.content,result.reasoningContent);
-    consumePendingSteering(shared);
-    persistHistoryState(shared);
-    return "main";
-   }
-  }
 		if (isDecisionPlainTextCompletion(result)) {
 			shared.response = result.content;
 			const budgetState = getPlainTextCompletionBudgetState(shared.agentStepCount, shared.maxSteps);
@@ -2036,17 +2186,6 @@ function createAgentToolExecutionContext(
 		return next === undefined ? value : string.sub(value, 1, next - 1);
 	};
 	const contextParts: string[] = [];
-	if (action.tool === "analyze_image") {
-		contextParts.push(
-			`Original task goal:\n${takeVisionContext(shared.userQuery, 1800)}`,
-			action.reason.trim() !== "" ? `Current Agent stage:\n${takeVisionContext(action.reason, 800)}` : "",
-		);
-		const changeSet = Tools.summarizeTaskChangeSet(shared.taskId);
-		if (changeSet.success && changeSet.files.length > 0) {
-			const changedFiles = changeSet.files.slice(0, 12).map(item => `${item.op}: ${item.path}`);
-			contextParts.push(`Relevant files changed in this task:\n${changedFiles.join("\n")}`);
-		}
-	}
 	return {
 		sessionId: shared.sessionId,
 		taskId: shared.taskId,
@@ -2110,18 +2249,7 @@ async function executeToolAction(shared: AgentShared, action: AgentActionRecord)
 	});
 	action.control = execution.control;
 	action.execution = execution.execution;
-	if (action.tool === "analyze_image") {
-		const total = getVisionTaskUsage(shared.taskId);
-		if (execution.output.requestIssued === true) total.requestCount++;
-		const usage = execution.output.usage as {prompt_tokens?: number; completion_tokens?: number; total_tokens?: number} | undefined;
-		if (usage && typeof usage.prompt_tokens === "number" && typeof usage.completion_tokens === "number") {
-			total.reportedRequests++;
-			total.inputTokens += usage.prompt_tokens;
-			total.outputTokens += usage.completion_tokens;
-			total.totalTokens += usage.total_tokens ?? (usage.prompt_tokens + usage.completion_tokens);
-		}
-		emitAgentEvent(shared, {type:"metrics_updated", sessionId:shared.sessionId, taskId:shared.taskId, step:action.step, metrics:{visionUsage:total}});
-	} else if (action.tool === "execute_command") {
+	if (action.tool === "execute_command") {
 		const capture = execution.output.visionCapture as {batchCount?: number; frameCount?: number} | undefined;
 		if (capture && typeof capture.batchCount === "number" && typeof capture.frameCount === "number") {
 			const total = getVisionTaskUsage(shared.taskId);
@@ -2384,7 +2512,7 @@ class BatchToolAction extends Node<AgentShared> {
 				if (action.result?.success === true) spawnSeen = true;
 				continue;
 			}
-			if (spawnSeen) {
+			if (spawnSeen && true) {
 				didDelegatedForegroundWork = true;
 			}
 		}
@@ -2477,7 +2605,6 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 	}
 	const llmConfig = {...llmConfigRes.config};
 	const disabledAgentTools = (options.disabledAgentTools ?? []).slice();
-	if (!resolveVisionBinding(llmConfig) && disabledAgentTools.indexOf("analyze_image") < 0) disabledAgentTools.push("analyze_image");
 	const taskRes = options.taskId !== undefined
 		? { success: true as const, taskId: options.taskId }
 		: Tools.createTask(normalizedPrompt, options.workMode ?? "code");
@@ -2498,8 +2625,8 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 	if (options.resumeConversation === true && normalizedPrompt.trim() === "") {
 		for (let i = persistedSession.messages.length - 1; i >= 0; i--) {
 			const message = persistedSession.messages[i];
-			if (message.role === "user" && message.inputKind !== "steer" && typeof message.content === "string" && message.content.trim() !== "") {
-				effectiveUserQuery = message.content;
+			if (message.role === "user" && typeof message.content === "string" && message.content.trim() !== "") {
+				if (typeof message.content === "string") effectiveUserQuery = message.content;
 				break;
 			}
 		}
@@ -2510,7 +2637,6 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 	const freshProjectCodeFile = freshProject.codeFile;
 
 	const shared: AgentShared = {
-		inputSource: options.inputSource,
 		sessionId: options.sessionId,
 		taskId: taskRes.taskId,
 		role: options.role ?? "main",
@@ -2611,10 +2737,8 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 			appendConversationMessage(shared, {
 				role: "user",
 				content: normalizedPrompt,
-    inputKind: "prompt",inputId: options.inputId,taskId: shared.taskId,
 			});
 			persistHistoryState(shared);
-   if (options.inputId !== undefined) shared.inputSource?.delivered(options.inputId,0);
 		}
 		const flow = new CodingAgentFlow(shared.role);
 		await flow.run(shared);
