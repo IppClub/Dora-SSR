@@ -200,6 +200,21 @@ bool Content::move(String src, String dst) {
 	return true;
 }
 
+bool Content::renameFolder(String src, String dst) {
+	const fs::path source(src.toString());
+	const fs::path target(dst.toString());
+	std::error_code error;
+	if (!fs::is_directory(fs::symlink_status(source, error)) || error) return false;
+#if BX_PLATFORM_WINDOWS
+	return MoveFileW(source.wstring().c_str(), target.wstring().c_str()) != 0;
+#else
+	if (fs::symlink_status(target, error).type() != fs::file_type::not_found) return false;
+	error.clear();
+	fs::rename(source, target, error);
+	return !error;
+#endif
+}
+
 bool Content::save(String filename, String content) {
 	return save(filename, r_cast<const uint8_t*>(content.rawData()), s_cast<int64_t>(content.size()));
 }

@@ -303,7 +303,21 @@ local allEntries = {dirty: {}, hasDirty: false, runId: 0}
 allEntries.scanDir = (path, dir, noPreview = false) ->
 	entries = []
 	unless dir\match "^%."
-		for file in *getAllFiles Path(path, dir), ["lua", "xml", yueext, "tl", "wasm"]
+		root = Path path, dir
+		files = getAllFiles root, ["lua", "xml", yueext, "tl", "wasm"]
+		atomPie = Content\exist Path(root, ".git", "dora-atompie-id")
+		sourceOnly = nil
+		if atomPie
+			project = oldRequire "Script.Dev.AtomPieProject"
+			if source := project.entryAt root
+				if Path\getExt(source)\lower! in ["ts", "tsx"]
+					stem = Path\replaceExt source, ""
+					compiled = for file in *files
+						break true if Path\replaceExt(file, "") == stem
+					unless compiled
+						sourceOnly = source
+						files[] = source
+		for file in *files
 			if "init" == Path\getName(file)\lower!
 				fileName = Path\replaceExt file, ""
 				fileName = Path path, dir, fileName
@@ -337,7 +351,7 @@ allEntries.scanDir = (path, dir, noPreview = false) ->
 							workDir: projectPath
 						}
 						tests[] = entry
-				entry = :entryName, :fileName, :projectPath, :examples, :tests, :repo
+				entry = :entryName, :fileName, :projectPath, :examples, :tests, :repo, :atomPie, needsBuild: file == sourceOnly
 				bannerFile = repeat
 					break nil if noPreview
 					break nil unless config.showPreview
@@ -390,7 +404,7 @@ allEntries.rebuildEntries = ->
 	gamesInDev = []
 	doraTools = [tool for tool in *allEntries.builtinTools]
 	for entry in *allEntries.projectEntries
-		if isToolEntry entry
+		if not entry.atomPie and isToolEntry entry
 			entry.kind = "tool"
 			doraTools[] = entry
 		else
@@ -466,6 +480,7 @@ export getMobileFeedEntries = (refresh = false, dirtyProjectPath = nil) ->
 			fileName: entry.fileName
 			workDir: Path\getPath entry.fileName
 			bannerFile: entry.bannerFile
+			needsBuild: entry.needsBuild
 			kind: "local"
 		}
 	items
@@ -911,7 +926,11 @@ setupEventHandlers = ->
 					if data.id == nil or data.id == activeSearchId
 						activeSearchId = 0
 		\slot "UpdateEntries", -> updateEntries!
-
+		\gslot "AtomPieOpenProject", (id) ->
+			allEntries.atomPieActivated = true
+			if App.platform in ["Windows", "macOS"] and App.webIDEEnabled
+				emit "AppWebView", "/ide/hide", false
+			allEntries.openAtomPieProject id
 setupEventHandlers!
 clearTempFiles!
 
@@ -1223,6 +1242,33 @@ displayWindowFlags = $WindowFlag(
 	AlwaysAutoResize
 	NoFocusOnAppearing
 )
+allEntries.drawAtomPieStatus = (width, top) ->
+	status = allEntries.atomPieStatus
+	return 0 unless status and status.phase
+	if status.expiresAt and App.runningTime >= status.expiresAt
+		allEntries.atomPieStatus = nil
+		return 0
+	zh = useChinese
+	message = switch status.phase
+		when "resolve" then zh and "正在读取原子派作品…" or "Looking up AtomPie project…"
+		when "clone" then zh and "正在拉取源码…" or "Cloning source…"
+		when "verify" then zh and "正在校验源码…" or "Verifying source…"
+		else zh and "导入失败，请从原子派重试" or "Import failed. Try again from AtomPie."
+	ImGui.SetNextWindowPos Vec2(0, top), $SetCond Always
+	ImGui.SetNextWindowSize Vec2(width, 38), $SetCond Always
+	ImGui.Begin "AtomPie Import", windowFlags, ->
+		ImGui.Text message
+		if status.progress and width >= 340
+			ImGui.SameLine!
+			ImGui.ProgressBar status.progress, Vec2(-1, 18)
+	38
+
+allEntries.drawGameTest = (game, zh) ->
+	if game.needsBuild
+		ImGui.TextDisabled zh and "编译后可测试" or "Build required to play"
+	elseif ImGui.Button "#{zh and '开始测试' or 'Game Test'}###{game.fileName}", Vec2 -1, 40
+		enterDemoEntry game
+
 -- Keyboard-focus and footer initialization state belong to this UI instance.
 footerWindow = do
 	gamepadInputWindowFlags = $WindowFlag(
@@ -1483,6 +1529,9 @@ entryWindow = do
 			applyUIMode nextMode
 		if mobileMode and not connected
 			applyUIMode true if isInEntry and not feedHost
+			if isInEntry and feedHost and feedHost.visible
+				allEntries.revealAtomPieInFeed!
+				allEntries.drawAtomPieStatus App.visualSize.width, 60
 			return
 		if App.fpsLimited ~= config.fpsLimited
 			config.fpsLimited = App.fpsLimited
@@ -1540,6 +1589,8 @@ entryWindow = do
 				SetNextItemWidth zh and -95 or -140
 				if InputText zh and '筛选' or 'Filter', filterBuf, ["AutoSelectAll",]
 					config.filter = filterBuf.text
+					allEntries.atomPieFocusedFile = nil
+					allEntries.atomPieReveal = nil
 				SameLine!
 				if Button zh and '下载' or 'Download'
 					allClear!
@@ -1549,8 +1600,9 @@ entryWindow = do
 			Separator!
 
 		allEntries.anyEntryMatched = false
-		SetNextWindowPos Vec2 0, 50
-		SetNextWindowSize Vec2 fullWidth, height - 100
+		importHeight = allEntries.drawAtomPieStatus fullWidth, 50
+		SetNextWindowPos Vec2 0, 50 + importHeight
+		SetNextWindowSize Vec2 fullWidth, height - 100 - importHeight
 		-- Keep the card layout width stable when the vertical scrollbar appears.
 		const scrollbarSize = 25
 		ImGui.SetNextWindowContentSize Vec2(math.max(1, fullWidth - paddingX * 2 - scrollbarSize), 0)
@@ -1583,10 +1635,18 @@ entryWindow = do
 					displayName = if repo
 						if zh then repo.title.zh else repo.title.en
 					displayName ??= gameName
-					if allEntries.match displayName
+					focused = allEntries.atomPieFocusedFile == fileName
+					if allEntries.match(displayName) or focused
+						allEntries.anyEntryMatched = true
 						TextColored themeColor, zh and "项目：" or "Project:"
 						SameLine!
-						TextWrapped displayName
+						if focused
+							PushStyleColor "Text", themeColor, -> TextWrapped displayName
+							if allEntries.atomPieReveal
+								ImGui.SetScrollY 0
+								allEntries.atomPieReveal = nil
+						else
+							TextWrapped displayName
 						if columns > 1
 							if bannerFile and bannerTex
 								width: texWidth, height: texHeight = bannerTex
@@ -1596,8 +1656,7 @@ entryWindow = do
 								Dummy Vec2.zero
 								SameLine!
 								Image bannerFile, Vec2 texWidth + 10, texHeight
-							if Button "#{zh and "开始测试" or "Game Test"}###{fileName}", Vec2 -1, 40
-								enterDemoEntry game
+							allEntries.drawGameTest game, zh
 						else
 							if bannerFile and bannerTex
 								width: texWidth, height: texHeight = bannerTex
@@ -1613,8 +1672,7 @@ entryWindow = do
 								Dummy Vec2 padding, 0
 								SameLine!
 								Image bannerFile, Vec2 texWidth, texHeight
-							if Button "#{zh and "开始测试" or "Game Test"}###{fileName}", Vec2 -1, 40
-								enterDemoEntry game
+							allEntries.drawGameTest game, zh
 						if #tests == 0 and #examples == 0
 							allEntries.thinSep!
 						NextColumn!
@@ -1725,8 +1783,9 @@ unless App.platform == "Emscripten"
 	moduleCache = sceneModuleCache
 	if (App.platform == "Windows" or App.platform == "macOS") and App.webIDEEnabled
 		thread ->
+			sleep!
 			wait -> webStatus.url ~= nil or not App.webIDEEnabled
-			emit "AppWebView", "/ide/show", true if App.webIDEEnabled
+			emit "AppWebView", "/ide/show", true if App.webIDEEnabled and not allEntries.atomPieActivated
 
 startMobileUI = ->
 	mobileFeed = oldRequire "Script.Dev.Mobile.Feed"
@@ -1780,6 +1839,10 @@ startMobileUI = ->
 		feedHost = trackMobileHost mobileFeed.startMobileFeed feedOptions
 	startMobilePlay = (entry) ->
 		return if HttpServer.wsConnectionCount > 0
+		if entry.needsBuild
+			mobileLaunchErrors[entry.id] = useChinese and "编译后可试玩" or "Build required to play"
+			restartMobileFeed entry
+			return
 		originFeed = feedHost
 		remixHost\removeFromParent true if remixHost
 		remixHost = nil
@@ -1889,3 +1952,38 @@ startMobileUI = ->
 	restartMobileFeed!
 
 applyUIMode true if mobileMode
+
+allEntries.revealAtomPieInFeed = ->
+	return unless allEntries.atomPieReveal
+	for entry in *getMobileFeedEntries!
+		if entry.fileName == allEntries.atomPieFocusedFile
+			feedHost\emit "RestoreFeedEntry", entry
+			allEntries.atomPieReveal = nil
+			break
+
+allEntries.openAtomPieProject = (id) ->
+	atomPieProject = oldRequire "Script.Dev.AtomPieProject"
+	status = {}
+	Log "Info", "Opening AtomPie project #{id}…"
+	accepted = atomPieProject.open id, ((file) ->
+		updateEntries!
+		Log "Info", "AtomPie project ready: #{file}"
+		if allEntries.atomPieStatus == status
+			allEntries.atomPieStatus = nil
+			allEntries.atomPieFocusedFile = Path\replaceExt file, ""
+			unless mobileMode
+				for i, game in ipairs gamesInDev
+					if game.fileName == allEntries.atomPieFocusedFile
+						table.remove gamesInDev, i
+						table.insert gamesInDev, 1, game
+						break
+			allEntries.atomPieReveal = true
+	), ((message) ->
+		Log "Error", "Could not open AtomPie project #{id}: #{tostring message}"
+		status.phase = "error"
+		status.progress = nil
+		status.expiresAt = App.runningTime + 10
+	), (phase, progress) ->
+		status.phase = phase
+		status.progress = progress
+	allEntries.atomPieStatus = status if accepted

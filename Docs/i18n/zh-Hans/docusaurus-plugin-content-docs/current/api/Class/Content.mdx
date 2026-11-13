@@ -297,6 +297,16 @@ move: function(self: Content, srcPath: string, dstPath: string): boolean
 | --- | --- |
 | boolean | 如果成功移动了文件或目录，则为 `true`，否则为 `false`。 |
 
+## renameFolder
+
+在同一文件系统内重命名目录。目标路径必须可用。
+
+```tl
+renameFolder: function(self: Content, srcPath: string, dstPath: string): boolean
+```
+
+目录重命名成功时返回 `true`。
+
 ## isAbsolutePath
 
 **类型：** 函数。

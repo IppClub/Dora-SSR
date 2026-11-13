@@ -273,6 +273,7 @@ class Content
 	bool isAbsolutePath(String path);
 	bool copy(String src, String dst);
 	bool move(String src, String dst);
+	bool renameFolder(String src, String dst);
 	bool remove(String path);
 	string getFullPath(String filename);
 	tolua_outside void Content_insertSearchPath @ insertSearchPath(int index, String path);

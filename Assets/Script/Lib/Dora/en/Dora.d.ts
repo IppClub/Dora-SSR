@@ -4484,6 +4484,14 @@ class Content {
 	move(srcPath: string, dstPath: string): boolean;
 
 	/**
+	 * Renames a directory on the same filesystem. Use a new path for the destination.
+	 * @param srcPath The directory to rename.
+	 * @param dstPath The new path.
+	 * @returns Whether the rename succeeded.
+	 */
+	renameFolder(srcPath: string, dstPath: string): boolean;
+
+	/**
 	 * Checks if the specified path is an absolute path.
 	 * @param path The path to check.
 	 * @returns `true` if the path is an absolute path, `false` otherwise.

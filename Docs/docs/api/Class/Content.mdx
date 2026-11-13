@@ -298,6 +298,16 @@ move: function(self: Content, srcPath: string, dstPath: string): boolean
 | --- | --- |
 | boolean | `true` if the file or directory was moved to target path, `false` otherwise. |
 
+## renameFolder
+
+Renames a directory on the same filesystem. Use a new path for the destination.
+
+```tl
+renameFolder: function(self: Content, srcPath: string, dstPath: string): boolean
+```
+
+Returns `true` when the directory has been renamed.
+
 ## isAbsolutePath
 
 **Type:** Function.
