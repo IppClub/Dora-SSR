@@ -1,3 +1,4 @@
+import {preventImeSubmit} from '@dora-studio/agent-ui';
 import {useEffect,useRef,useState} from 'react';
 import {decodeByokConfigurations,type ByokConfiguration} from './byok-configurations-client';
 import {requestConfiguration} from './ByokCreateConfiguration';
@@ -10,7 +11,7 @@ export function ByokEditConfiguration({configuration,onSaved}:{configuration:Byo
   const live=useRef<{active:boolean;busy:boolean;controller:AbortController}|undefined>(undefined);
   useEffect(()=>{const context={active:true,busy:false,controller:new AbortController()};live.current=context;return()=>{context.active=false;context.controller.abort();};},[]);
   const valid=(value:string)=>value.trim().length>0&&value.length<=256&&!/[\u0000-\u001f\u007f]/.test(value);
-  return <form className="model-config-create" onSubmit={event=>{
+  return <form onKeyDownCapture={preventImeSubmit} className="model-config-create" onSubmit={event=>{
     event.preventDefault();const context=live.current;
     if(!context?.active||context.busy||state!=='idle'||!valid(label)||!valid(model))return;
     context.busy=true;setState('saving');

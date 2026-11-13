@@ -286,11 +286,14 @@
     'resolve-billing': () => { if (!state.pending) return toast('没有暂挂调用。'); if (!$('billing-reason').value.trim()) return toast('请输入核对处理原因。'); state.balance += state.reserved; state.apiBalance += state.reserved; state.reserved = 0; state.pending = false; const item = state.ledger.findLast(x=>x.cost===null); if (item) { item.cost=0; item.status='人工核对后释放（模拟）'; } sync(); toast('已模拟释放预留，处理原因仅在此界面填写，不保存。'); }
   };
   document.addEventListener('click', event => { const b = event.target.closest('button'); if (!b || b.disabled) return; if (b.dataset.projectId)openProject(b.dataset.projectId); if (b.dataset.page) page(b.dataset.page); if (b.dataset.action && actions[b.dataset.action]) actions[b.dataset.action](); if (b.dataset.idea) {$('idea').value = b.dataset.idea;sync();$('idea').focus();} if (b.dataset.tab) { document.querySelectorAll('[data-tab]').forEach(x=>x.setAttribute('aria-selected',String(x===b))); ['preview','code','assets'].forEach(id=>$(id).hidden=id!==b.dataset.tab); } if (b.dataset.adminTab) { document.querySelectorAll('[data-admin-tab]').forEach(x=>x.setAttribute('aria-pressed',String(x===b))); ['pool','grants','billing'].forEach(id=>$(id).hidden=id!==b.dataset.adminTab); } if (b.dataset.move) move(b.dataset.move); if (b.dataset.scenario) { if (state.busy || state.reserved) { toast('先完成或恢复/核对当前调用，再切换演练状态。'); return; } state.scenario=b.dataset.scenario; sync(); document.querySelectorAll('[data-scenario]').forEach(x=>x.classList.toggle('active',x===b)); banner({normal:'',queued:'并发排队演练：发送描述后显示等待槽位。',quota:'额度不足演练：发送描述后不会派发调用。',compile:'编译失败演练：发送描述后保留旧预览。',incompatible:'项目已导入可编辑，但示例原生模块不支持 Web。不会自动改写原玩法。',usage:'缺失 usage 演练：发送后将预留暂挂，管理员可核对。'}[state.scenario]); } });
+  document.querySelectorAll('form').forEach(form=>form.addEventListener('keydown',event=>{
+    if(event.key==='Enter' && (event.isComposing || event.keyCode===229))event.preventDefault();
+  }));
   $('model-choice').addEventListener('change', event => { if (state.busy || state.reserved || state.paused) { event.target.value=state.model; toast('请先完成当前调用或检查点恢复，再切换模型。'); return; } state.model=event.target.value; sync(); });
   for(const id of ['idea','followup']) {
     $(id).addEventListener('input',sync);
     $(id).addEventListener('keydown',event=>{
-      if(event.key==='Enter' && (event.metaKey || event.ctrlKey) && !event.isComposing){
+      if(event.key==='Enter' && (event.metaKey || event.ctrlKey) && !event.isComposing && event.keyCode!==229){
         event.preventDefault(); if(id==='idea')actions.create();else actions.generate();
       }
     });

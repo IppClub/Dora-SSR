@@ -1,3 +1,4 @@
+export {isImeKeyEvent,preventImeSubmit} from './InputEvents';
 import {parseAgentMessageAttachments,SharedAgentAttachmentGallery} from './AgentMessageAttachments';
 export {parseAgentMessageAttachments,replaceAgentMessageText,SharedAgentAttachmentGallery} from './AgentMessageAttachments';
 export type {AgentMessageAttachment,AgentAttachmentImageLoader} from './AgentMessageAttachments';

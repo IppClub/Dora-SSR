@@ -1,3 +1,4 @@
+import {isImeKeyEvent} from './InputEvents';
 import React from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -124,12 +125,13 @@ function ComposerContent(props:SharedAgentComposerProps){
         if(generationRef.current!==generation)return;
       }
       const text=[draft.trim(),files.length?copy.attachmentContext+'\n'+files.map(a=>JSON.stringify({name:a.file.name,path:a.path})).join('\n'):''].filter(Boolean).join('\n\n');
+      // Clear before dispatch, while the request is still waiting for the model.
+      if(latest.current.prompt===draft)props.onPromptChange('');
       const accepted=await props.onSend(delivery,text,requestId);
       if(accepted===false){setAttachmentError(copy.sendFailed);return;}
       if(generationRef.current!==generation)return;
       setAttachments(current=>current.filter(a=>!files.some(f=>f.id===a.id)));
       for(const a of files)if(a.preview)URL.revokeObjectURL(a.preview);
-      if(latest.current.prompt===draft)props.onPromptChange('');
     }catch(error){if(generationRef.current===generation)setAttachmentError(error instanceof Error?error.message:String(error));}
     finally{if(uploadAbortRef.current===abort){uploadAbortRef.current=undefined;sendingRef.current=false;setUploading(false);}}
   };
@@ -141,7 +143,7 @@ function ComposerContent(props:SharedAgentComposerProps){
         <IconButton size="small" aria-label={copy.removeAttachment(a.file.name)} disabled={uploading} onClick={()=>{if(a.preview)URL.revokeObjectURL(a.preview);setAttachments(current=>current.filter(item=>item.id!==a.id));}} sx={{position:'absolute',top:4,right:4,width:24,height:24,color:Color.TextSecondary,backgroundColor:'transparent','&:hover':{backgroundColor:Color.SurfaceHover}}}><CloseIcon sx={{fontSize:14}}/></IconButton>
       </Box>)}</Box>:null}
       {attachmentError?<Box role="alert" sx={{color:'#f44336',px:2,pt:1,fontSize:12}}>{attachmentError}</Box>:null}
-      <textarea onPaste={event=>{const files=Array.from(event.clipboardData.files);if(files.length&&props.onUploadAttachment){event.preventDefault();addFiles(files);}}} ref={textAreaRef} aria-label={props.ariaLabel??'Agent 描述'} value={prompt} maxLength={maxLength} disabled={disabledInput} onChange={event=>props.onPromptChange(event.target.value.slice(0,maxLength))} onCompositionStart={()=>{isComposingRef.current=true;}} onCompositionEnd={event=>{isComposingRef.current=false;props.onPromptChange(event.currentTarget.value);}} onKeyDown={event=>{if(isComposingRef.current||event.nativeEvent.isComposing)return;if(event.key==='Escape'&&running&&canStop&&!stopping){event.preventDefault();props.onStop?.();return;}if(event.key==='Enter'&&!event.shiftKey&&!event.altKey){event.preventDefault();submit(isMac?event.metaKey:event.ctrlKey);}}} placeholder={planMode?copy.planPromptPlaceholder:copy.promptPlaceholder} style={agentTextAreaStyle(compact)}/>
+      <textarea onPaste={event=>{const files=Array.from(event.clipboardData.files);if(files.length&&props.onUploadAttachment){event.preventDefault();addFiles(files);}}} ref={textAreaRef} aria-label={props.ariaLabel??'Agent 描述'} value={prompt} maxLength={maxLength} disabled={disabledInput} onChange={event=>props.onPromptChange(event.target.value.slice(0,maxLength))} onCompositionStart={()=>{isComposingRef.current=true;}} onCompositionEnd={event=>{isComposingRef.current=false;props.onPromptChange(event.currentTarget.value);}} onKeyDown={event=>{if(isComposingRef.current||isImeKeyEvent(event.nativeEvent))return;if(event.key==='Escape'&&running&&canStop&&!stopping){event.preventDefault();props.onStop?.();return;}if(event.key==='Enter'&&!event.shiftKey&&!event.altKey){event.preventDefault();submit(isMac?event.metaKey:event.ctrlKey);}}} placeholder={planMode?copy.planPromptPlaceholder:copy.promptPlaceholder} style={agentTextAreaStyle(compact)}/>
       <Stack direction="row" spacing={1} alignItems="center" justifyContent="space-between" sx={{px:compact?0.75:1,pb:compact?0.5:1,minHeight:compact?32:38,flexWrap:'wrap',rowGap:compact?0.25:0.75}}>
         <Stack direction="row" spacing={0.25} alignItems="center" sx={{minWidth:0,flexShrink:0,flexWrap:'wrap',rowGap:0.25,'& .MuiButton-root':{whiteSpace:'nowrap'}}}>
           {props.onUploadAttachment?<><input ref={fileInputRef} type="file" multiple hidden onChange={event=>{addFiles(Array.from(event.target.files??[]));event.target.value='';}}/><Tooltip title={copy.attachFiles}><span><IconButton aria-label={copy.attachFiles} size="small" disabled={disabled||loading||uploading} onClick={()=>fileInputRef.current?.click()} sx={{color:Color.TextSecondary}}><AddIcon fontSize="small"/></IconButton></span></Tooltip></>:null}

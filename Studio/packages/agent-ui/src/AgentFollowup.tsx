@@ -1,3 +1,4 @@
+import {isImeKeyEvent} from './InputEvents';
 import React from 'react';
 import {parseAgentMessageAttachments,replaceAgentMessageText} from './AgentMessageAttachments';
 import Box from '@mui/material/Box';
@@ -47,7 +48,7 @@ export function AgentFollowupQueue({pendingInputs=[],canSteer=true,onInputAction
           <Tooltip title="删除消息"><IconButton size="small" aria-label="删除消息" disabled={busy||!onInputAction} onClick={()=>void perform({action:'cancel',inputId:item.id})} sx={{fontSize:15,color:Color.TextSecondary}}>×</IconButton></Tooltip>
         </>}
       </Box>
-      {editing?.id===item.id&&<Box sx={{mr:1,mt:.5,...agentInputSurface(compact)}}><textarea autoFocus aria-label="编辑排队消息" value={editing.text} disabled={busy||!onInputAction} onChange={event=>setEditing({...editing,text:event.target.value})} maxLength={5000} rows={3} style={{...agentTextAreaStyle(compact),overflowY:'auto'}} onKeyDown={event=>{if(event.nativeEvent.isComposing)return;if(event.key==='Escape'){event.preventDefault();void finishEdit(false);}if(event.key==='Enter'&&(event.metaKey||event.ctrlKey)){event.preventDefault();void finishEdit(true);}}}/><Box sx={{display:'flex',justifyContent:'flex-end',px:1,pb:.5}}><Button size="small" disabled={busy||!onInputAction} onClick={()=>void finishEdit(false)}>取消</Button><Button size="small" disabled={busy||!onInputAction||!editing.text.trim()} onClick={()=>void finishEdit(true)}>保存</Button></Box></Box>}
+      {editing?.id===item.id&&<Box sx={{mr:1,mt:.5,...agentInputSurface(compact)}}><textarea autoFocus aria-label="编辑排队消息" value={editing.text} disabled={busy||!onInputAction} onChange={event=>setEditing({...editing,text:event.target.value})} maxLength={5000} rows={3} style={{...agentTextAreaStyle(compact),overflowY:'auto'}} onKeyDown={event=>{if(isImeKeyEvent(event.nativeEvent))return;if(event.key==='Escape'){event.preventDefault();void finishEdit(false);}if(event.key==='Enter'&&(event.metaKey||event.ctrlKey)){event.preventDefault();void finishEdit(true);}}}/><Box sx={{display:'flex',justifyContent:'flex-end',px:1,pb:.5}}><Button size="small" disabled={busy||!onInputAction} onClick={()=>void finishEdit(false)}>取消</Button><Button size="small" disabled={busy||!onInputAction||!editing.text.trim()} onClick={()=>void finishEdit(true)}>保存</Button></Box></Box>}
     </Box>)}
     {error&&<Box role="alert" sx={{fontSize:12,color:Color.Warning,py:.5}}>{error}</Box>}
   </Box>;

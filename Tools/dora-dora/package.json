@@ -82,6 +82,7 @@
 		"test:git-progress": "xmake test-suite -P ../.. --suite=web-ide --case=test-git-progress",
 		"test:log-buffer": "xmake test-suite -P ../.. --suite=web-ide --case=test-log-buffer",
 		"test:agent-patch-batch": "xmake test-suite -P ../.. --suite=web-ide --case=test-agent-patch-batch",
+		"test:ime-input": "xmake test-suite -P ../.. --suite=ui --case=test-ime-input",
 		"test:agent-auto-scroll": "xmake test-suite -P ../.. --suite=web-ide --case=test-agent-auto-scroll",
 		"test:first-project-tour": "xmake test-suite -P ../.. --suite=web-ide --case=test-first-project-tour",
 		"test:agent-render-window": "xmake test-suite -P ../.. --suite=web-ide --case=test-agent-render-window",

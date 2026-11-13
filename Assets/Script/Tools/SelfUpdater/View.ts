@@ -20,8 +20,6 @@ export const createUpdaterPanel = () => {
   ImGui.PushStyleVar(StyleVarNum.WindowRounding, 16, () => ImGui.PushStyleVar(StyleVarVec.WindowPadding, Vec2(20, 18), () => {
    ImGui.Begin("EngineUpdate", [WindowFlag.NoDecoration, WindowFlag.NoSavedSettings, WindowFlag.NoMove], () => {
     ImGui.Text(zh ? "引擎更新" : "Engine update");
-    ImGui.SameLine(width - 70);
-    if (ImGui.Button("X##close-update", Vec2(30, 30))) node.removeFromParent(true);
     ImGui.Separator();
     ImGui.BeginChild("UpdateContent", Vec2(0, -62), () => {
      const title = state.phase === "checking" ? (zh ? "正在检查更新…" : "Checking for updates…")

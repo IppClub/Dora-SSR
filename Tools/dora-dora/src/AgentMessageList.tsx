@@ -1,4 +1,4 @@
-import {parseAgentMessageAttachments,replaceAgentMessageText} from '@dora-studio/agent-ui';
+import {isImeKeyEvent,parseAgentMessageAttachments,replaceAgentMessageText} from '@dora-studio/agent-ui';
 import AgentMessageAttachments from './AgentMessageAttachments';
 import React from 'react';
 import Box from '@mui/material/Box';
@@ -86,20 +86,18 @@ function AgentMessageList(props: AgentMessageListProps) {
 
 	const sendEdit = async (message: AgentSessionMessage) => {
 		const prompt = editingPrompt.trim();
-		if (prompt === "" || sending) return;
+		if (prompt === "" || sending || props.editDisabled || !props.onResendPrompt) return;
 		setSending(true);
+		cancelEdit();
 		try {
-			const success = await props.onResendPrompt?.(message, replaceAgentMessageText(message.content,prompt));
-			if (success) {
-				cancelEdit();
-			}
+			await props.onResendPrompt(message, replaceAgentMessageText(message.content,prompt));
 		} finally {
 			setSending(false);
 		}
 	};
 
 	const handleEditKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>, message: AgentSessionMessage) => {
-		if (isComposingRef.current || event.nativeEvent.isComposing) {
+		if (isComposingRef.current || isImeKeyEvent(event.nativeEvent)) {
 			return;
 		}
 		if (event.key === "Escape") {

@@ -1,3 +1,4 @@
+import {preventImeSubmit} from '@dora-studio/agent-ui';
 import {useEffect,useRef,useState} from 'react';
 import './login.css';
 
@@ -25,7 +26,7 @@ export function LoginDialog({onClose,onAuthenticated}:{onClose:()=>void;onAuthen
     <div className="login-heading"><span>DORA STUDIO · ACCOUNT</span><button onClick={onClose} disabled={busy} aria-label="关闭登录">×</button></div>
     <h2>{mode==='login'?'欢迎回来':'使用邀请码加入'}</h2><p>登录后同步项目、管理模型用量；本机草稿不会因切换账号而丢失。</p>
     <div className="login-modes"><button aria-pressed={mode==='login'} onClick={()=>{setMode('login');setError('');}}>登录</button><button aria-pressed={mode==='register'} onClick={()=>{setMode('register');setError('');}}>邀请码注册</button></div>
-    <form onSubmit={event=>{event.preventDefault();void submit();}}>
+    <form onKeyDownCapture={preventImeSubmit} onSubmit={event=>{event.preventDefault();void submit();}}>
       {mode==='register'&&<label>邀请码<input value={code} onChange={event=>setCode(event.target.value.trim())} autoComplete="off" required maxLength={43} placeholder="由管理员提供"/></label>}
       <label>账号名<input value={accountId} onChange={event=>setAccountId(event.target.value.trim())} autoComplete="username" required minLength={3} maxLength={64} pattern="[a-zA-Z0-9][a-zA-Z0-9._\-]{2,63}" placeholder="3–64 位英文字母、数字及 ._-"/></label>
       <label>密码<input type="password" value={password} onChange={event=>setPassword(event.target.value)} autoComplete={mode==='register'?'new-password':'current-password'} required minLength={mode==='register'?12:1} maxLength={128} placeholder={mode==='register'?'至少 12 个字符':'输入密码'}/></label>

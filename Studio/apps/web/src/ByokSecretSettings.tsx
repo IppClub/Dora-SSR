@@ -1,3 +1,4 @@
+import {preventImeSubmit} from '@dora-studio/agent-ui';
 import {useEffect,useRef,useState} from 'react';
 import {requestByokSecret,SecretRequestError,type SecretMetadata} from './byok-secret-client';
 import './byok-secret-settings.css';
@@ -34,7 +35,7 @@ function SecretForm({configurationId,label}:{configurationId:string;label:string
   return <section className="byok-settings" aria-label="自带 API 密钥设置">
     <header><div><span className="byok-eyebrow">模型设置 / BYOK</span><h2>{label}</h2></div><span className="byok-state">{metadata?metadata.available?'已托管':'未托管':'待确认'}</span></header>
     <p>使用你自己的 API Key。供应商费用由你承担，不扣平台共享额度。</p>
-    <form onSubmit={event=>{
+    <form onKeyDownCapture={preventImeSubmit} onSubmit={event=>{
       event.preventDefault();if(busy||!metadata||!consent||!input.current?.value)return;
       const key=input.current.value;input.current.value='';setHasInput(false);setConsent(false);
       void perform({method:'PUT',expectedVersion:metadata.version,key,consent:true});

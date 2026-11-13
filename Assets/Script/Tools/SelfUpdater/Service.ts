@@ -2,7 +2,7 @@
 // One update task per engine, independent of launcher scenes and open panels.
 import { App, Content, Director, Path, PlatformType, thread } from "Dora";
 import { compareVersions, updatePlatformForApp, isWindowsUpdatePlatform, type UpdatePlatform } from "Tools/SelfUpdater/Manifest";
-import { checkGitHubRelease, prepareUpdatePackage, syncUpdateManifest, updateSourcesForLocale, type UpdateSnapshot, type UpdateSource, type UpdateProgress, type PreparedUpdate } from "Tools/SelfUpdater/UpdateSync";
+import { checkGitHubRelease, prepareUpdatePackage, syncUpdateManifest, updateSourcesForLocale, type UpdateSnapshot, type UpdateSource, type UpdateProgress, type PreparedUpdate, type UpdateOperationOptions } from "Tools/SelfUpdater/UpdateSync";
 
 export type UpdatePhase = "idle" | "checking" | "available" | "current" | "error" | "downloading" | "canceling" | "ready" | "installing";
 const zh = string.match(App.locale, "^zh")[0] !== undefined;
@@ -70,7 +70,7 @@ export const checkForUpdates = (selected: UpdateSource = source) => {
  source = selected; snapshot = undefined; checkedAt = 0; usedCache = false; message = ""; canceled = false; phase = "checking"; progress = undefined; changed();
  (async () => {
   try {
-   const options = {isCanceled: () => canceled, onProgress: (value: UpdateProgress) => { progress = value; changed(); }};
+   const options: UpdateOperationOptions = {isCanceled: () => canceled, onProgress: (value: UpdateProgress) => { progress = value; changed(); }};
    const result = await (source === "AtomGit" ? syncUpdateManifest(options) : checkGitHubRelease(options));
    progress = undefined;
    if (canceled) { phase = "idle"; message = zh ? "检查已取消。" : "Check canceled."; changed(); return; }

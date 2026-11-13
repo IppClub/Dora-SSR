@@ -1,3 +1,4 @@
+import {isImeKeyEvent} from '@dora-studio/agent-ui';
 import { useEffect, useRef, useState } from 'react';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import CloseIcon from '@mui/icons-material/Close';
@@ -79,7 +80,7 @@ export default function LogFixPanel(props: LogFixPanelProps) {
 								isComposingRef.current = false;
 							}}
 							onKeyDown={event => {
-								if (isComposingRef.current || event.nativeEvent.isComposing) {
+								if (isComposingRef.current || isImeKeyEvent(event.nativeEvent)) {
 									return;
 								}
 								if (event.key === "Escape") {

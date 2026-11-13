@@ -907,7 +907,6 @@ export default function AgentPanel(props: AgentPanelProps) {
 				return;
 			}
 			setLLMConfigMissing(false);
-			if (!submission?.action) setPrompt(current=>current.trim()===text?"":current);
 			await refresh(true, targetSessionId);
 			return true;
 		} finally {
@@ -1040,6 +1039,8 @@ export default function AgentPanel(props: AgentPanelProps) {
 
 	const onSend = async (delivery?: "queue"|"steer", submittedText?:string, requestId?:string) => {
 		const text = submittedText ?? prompt.trim();
+		// Attachment drafts are managed by the composer after uploads finish.
+		if (submittedText === undefined && text !== "") setPrompt("");
 		return Boolean(await sendPromptText(text, selectedSessionId, workMode, {delivery,requestId:requestId??crypto.randomUUID()}));
 	};
 

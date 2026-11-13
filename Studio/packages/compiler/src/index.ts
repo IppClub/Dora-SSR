@@ -36,7 +36,8 @@ export function doraCompilerOptions<L extends string, I extends string>(
     jsx: ts.JsxEmit.React,
     luaTarget,
     luaLibImport,
-    luaExternalModules: ["Dora"],
+    // Native engine bindings have declarations but no project Lua source.
+    luaExternalModules: ["Dora", "ImGui"],
     noHeader: true,
     sourceMap: true,
     noImplicitSelf: true,

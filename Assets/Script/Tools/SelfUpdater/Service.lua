@@ -153,7 +153,7 @@ ____exports.checkForUpdates = function(selected) -- 68
 			local ____try = __TS__AsyncAwaiter(function() -- 71
 				local options = { -- 73
 					isCanceled = function() return canceled end, -- 73
-					onProgress = function(value) -- 73
+					onProgress = function(____, value) -- 73
 						progress = value -- 73
 						changed() -- 73
 					end -- 73

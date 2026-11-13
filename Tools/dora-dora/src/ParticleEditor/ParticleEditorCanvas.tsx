@@ -1,3 +1,4 @@
+import {isImeKeyEvent} from '@dora-studio/agent-ui';
 import { Fragment, memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, KeyboardEvent, PointerEvent } from "react";
 import { useTranslation } from "react-i18next";
@@ -721,7 +722,7 @@ const ColorRows = ({ label, basePath, fields, disabled, onUpdateColor }: {
 							onChange={(event) => setDraftHex(event.currentTarget.value)}
 							onBlur={commitHex}
 							onKeyDown={(event) => {
-								if (event.key === "Enter") {
+								if (!isImeKeyEvent(event.nativeEvent) && event.key === "Enter") {
 									commitHex();
 									event.currentTarget.blur();
 								}

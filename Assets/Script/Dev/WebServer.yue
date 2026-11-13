@@ -2704,8 +2704,21 @@ collectTSVirtualFiles = (sourceRoot) ->
 			seen[targetFile] = entry
 			files[] = entry
 	if sourceRoot and Content\exist(sourceRoot) and Content\isdir(sourceRoot)
+		builtinScriptRoot = Path Content.assetPath, "Script"
+		-- Builtin scripts support both asset-root and Script-root module names.
+		builtinPrefix = if relativeToRoot(sourceRoot, builtinScriptRoot) == ""
+			"Script/"
+		elseif relativeToRoot(sourceRoot, Content.assetPath) == ""
+			""
+		else
+			nil
 		for subFile in *Content\glob sourceRoot, tsSnapshotGlobs
-			addFile Path sourceRoot, subFile
+			file = Path sourceRoot, subFile
+			moduleName = nil
+			if builtinPrefix and Path\getExt(file) in ["ts", "tsx"] and Path\getExt(Path\getName(file)) ~= "d"
+				if relative := relativeToRoot file, builtinScriptRoot
+					moduleName = (builtinPrefix .. Path\replaceExt(relative, ""))\gsub "\\", "/"
+			addFile file, moduleName
 		libraryRoots =
 			- Path sourceRoot, "Script", "Lib"
 			- Path sourceRoot, "Lib"

@@ -1,3 +1,4 @@
+import {preventImeSubmit} from '@dora-studio/agent-ui';
 import {useEffect,useRef,useState} from 'react';
 import {decodeByokConfigurations,type ByokConfiguration} from './byok-configurations-client';
 class ConfigurationCapacityError extends Error {}
@@ -34,7 +35,7 @@ export function ByokCreateConfiguration({onCreated}:{onCreated:(configuration:By
     return()=>{current.active=false;current.controller.abort();};
   },[]);
   const valid=(value:string)=>value.trim().length>0&&value.length<=256&&!/[\u0000-\u001f\u007f]/.test(value);
-  return <form className="model-config-create" onSubmit={event=>{
+  return <form onKeyDownCapture={preventImeSubmit} className="model-config-create" onSubmit={event=>{
     event.preventDefault();const current=context.current;
     if(!current?.active||current.busy||state!=='idle'||!valid(label)||!valid(model)||!providers?.some(item=>item.id===providerId))return;
     current.busy=true;setState('saving');const id=crypto.randomUUID();pendingId.current=id;

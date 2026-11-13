@@ -238,6 +238,8 @@ export default memo(function FileTree(props: FileTreeProps) {
 	const scrollContainerRef = useRef<HTMLElement>(null);
 	const treeRef = useRef<React.ComponentRef<typeof Tree>>(null);
 	const [viewport, setViewport] = useState({ height: 1, width: 0, font: "14px sans-serif" });
+	const treeViewportHeight = Math.max(1, viewport.height - 20); // Tree padding: 10px on each side.
+	const treeViewportWidth = Math.max(0, viewport.width - 20);
 	useEffect(() => {
 		const container = scrollContainerRef.current;
 		if (!container) return;
@@ -260,9 +262,9 @@ export default memo(function FileTree(props: FileTreeProps) {
 	// so long filenames remain horizontally scrollable without mounting every row.
 	const treeScrollWidth = useMemo(() => {
 		const context = document.createElement("canvas").getContext("2d");
-		if (!context) return viewport.width;
+		if (!context) return treeViewportWidth;
 		context.font = viewport.font;
-		let width = viewport.width;
+		let width = treeViewportWidth;
 		const visit = (nodes: TreeDataType[], depth: number) => {
 			for (const node of nodes) {
 				width = Math.max(width, Math.ceil(context.measureText(node.title).width) + depth * 18 + (multiSelectMode ? 100 : 80));
@@ -271,7 +273,7 @@ export default memo(function FileTree(props: FileTreeProps) {
 		};
 		visit(visibleTreeData, 0);
 		return width;
-	}, [visibleTreeData, viewport.width, viewport.font, multiSelectMode]);
+	}, [visibleTreeData, treeViewportWidth, viewport.font, multiSelectMode]);
 	const touchLongPressTimerRef = useRef<number | null>(null);
 	const touchStartRef = useRef<{
 		identifier: number;
@@ -726,6 +728,11 @@ export default memo(function FileTree(props: FileTreeProps) {
 				}
 			</StyledMenu>
 				<GlobalStyles styles={{
+					// The virtual list otherwise shrinks to its content and places
+					// the horizontal scrollbar directly below the last visible row.
+					".dora-resource-tree .ant-tree-list-holder": {
+						height: "var(--dora-resource-tree-viewport-height)",
+					},
 					".dora-resource-tree.ant-tree-show-line .ant-tree-indent-unit::before": {
 						insetInlineEnd: "6px !important",
 					},
@@ -796,7 +803,7 @@ export default memo(function FileTree(props: FileTreeProps) {
 					showIcon
 					showLine
 					virtual
-					height={viewport.height}
+					height={treeViewportHeight}
 					scrollWidth={treeScrollWidth}
 					motion={false}
 					checkable={multiSelectMode}
@@ -877,7 +884,8 @@ export default memo(function FileTree(props: FileTreeProps) {
 					style={{
 						background: "transparent",
 						padding: 10,
-					}}
+						"--dora-resource-tree-viewport-height": `${treeViewportHeight}px`,
+					} as React.CSSProperties}
 				/>
 			</ConfigProvider>
 			</MacScrollbar>
