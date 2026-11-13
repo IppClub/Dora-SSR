@@ -351,6 +351,9 @@ target("Dora")
             get_config("toolchain") == "mingw" and "libdora_runtime.a" or "dora_runtime.lib"))
         if get_config("toolchain") == "mingw" then
             add_syslinks("winpthread")
+        else
+            -- Rust std uses WaitOnAddress/WakeByAddress for Windows synchronization.
+            add_syslinks("synchronization")
         end
         add_syslinks(
             "advapi32", "bcrypt", "crypt32", "dbghelp", "gdi32", "imm32",
