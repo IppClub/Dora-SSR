@@ -42,8 +42,12 @@ export interface ImportOperation {
 export async function importRepository(url: string, operation: ImportOperation): Promise<ImportedProject> {
 	const repository = normalizeRepository(url);
 	if (!repository) throw new Error("Use a public HTTPS repository on GitHub, AtomGit, Gitee or GitCode.");
-	const [name] = string.gsub(repository.substring(8), "/", "-");
-	const root = Path(Content.writablePath, name);
+	const [host, owner, repo] = string.match(repository, "^https://([^/]+)/([^/]+)/([^/]+)$");
+	const name = `${owner}-${repo}-${host}`;
+	let root = Path(Content.writablePath, name);
+	// Reuse previous imports without renaming projects or losing local edits.
+	const legacyRoot = Path(Content.writablePath, `${host}-${owner}-${repo}`);
+	if (!Content.exist(root) && Content.load(Path(legacyRoot, ".git", "dora-import-repository")) === repository) root = legacyRoot;
 	const marker = Path(root, ".git", "dora-import-repository");
 	if (Content.exist(root)) {
 		if (!Content.isdir(root) || Content.load(marker) !== repository) throw new Error("The destination already exists and belongs to another project.");

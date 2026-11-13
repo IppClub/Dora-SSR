@@ -9,7 +9,6 @@ local SyntaxError = ____lualib.SyntaxError -- 1
 local TypeError = ____lualib.TypeError -- 1
 local URIError = ____lualib.URIError -- 1
 local __TS__New = ____lualib.__TS__New -- 1
-local __TS__StringSubstring = ____lualib.__TS__StringSubstring -- 1
 local __TS__AsyncAwaiter = ____lualib.__TS__AsyncAwaiter -- 1
 local __TS__Await = ____lualib.__TS__Await -- 1
 local ____exports = {} -- 1
@@ -92,129 +91,130 @@ function ____exports.importRepository(url, operation) -- 42
 				0 -- 44
 			) -- 44
 		end -- 44
-		local name = string.gsub( -- 45
-			__TS__StringSubstring(repository, 8), -- 45
-			"/", -- 45
-			"-" -- 45
-		) -- 45
-		local root = Path(Content.writablePath, name) -- 46
-		local marker = Path(root, ".git", "dora-import-repository") -- 47
-		if Content:exist(root) then -- 47
-			if not Content:isdir(root) or Content:load(marker) ~= repository then -- 47
-				error( -- 49
-					__TS__New(Error, "The destination already exists and belongs to another project."), -- 49
-					0 -- 49
-				) -- 49
-			end -- 49
-			local entry = ____exports.findEntry(root) -- 50
-			if not entry then -- 50
-				error( -- 51
-					__TS__New(Error, "The local project has no init entry."), -- 51
-					0 -- 51
-				) -- 51
-			end -- 51
-			return ____awaiter_resolve(nil, {root = root, entry = entry, existing = true}) -- 51
-		end -- 51
-		local temporary -- 54
-		repeat -- 54
-			do -- 54
-				temporary = Path( -- 55
-					Content.writablePath, -- 55
-					((".import-" .. tostring(os.time())) .. "-") .. tostring(math.random(1, 2147483647)) -- 55
+		local host, owner, repo = string.match(repository, "^https://([^/]+)/([^/]+)/([^/]+)$") -- 45
+		local name = (((owner .. "-") .. repo) .. "-") .. host -- 46
+		local root = Path(Content.writablePath, name) -- 47
+		local legacyRoot = Path(Content.writablePath, (((host .. "-") .. owner) .. "-") .. repo) -- 49
+		if not Content:exist(root) and Content:load(Path(legacyRoot, ".git", "dora-import-repository")) == repository then -- 49
+			root = legacyRoot -- 50
+		end -- 50
+		local marker = Path(root, ".git", "dora-import-repository") -- 51
+		if Content:exist(root) then -- 51
+			if not Content:isdir(root) or Content:load(marker) ~= repository then -- 51
+				error( -- 53
+					__TS__New(Error, "The destination already exists and belongs to another project."), -- 53
+					0 -- 53
+				) -- 53
+			end -- 53
+			local entry = ____exports.findEntry(root) -- 54
+			if not entry then -- 54
+				error( -- 55
+					__TS__New(Error, "The local project has no init entry."), -- 55
+					0 -- 55
 				) -- 55
 			end -- 55
-		until not Content:exist(temporary) -- 55
-		local ____hasReturned, ____returnValue -- 55
-		local ____try = __TS__AsyncAwaiter(function() -- 55
-			operation.phase = "clone" -- 57
-			local clone = __TS__Await(runGit( -- 58
-				Content.writablePath, -- 58
+			return ____awaiter_resolve(nil, {root = root, entry = entry, existing = true}) -- 55
+		end -- 55
+		local temporary -- 58
+		repeat -- 58
+			do -- 58
+				temporary = Path( -- 59
+					Content.writablePath, -- 59
+					((".import-" .. tostring(os.time())) .. "-") .. tostring(math.random(1, 2147483647)) -- 59
+				) -- 59
+			end -- 59
+		until not Content:exist(temporary) -- 59
+		local ____hasReturned, ____returnValue -- 59
+		local ____try = __TS__AsyncAwaiter(function() -- 59
+			operation.phase = "clone" -- 61
+			local clone = __TS__Await(runGit( -- 62
+				Content.writablePath, -- 62
 				(("clone --depth 1 --no-lfs " .. quoteGitArgument(repository)) .. " ") .. quoteGitArgument(Path:getFilename(temporary)),
-				{ -- 58
-					timeout = 600, -- 59
-					isCanceled = function() return operation.canceled end, -- 59
-					onStatus = function(____, status) -- 59
-						operation.status = status -- 59
-					end -- 59
-				} -- 59
-			)) -- 59
-			if operation.canceled then -- 59
-				error( -- 61
-					__TS__New(Error, "Canceled"), -- 61
-					0 -- 61
-				) -- 61
-			end -- 61
-			if not clone.success then -- 61
-				error( -- 62
-					__TS__New(Error, clone.message or "Clone failed"), -- 62
-					0 -- 62
-				) -- 62
-			end -- 62
-			operation.phase = "verify" -- 63
-			local verified = __TS__Await(runGit( -- 64
-				temporary, -- 64
-				"verify-resource", -- 64
-				{isCanceled = function() return operation.canceled end} -- 64
-			)) -- 64
-			if operation.canceled then -- 64
+				{ -- 62
+					timeout = 600, -- 63
+					isCanceled = function() return operation.canceled end, -- 63
+					onStatus = function(____, status) -- 63
+						operation.status = status -- 63
+					end -- 63
+				} -- 63
+			)) -- 63
+			if operation.canceled then -- 63
 				error( -- 65
 					__TS__New(Error, "Canceled"), -- 65
 					0 -- 65
 				) -- 65
 			end -- 65
-			if not verified.success then -- 65
+			if not clone.success then -- 65
 				error( -- 66
-					__TS__New(Error, verified.message or "Project verification failed"), -- 66
+					__TS__New(Error, clone.message or "Clone failed"), -- 66
 					0 -- 66
 				) -- 66
 			end -- 66
-			local entry = ____exports.findEntry(temporary) -- 67
-			if not entry then -- 67
-				error( -- 68
-					__TS__New(Error, "The repository has no Dora init entry."), -- 68
-					0 -- 68
-				) -- 68
-			end -- 68
-			if not Content:save( -- 68
-				Path(temporary, ".git", "dora-import-repository"), -- 69
-				repository -- 69
-			) then -- 69
+			operation.phase = "verify" -- 67
+			local verified = __TS__Await(runGit( -- 68
+				temporary, -- 68
+				"verify-resource", -- 68
+				{isCanceled = function() return operation.canceled end} -- 68
+			)) -- 68
+			if operation.canceled then -- 68
 				error( -- 69
-					__TS__New(Error, "Could not record the repository."), -- 69
+					__TS__New(Error, "Canceled"), -- 69
 					0 -- 69
 				) -- 69
 			end -- 69
-			if Content:exist(root) or not Content:move(temporary, root) then -- 69
+			if not verified.success then -- 69
+				error( -- 70
+					__TS__New(Error, verified.message or "Project verification failed"), -- 70
+					0 -- 70
+				) -- 70
+			end -- 70
+			local entry = ____exports.findEntry(temporary) -- 71
+			if not entry then -- 71
 				error( -- 72
-					__TS__New(Error, "Could not move the project into the workspace."), -- 72
+					__TS__New(Error, "The repository has no Dora init entry."), -- 72
 					0 -- 72
 				) -- 72
 			end -- 72
-			____hasReturned = true -- 73
-			____returnValue = { -- 73
-				root = root, -- 73
-				entry = Path( -- 73
-					root, -- 73
-					Path:getRelative(entry, temporary) -- 73
-				), -- 73
-				existing = false -- 73
-			} -- 73
-			return -- 73
-		end) -- 73
-		____try = ____try.finally( -- 73
-			____try, -- 73
-			function() -- 73
-				return __TS__AsyncAwaiter(function() -- 73
-					if Content:exist(temporary) then -- 73
-						Content:remove(temporary) -- 75
-					end -- 75
-				end) -- 75
-			end -- 75
-		) -- 75
-		__TS__Await(____try) -- 56
-		if ____hasReturned then -- 56
-			return ____awaiter_resolve(nil, ____returnValue) -- 56
-		end -- 56
-	end) -- 56
+			if not Content:save( -- 72
+				Path(temporary, ".git", "dora-import-repository"), -- 73
+				repository -- 73
+			) then -- 73
+				error( -- 73
+					__TS__New(Error, "Could not record the repository."), -- 73
+					0 -- 73
+				) -- 73
+			end -- 73
+			if Content:exist(root) or not Content:move(temporary, root) then -- 73
+				error( -- 76
+					__TS__New(Error, "Could not move the project into the workspace."), -- 76
+					0 -- 76
+				) -- 76
+			end -- 76
+			____hasReturned = true -- 77
+			____returnValue = { -- 77
+				root = root, -- 77
+				entry = Path( -- 77
+					root, -- 77
+					Path:getRelative(entry, temporary) -- 77
+				), -- 77
+				existing = false -- 77
+			} -- 77
+			return -- 77
+		end) -- 77
+		____try = ____try.finally( -- 77
+			____try, -- 77
+			function() -- 77
+				return __TS__AsyncAwaiter(function() -- 77
+					if Content:exist(temporary) then -- 77
+						Content:remove(temporary) -- 79
+					end -- 79
+				end) -- 79
+			end -- 79
+		) -- 79
+		__TS__Await(____try) -- 60
+		if ____hasReturned then -- 60
+			return ____awaiter_resolve(nil, ____returnValue) -- 60
+		end -- 60
+	end) -- 60
 end -- 42
 return ____exports -- 42
