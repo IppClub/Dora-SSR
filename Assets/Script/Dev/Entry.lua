@@ -1172,40 +1172,45 @@ local footerWindow = nil -- 660
 local entryWindow = nil -- 661
 local testingThread = nil -- 662
 local mobileMode = config.mobileFeed -- 663
-local pendingUIMode = nil -- 664
+allEntries.mobileControl = { } -- 664
 local feedHost = nil -- 665
 local remixHost = nil -- 666
 local startMobileUI = nil -- 667
-local webControlled = false -- 668
-local mobileHosts = { } -- 669
-local suspendedMobileHosts = { } -- 670
+allEntries.mobileControl.webControlled = false -- 668
+allEntries.mobileControl.mobileHosts = { } -- 669
+allEntries.mobileControl.suspendedMobileHosts = { } -- 670
 local trackMobileHost -- 672
 trackMobileHost = function(host) -- 672
 	do -- 673
 		local _accum_0 = { } -- 673
 		local _len_0 = 1 -- 673
-		for _index_0 = 1, #mobileHosts do -- 673
-			local item = mobileHosts[_index_0] -- 673
+		local _list_0 = allEntries.mobileControl.mobileHosts -- 673
+		for _index_0 = 1, #_list_0 do -- 673
+			local item = _list_0[_index_0] -- 673
 			if item.parent then -- 673
 				_accum_0[_len_0] = item -- 673
 				_len_0 = _len_0 + 1 -- 673
 			end -- 673
 		end -- 673
-		mobileHosts = _accum_0 -- 673
+		allEntries.mobileControl.mobileHosts = _accum_0 -- 673
 	end -- 673
-	mobileHosts[#mobileHosts + 1] = host -- 674
+	do -- 674
+		local _obj_0 = allEntries.mobileControl.mobileHosts -- 674
+		_obj_0[#_obj_0 + 1] = host -- 674
+	end -- 674
 	return host -- 675
 end -- 672
 local clearMobileUI -- 677
 clearMobileUI = function() -- 677
-	for _index_0 = 1, #mobileHosts do -- 678
-		local host = mobileHosts[_index_0] -- 678
+	local _list_0 = allEntries.mobileControl.mobileHosts -- 678
+	for _index_0 = 1, #_list_0 do -- 678
+		local host = _list_0[_index_0] -- 678
 		if host.parent then -- 679
 			host:removeFromParent(true) -- 679
 		end -- 679
 	end -- 678
-	mobileHosts = { } -- 680
-	suspendedMobileHosts = { } -- 681
+	allEntries.mobileControl.mobileHosts = { } -- 680
+	allEntries.mobileControl.suspendedMobileHosts = { } -- 681
 	feedHost = nil -- 682
 	remixHost = nil -- 683
 end -- 677
@@ -1213,29 +1218,30 @@ local syncWebIDEControl -- 685
 syncWebIDEControl = function() -- 685
 	local connected = HttpServer.wsConnectionCount > 0 -- 686
 	if connected then -- 687
-		pendingUIMode = nil -- 688
-		for _index_0 = 1, #mobileHosts do -- 689
-			local host = mobileHosts[_index_0] -- 689
+		allEntries.mobileControl.pendingUIMode = nil -- 688
+		local _list_0 = allEntries.mobileControl.mobileHosts -- 689
+		for _index_0 = 1, #_list_0 do -- 689
+			local host = _list_0[_index_0] -- 689
 			if not host.parent then -- 690
 				goto _continue_0 -- 690
 			end -- 690
-			if not (suspendedMobileHosts[host] ~= nil) then -- 691
-				suspendedMobileHosts[host] = host.visible -- 692
+			if not (allEntries.mobileControl.suspendedMobileHosts[host] ~= nil) then -- 691
+				allEntries.mobileControl.suspendedMobileHosts[host] = host.visible -- 692
 				host:emit("SuspendLocalUI") -- 693
 			end -- 691
 			host.visible = false -- 694
 			::_continue_0:: -- 690
 		end -- 689
-	elseif webControlled then -- 695
-		for host, visible in pairs(suspendedMobileHosts) do -- 696
+	elseif allEntries.mobileControl.webControlled then -- 695
+		for host, visible in pairs(allEntries.mobileControl.suspendedMobileHosts) do -- 696
 			if host.parent then -- 697
 				host.visible = visible -- 698
 				host:emit("ResumeLocalUI") -- 699
 			end -- 697
 		end -- 696
-		suspendedMobileHosts = { } -- 700
+		allEntries.mobileControl.suspendedMobileHosts = { } -- 700
 	end -- 687
-	webControlled = connected -- 701
+	allEntries.mobileControl.webControlled = connected -- 701
 	return connected -- 702
 end -- 685
 local getUIMode -- 704
@@ -1251,7 +1257,7 @@ setUIMode = function(mode) -- 705
 	if HttpServer.wsConnectionCount > 0 then -- 707
 		return false -- 707
 	end -- 707
-	if (pendingUIMode ~= nil) or not isInEntry or testingThread then -- 708
+	if (allEntries.mobileControl.pendingUIMode ~= nil) or not isInEntry or testingThread then -- 708
 		return false -- 708
 	end -- 708
 	local wantsMobile = mode == "mobile" -- 709
@@ -1263,9 +1269,9 @@ setUIMode = function(mode) -- 705
 			return false -- 712
 		end -- 712
 		feedHost:emit("SwitchUIMode") -- 714
-		return pendingUIMode == false -- 715
+		return allEntries.mobileControl.pendingUIMode == false -- 715
 	end -- 711
-	pendingUIMode = true -- 716
+	allEntries.mobileControl.pendingUIMode = true -- 716
 	return true -- 717
 end -- 705
 _module_0["setUIMode"] = setUIMode -- 705
@@ -1297,7 +1303,7 @@ local setupEventHandlers = nil -- 737
 local enterEntryAsync = nil -- 738
 local allClear -- 740
 allClear = function() -- 740
-	if webControlled or HttpServer.wsConnectionCount > 0 then -- 742
+	if allEntries.mobileControl.webControlled or HttpServer.wsConnectionCount > 0 then -- 742
 		clearMobileUI() -- 742
 	end -- 742
 	local systemNodes = { } -- 745
@@ -2485,12 +2491,12 @@ do -- 1499
 				end -- 1525
 			end -- 1523
 			if allEntries.pendingPackagePath then -- 1526
-				pendingUIMode = true -- 1526
+				allEntries.mobileControl.pendingUIMode = true -- 1526
 			end -- 1526
 		end -- 1522
-		if (pendingUIMode ~= nil) then -- 1528
-			local nextMode = pendingUIMode -- 1529
-			pendingUIMode = nil -- 1530
+		if (allEntries.mobileControl.pendingUIMode ~= nil) then -- 1528
+			local nextMode = allEntries.mobileControl.pendingUIMode -- 1529
+			allEntries.mobileControl.pendingUIMode = nil -- 1530
 			applyUIMode(nextMode) -- 1531
 		end -- 1528
 		if mobileMode and not connected then -- 1532
@@ -3094,7 +3100,7 @@ startMobileUI = function() -- 1802
 		end, -- 1893
 		onSwitchMode = function() -- 1899
 			if HttpServer.wsConnectionCount == 0 then -- 1899
-				pendingUIMode = false -- 1899
+				allEntries.mobileControl.pendingUIMode = false -- 1899
 			end -- 1899
 		end, -- 1899
 		onCurrentEntryChanged = rememberMobileFeedEntry, -- 1900

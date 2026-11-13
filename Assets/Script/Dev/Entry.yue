@@ -661,59 +661,59 @@ footerWindow = nil
 entryWindow = nil
 testingThread = nil
 mobileMode = config.mobileFeed
-pendingUIMode = nil
+allEntries.mobileControl = {} -- Group UI coordination state to preserve Lua local slots.
 feedHost = nil
 remixHost = nil
 startMobileUI = nil
-webControlled = false
-mobileHosts = []
-suspendedMobileHosts = {}
+allEntries.mobileControl.webControlled = false
+allEntries.mobileControl.mobileHosts = []
+allEntries.mobileControl.suspendedMobileHosts = {}
 
 trackMobileHost = (host) ->
-	mobileHosts = [item for item in *mobileHosts when item.parent]
-	mobileHosts[] = host
+	allEntries.mobileControl.mobileHosts = [item for item in *allEntries.mobileControl.mobileHosts when item.parent]
+	allEntries.mobileControl.mobileHosts[] = host
 	host
 
 clearMobileUI = ->
-	for host in *mobileHosts
+	for host in *allEntries.mobileControl.mobileHosts
 		host\removeFromParent true if host.parent
-	mobileHosts = []
-	suspendedMobileHosts = {}
+	allEntries.mobileControl.mobileHosts = []
+	allEntries.mobileControl.suspendedMobileHosts = {}
 	feedHost = nil
 	remixHost = nil
 
 syncWebIDEControl = ->
 	connected = HttpServer.wsConnectionCount > 0
 	if connected
-		pendingUIMode = nil
-		for host in *mobileHosts
+		allEntries.mobileControl.pendingUIMode = nil
+		for host in *allEntries.mobileControl.mobileHosts
 			continue unless host.parent
-			unless suspendedMobileHosts[host]?
-				suspendedMobileHosts[host] = host.visible
+			unless allEntries.mobileControl.suspendedMobileHosts[host]?
+				allEntries.mobileControl.suspendedMobileHosts[host] = host.visible
 				host\emit "SuspendLocalUI"
 			host.visible = false
-	elseif webControlled
-		for host, visible in pairs suspendedMobileHosts
+	elseif allEntries.mobileControl.webControlled
+		for host, visible in pairs allEntries.mobileControl.suspendedMobileHosts
 			if host.parent
 				host.visible = visible
 				host\emit "ResumeLocalUI"
-		suspendedMobileHosts = {}
-	webControlled = connected
+		allEntries.mobileControl.suspendedMobileHosts = {}
+	allEntries.mobileControl.webControlled = connected
 	connected
 
 export getUIMode = -> mobileMode and "mobile" or "traditional"
 export setUIMode = (mode) ->
 	return false unless mode in ["mobile", "traditional"]
 	return false if HttpServer.wsConnectionCount > 0
-	return false if pendingUIMode? or not isInEntry or testingThread
+	return false if allEntries.mobileControl.pendingUIMode? or not isInEntry or testingThread
 	wantsMobile = mode == "mobile"
 	return true if wantsMobile == mobileMode
 	if mobileMode
 		return false unless feedHost and feedHost.visible
 		-- Let Feed reject a switch while an installation or card transition is active.
 		feedHost\emit "SwitchUIMode"
-		return pendingUIMode == false
-	pendingUIMode = true
+		return allEntries.mobileControl.pendingUIMode == false
+	allEntries.mobileControl.pendingUIMode = true
 	true
 
 applyUIMode = (enabled) ->
@@ -739,7 +739,7 @@ enterEntryAsync = nil
 
 export allClear = ->
 	-- Remote runs own the scene: do not retain stale local HUDs across run/stop.
-	clearMobileUI! if webControlled or HttpServer.wsConnectionCount > 0
+	clearMobileUI! if allEntries.mobileControl.webControlled or HttpServer.wsConnectionCount > 0
 	-- Mirror Director.cleanup's system UI boundary in the Lua userdata sweep.
 	-- Clip stencils are owned nodes but are not children, so include them explicitly.
 	systemNodes = {}
@@ -1523,11 +1523,11 @@ entryWindow = do
 			unless allEntries.pendingPackagePath
 				path = App\takeReceivedFile!
 				allEntries.pendingPackagePath = path if path ~= ""
-			pendingUIMode = true if allEntries.pendingPackagePath
+			allEntries.mobileControl.pendingUIMode = true if allEntries.pendingPackagePath
 		-- Apply outside ImGui and touch callbacks; keep the server and Agent services alive.
-		if pendingUIMode?
-			nextMode = pendingUIMode
-			pendingUIMode = nil
+		if allEntries.mobileControl.pendingUIMode?
+			nextMode = allEntries.mobileControl.pendingUIMode
+			allEntries.mobileControl.pendingUIMode = nil
 			applyUIMode nextMode
 		if mobileMode and not connected
 			if allEntries.importReveal and feedHost and feedHost.visible
@@ -1896,7 +1896,7 @@ startMobileUI = ->
 				allEntries.pendingPackagePath = nil
 				return path
 			App\takeReceivedFile!
-		onSwitchMode: -> pendingUIMode = false if HttpServer.wsConnectionCount == 0
+		onSwitchMode: -> allEntries.mobileControl.pendingUIMode = false if HttpServer.wsConnectionCount == 0
 		onCurrentEntryChanged: rememberMobileFeedEntry
 		getLocalEntries: (importedProjectPath) ->
 			dirtyProjectPath = importedProjectPath or feedOptions.dirtyProjectPath
