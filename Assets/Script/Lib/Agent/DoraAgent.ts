@@ -8,7 +8,7 @@ import * as AgentUtils from 'Agent/Utils';
 import type { LLMConfig, LLMTokenUsage, Message, StopToken } from 'Agent/Utils';
 import * as Tools from 'Agent/Tools';
 import { MemoryCompressor } from 'Agent/Runtime/Memory';
-import type { AgentPromptPack, AgentConversationMessage } from 'Agent/Runtime/Memory';
+import type { AgentPromptPack, AgentConversationMessage, CompressionResult } from 'Agent/Runtime/Memory';
 import * as AgentToolRegistry from 'Agent/Tool/Registry';
 import type { AgentRole, AgentToolName, AgentWorkMode } from 'Agent/Tool/Registry';
 import * as AgentSkills from 'Agent/Runtime/Skills';
@@ -920,9 +920,7 @@ async function maybeCompressHistory(
 		);
 		const triggerOptions = {
 			...shared.llmOptions,
-			...(shared.llmConfig.model.toLowerCase().includes("glm-5.2")
-				&& (typeof shared.llmOptions.reasoning_effort !== "string"
-					|| shared.llmOptions.reasoning_effort.trim() === "")
+			...(AgentUtils.useFastGlmToolDecision(shared.llmConfig.model, shared.llmOptions)
 				? { reasoning_effort: "minimal" }
 				: {}),
 			tools: AgentToolRegistry.buildDecisionToolSchema(shared.role, AgentConfig.AGENT_LIMITS.searchDoraDocLimitMax, {
@@ -931,10 +929,12 @@ async function maybeCompressHistory(
 			}),
 		};
 		const fitted = AgentUtils.fitMessagesToContext(triggerMessages, triggerOptions, shared.llmConfig);
-		// Trigger at 100% of the exact effective input budget used by the normal
-		// request path. The compression payload below remains independently projected.
-		if (fitted.originalTokens < fitted.budgetTokens) return;
+		// Start with headroom, using the exact next request including tools and
+		// pending user input. Keep the existing half-budget compression target.
+		if (fitted.originalTokens < fitted.budgetTokens * 0.9) return;
+		if (fitted.originalTokens < fitted.budgetTokens * 0.97 && memory.compressor.isCompressionBreakerOpen()) return;
 		if (getActiveRealMessageCount(shared) <= 0 || fitted.budgetTokens <= 0) {
+			if (fitted.originalTokens < fitted.budgetTokens) return;
 			throw new Error("The current instructions and configured output limit leave insufficient context space. Reduce the output limit or shorten the instructions; history was preserved.");
 		}
 		compressionRound += 1;
@@ -1000,6 +1000,10 @@ async function maybeCompressHistory(
 					compressedCount: result?.compressedCount ?? 0,
 				},
 			});
+			if (shared.stopToken.stopped) throw new Error(getCancelledReason(shared));
+			// A failed proactive attempt can continue with the intact request.
+			// Never clip history to make an over-budget request sendable.
+			if (fitted.originalTokens < fitted.budgetTokens) return;
 			throw new Error(result?.error ?? "Memory compression could not make progress; history was preserved.");
 		}
 		const effectiveCompressedCount = math.max(
@@ -1007,8 +1011,10 @@ async function maybeCompressHistory(
 			result.compressedCount - (typeof shared.carryMessageIndex === "number" ? 1 : 0)
 		);
 		if (effectiveCompressedCount <= 0) {
+			if (fitted.originalTokens < fitted.budgetTokens) return;
 			throw new Error("Memory compression covered only the carried instruction and could not reduce the active history.");
 		}
+		commitCompressedSessionState(shared, result);
 		emitAgentEvent(shared, {
 			type: "memory_compression_finished",
 			sessionId: shared.sessionId,
@@ -1020,7 +1026,7 @@ async function maybeCompressHistory(
 				success: true,
 				round: compressionRound,
 				compressedCount: effectiveCompressedCount,
-				coveredThroughIndex: math.min(shared.messages.length, shared.lastConsolidatedIndex + effectiveCompressedCount),
+				coveredThroughIndex: shared.lastConsolidatedIndex,
 				historyEntryPreview: summarizeHistoryEntryPreview(result.summary ?? ""),
 				partialRecovered: result.partialRecovered === true,
 				recoveredFields: result.recoveredFields ?? [],
@@ -1029,13 +1035,12 @@ async function maybeCompressHistory(
 				fallbackError: result.fallbackArchived === true ? result.error : undefined,
 			},
 		});
-		applyCompressedSessionState(shared, result.compressedCount, result.carryMessageIndex, result.sessionSummaryUpdate);
-		persistHistoryState(shared);
 		const nextMessages = buildDecisionMessages(shared, undefined, 1, undefined, false,
 			includePendingUserPrompt ? pendingUserPrompt : "");
 		const nextFit = AgentUtils.fitMessagesToContext(nextMessages, triggerOptions, shared.llmConfig);
 		AgentUtils.Log("Info", `[Memory] Compressed ${effectiveCompressedCount} messages (round ${compressionRound}) tokens=${fitted.originalTokens}->${nextFit.originalTokens}`);
-		if (nextFit.originalTokens >= nextFit.budgetTokens && nextFit.originalTokens >= fitted.originalTokens) {
+		if (nextFit.originalTokens >= fitted.originalTokens) {
+			if (nextFit.originalTokens < nextFit.budgetTokens) return;
 			throw new Error("Memory compression did not reduce the effective request size. The remaining instructions or memory exceed the context budget; task paused.");
 		}
 	}
@@ -1118,6 +1123,7 @@ async function compactActiveHistory(shared: AgentShared, repeatedOutput = false)
 					? "记忆压缩未产生可推进的结果。"
 					: "Memory compression produced no progress."));
 		}
+		commitCompressedSessionState(shared, result);
 		emitAgentEvent(shared, {
 			type: "memory_compression_finished",
 			sessionId: shared.sessionId,
@@ -1139,9 +1145,7 @@ async function compactActiveHistory(shared: AgentShared, repeatedOutput = false)
 				fallbackError: result.fallbackArchived === true ? result.error : undefined,
 			},
 		});
-		applyCompressedSessionState(shared, result.compressedCount, result.carryMessageIndex, result.sessionSummaryUpdate);
 		totalCompressed += effectiveCompressedCount;
-		persistHistoryState(shared);
 		AgentUtils.Log("Info", `[Memory] Full compaction compressed ${effectiveCompressedCount} messages (round ${rounds})`);
 	}
 	return { rounds, totalCompressed };
@@ -1347,6 +1351,19 @@ function applyCompressedSessionState(
 	if (shared.workflow.resumeRequiredTool !== undefined && !isToolAllowedForRole(shared, shared.workflow.resumeRequiredTool)) {
 		shared.workflow.resumeRequiredTool = undefined;
 	}
+}
+
+function commitCompressedSessionState(shared: AgentShared, result: CompressionResult): void {
+	// Persist the compression boundary before publishing
+	// them in memory. A failed save leaves the live history and workflow intact.
+	const next = { ...shared, messages: [...shared.messages], workflow: { ...shared.workflow } };
+	applyCompressedSessionState(next, result.compressedCount, result.carryMessageIndex, result.sessionSummaryUpdate);
+	persistHistoryState(next);
+	shared.messages = next.messages;
+	shared.lastConsolidatedIndex = next.lastConsolidatedIndex;
+	shared.carryMessageIndex = next.carryMessageIndex;
+	shared.resumeCheckpointPending = next.resumeCheckpointPending;
+	shared.workflow = next.workflow;
 }
 
 function appendConversationMessage(shared: AgentShared, message: AgentConversationMessage): void {
@@ -1576,6 +1593,7 @@ function buildDecisionMessages(
 	if (pendingUserPrompt !== "") {
 		messages.push({ role: "user", content: pendingUserPrompt });
 	}
+	messages = AgentUtils.ensureConversationUserMessage(messages);
 	if (isFinalDecisionTurn(shared)) {
 		tailSections.push(getFinalDecisionTurnPrompt(shared));
 	}
@@ -1645,9 +1663,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 		});
 		const messages = buildDecisionMessages(shared, lastError, attempt, lastRaw);
 		const stepId = shared.step + 1;
-		const useFastGlmToolDecision = shared.llmConfig.model.toLowerCase().includes("glm-5.2")
-			&& (typeof shared.llmOptions.reasoning_effort !== "string"
-				|| shared.llmOptions.reasoning_effort.trim() === "");
+		const useFastGlmToolDecision = AgentUtils.useFastGlmToolDecision(shared.llmConfig.model, shared.llmOptions);
 		const llmOptions = {
 			...shared.llmOptions,
 			...(useFastGlmToolDecision ? { reasoning_effort: "minimal" } : {}),
@@ -1830,10 +1846,12 @@ class MainDecisionAgent extends Node<AgentShared> {
 		}
 
 		AgentUtils.Log("Info", `[CodingAgent] decision mode=tool_calling step=${shared.step + 1} messages=${getUnconsolidatedMessages(shared).length}`);
-		let lastError = "tool calling validation failed";
+		let lastError = "";
 		let lastRaw = "";
 		for (let attempt = 0; attempt < shared.llmMaxTry; attempt++) {
 			AgentUtils.Log("Info", `[CodingAgent] tool-calling attempt=${attempt + 1}`);
+			const resumeCheckpointPending = shared.resumeCheckpointPending;
+			const pendingTruncationRecovery = shared.pendingTruncationRecovery;
 			const decision = await this.callDecisionByToolCalling(
 				shared,
 				attempt > 0 ? lastError : undefined,
@@ -1846,7 +1864,17 @@ class MainDecisionAgent extends Node<AgentShared> {
 			if (decision.success) {
 				return decision;
 			}
-			if (decision.requestFailed) return decision;
+			if (decision.requestFailed) {
+				if (AgentUtils.getLLMFailureKind(decision.message, decision.raw) !== "transport"
+					|| attempt + 1 >= shared.llmMaxTry) return decision;
+				shared.resumeCheckpointPending = resumeCheckpointPending;
+				shared.pendingTruncationRecovery = pendingTruncationRecovery;
+				AgentUtils.Log("Warn", `[CodingAgent] transient request failure; retry ${attempt + 1}/${shared.llmMaxTry}`);
+				await AgentUtils.waitForLLMRetry(attempt + 1, shared.stopToken);
+				// A transport retry replays the same decision, without injecting a
+				// fictitious tool-validation error or duplicating partial output.
+				continue;
+			}
 			lastError = decision.message;
 			lastRaw = decision.raw ?? "";
 			AgentUtils.Log("Error", `[CodingAgent] tool-calling attempt failed: ${lastError}`);

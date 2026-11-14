@@ -1,7 +1,7 @@
 // @preview-file off clear
 import { App, Content, Path } from 'Dora';
 import { AGENT_DEFAULTS } from 'Agent/Config/Defaults';
-import { Message, applyCustomLLMOptions, callLLM, Log, getInputTokenBudget, fitMessagesToContext, clipTextToTokenBudget, extractLLMTokenUsage, parseXMLObjectFromText, safeJsonDecode, safeJsonEncode, sanitizeUTF8 } from 'Agent/Utils';
+import { Message, applyCustomLLMOptions, callLLM, Log, getInputTokenBudget, fitMessagesToContext, clipTextToTokenBudget, extractLLMTokenUsage, parseXMLObjectFromText, getLLMFailureKind, waitForLLMRetry, safeJsonDecode, safeJsonEncode, sanitizeUTF8 } from 'Agent/Utils';
 import { getActiveLLMConfig } from 'Agent/Utils';
 import type { LLMConfig, LLMTokenUsage, StopToken } from 'Agent/Utils';
 import { sendWebIDEFileUpdate } from 'Agent/Tool/WebIDESync';
@@ -1428,7 +1428,7 @@ export class DualLayerStorage {
 			}
 		}
 		const content = lines.length > 0 ? `${lines.join("\n")}\n` : "";
-		Content.save(this.historyPath, content);
+		if (!Content.save(this.historyPath, content)) throw new Error("failed to persist Agent history");
 		sendWebIDEFileUpdate(this.historyPath, true, content);
 	}
 
@@ -1450,7 +1450,7 @@ export class DualLayerStorage {
 	writeMemory(content: string): void {
 		const normalized = normalizeMemoryFileContent(content, DEFAULT_CORE_MEMORY_TEMPLATE, "Imported Notes");
 		this.ensureDir(Path.getPath(this.memoryPath));
-		Content.save(this.memoryPath, normalized);
+		if (!Content.save(this.memoryPath, normalized)) throw new Error("failed to persist Agent memoryPath");
 		sendWebIDEFileUpdate(this.memoryPath, true, normalized);
 	}
 
@@ -1464,7 +1464,7 @@ export class DualLayerStorage {
 	writeProjectMemory(content: string): void {
 		const normalized = normalizeMemoryFileContent(content, DEFAULT_PROJECT_MEMORY_TEMPLATE, "Imported Project Notes");
 		this.ensureDir(Path.getPath(this.projectMemoryPath));
-		Content.save(this.projectMemoryPath, normalized);
+		if (!Content.save(this.projectMemoryPath, normalized)) throw new Error("failed to persist Agent projectMemoryPath");
 		sendWebIDEFileUpdate(this.projectMemoryPath, true, normalized);
 	}
 
@@ -1478,7 +1478,7 @@ export class DualLayerStorage {
 	writeSessionSummary(content: string): void {
 		const normalized = normalizeMemoryFileContent(content, DEFAULT_SESSION_SUMMARY_TEMPLATE, "Imported Session Notes");
 		this.ensureDir(Path.getPath(this.sessionSummaryPath));
-		Content.save(this.sessionSummaryPath, normalized);
+		if (!Content.save(this.sessionSummaryPath, normalized)) throw new Error("failed to persist Agent sessionSummaryPath");
 		sendWebIDEFileUpdate(this.sessionSummaryPath, true, normalized);
 	}
 
@@ -1628,10 +1628,11 @@ export class MemoryCompressor {
 	private config: Omit<MemoryConfig, "promptPack"> & { promptPack: AgentPromptPack };
 	private consecutiveFailures: number = 0;
 
-	// callLLMForCompression already exhausts provider retries and the XML
-	// fallback before reaching this path. Retrying the same chunk in later Agent
-	// steps only repeats cost and blocks progress, so archive it immediately.
-	private static readonly MAX_FAILURES = 1;
+	// Failures never remove active messages. Back off proactive attempts after
+	// repeated failures, but always allow an attempt near the hard input limit.
+	isCompressionBreakerOpen(): boolean {
+		return this.consecutiveFailures >= 3;
+	}
 
 	constructor(config: MemoryConfig) {
 		const loadedPromptPack = loadAgentPromptPack(config.projectDir);
@@ -1993,6 +1994,10 @@ export class MemoryCompressor {
 				lastError = response.message;
 				context?.onOutput?.("memory_compression_tool_calling", response.raw ?? response.message, { success: false, attempt: i + 1, error: lastError });
 				Log("Warn", `[Memory] compression tool-calling attempt ${i + 1}/${maxLLMTry} failed: ${response.message}`);
+				if (getLLMFailureKind(response.message, response.raw) === "transport") {
+					if (i + 1 >= maxLLMTry) throw new Error(response.message);
+					await waitForLLMRetry(i + 1, context?.stopToken);
+				}
 				continue;
 			}
 			const tokenUsage = extractLLMTokenUsage(response.response);
@@ -2262,44 +2267,17 @@ ${this.config.promptPack.memoryCompressionXmlPrompt}`;
 	 * 处理压缩失败
 	 */
 	private handleCompressionFailure(
-		chunk: AgentConversationMessage[],
+		_chunk: AgentConversationMessage[],
 		error: string
 	): CompressionResult {
-		this.consecutiveFailures++;
-
-		if (this.consecutiveFailures >= MemoryCompressor.MAX_FAILURES) {
-			const archived = this.rawArchive(chunk);
-			this.consecutiveFailures = 0;
-
-			return {
-				success: true,
-				memoryUpdate: this.storage.readMemory(),
-				ts: archived.ts,
-				compressedCount: chunk.length,
-				error,
-				fallbackArchived: true,
-			};
-		}
-
+		this.consecutiveFailures += 1;
+		Log("Warn", `[Memory] compression failed; active history preserved (consecutive=${this.consecutiveFailures}): ${error}`);
 		return {
 			success: false,
 			memoryUpdate: this.storage.readMemory(),
 			compressedCount: 0,
 			error,
 		};
-	}
-
-	/**
-	 * 原始归档（降级方案）
-	 */
-	private rawArchive(chunk: AgentConversationMessage[]): { ts: string } {
-		const ts = os.date("%Y-%m-%d %H:%M");
-		const rawArchive = this.formatMessagesForCompression(chunk);
-		this.storage.appendHistoryRecord({
-			ts,
-			rawArchive,
-		});
-		return { ts };
 	}
 
 	/**

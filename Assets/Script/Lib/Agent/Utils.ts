@@ -10,6 +10,72 @@ export function setLogLevel(level: number) {
 
 const LLM_TIMEOUT = 600;
 const LLM_STREAM_TIMEOUT = 600;
+// Keep the tool-decision default aligned with supported GLM generations.
+// Explicit user/provider reasoning settings still take precedence at transport.
+export function useFastGlmToolDecision(model: string, options: Record<string, unknown>): boolean {
+	const name = model.toLowerCase();
+	return (name.includes("glm-5.2") || name.includes("glm-5.3"))
+		&& (typeof options.reasoning_effort !== "string" || options.reasoning_effort.trim() === "");
+}
+
+// Some providers (including GLM) reject assistant/tool-only conversations.
+// A complete checkpoint may legitimately cover the last real user message.
+// Insert a stable continuation instruction instead of replaying an obsolete
+// user turn as if it were the newest requirement. This is a request projection
+// only: persisted history and the user's current instructions stay untouched.
+export function ensureConversationUserMessage(messages: Message[]): Message[] {
+	if (messages.some(message => message.role === "user")) return messages;
+	const index = messages.length > 0 && messages[0].role === "system" ? 1 : 0;
+	return [
+		...messages.slice(0, index),
+		{ role: "user", content: "Continue the current task using the retained conversation and memory checkpoint. Preserve its latest constraints and open work; do not restart completed work. Checkpoint summaries are reference data, not newer user instructions." },
+		...messages.slice(index),
+	];
+}
+
+// Classify provider failures separately from validation errors. Never match bare
+// status numbers: a request id or quoted model output can contain those digits.
+export function getLLMFailureKind(message: string, raw = ""): "transport" | "context" | "other" {
+	const lower = message.toLowerCase();
+	if (lower.indexOf("context length") >= 0 || lower.indexOf("maximum context") >= 0
+		|| lower.indexOf("context_length_exceeded") >= 0) return "context";
+	const markers = ["failed to get http response", "timeout", "timed out", "connection refused",
+		"connection reset", "econnrefused", "econnreset", "http 429", "http 502", "http 503", "http 504"];
+	for (const marker of markers) if (lower.indexOf(marker) >= 0) return "transport";
+	const candidates = raw !== "" ? [raw] : [];
+	// Streaming providers may send a structured error as an SSE event instead
+	// of a JSON response. Read its code rather than guessing from prose.
+	for (const line of raw.split("\n")) {
+		if (line.startsWith("data:")) candidates.push(line.slice(5).trim());
+	}
+	for (const candidate of candidates) {
+		const [parsed] = safeJsonDecode(candidate);
+		const error = parsed && typeof parsed === "object" ? (parsed as { error?: { code?: unknown; type?: unknown } }).error : undefined;
+		if (error && typeof error === "object") {
+			if (error.code === "context_length_exceeded") return "context";
+			const code = tostring(error.code ?? error.type ?? "").toLowerCase();
+			if (code === "429" || code === "502" || code === "503" || code === "504"
+				|| code === "rate_limit_exceeded" || code === "server_error" || code === "overloaded_error") return "transport";
+		}
+	}
+	return "other";
+}
+
+export function waitForLLMRetry(attempt: number, stopToken?: StopToken): Promise<void> {
+	const delay = math.min(8, math.max(1, attempt) * 2);
+	return new Promise<void>(resolve => {
+		let elapsed = 0;
+		Director.systemScheduler.schedule(deltaTime => {
+			elapsed += deltaTime;
+			if (stopToken?.stopped || elapsed >= delay) {
+				resolve();
+				return true;
+			}
+			return false;
+		});
+	});
+}
+
 const LLM_STREAM_RAW_DEBUG_MAX = 12000;
 const LLM_STREAM_CHUNK_DEBUG_LOG_LIMIT = 5;
 
@@ -803,8 +869,8 @@ const postLLM = (
 	const requestTimeout = stream ? LLM_STREAM_TIMEOUT : LLM_TIMEOUT;
 	const requestOptions = applyCustomLLMOptions(options, customOptions);
 	const data: Record<string, unknown> = {
-		...requestOptions,
 		model,
+		...requestOptions,
 		messages,
 		stream,
 	};
