@@ -1,4 +1,6 @@
 // @preview-file off clear
+import { AGENT_DEFAULTS } from 'Agent/Config/Defaults';
+import { HANDOFF_TOOL } from 'Agent/Runtime/PrefixHandoff';
 import { compileJsonSchema } from 'Agent/Tool/JsonSchema';
 import { AGENT_TOOL_HANDLERS } from 'Agent/Tool/Handlers';
 import { AGENT_TOOL_VALIDATORS } from 'Agent/Tool/Validation';
@@ -134,6 +136,14 @@ const BUILD_PARAMETERS: AgentToolParameterDefinition[] = [
 ];
 
 const AGENT_TOOL_DEFINITION_SOURCES: AgentToolDefinitionSource[] = [
+	{
+		name: "context_handoff",
+		roles: ["main"],
+		workModes: ["code", "plan"],
+		description: HANDOFF_TOOL.function.description,
+		inputSchema: () => HANDOFF_TOOL.function.parameters as JsonSchemaObject,
+		rules: ["Create a substantial checkpoint; preserve verified evidence separately from hypotheses and open work. This is not a final response."],
+	},
 	{
 		name: "read_file",
 		roles: ["main", "sub"],
@@ -483,6 +493,7 @@ export function getToolDefinition(name: string): AgentToolDefinition | undefined
 
 function isToolCapabilityEnabled(tool: AgentToolDefinition, options?: AgentToolCapabilityOptions): boolean {
 	if (!isKnownToolName(tool.name)) return false;
+	if (tool.name === "context_handoff" && !AGENT_DEFAULTS.memorySharedPrefixHandoff) return false;
 	return hasWorkMode(tool, options?.workMode ?? "code")
 		&& (options?.disabledAgentTools ?? []).indexOf(tool.name as AgentToolName) < 0;
 }

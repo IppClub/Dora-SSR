@@ -7,6 +7,7 @@ export type AgentRole = "main" | "sub";
 export type AgentWorkMode = "code" | "plan";
 
 export type AgentToolName =
+	| "context_handoff"
 	| "analyze_image"
 	| "read_file"
 	| "edit_file"

@@ -1,5 +1,6 @@
 // @preview-file off clear
 import { App, Content, Path } from 'Dora';
+import { parseToolHandoff } from 'Agent/Runtime/PrefixHandoff';
 import { AGENT_DEFAULTS } from 'Agent/Config/Defaults';
 import { Message, applyCustomLLMOptions, callLLM, Log, getInputTokenBudget, fitMessagesToContext, clipTextToTokenBudget, extractLLMTokenUsage, parseXMLObjectFromText, getLLMFailureKind, waitForLLMRetry, safeJsonDecode, safeJsonEncode, sanitizeUTF8 } from 'Agent/Utils';
 import { getActiveLLMConfig } from 'Agent/Utils';
@@ -680,6 +681,7 @@ export interface MemoryConfig {
  * 压缩结果
  */
 export interface CompressionResult {
+	prefixFallbackReason?: string;
 	/** 更新后的 MEMORY.md 内容 */
 	memoryUpdate: string;
 
@@ -694,6 +696,9 @@ export interface CompressionResult {
 
 	/** 历史记录摘要 */
 	summary?: string;
+
+	/** Complete in-task checkpoint; memory files remain unchanged. */
+	handoff?: boolean;
 
 	/** 压缩的历史记录数量 */
 	compressedCount: number;
@@ -723,6 +728,9 @@ export interface CompressionResult {
 class MemoryCompressionBudgetError extends Error {}
 
 export interface MemoryCompressionContext {
+	/** Exact next decision payload, available only for in-task compaction. */
+	sharedPrefix?: { messages: Message[]; options: Record<string, unknown> };
+	onDevelopmentCalls?: (message: Message) => Promise<void>;
 	/** Tokens to remove from the effective decision request, including pending input. */
 	targetTokens?: number;
 	stopToken?: StopToken;
@@ -1679,7 +1687,26 @@ export class MemoryCompressor {
 			reasoning_effort: "minimal",
 		}, getAuxiliaryLLMOptions(this.config.llmConfig));
 		let chunk: AgentConversationMessage[] = [];
+		let prefixFallbackReason: string | undefined;
 		try {
+			if (context?.stopToken?.stopped) throw new Error("Memory compression cancelled");
+			const handoff = decisionMode === "tool_calling" && context?.sharedPrefix
+				? await this.trySharedPrefixHandoff(currentMemory, compressionLLMOptions, context)
+				: undefined;
+			// A shared-prefix checkpoint covers the entire supplied active history.
+			// Dedicated compaction below still selects a bounded, closed action chunk.
+			if (handoff) {
+				if (!handoff.success) {
+					prefixFallbackReason = handoff.error ?? 'Invalid checkpoint';
+					Log("Warn", `[Memory] prefix checkpoint failed; falling back to structured compression: ${handoff.error}`);
+				} else {
+					const boundary = this.buildSafeBoundary(toCompress, toCompress.length);
+					this.storage.appendHistoryRecord({ ts: handoff.ts!, summary: handoff.summary });
+					this.consecutiveFailures = 0;
+					return { ...handoff, compressedCount: boundary.compressedCount, carryMessageIndex: boundary.carryMessageIndex };
+				}
+			}
+			if (context?.stopToken?.stopped) throw new Error("Memory compression cancelled");
 			const historyBudget = this.buildBoundedCompressionSections(currentMemory, "", compressionLLMOptions).historyBudget;
 			const boundary = this.findCompressionBoundary(
 				boundaryMessages && boundaryMessages.length === toCompress.length ? boundaryMessages : toCompress,
@@ -1723,6 +1750,7 @@ export class MemoryCompressor {
 
 				return {
 					...result,
+					prefixFallbackReason,
 					compressedCount: boundary.compressedCount,
 					carryMessageIndex: boundary.carryMessageIndex,
 				};
@@ -1738,6 +1766,45 @@ export class MemoryCompressor {
 			if (error instanceof MemoryCompressionBudgetError) return { success: false, memoryUpdate: currentMemory, compressedCount: 0, error: error.message };
 			return this.handleCompressionFailure(chunk, error instanceof Error ? error.message : "Unknown error");
 		}
+	}
+
+	private async trySharedPrefixHandoff(
+		currentMemory: string,
+		llmOptions: Record<string, unknown>,
+		context: MemoryCompressionContext
+	): Promise<CompressionResult | undefined> {
+		const shared = context.sharedPrefix;
+		if (!shared || shared.messages.length === 0 || !shared.options.tools) return undefined;
+		// A different auxiliary model cannot share the decision model's cache.
+		const mainModel = shared.options.model ?? this.config.llmConfig.customOptions?.model ?? this.config.llmConfig.model;
+		if ((llmOptions.model ?? mainModel) !== mainModel) return undefined;
+		const directive = 'Create a checkpoint for the next model continuing this task. Preserve current scope and corrections, latest values, necessary paths, actual validation state and first open next action. Separate observed facts from hypotheses. Saved source changes do not prove build/runtime success. Do not redo completed work. Current user instructions and later tool results outrank the checkpoint. Call context_handoff with three nonempty fields. Other development calls will run normally and their results remain active.';
+		const messages: Message[] = [...shared.messages, { role: 'user', content: directive }];
+		const options = { ...llmOptions, tools: shared.options.tools };
+		delete (options as Record<string, unknown>).tool_choice;
+		const fitted = fitMessagesToContext(messages, options, this.config.llmConfig);
+		if (fitted.originalTokens > fitted.budgetTokens) return { success: false, memoryUpdate: currentMemory, compressedCount: 0, error: 'Shared prefix plus checkpoint directive exceeds the input budget' };
+		context.onInput?.('memory_compression_handoff', messages, options);
+		const response = await callLLM(messages, options, context.stopToken, buildCompressionLLMConfig(this.config.llmConfig));
+		if (context.stopToken?.stopped) throw new Error('Memory compression cancelled');
+		if (!response.success) {
+			context.onOutput?.('memory_compression_handoff', response.raw ?? response.message, { success: false });
+			return { success: false, memoryUpdate: currentMemory, compressedCount: 0, error: response.message };
+		}
+		const usage = extractLLMTokenUsage(response.response);
+		if (usage) context.onUsage?.('memory_compression_handoff', usage);
+		const choice = response.response.choices?.[0];
+		const message: Message = { ...choice?.message, role: choice?.message?.role ?? 'assistant' };
+		const parsed = parseToolHandoff(choice?.finish_reason ?? '', message);
+		if (parsed.complete && parsed.calls.length > 0) {
+			if (!context.onDevelopmentCalls) return { success: false, memoryUpdate: currentMemory, compressedCount: 0, error: 'Development calls require the Agent executor' };
+			await context.onDevelopmentCalls({ role: 'assistant', content: 'Checkpoint-time development calls; results below are authoritative.', tool_calls: parsed.calls });
+		}
+		if (context.stopToken?.stopped) throw new Error('Memory compression cancelled');
+		const success = parsed.summary !== undefined;
+		context.onOutput?.('memory_compression_handoff', encodeCompressionDebugJSON(response.response), { success, protocol: 'tool', error: parsed.error });
+		if (!success) return { success: false, memoryUpdate: currentMemory, compressedCount: 0, error: parsed.error ?? 'Invalid handoff' };
+		return { success: true, handoff: true, memoryUpdate: currentMemory, compressedCount: 0, ts: os.date('%Y-%m-%d %H:%M'), summary: parsed.summary };
 	}
 
 	/**
@@ -2114,6 +2181,10 @@ export class MemoryCompressor {
 			if (!response.success) {
 				context?.onOutput?.("memory_compression_xml", response.raw ?? response.message, { success: false });
 				lastError = response.message;
+				if (getLLMFailureKind(response.message, response.raw) === "transport") {
+					if (i + 1 >= maxLLMTry) throw new Error(response.message);
+					await waitForLLMRetry(i + 1, context?.stopToken);
+				}
 				continue;
 			}
 			const tokenUsage = extractLLMTokenUsage(response.response);

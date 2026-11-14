@@ -1,6 +1,8 @@
 // @preview-file off clear
 
 export const AGENT_DEFAULTS = {
+	// Prefer a shared-prefix tool checkpoint; retain structured compression as fallback.
+	memorySharedPrefixHandoff: true,
 	maxSteps: 999,
 	llmMaxTry: 5,
 	llmTemperature: 0.1,

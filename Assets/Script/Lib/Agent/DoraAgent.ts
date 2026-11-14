@@ -7,6 +7,7 @@ import { RepeatedOutputRecovery, type DecisionOutput } from 'Agent/Runtime/Repea
 import * as AgentUtils from 'Agent/Utils';
 import type { LLMConfig, LLMTokenUsage, Message, StopToken } from 'Agent/Utils';
 import * as Tools from 'Agent/Tools';
+import { parseToolHandoff, HandoffRecoveryLedger } from 'Agent/Runtime/PrefixHandoff';
 import { MemoryCompressor } from 'Agent/Runtime/Memory';
 import type { AgentPromptPack, AgentConversationMessage, CompressionResult } from 'Agent/Runtime/Memory';
 import * as AgentToolRegistry from 'Agent/Tool/Registry';
@@ -378,6 +379,7 @@ function buildLLMOptions(llmConfig: LLMConfig, overrides?: Record<string, unknow
 }
 
 export interface AgentActionRecord {
+	prefixRecoveryChain?: string;
 	step: number;
 	toolCallId: string;
 	tool: AgentToolName;
@@ -413,6 +415,8 @@ interface AgentFileContextItem {
 }
 
 interface AgentShared {
+	memoryScope: string;
+	pendingPrefixCheckpoint?: { summary: string; boundary: number };
  inputSource?: AgentInputSource;
 	sessionId?: number;
 	taskId: number;
@@ -763,15 +767,52 @@ export function getDecisionDisabledAgentTools(shared: AgentShared): AgentToolNam
 	return shared.disabledAgentTools.slice();
 }
 
-function getDecisionToolSchemaText(shared: AgentShared): string {
-	const [toolsText] = AgentUtils.safeJsonEncode(AgentToolRegistry.buildDecisionToolSchema(shared.role, AgentConfig.AGENT_LIMITS.searchDoraDocLimitMax, {
+function canUsePrefixHandoff(shared: AgentShared): boolean {
+	return AgentConfig.AGENT_DEFAULTS.memorySharedPrefixHandoff && shared.role === 'main'
+		&& getDecisionDisabledAgentTools(shared).indexOf('context_handoff') < 0;
+}
+
+function decisionTools(shared: AgentShared) {
+	return AgentToolRegistry.buildDecisionToolSchema(shared.role, AgentConfig.AGENT_LIMITS.searchDoraDocLimitMax, {
 		disabledAgentTools: getDecisionDisabledAgentTools(shared),
 		workMode: shared.workMode,
-	}) as object);
+	});
+}
+
+function runtimePath(shared: AgentShared, name: string): string {
+	return Path(shared.workingDir, '.agent', shared.memoryScope, name);
+}
+
+function validationState(workflow: AgentToolWorkflowState): Record<string, unknown> {
+	const result: Record<string, unknown> = {};
+	const record = workflow as unknown as Record<string, unknown>;
+	const fields = ['unbuiltEdits', 'hasBuilt', 'lastBuildSucceeded', 'buildRepairPending',
+		'editsSinceBuild', 'editedPathsSinceBuild', 'failedTestNeedsBuild', 'failedTestHasSourceEdit'];
+	for (const field of fields) {
+		if (record[field] !== undefined) result[field] = record[field];
+	}
+	return result;
+}
+
+function restoreValidationState(shared: AgentShared): void {
+	if (!AgentConfig.AGENT_DEFAULTS.memorySharedPrefixHandoff) return;
+	const path = runtimePath(shared, 'WORKFLOW.json');
+	if (!Content.exist(path)) return;
+	const [value, error] = AgentUtils.safeJsonDecode(Content.load(path) as string);
+	if (error || !value || typeof value !== 'object') return;
+	Object.assign(shared.workflow, validationState(value as AgentToolWorkflowState));
+	if (shared.workflow.unbuiltEdits === true && isToolAllowedForRole(shared, 'build')) {
+		shared.workflow.resumeRequiredTool = 'build';
+	}
+}
+
+function getDecisionToolSchemaText(shared: AgentShared): string {
+	const [toolsText] = AgentUtils.safeJsonEncode(decisionTools(shared) as object);
 	return toolsText ?? "";
 }
 
 function isToolAllowedForRole(shared: AgentShared, tool: AgentToolName): boolean {
+	if ((tool as string) === 'context_handoff') return canUsePrefixHandoff(shared);
 	return AgentToolRegistry.getAllowedToolsForRole(shared.role, {
 		disabledAgentTools: getDecisionDisabledAgentTools(shared),
 		workMode: shared.workMode,
@@ -894,6 +935,8 @@ async function maybeCompressHistory(
 ): Promise<void> {
 	const { memory } = shared;
 	let compressionRound = 0;
+	// One recovery journal spans all fallback rounds of this compaction operation.
+	const recoveryChain = `prefix-${shared.taskId}-${shared.step + 1}`;
 	while (true) {
 		const systemPrompt = buildAgentSystemPrompt(shared);
 		const normalizedActiveMessages = sanitizeMessagesForLLMInput(getActiveConversationMessages(shared));
@@ -923,10 +966,7 @@ async function maybeCompressHistory(
 			...(AgentUtils.useFastGlmToolDecision(shared.llmConfig.model, shared.llmOptions)
 				? { reasoning_effort: "minimal" }
 				: {}),
-			tools: AgentToolRegistry.buildDecisionToolSchema(shared.role, AgentConfig.AGENT_LIMITS.searchDoraDocLimitMax, {
-				disabledAgentTools: getDecisionDisabledAgentTools(shared),
-				workMode: shared.workMode,
-			}),
+			tools: decisionTools(shared),
 		};
 		const fitted = AgentUtils.fitMessagesToContext(triggerMessages, triggerOptions, shared.llmConfig);
 		// Start with headroom, using the exact next request including tools and
@@ -965,6 +1005,11 @@ async function maybeCompressHistory(
 			shared.llmMaxTry,
 			"tool_calling",
 			{
+				sharedPrefix: canUsePrefixHandoff(shared) ? {
+					messages: triggerMessages,
+					options: AgentUtils.applyCustomLLMOptions(triggerOptions, shared.llmConfig.customOptions),
+				} : undefined,
+				onDevelopmentCalls: message => runPrefixDevelopmentCalls(shared, message, recoveryChain),
 				targetTokens: math.max(1, fitted.originalTokens - math.floor(fitted.budgetTokens * 0.5)),
 				stopToken: shared.stopToken,
 				onInput: (phase, messages, options) => {
@@ -1031,6 +1076,7 @@ async function maybeCompressHistory(
 				partialRecovered: result.partialRecovered === true,
 				recoveredFields: result.recoveredFields ?? [],
 				finishReason: result.finishReason,
+				prefixFallbackReason: result.prefixFallbackReason,
 				fallbackArchived: result.fallbackArchived === true,
 				fallbackError: result.fallbackArchived === true ? result.error : undefined,
 			},
@@ -1050,6 +1096,7 @@ async function compactActiveHistory(shared: AgentShared, repeatedOutput = false)
 	const { memory } = shared;
 	let rounds = 0;
 	let totalCompressed = 0;
+	const recoveryChain = `prefix-${shared.taskId}-${shared.step + 1}`;
 	while (getActiveRealMessageCount(shared) > 0) {
 		if (shared.stopToken.stopped) {
 			throw new Error(getCancelledReason(shared));
@@ -1082,6 +1129,8 @@ async function compactActiveHistory(shared: AgentShared, repeatedOutput = false)
 			shared.llmMaxTry,
 			"tool_calling",
 			{
+				sharedPrefix: canUsePrefixHandoff(shared) ? { messages: buildDecisionMessages(shared, undefined, 1, undefined, false), options: AgentUtils.applyCustomLLMOptions({ ...shared.llmOptions, tools: decisionTools(shared) }, shared.llmConfig.customOptions) } : undefined,
+				onDevelopmentCalls: message => runPrefixDevelopmentCalls(shared, message, recoveryChain),
 				stopToken: shared.stopToken,
 				onInput: (phase, messages, options) => {
 					saveStepLLMDebugInput(shared, stepId, phase, messages, options);
@@ -1141,11 +1190,13 @@ async function compactActiveHistory(shared: AgentShared, repeatedOutput = false)
 				partialRecovered: result.partialRecovered === true,
 				recoveredFields: result.recoveredFields ?? [],
 				finishReason: result.finishReason,
+				prefixFallbackReason: result.prefixFallbackReason,
 				fallbackArchived: result.fallbackArchived === true,
 				fallbackError: result.fallbackArchived === true ? result.error : undefined,
 			},
 		});
 		totalCompressed += effectiveCompressedCount;
+		if (result.handoff) break;
 		AgentUtils.Log("Info", `[Memory] Full compaction compressed ${effectiveCompressedCount} messages (round ${rounds})`);
 	}
 	return { rounds, totalCompressed };
@@ -1153,6 +1204,7 @@ async function compactActiveHistory(shared: AgentShared, repeatedOutput = false)
 
 async function compactAllHistory(shared: AgentShared): Promise<CodingAgentRunResult> {
 	try {
+		for (let i = shared.messages.length - 1;i >= 0;i--) { const m = shared.messages[i]; if (m.role === 'user' && m.content && getPromptCommand(m.content) === undefined) { shared.userQuery = m.content; break; } }
 		const { rounds, totalCompressed } = await compactActiveHistory(shared);
 		if (shared.stopToken.stopped) return finalizeAgentFailure(shared, getCancelledReason(shared));
 		Tools.setTaskStatus(shared.taskId, "DONE");
@@ -1225,6 +1277,13 @@ function getCompletionReport(params: Record<string, unknown>): AgentCompletionRe
 }
 
 function persistHistoryState(shared: AgentShared): void {
+	if (AgentConfig.AGENT_DEFAULTS.memorySharedPrefixHandoff) {
+		const path = runtimePath(shared, 'WORKFLOW.json');
+		Content.mkdir(Path.getPath(path));
+		if (!Content.save(path, toJson(validationState(shared.workflow), false))) {
+			throw new Error('Failed to persist validation ledger');
+		}
+	}
 	shared.memory.compressor.getStorage().writeSessionState(
 		shared.messages,
 		shared.lastConsolidatedIndex,
@@ -1354,10 +1413,14 @@ function applyCompressedSessionState(
 }
 
 function commitCompressedSessionState(shared: AgentShared, result: CompressionResult): void {
-	// Persist the compression boundary before publishing
+	// Build and persist the checkpoint plus boundary together before publishing
 	// them in memory. A failed save leaves the live history and workflow intact.
 	const next = { ...shared, messages: [...shared.messages], workflow: { ...shared.workflow } };
 	applyCompressedSessionState(next, result.compressedCount, result.carryMessageIndex, result.sessionSummaryUpdate);
+	if (result.handoff && result.summary) appendConversationMessage(next, {
+		role: "assistant",
+		content: `[Context checkpoint — reference summary; current user instructions and later tool results take precedence]\n${result.summary}\nRuntime validation ledger (last observed, not inferred):\n${toJson(validationState(next.workflow), false)}`,
+	});
 	persistHistoryState(next);
 	shared.messages = next.messages;
 	shared.lastConsolidatedIndex = next.lastConsolidatedIndex;
@@ -1437,6 +1500,13 @@ function parseAndValidateToolCallDecision(
 		reason,
 		reasoningContent,
 	});
+	if (functionName === 'context_handoff' && isToolAllowedForRole(shared, 'context_handoff')) {
+		const parsed = parseToolHandoff('tool_calls', { role: 'assistant', tool_calls: [{ id: toolCallId ?? 'local-checkpoint', type: 'function', function: { name: functionName, arguments: argsText } }] });
+		if (!parsed.summary) return rejected(parsed.error ?? 'Invalid checkpoint', 'INVALID_HANDOFF');
+		const gate = validateDecisionForShared(shared, 'context_handoff', {}, true);
+		if (!gate.success) return rejected(gate.message, 'TOOL_NOT_ALLOWED');
+		return { success: true, tool: 'context_handoff', params: { summary: parsed.summary }, toolCallId: ensureToolCallId(toolCallId), providerToolName: functionName, providerArguments: argsText, reason, reasoningContent };
+	}
 	const rawArgs = parseToolCallArguments(functionName, argsText);
 	if (isRecord(rawArgs) && rawArgs.success === false) {
 		return rejected((rawArgs as DecisionFailure).message, "INVALID_TOOL_ARGUMENTS");
@@ -1497,6 +1567,7 @@ function buildAgentSystemPrompt(shared: AgentShared): string {
 		rolePrompt,
 		getReplyLanguageDirective(shared),
 	];
+	if (canUsePrefixHandoff(shared)) sections.push('context_handoff is available throughout this session for substantial context checkpoints. It is not a final response or routine progress report. Separate observed facts and passed checks from hypotheses and unverified work. Never redo completed tool calls after checkpointing.');
 	if (getDecisionDisabledAgentTools(shared).indexOf("analyze_image") >= 0) {
 		sections.push(!resolveVisionBinding(shared.llmConfig)
 			? VISION_UNAVAILABLE_MESSAGE
@@ -1516,6 +1587,7 @@ function buildAgentSystemPrompt(shared: AgentShared): string {
 			].join("\n\n"));
 		}
 	}
+	if (AgentConfig.AGENT_DEFAULTS.memorySharedPrefixHandoff) sections.push('# Runtime validation ledger (authoritative last-observed state; saved changes are not passed tests)\n' + toJson(validationState(shared.workflow), false));
 	sections.push(shared.promptPack.functionCallingPrompt);
 	const memoryBudget = shared.memory.compressor.getMemoryContextBudget();
 	const memoryContext = shared.memory.compressor.getStorage().getRelevantMemoryContext(shared.userQuery, memoryBudget);
@@ -1657,10 +1729,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 			return { success: false, message: getCancelledReason(shared) };
 		}
 		AgentUtils.Log("Info", `[CodingAgent] tool-calling decision start step=${shared.step + 1}${lastError ? ` retry_error=${lastError}` : ""}`);
-		const tools = AgentToolRegistry.buildDecisionToolSchema(shared.role, AgentConfig.AGENT_LIMITS.searchDoraDocLimitMax, {
-			disabledAgentTools: getDecisionDisabledAgentTools(shared),
-			workMode: shared.workMode,
-		});
+		const tools = decisionTools(shared);
 		const messages = buildDecisionMessages(shared, lastError, attempt, lastRaw);
 		const stepId = shared.step + 1;
 		const useFastGlmToolDecision = AgentUtils.useFastGlmToolDecision(shared.llmConfig.model, shared.llmOptions);
@@ -1733,7 +1802,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 						return terminalDecision;
 				}
 				if (isDecisionPlainTextCompletion(terminalDecision)) {
-					const blocker = getAuthoredCompletionBlocker(shared.workflow);
+					const blocker = shared.workMode === "code" ? getAuthoredCompletionBlocker(shared.workflow) : undefined;
 					if (blocker !== undefined) {
 						return { success: false, message: blocker, raw: terminalDecision.content };
 					}
@@ -2118,6 +2187,22 @@ function createAgentToolExecutionContext(
 }
 
 async function executeToolAction(shared: AgentShared, action: AgentActionRecord): Promise<Record<string, unknown>> {
+	if (action.providerToolName === 'context_handoff' && action.preExecutionFailure === undefined) {
+		if (shared.pendingPrefixCheckpoint) {
+			action.execution = { status: 'FAILED' };
+			return { success: false, code: 'MULTIPLE_HANDOFFS', message: 'One checkpoint per batch; first checkpoint retained' };
+		}
+		let boundary = shared.messages.length;
+		for (let i = shared.messages.length - 1; i >= 0; i--) {
+			if (shared.messages[i].tool_calls?.some(call => call.id === action.toolCallId)) {
+				boundary = i;
+				break;
+			}
+		}
+		shared.pendingPrefixCheckpoint = { summary: action.params.summary as string, boundary };
+		action.execution = { status: 'DONE' };
+		return { success: true, message: 'Checkpoint queued; batch tool results remain active and authoritative' };
+	}
 	if (action.preExecutionFailure !== undefined) {
 		action.execution = { status: "FAILED" };
 		return {
@@ -2163,6 +2248,16 @@ async function executeToolAction(shared: AgentShared, action: AgentActionRecord)
 
 async function executeToolActionSafely(shared: AgentShared, action: AgentActionRecord): Promise<Record<string, unknown>> {
 	try {
+		if (action.prefixRecoveryChain) {
+			const ledger = new HandoffRecoveryLedger(runtimePath(shared, `prefix-tools/${action.prefixRecoveryChain}`));
+			const result = await ledger.execute({ id: action.toolCallId, type: 'function', function: { name: action.providerToolName ?? action.tool, arguments: action.providerArguments ?? toJson(action.params, false) } }, () => executeToolActionWithGuidance(shared, action));
+			if (result.recoveryReplay === true) action.execution = { status: result.success === false ? 'FAILED' : 'DONE' };
+			if (result.code === 'RECOVERY_RECONCILIATION_REQUIRED') {
+				shared.stopToken.stopped = true;
+				shared.stopToken.reason = 'Uncertain completed tool requires reconciliation';
+			}
+			return result;
+		}
 		return await executeToolActionWithGuidance(shared, action);
 	} catch (err) {
 		const message = tostring(err);
@@ -2343,7 +2438,10 @@ class BatchToolAction extends Node<AgentShared> {
 	async exec(input: { shared: AgentShared; actions: AgentActionRecord[] }): Promise<AgentActionRecord[]> {
 		const shared = input.shared;
 		const spawnedBeforeBatch = shared.workflow.hasSpawnedSubAgentThisTask === true;
-		const batches = partitionAgentToolCalls(input.actions, AgentToolRegistry.canRunToolInParallel);
+		// Recovery receipts share one journal. Keep this path serial while normal
+		// development batches retain their existing parallel execution policy.
+		const recovering = input.actions.some(action => action.prefixRecoveryChain !== undefined);
+		const batches = partitionAgentToolCalls(input.actions, tool => !recovering && AgentToolRegistry.canRunToolInParallel(tool));
 		const parallelBatchCount = batches.filter(b => b.isConcurrencySafe).length;
 		const serialBatchCount = batches.filter(b => !b.isConcurrencySafe).length;
 		AgentUtils.Log("Info", `[CodingAgent] smart batch partition total=${input.actions.length} parallel_batches=${parallelBatchCount} serial_batches=${serialBatchCount}`);
@@ -2425,6 +2523,12 @@ class BatchToolAction extends Node<AgentShared> {
 
 	async post(shared: AgentShared, _prepRes: unknown, _execRes: unknown): Promise<string | undefined> {
 		shared.pendingToolActions = undefined;
+		if (shared.pendingPrefixCheckpoint) {
+			const checkpoint = shared.pendingPrefixCheckpoint;
+			shared.pendingPrefixCheckpoint = undefined;
+			const count = checkpoint.boundary - shared.lastConsolidatedIndex + (typeof shared.carryMessageIndex === 'number' ? 1 : 0);
+			if (count > 0) commitCompressedSessionState(shared, { success: true, handoff: true, memoryUpdate: shared.memory.compressor.getStorage().readMemory(), summary: checkpoint.summary, compressedCount: count });
+		}
 		persistHistoryState(shared);
 		// Keep the ask_user call/result pair active so the submitted answer can
 		// replace the waiting result before any memory summary covers it.
@@ -2434,6 +2538,20 @@ class BatchToolAction extends Node<AgentShared> {
 		}
 		return shared.workflow.waitingQuestionnaireId !== undefined ? "done" : "main";
 	}
+}
+
+
+async function runPrefixDevelopmentCalls(shared: AgentShared, message: Message, chain: string): Promise<void> {
+	const decisions = (message.tool_calls ?? []).map(c => parseAndValidateToolCallDecision(shared, c.function?.name ?? '', c.function?.arguments ?? '', c.id, message.content));
+	if (decisions.length === 0) return;
+	const node = new MainDecisionAgent(1, 0);
+	await node.post(shared, undefined, { success: true, kind: 'batch', decisions, content: message.content });
+	const actions = shared.pendingToolActions ?? [];
+	for (const action of actions) action.prefixRecoveryChain = chain;
+	const batch = new BatchToolAction(1, 0);
+	await batch.exec({ shared, actions });
+	shared.pendingToolActions = undefined;
+	persistHistoryState(shared);
 }
 
 class EndNode extends Node<AgentShared> {
@@ -2539,6 +2657,7 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 
 	const shared: AgentShared = {
 		inputSource: options.inputSource,
+		memoryScope: options.memoryScope ?? 'main',
 		sessionId: options.sessionId,
 		taskId: taskRes.taskId,
 		role: options.role ?? "main",
@@ -2562,6 +2681,7 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 		messages: persistedSession.messages,
 		lastConsolidatedIndex: persistedSession.lastConsolidatedIndex,
 		carryMessageIndex: persistedSession.carryMessageIndex,
+		resumeCheckpointPending: persistedSession.lastConsolidatedIndex > 0,
 		workflow: {
 			freshProjectBuildPending,
 			freshProjectCodeFile,
@@ -2592,6 +2712,7 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 	};
 
 	try {
+		restoreValidationState(shared);
 		if (shared.workMode === "plan") {
 			const planDocuments = AgentRuntimePolicy.ensureAgentPlanDocuments(shared.workingDir);
 			if (!planDocuments.success) {

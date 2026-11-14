@@ -127,6 +127,9 @@ function executeLuaCommand(req: {
 	let capturedBatches = 0;
 	let capturedFrames = 0;
 	let commandClosed = false;
+	// Each command observes current compiled project dependencies, even when a
+	// previous command or another project used the same Lua module aliases.
+	const refreshedProjectModules: Record<string, boolean> = {};
 	const godotSceneResults: GodotSceneResult[] = [];
 	const godotRuntimeSceneResults: GodotRuntimeSceneResult[] = [];
 	const godotImportResults: GodotImportBatchResult[] = [];
@@ -298,6 +301,20 @@ function executeLuaCommand(req: {
 			luaPackage.path = `${Path(req.workDir, "?.lua")};${Path(req.workDir, "?", "init.lua")};${previousPath}`;
 			Content.searchPaths = scopedSearchPaths;
 			try {
+				const refreshDependency = (name: string): void => {
+					const canonical = name.split("/").join(".");
+					if (refreshedProjectModules[canonical] || canonical.indexOf("..") >= 0 || name.indexOf("/") === 0) return;
+					const relative = canonical.split(".").join("/");
+					let file = Path(req.workDir, relative + ".lua");
+					if (!Content.exist(file)) file = Path(req.workDir, relative, "init.lua");
+					if (!Content.exist(file)) return; // Never invalidate engine/runtime modules outside this project.
+					refreshedProjectModules[canonical] = true;
+					luaPackage.loaded[canonical] = undefined;
+					luaPackage.loaded[relative] = undefined;
+					const source = Content.load(file) as string;
+					for (const [dependency] of string.gmatch(source, "require%s*%(%s*[\"']([^\"']+)[\"']%s*%)")) refreshDependency(dependency);
+				};
+				for (const name of reloadModules) refreshDependency(name);
 				for (let i = 0; i < reloadModules.length; i++) {
 					const reloadName = reloadModules[i];
 					luaPackage.loaded[reloadName] = undefined;

@@ -1,52 +1,53 @@
 -- [ts]: Defaults.ts
 local ____exports = {} -- 1
 ____exports.AGENT_DEFAULTS = { -- 3
-	maxSteps = 999, -- 4
-	llmMaxTry = 5, -- 5
-	llmTemperature = 0.1, -- 6
-	llmMaxTokens = 64000, -- 7
-	delegatedForegroundBatchLimit = 3 -- 8
-} -- 8
-____exports.AGENT_LIMITS = { -- 11
-	userPromptMaxChars = 12000, -- 12
-	executeCommandHookInstructionCount = 10000, -- 13
-	executeCommandFrameTimeoutSeconds = 5, -- 14
-	executeCommandMaxObjectGrowth = 50000, -- 15
-	executeCommandMaxLuaRefGrowth = 10000, -- 16
-	historyReadFileMaxChars = 12000, -- 17
-	historyReadFileMaxLines = 300, -- 18
-	readFileDefaultLimit = 300, -- 19
-	historySearchFilesMaxMatches = 20, -- 20
-	historySearchDoraApiMaxMatches = 12, -- 21
-	historyListFilesMaxEntries = 200, -- 22
-	historyBuildMaxMessages = 50, -- 23
-	historyBuildMessageMaxChars = 1200, -- 24
-	llmHistoryEditResultMessageMaxChars = 4000, -- 25
-	llmHistoryBuildMaxMessages = 12, -- 26
-	llmHistoryCommandOutputMaxChars = 8000, -- 27
-	llmHistoryToolResultMaxChars = 12000, -- 28
-	compressionVisionReportMaxChars = 6000, -- 29
-	searchDoraDocLimitMax = 20, -- 30
-	searchFilesLimitDefault = 20, -- 31
-	listFilesMaxEntriesDefault = 200, -- 32
-	searchPreviewContext = 80, -- 33
-	completionTextMaxChars = 800, -- 34
-	completionListMaxItems = 12, -- 35
-	completionEvidenceMaxItems = 8 -- 36
-} -- 36
-____exports.AGENT_FILE_PATTERNS = {freshProjectCodeGlobs = { -- 39
-	"**/project.godot", -- 41
-	"**/*.gd", -- 42
-	"**/*.tscn", -- 43
-	"**/*.tres", -- 44
-	"**/*.gdshader", -- 45
-	"**/*.ts", -- 46
-	"**/*.tsx", -- 47
-	"**/*.lua", -- 48
-	"**/*.yue", -- 49
-	"**/*.tl", -- 50
-	"**/*.yarn", -- 51
-	"**/*.xml", -- 52
-	"!**/*.d.ts" -- 53
-}} -- 53
-return ____exports -- 53
+	memorySharedPrefixHandoff = true, -- 5
+	maxSteps = 999, -- 6
+	llmMaxTry = 5, -- 7
+	llmTemperature = 0.1, -- 8
+	llmMaxTokens = 64000, -- 9
+	delegatedForegroundBatchLimit = 3 -- 10
+} -- 10
+____exports.AGENT_LIMITS = { -- 13
+	userPromptMaxChars = 12000, -- 14
+	executeCommandHookInstructionCount = 10000, -- 15
+	executeCommandFrameTimeoutSeconds = 5, -- 16
+	executeCommandMaxObjectGrowth = 50000, -- 17
+	executeCommandMaxLuaRefGrowth = 10000, -- 18
+	historyReadFileMaxChars = 12000, -- 19
+	historyReadFileMaxLines = 300, -- 20
+	readFileDefaultLimit = 300, -- 21
+	historySearchFilesMaxMatches = 20, -- 22
+	historySearchDoraApiMaxMatches = 12, -- 23
+	historyListFilesMaxEntries = 200, -- 24
+	historyBuildMaxMessages = 50, -- 25
+	historyBuildMessageMaxChars = 1200, -- 26
+	llmHistoryEditResultMessageMaxChars = 4000, -- 27
+	llmHistoryBuildMaxMessages = 12, -- 28
+	llmHistoryCommandOutputMaxChars = 8000, -- 29
+	llmHistoryToolResultMaxChars = 12000, -- 30
+	compressionVisionReportMaxChars = 6000, -- 31
+	searchDoraDocLimitMax = 20, -- 32
+	searchFilesLimitDefault = 20, -- 33
+	listFilesMaxEntriesDefault = 200, -- 34
+	searchPreviewContext = 80, -- 35
+	completionTextMaxChars = 800, -- 36
+	completionListMaxItems = 12, -- 37
+	completionEvidenceMaxItems = 8 -- 38
+} -- 38
+____exports.AGENT_FILE_PATTERNS = {freshProjectCodeGlobs = { -- 41
+	"**/project.godot", -- 43
+	"**/*.gd", -- 44
+	"**/*.tscn", -- 45
+	"**/*.tres", -- 46
+	"**/*.gdshader", -- 47
+	"**/*.ts", -- 48
+	"**/*.tsx", -- 49
+	"**/*.lua", -- 50
+	"**/*.yue", -- 51
+	"**/*.tl", -- 52
+	"**/*.yarn", -- 53
+	"**/*.xml", -- 54
+	"!**/*.d.ts" -- 55
+}} -- 55
+return ____exports -- 55
