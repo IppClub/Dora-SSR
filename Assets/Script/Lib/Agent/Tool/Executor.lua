@@ -133,16 +133,7 @@ function ____exports.executeAgentToolDefinition(definition, input, context, sche
 			elseif definition.name == "execute_command" then -- 96
 				local capture = result.output.visionCapture -- 98
 				if capture and type(capture.batchCount) == "number" and __TS__NumberIsFinite(capture.batchCount) and type(capture.frameCount) == "number" and __TS__NumberIsFinite(capture.frameCount) then -- 98
-					stopped.output.visionCapture = { -- 101
-						batchCount = math.max( -- 101
-							0, -- 101
-							math.floor(capture.batchCount) -- 101
-						), -- 101
-						frameCount = math.max( -- 101
-							0, -- 101
-							math.floor(capture.frameCount) -- 101
-						) -- 101
-					} -- 101
+					stopped.output.visionCapture = {batchCount = capture.batchCount, frameCount = capture.frameCount} -- 101
 				end -- 101
 			end -- 101
 			return ____awaiter_resolve(nil, stopped) -- 101
