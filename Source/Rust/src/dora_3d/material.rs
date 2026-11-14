@@ -3,6 +3,7 @@ use super::types::{mat4_to_bgfx_array, Mat4, Vec3, Vec4};
 use super::{next_handle, Dora3DHandle};
 use crate::bgfx_rs::bgfx_sys;
 use crate::print_error;
+use std::cell::Cell;
 use std::collections::{BTreeMap, HashMap};
 use std::ffi::CString;
 use std::fs;
@@ -136,6 +137,9 @@ pub struct MaterialData {
 	pub applied_params: Vec<AppliedParam>,
 	pub uniforms: HashMap<String, bgfx_sys::bgfx_uniform_handle_t>,
 	pub program: Option<bgfx_sys::bgfx_program_handle_t>,
+	// Parameter classification only: typed feature flags are checked separately.
+	// The outer None is dirty; Some(None) caches the full-shader fallback too.
+	cached_pbr_variant: Cell<Option<Option<PbrVariant>>>,
 }
 
 impl Drop for MaterialData {
@@ -168,6 +172,15 @@ impl MaterialData {
 		{
 			return None;
 		}
+		if let Some(variant) = self.cached_pbr_variant.get() {
+			return variant;
+		}
+		let variant = self.pbr_variant_from_params();
+		self.cached_pbr_variant.set(Some(variant));
+		variant
+	}
+
+	fn pbr_variant_from_params(&self) -> Option<PbrVariant> {
 		let mut textures = 0u8;
 		for (name, param) in &self.shader_params {
 			// Generic uniform setters can override the typed material properties.
@@ -214,6 +227,26 @@ impl MaterialData {
 		})
 	}
 
+	fn store_shader_param(&mut self, name: &str, param: ShaderParam) {
+		// Color, UV and ordinary PBR numeric animation does not change the variant.
+		// Replacing a texture with a numeric value must still invalidate its mask.
+		let is_texture = matches!(param, ShaderParam::Texture(_));
+		let previous = self.shader_params.insert(name.to_owned(), param);
+		if is_texture
+			|| matches!(previous, Some(ShaderParam::Texture(_)))
+			|| matches!(name, "u_clearcoat" | "u_transmission" | "u_volume"
+				| "u_sheen" | "u_anisotropy" | "u_materialExt")
+		{
+			self.cached_pbr_variant.set(None);
+		}
+	}
+
+	fn remove_shader_param(&mut self, name: &str) {
+		if self.shader_params.remove(name).is_some() {
+			self.cached_pbr_variant.set(None);
+		}
+	}
+
 	fn new(handle: Dora3DHandle) -> Self {
 		let mut material = Self {
 			handle,
@@ -249,6 +282,7 @@ impl MaterialData {
 			applied_params: Vec::new(),
 			uniforms: HashMap::new(),
 			program: None,
+			cached_pbr_variant: Cell::new(None),
 		};
 		material.seed_default_params();
 		material
@@ -461,6 +495,7 @@ mod base_color_pbr_tests {
 			applied_params: Vec::new(),
 			uniforms: HashMap::new(),
 			program: None,
+			cached_pbr_variant: Cell::new(None),
 		})
 	}
 
@@ -482,7 +517,7 @@ mod base_color_pbr_tests {
 			m.shader_params.clear();
 			for (stage, slot) in slots.iter().enumerate() {
 				if mask & (1 << stage) != 0 {
-					m.shader_params.insert((*slot).to_owned(), texture(stage as u8));
+					m.store_shader_param(*slot, texture(stage as u8));
 				}
 			}
 			let expected = match mask {
@@ -504,25 +539,25 @@ mod base_color_pbr_tests {
 	fn binding_changes_reselect_variants_and_unknown_maps_fall_back() {
 		let mut m = material();
 		assert_eq!(m.pbr_variant(), Some(PbrVariant::BaseColor));
-		m.shader_params.insert(DEFAULT_NORMAL_SLOT.to_owned(), texture(2));
+		m.store_shader_param(DEFAULT_NORMAL_SLOT, texture(2));
 		assert_eq!(m.pbr_variant(), Some(PbrVariant::BaseColorNormal));
-		m.shader_params.insert(DEFAULT_METALLIC_ROUGHNESS_SLOT.to_owned(), texture(1));
+		m.store_shader_param(DEFAULT_METALLIC_ROUGHNESS_SLOT, texture(1));
 		assert_eq!(m.pbr_variant(), Some(PbrVariant::BaseColorNormalMetallicRoughness));
-		m.shader_params.insert(DEFAULT_OCCLUSION_SLOT.to_owned(), texture(4));
+		m.store_shader_param(DEFAULT_OCCLUSION_SLOT, texture(4));
 		assert_eq!(m.pbr_variant(), Some(PbrVariant::Standard));
-		m.shader_params.remove(DEFAULT_OCCLUSION_SLOT);
+		m.remove_shader_param(DEFAULT_OCCLUSION_SLOT);
 		assert_eq!(m.pbr_variant(), Some(PbrVariant::BaseColorNormalMetallicRoughness));
 		for slot in [DEFAULT_SPECULAR_SLOT, DEFAULT_SPECULAR_COLOR_SLOT,
 			DEFAULT_CLEARCOAT_SLOT, DEFAULT_CLEARCOAT_NORMAL_SLOT,
 			DEFAULT_TRANSMISSION_SLOT, DEFAULT_THICKNESS_SLOT,
 			DEFAULT_THICKNESS_SHEEN_SLOT, DEFAULT_SHEEN_COLOR_SLOT,
 			DEFAULT_SHEEN_ROUGHNESS_SLOT, "customSampler"] {
-			m.shader_params.insert(slot.to_owned(), texture(5));
+			m.store_shader_param(slot, texture(5));
 			assert_eq!(m.pbr_variant(), None, "unexpected fast path for {slot}");
-			m.shader_params.remove(slot);
+			m.remove_shader_param(slot);
 			assert!(m.pbr_variant().is_some());
 		}
-		m.shader_params.insert(DEFAULT_NORMAL_SLOT.to_owned(), texture(1));
+		m.store_shader_param(DEFAULT_NORMAL_SLOT, texture(1));
 		assert_eq!(m.pbr_variant(), None, "wrong sampler stage");
 	}
 
@@ -534,10 +569,10 @@ mod base_color_pbr_tests {
 			("u_anisotropy", Vec4::W), ("u_materialExt", Vec4::Z),
 		] {
 			let mut m = material();
-			m.shader_params.insert(name.to_owned(), ShaderParam::Vec4(value));
+			m.store_shader_param(name, ShaderParam::Vec4(value));
 			assert_eq!(m.pbr_variant(), None, "uniform override {name}");
 			m.shader_params.clear();
-			m.shader_params.insert(name.to_owned(), ShaderParam::Vec4(value));
+			m.store_shader_param(name, ShaderParam::Vec4(value));
 			assert_eq!(m.pbr_variant(), None, "untextured uniform override {name}");
 		}
 	}
@@ -558,6 +593,71 @@ mod base_color_pbr_tests {
 				_ => unreachable!(),
 			}
 			assert_eq!(m.pbr_variant(), None, "unexpected fast path for {field}");
+		}
+	}
+
+	#[test]
+	fn cached_selection_tracks_features_but_not_color_or_uv_animation() {
+		let mut m = material();
+		assert_eq!(m.pbr_variant(), Some(PbrVariant::BaseColor));
+		for name in ["u_baseColor", "u_emissiveFactor", "u_metallicRoughness", DEFAULT_BASE_COLOR_UV] {
+			m.store_shader_param(name, ShaderParam::Vec4(Vec4::ONE));
+			assert_eq!(m.cached_pbr_variant.get(), Some(Some(PbrVariant::BaseColor)));
+		}
+		m.store_shader_param(DEFAULT_NORMAL_SLOT, texture(2));
+		assert_eq!(m.cached_pbr_variant.get(), None);
+		assert_eq!(m.pbr_variant(), Some(PbrVariant::BaseColorNormal));
+		// Generic setters can replace a texture, not just update its contents.
+		m.store_shader_param(DEFAULT_NORMAL_SLOT, ShaderParam::Float(0.0));
+		assert_eq!(m.pbr_variant(), Some(PbrVariant::BaseColor));
+		m.store_shader_param("u_clearcoat", ShaderParam::Vec4(Vec4::X));
+		assert_eq!(m.pbr_variant(), None);
+		assert_eq!(m.cached_pbr_variant.get(), Some(None));
+		m.store_shader_param("u_clearcoat", ShaderParam::Vec4(Vec4::ZERO));
+		assert_eq!(m.pbr_variant(), Some(PbrVariant::BaseColor));
+		// Typed fields remain authoritative even when parameter classification is warm.
+		m.clearcoat_factor = 1.0;
+		assert_eq!(m.pbr_variant(), None);
+		m.clearcoat_factor = 0.0;
+		assert_eq!(m.pbr_variant(), Some(PbrVariant::BaseColor));
+	}
+
+	#[test]
+	fn texture_removal_invalidates_cached_fallback() {
+		let mut m = material();
+		m.store_shader_param("customSampler", texture(5));
+		assert_eq!(m.pbr_variant(), None);
+		assert_eq!(m.cached_pbr_variant.get(), Some(None));
+		m.remove_shader_param("customSampler");
+		assert_eq!(m.cached_pbr_variant.get(), None);
+		assert_eq!(m.pbr_variant(), Some(PbrVariant::BaseColor));
+	}
+
+	#[test]
+	#[ignore = "manual release microbenchmark; no GPU required"]
+	fn pbr_variant_lookup_benchmark() {
+		use std::hint::black_box;
+		use std::time::Instant;
+		let mut m = material();
+		for (transform, offset) in DEFAULT_UV_TRANSFORMS {
+			m.store_shader_param(transform, ShaderParam::Vec4(Vec4::ONE));
+			m.store_shader_param(offset, ShaderParam::Vec4(Vec4::ZERO));
+		}
+		for name in ["u_baseColor", "u_emissiveFactor", "u_metallicRoughness", "u_alphaMode",
+			"u_materialExt", "u_specularColor", "u_clearcoat", "u_transmission", "u_volume",
+			"u_attenuationColor", "u_sheen", "u_anisotropy"] {
+			m.store_shader_param(name, ShaderParam::Vec4(Vec4::ZERO));
+		}
+		assert_eq!(m.pbr_variant(), Some(PbrVariant::BaseColor));
+		const COUNT: u32 = 1_000_000;
+		for round in 0..5 {
+			let start = Instant::now();
+			for _ in 0..COUNT { black_box(black_box(&*m).pbr_variant_from_params()); }
+			let scan = start.elapsed().as_nanos() as f64 / COUNT as f64;
+			let start = Instant::now();
+			for _ in 0..COUNT { black_box(black_box(&*m).pbr_variant()); }
+			let cached = start.elapsed().as_nanos() as f64 / COUNT as f64;
+			println!("PBR_LOOKUP round={round} params={} scan_ns={scan:.3} cached_ns={cached:.3}", m.shader_params.len());
 		}
 	}
 
@@ -598,9 +698,7 @@ fn set_shader_param(
 	let Some(uniform) = ensure_uniform(material, name, uniform_type) else {
 		return false;
 	};
-	material
-		.shader_params
-		.insert(name.to_owned(), param.clone());
+	material.store_shader_param(name, param.clone());
 	if let Some(applied) = material
 		.applied_params
 		.iter_mut()
@@ -1159,7 +1257,7 @@ pub fn set_external_texture(
 		return false;
 	};
 	if bgfx_texture == u16::MAX {
-		material.shader_params.remove(name);
+		material.remove_shader_param(name);
 		if let Some(uniform) = material.uniforms.get(name).copied() {
 			material
 				.applied_params
