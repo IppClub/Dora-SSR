@@ -1013,6 +1013,7 @@ i18n
 							reverted: "Reverted",
 							failed: "Failed",
 						},
+						checkpointSummary: "Checkpoint summary",
 						toolNames: {
 							message: "message",
 							read_file: "read file",
@@ -1021,6 +1022,7 @@ i18n
 							grep_files: "search files",
 							glob_files: "list files",
 							search_dora_doc: "search docs",
+							context_handoff: "context handoff",
 							compress_memory: "compress memory",
 							merge_memory: "merge memory",
 							spawn_sub_agent: "spawn sub agent",
@@ -2318,6 +2320,7 @@ i18n
 							reverted: "已回滚",
 							failed: "失败",
 						},
+						checkpointSummary: "交接摘要",
 						toolNames: {
 							message: "消息",
 							read_file: "文件读取",
@@ -2326,6 +2329,7 @@ i18n
 							grep_files: "搜索文件",
 							glob_files: "列出文件",
 							search_dora_doc: "搜索引擎文档",
+							context_handoff: "上下文交接",
 							compress_memory: "记忆压缩",
 							merge_memory: "合并记忆",
 							spawn_sub_agent: "派出子代理",

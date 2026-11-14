@@ -558,15 +558,17 @@ function AgentStepListBody(props: AgentStepListProps) {
 					&& (step.result.report as string).trim() !== "";
 				const suppressedPrimaryContent = visiblePrimaryContent !== "" && hasVisionAnswer ? "" : visiblePrimaryContent;
 				const listedSubAgents = getListedSubAgents(step);
+				const checkpointSummary = step.tool === "context_handoff" && typeof step.params?.summary === "string"
+					? step.params.summary : "";
 				const historyEntryPreview = step.tool === "compress_memory" && typeof step.result?.historyEntryPreview === "string"
 					? step.result.historyEntryPreview
 					: "";
 				const localAgentTranscript = step.tool === "local_agent_message" && typeof step.result?.transcript === "string"
 					? step.result.transcript
 					: "";
-				const isSystemStep = step.tool === "compress_memory" || step.tool === "merge_memory" || step.tool === "sub_agent_handoff";
+				const isSystemStep = step.tool === "context_handoff" || step.tool === "compress_memory" || step.tool === "merge_memory" || step.tool === "sub_agent_handoff";
 				const hasCompletedToolOutcome = step.status === "FAILED"
-					&& !isSystemStep
+					&& (!isSystemStep || step.tool === "context_handoff")
 					&& step.result?.success === false
 					&& step.result?.interrupted !== true;
 				const toolFailureMessage = hasCompletedToolOutcome && typeof step.result?.message === "string"
@@ -626,6 +628,14 @@ function AgentStepListBody(props: AgentStepListProps) {
 								}}
 							>
 								<Markdown content={suppressedPrimaryContent} contentPadding={0} inheritTypography />
+							</Box>
+						) : null}
+						{checkpointSummary !== "" ? (
+							<Box component="details" sx={{ mt: 1, color: Color.TextSecondary, overflowWrap: 'anywhere' }}>
+								<summary style={{ cursor: 'pointer' }}>{t("agent.checkpointSummary")}</summary>
+								<Box sx={{ maxHeight: 360, overflow: 'auto', mt: 1 }}>
+									<Markdown content={checkpointSummary} contentPadding={0} inheritTypography />
+								</Box>
 							</Box>
 						) : null}
 						{historyEntryPreview !== "" ? (

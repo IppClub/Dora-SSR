@@ -21,7 +21,7 @@ export function buildAgentTimeline(messages:readonly AgentSessionMessage[],steps
 export function useAgentTimeline(messages:readonly AgentSessionMessage[],steps:readonly AgentSessionStep[],currentTaskId?:number){return useMemo(()=>buildAgentTimeline(messages,steps,currentTaskId),[messages,steps,currentTaskId]);}
 
 type AgentStepParam={label:string;value?:string};
-const stepToolNames:Record<string,string>={message:'消息',read_file:'文件读取',edit_file:'编辑文件',write_file:'写入文件',spawn_agent:'子代理',delete_file:'删除文件',grep_files:'搜索文件',glob_files:'列出文件',search_dora_doc:'搜索引擎文档',compress_memory:'记忆压缩',merge_memory:'合并记忆',spawn_sub_agent:'派出子代理',list_sub_agents:'列出子代理',sub_agent_handoff:'子代理交接',build:'构建',fetch_url:'网络获取',execute_command:'执行命令',analyze_image:'画面分析',ask_user:'询问用户',finish:'收工'};
+const stepToolNames:Record<string,string>={message:'消息',read_file:'文件读取',edit_file:'编辑文件',write_file:'写入文件',spawn_agent:'子代理',delete_file:'删除文件',grep_files:'搜索文件',glob_files:'列出文件',search_dora_doc:'搜索引擎文档',context_handoff:'上下文交接',compress_memory:'记忆压缩',merge_memory:'合并记忆',spawn_sub_agent:'派出子代理',list_sub_agents:'列出子代理',sub_agent_handoff:'子代理交接',build:'构建',fetch_url:'网络获取',execute_command:'执行命令',analyze_image:'画面分析',ask_user:'询问用户',finish:'收工'};
 const stepStatuses:Record<string,string>={PENDING:'等待中',RUNNING:'进行中',DONE:'已完成',FAILED:'失败',STOPPED:'已停止'};
 const stringValue=(value:unknown)=>typeof value==='string'?value:'';
 const numberValue=(value:unknown)=>typeof value==='number'&&Number.isFinite(value)?value:undefined;
@@ -62,12 +62,14 @@ function AgentStepCards({steps,onOpenFile,running=false}:{steps:readonly AgentSe
     const params=summarizeStepParams(step),buildItems=step.tool==='build'?buildResults(step):[],result=step.result??{},failure=step.status==='FAILED'&&result.success===false?stringValue(result.message):'',progress=step.status==='RUNNING'?numberValue(result.progress):undefined;
     const commandCode=step.tool==='execute_command'&&step.params?.mode==='lua'?stringValue(step.params.code):'',commandOutput=step.tool==='execute_command'?stringValue(result.output):'';
     const answer=step.tool==='questionnaire_answer'?stringValue(result.displayText):'';
+    const checkpoint=step.tool==='context_handoff'?stringValue(step.params?.summary):'';
     return <article key={step.id} className={`dora-agent-step ${step.status.toLowerCase()}`} data-agent-step-id={step.id}>
       <header><span className="dora-agent-step-number">{step.step}</span><span className="dora-agent-step-tool">{stepToolNames[step.tool]??step.tool}</span>{step.status!=='DONE'&&<span className="dora-agent-step-status">{stepStatuses[step.status]??step.status}</span>}</header>
       {(step.reasoningContent??'').trim()&&<AgentReasoning content={step.reasoningContent}/>}
       {answer?<SharedAgentMarkdown className="dora-agent-step-answer" content={answer}/>:<>{step.reason&&<SharedAgentMarkdown className="dora-agent-step-reason" content={step.reason}/>}</>}
       {params.length>0&&<dl className="dora-agent-step-params">{params.map((item,index)=><React.Fragment key={`${item.label}:${item.value}:${index}`}><dt>{item.label}</dt><dd>{item.value}</dd></React.Fragment>)}</dl>}
       {progress!==undefined&&<div className="dora-agent-step-progress" aria-label={`进度 ${Math.round(Math.max(0,Math.min(1,progress))*100)}%`}><i style={{width:`${Math.round(Math.max(0,Math.min(1,progress))*100)}%`}}/></div>}
+      {checkpoint&&<details className="dora-agent-step-block"><summary>交接摘要</summary><div style={{maxHeight:360,overflow:'auto',overflowWrap:'anywhere'}}><SharedAgentMarkdown content={checkpoint}/></div></details>}
       {commandCode&&<StepCodeBlock title="脚本代码" content={commandCode}/>}{commandOutput&&<StepCodeBlock title="输出结果" content={commandOutput}/>}
       {buildItems.length>0&&<details className="dora-agent-build-results"><summary>构建结果 · {buildItems.length}</summary>{buildItems.map((item,index)=><div key={`${item.file}:${index}`} className={item.success?'success':'failed'}><strong>{item.success?'成功':'失败'}</strong><code>{item.file}</code>{item.message&&<p>{item.message}</p>}</div>)}</details>}
       {failure&&<p className="dora-agent-step-error">{failure}</p>}
