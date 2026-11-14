@@ -1354,14 +1354,39 @@ local function imageBlocksForToolResult(shared, action)
 		)
 	end
 	local batchResults = result.results
-	if __TS__ArrayIsArray(batchResults) and #batchResults == 1 then
-		local first = batchResults[1]
-		if first.kind == "image" then
-			return imageBlocksForSingleImage(
-				shared,
-				tostring(first.path),
-				first.mime
-			)
+	if __TS__ArrayIsArray(batchResults) then
+		local hasImage = false
+		local blocks = {}
+		do
+			local i = 0
+			while i < #batchResults do
+				do
+					local entry = batchResults[i + 1]
+					if entry.kind ~= "image" then
+						goto __continue153
+					end
+					hasImage = true
+					local block = imageBlocksForSingleImage(
+						shared,
+						tostring(entry.path),
+						entry.mime
+					)
+					if block ~= nil then
+						do
+							local j = 0
+							while j < #block do
+								blocks[#blocks + 1] = block[j + 1]
+								j = j + 1
+							end
+						end
+					end
+				end
+				::__continue153::
+				i = i + 1
+			end
+		end
+		if hasImage then
+			return #blocks > 0 and blocks or nil
 		end
 	end
 	return nil
@@ -1381,7 +1406,7 @@ local function elideExecutedScriptArguments(shared, action)
 			do
 				local message = shared.messages[i + 1]
 				if message.role ~= "assistant" or not message.tool_calls then
-					goto __continue156
+					goto __continue162
 				end
 				do
 					local j = 0
@@ -1389,7 +1414,7 @@ local function elideExecutedScriptArguments(shared, action)
 						do
 							local call = message.tool_calls[j + 1]
 							if call.id ~= action.toolCallId or call["function"] == nil then
-								goto __continue159
+								goto __continue165
 							end
 							local original = call["function"].arguments or ""
 							if (string.find(original, "scriptElided", nil, true) or 0) - 1 >= 0 then
@@ -1404,12 +1429,12 @@ local function elideExecutedScriptArguments(shared, action)
 							)
 							return
 						end
-						::__continue159::
+						::__continue165::
 						j = j + 1
 					end
 				end
 			end
-			::__continue156::
+			::__continue162::
 			i = i - 1
 		end
 	end
@@ -1680,7 +1705,7 @@ function MainDecisionAgent.prototype.callDecisionByToolCalling(self, shared, las
 							code = "INVALID_TOOL_CALL",
 							message = "missing function name for tool call " .. tostring(i + 1)
 						}
-						goto __continue213
+						goto __continue219
 					end
 					local functionName = fn.name
 					local argsText = type(fn.arguments) == "string" and fn.arguments or ""
@@ -1722,7 +1747,7 @@ function MainDecisionAgent.prototype.callDecisionByToolCalling(self, shared, las
 									(((("[CodingAgent] recovered truncated edit_file operations=" .. tostring(recovery.operationCount)) .. " targets=") .. tostring(#recovery.targets)) .. " characters=") .. tostring(recovery.recoveredNewStrCharacters)
 								)
 								decisions[#decisions + 1] = recoveredDecision
-								goto __continue213
+								goto __continue219
 							end
 						end
 						AgentUtils.Log(
@@ -1732,7 +1757,7 @@ function MainDecisionAgent.prototype.callDecisionByToolCalling(self, shared, las
 					end
 					decisions[#decisions + 1] = decision
 				end
-				::__continue213::
+				::__continue219::
 				i = i + 1
 			end
 		end
@@ -1839,7 +1864,7 @@ function MainDecisionAgent.prototype.exec(self, input)
 							__TS__Await(maybeCompressHistory(shared, false, "", true))
 							lastError = decision.message
 							lastRaw = decision.raw or ""
-							goto __continue228
+							goto __continue234
 						end
 						local isTransportError = (string.find(failureText, "failed to get http response", nil, true) or 0) - 1 >= 0 or (string.find(failureText, "timeout", nil, true) or 0) - 1 >= 0 or (string.find(failureText, "connection refused", nil, true) or 0) - 1 >= 0 or (string.find(failureText, "connection reset", nil, true) or 0) - 1 >= 0 or (string.find(failureText, "502", nil, true) or 0) - 1 >= 0 or (string.find(failureText, "503", nil, true) or 0) - 1 >= 0 or (string.find(failureText, "504", nil, true) or 0) - 1 >= 0
 						if isTransportError and attempt < shared.llmMaxTry - 1 then
@@ -1849,7 +1874,7 @@ function MainDecisionAgent.prototype.exec(self, input)
 							)
 							lastError = decision.message
 							lastRaw = decision.raw or ""
-							goto __continue228
+							goto __continue234
 						end
 						return ____awaiter_resolve(nil, decision)
 					end
@@ -1857,7 +1882,7 @@ function MainDecisionAgent.prototype.exec(self, input)
 					lastRaw = decision.raw or ""
 					AgentUtils.Log("Error", "[CodingAgent] tool-calling attempt failed: " .. lastError)
 				end
-				::__continue228::
+				::__continue234::
 				attempt = attempt + 1
 			end
 		end
@@ -2140,7 +2165,7 @@ local function sanitizeToolActionResultForHistory(action, result)
 							if contextLine ~= nil then
 								unifiedDiffLines[#unifiedDiffLines + 1] = " " .. contextLine
 							end
-							goto __continue282
+							goto __continue288
 						end
 						if beforeChanged and beforeLine ~= nil then
 							unifiedDiffLines[#unifiedDiffLines + 1] = "-" .. beforeLine
@@ -2149,7 +2174,7 @@ local function sanitizeToolActionResultForHistory(action, result)
 							unifiedDiffLines[#unifiedDiffLines + 1] = "+" .. afterLine
 						end
 					end
-					::__continue282::
+					::__continue288::
 					lineIndex = lineIndex + 1
 				end
 			end
@@ -2291,7 +2316,7 @@ function BatchToolAction.prototype.exec(self, input)
 						for ____, action in ipairs(batch.actions) do
 							completeStoppedToolAction(shared, action)
 						end
-						goto __continue304
+						goto __continue310
 					end
 					if batch.isConcurrencySafe and #batch.actions > 1 then
 						AgentUtils.Log(
@@ -2371,7 +2396,7 @@ function BatchToolAction.prototype.exec(self, input)
 						end
 					end
 				end
-				::__continue304::
+				::__continue310::
 				batchIdx = batchIdx + 1
 			end
 		end
@@ -2387,13 +2412,13 @@ function BatchToolAction.prototype.exec(self, input)
 						if (____opt_86 and ____opt_86.success) == true then
 							spawnSeen = true
 						end
-						goto __continue323
+						goto __continue329
 					end
 					if spawnSeen and true then
 						didDelegatedForegroundWork = true
 					end
 				end
-				::__continue323::
+				::__continue329::
 				i = i + 1
 			end
 		end
