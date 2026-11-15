@@ -8,12 +8,18 @@ export async function buildAgentRegistry() {
   const path = new URL('../../Assets/Script/Lib/Agent/Tool/Registry.ts', import.meta.url);
   const text = await readFile(path, 'utf8');
   const source = ts.createSourceFile(path.pathname, text, ts.ScriptTarget.Latest, true);
-  const kept = [];
+  // PrefixHandoff also owns runtime I/O; extract only its declarative schema.
+  const handoffPath = new URL('../../Assets/Script/Lib/Agent/Runtime/PrefixHandoff.ts', import.meta.url);
+  const handoffSource = ts.createSourceFile(handoffPath.pathname, await readFile(handoffPath, 'utf8'), ts.ScriptTarget.Latest, true);
+  const handoff = handoffSource.statements.find(statement => ts.isVariableStatement(statement)
+    && statement.declarationList.declarations.some(d => d.name.getText(handoffSource) === 'HANDOFF_TOOL'));
+  if (!handoff) throw new Error('Agent handoff declaration changed; extraction needs review');
+  const kept = [handoff.getText(handoffSource)];
   let found = false;
   for (const statement of source.statements) {
     if (ts.isImportDeclaration(statement)) {
       if (statement.importClause?.isTypeOnly) continue;
-      if (statement.moduleSpecifier.text !== 'Agent/Tool/ToolBudgets') continue;
+      if (!['Agent/Tool/ToolBudgets', 'Agent/Config/Defaults'].includes(statement.moduleSpecifier.text)) continue;
     }
     if (ts.isExportDeclaration(statement)) continue;
     kept.push(statement.getText(source));
@@ -50,7 +56,7 @@ export function contracts(context) {
 }`, loader: 'ts', resolveDir: new URL('../../Assets/Script/Lib/', import.meta.url).pathname },
     bundle: true, write: false, platform: 'node', format: 'esm',
     plugins: [{ name: 'agent-budget', setup(builder) {
-      builder.onResolve({ filter: /^Agent\/Tool\/ToolBudgets$/ }, () => ({ path: new URL('../../Assets/Script/Lib/Agent/Tool/ToolBudgets.ts', import.meta.url).pathname }));
+      builder.onResolve({ filter: /^Agent\/(Tool\/ToolBudgets|Config\/Defaults)$/ }, args => ({ path: new URL(`../../Assets/Script/Lib/${args.path}.ts`, import.meta.url).pathname }));
     } }] });
   return result.outputFiles[0].text;
 }
