@@ -19,6 +19,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE. */
 
 #include "Const/Header.h"
+#include "Basic/Content.h"
 #include "Http/HttpServer.h"
 #include "Event/Listener.h"
 
@@ -403,7 +404,9 @@ HttpClient::RequestId HttpClient::getAsync(String url, float timeout, const Cont
 
 HttpClient::RequestId HttpClient::downloadAsync(String url, String filePath, float timeout,
 	const std::function<bool(bool, uint64_t, uint64_t)>& progress) {
-	return start_fetch(this, FetchKind::Download, url, {}, {}, false, timeout, nullptr, {}, filePath, progress);
+	auto target = SharedContent.getFullPathForWriting(filePath);
+	if (target.empty()) { progress(true, 0, 0); return 0; }
+	return start_fetch(this, FetchKind::Download, url, {}, {}, false, timeout, nullptr, {}, target, progress);
 }
 
 NS_DORA_END

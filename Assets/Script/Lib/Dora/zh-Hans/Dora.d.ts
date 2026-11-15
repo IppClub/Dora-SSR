@@ -4426,6 +4426,7 @@ class Content {
 
 	/**
 	 * 将指定的内容保存到具有指定文件名的文件中。
+	 * 相对路径命中搜索路径或资源路径中的文件时覆盖该文件，否则保存到 writablePath 下。
 	 * @param filename 要保存的文件的名称。
 	 * @param content 要保存到文件的内容。
 	 * @returns 如果内容成功保存到文件，则为`true`，否则为`false`。
@@ -4441,6 +4442,7 @@ class Content {
 
 	/**
 	 * 创建具有指定路径的新目录。
+	 * 相对写入目标优先使用搜索路径或资源路径的命中结果，未命中时使用 writablePath。
 	 * @param path 要创建的目录的路径。
 	 * @returns 如果目录已创建，则为`true`，否则为`false`。
 	 */
@@ -4462,6 +4464,7 @@ class Content {
 
 	/**
 	 * 将指定路径中的文件或目录复制到目标路径。
+	 * 相对源路径和目标路径优先使用搜索路径或资源路径的命中结果，未命中时回退到 writablePath。
 	 * @param srcPath 要复制的文件或目录的路径。
 	 * @param dstPath 要复制文件的路径。
 	 * @returns 如果文件或目录已复制到目标路径，则为`true`，否则为`false`。
@@ -4470,6 +4473,7 @@ class Content {
 
 	/**
 	 * 将指定路径中的文件或目录移动到目标路径。
+	 * 相对源路径和目标路径优先使用搜索路径或资源路径的命中结果，未命中时回退到 writablePath。
 	 * @param srcPath 要移动的文件或目录的路径。
 	 * @param dstPath 要移动文件的路径。
 	 * @returns 如果文件或目录已移动到目标路径，则为`true`，否则为`false`。
@@ -4535,6 +4539,7 @@ class Content {
 
 	/**
 	 * 异步将指定的内容保存到具有指定文件名的文件中。
+	 * 相对路径命中搜索路径或资源路径中的文件时覆盖该文件，否则保存到 writablePath 下。
 	 * @param filename 要保存的文件的名称。
 	 * @param content 要保存到文件的内容。
 	 * @returns 如果内容成功保存到文件，则为 `true`，否则为 `false`。
@@ -4543,6 +4548,7 @@ class Content {
 
 	/**
 	 * 异步地将源路径的文件或文件夹复制到目标路径。
+	 * 相对源路径和目标路径优先使用搜索路径或资源路径的命中结果，未命中时回退到 writablePath。
 	 * @param src 要复制的文件或文件夹的路径。
 	 * @param dst 复制文件的目标路径。
 	 * @returns 如果文件或文件夹成功复制，则返回`true`，否则返回`false`。
@@ -4551,6 +4557,7 @@ class Content {
 
 	/**
 	 * 异步地将指定的文件夹压缩为具有指定文件名的ZIP存档。
+	 * 相对源路径和目标路径优先使用搜索路径或资源路径的命中结果，未命中时回退到 writablePath。
 	 * @param folderPath 要压缩的文件夹的路径，应在资产可写路径下。
 	 * @param zipFile 要创建的ZIP存档的名称。
 	 * @param filter 过滤器函数，用于过滤包含在存档中的文件。该函数接受文件名作为输入，并返回布尔值，表示是否包含该文件。如果未提供，将包含所有文件。
@@ -4571,6 +4578,7 @@ class Content {
 
 	/**
 	 * 异步地将ZIP存档解压缩到指定的文件夹。
+	 * 相对源路径和目标路径优先使用搜索路径或资源路径的命中结果，未命中时回退到 writablePath。
 	 * @param zipFile 要解压缩的ZIP存档的名称，应该是资产可写路径下的文件。
 	 * @param folderPath 要解压缩到的文件夹的路径，应在资产可写路径下。
 	 * @param filter 过滤器函数，用于过滤包含在存档中的文件。该函数接受文件名作为输入，并返回布尔值，表示是否包含该文件。如果未提供，将包含所有文件。
@@ -8972,6 +8980,7 @@ interface HttpClient {
 	getAsync(url: string, timeout?: number): string | undefined;
 	/**
 	 * 发起非阻塞的文件下载。
+	 * 相对写入目标优先使用搜索路径或资源路径的命中结果，未命中时使用 writablePath。
 	 * @param url 需要下载的文件的URL。
 	 * @param fullPath 下载文件应保存的完整路径。
 	 * @param timeout [可选] 下载的超时时间（以秒为单位）。默认为30。
@@ -8981,6 +8990,7 @@ interface HttpClient {
 	download(url: string, fullPath: string, timeout?: number, progress?: (this: void, interrupted: boolean, current: number, total: number) => boolean): number;
 	/**
 	 * 下载文件并等待完成。该方法必须在协程或线程中调用。
+	 * 相对写入目标优先使用搜索路径或资源路径的命中结果，未命中时使用 writablePath。
 	 * @param url 需要下载的文件的URL。
 	 * @param fullPath 下载文件应保存的完整路径。
 	 * @param timeout [可选] 下载的超时时间（以秒为单位）。默认为30。

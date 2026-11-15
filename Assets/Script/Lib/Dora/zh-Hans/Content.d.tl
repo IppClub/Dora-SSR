@@ -35,6 +35,7 @@ local record Content
 		} | nil
 
 	-- 保存文本内容到指定文件名的文件中。
+	-- 相对路径命中搜索路径或资源路径中的文件时覆盖该文件，否则保存到 writablePath 下。
 	-- @param filename (string) 要保存到的文件名。
 	-- @param content (string) 要保存到文件中的内容。
 	-- @return (boolean) 如果文件保存成功，则为 `true`，否则为 `false`。
@@ -46,6 +47,7 @@ local record Content
 	exist: function(self: Content, filename: string): boolean
 
 	-- 创建具有指定路径的新目录。
+	-- 相对写入目标优先使用搜索路径或资源路径的命中结果，未命中时使用 writablePath。
 	-- @param path (string) 要创建的目录的路径。
 	-- @return (boolean) 如果创建了目录，则为 `true`，否则为 `false`。
 	mkdir: function(self: Content, path: string): boolean
@@ -61,12 +63,14 @@ local record Content
 	remove: function(self: Content, path: string): boolean
 
 	-- 复制指定路径下的单个文件或目录下的所有文件到目标路径。
+	-- 相对源路径和目标路径优先使用搜索路径或资源路径的命中结果，未命中时回退到 writablePath。
 	-- @param srcPath (string) 要复制的文件或目录的路径。
 	-- @param dstPath (string) 复制文件到的目标路径。
 	-- @return (boolean) 如果成功复制了文件或目录，则为 `true`，否则为 `false`。
 	copy: function(self: Content, srcPath: string, dstPath: string): boolean
 
 	-- 移动指定路径下的单个文件或目录到目标路径。
+	-- 相对源路径和目标路径优先使用搜索路径或资源路径的命中结果，未命中时回退到 writablePath。
 	-- @param srcPath (string) 要移动的文件或目录的路径。
 	-- @param dstPath (string) 移动文件或目录到的目标路径。
 	-- @return (boolean) 如果成功移动了文件或目录，则为 `true`，否则为 `false`。
@@ -118,18 +122,21 @@ local record Content
 		} | nil
 
 	-- 异步将指定内容保存到指定文件名的文件中。
+	-- 相对路径命中搜索路径或资源路径中的文件时覆盖该文件，否则保存到 writablePath 下。
 	-- @param filename (string) 要保存到的文件名。
 	-- @param content (string) 要保存到文件中的内容。
 	-- @return (boolean) 如果成功保存内容，则为 `true`，否则为 `false`。
 	saveAsync: function(self: Content, filename: string, content: string): boolean
 
 	-- 异步从源路径复制文件或文件夹到目标路径。
+	-- 相对源路径和目标路径优先使用搜索路径或资源路径的命中结果，未命中时回退到 writablePath。
 	-- @param src (string) 要复制的文件或文件夹的路径。
 	-- @param dst (string) 复制文件的目标路径。
 	-- @return (boolean) 如果成功复制了文件或文件夹，则为 `true`，否则为 `false`。
 	copyAsync: function(self: Content, src: string, dst: string): boolean
 
 	-- 异步将指定文件夹压缩为具有指定文件名的 ZIP 归档文件。
+	-- 相对源路径和目标路径优先使用搜索路径或资源路径的命中结果，未命中时回退到 writablePath。
 	-- @param folderPath (string) 要压缩的文件夹的路径，应在可写资源路径下。
 	-- @param zipFile (string) 要创建的 ZIP 归档文件的名称。
 	-- @param filter (function, 可选) 用于过滤要包含在归档中的文件的函数。该函数以文件名作为输入，并返回一个布尔值，表示是否包含文件。如果未提供，则包含所有文件。
@@ -137,6 +144,7 @@ local record Content
 	zipAsync: function(self: Content, folderPath: string, zipFile: string, filter?: function(string): boolean): boolean
 
 	-- 异步将指定 ZIP 归档文件解压缩到指定的文件夹目录。
+	-- 相对源路径和目标路径优先使用搜索路径或资源路径的命中结果，未命中时回退到 writablePath。
 	-- @param zipFile (string) 要做解压的 ZIP 归档文件的名称，该文件必须在可写资源路径下。
 	-- @param folderPath (string) 要解压缩到的文件夹的路径，应在可写资源路径下。
 	-- @param filter (function, 可选) 用于过滤要做解压的 ZIP 归档包中的文件的函数。该函数以文件名作为输入，并返回一个布尔值，表示是否解压文件。如果未提供，则解压所有文件。

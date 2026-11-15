@@ -208,6 +208,8 @@ getAsync: function(self: HttpClient, url: string, timeout?: number): string | ni
 
 &emsp;&emsp;Starts a non-blocking file download.
 
+Relative write targets use search/asset matches, or writablePath when unmatched.
+
 **Signature:**
 ```tl
 download: function(self: HttpClient, url: string, fullPath: string, timeout?: number, progress?: function(interrupted: boolean, current: integer, total: integer): boolean): integer
@@ -235,6 +237,8 @@ download: function(self: HttpClient, url: string, fullPath: string, timeout?: nu
 **Description:**
 
 &emsp;&emsp;Downloads a file and waits until it finishes. This method must be called from a coroutine/thread.
+
+Relative write targets use search/asset matches, or writablePath when unmatched.
 
 **Signature:**
 ```tl

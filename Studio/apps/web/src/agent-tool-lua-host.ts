@@ -27,6 +27,9 @@ function commandEntry(code:string,commandId:string):string{
   const source=luaLongString(code),resultPath=luaLongString(`/tmp/studio-agent-command-${commandId}.json`);
   return `local Dora = require("Dora")
 local json = Dora.json
+-- This Player is created for one command; /game contains the project snapshot.
+Dora.Content.assetPath = "/game"
+Dora.Content.writablePath = "/game"
 local output, outputBytes, truncated = {}, 0, false
 local function capture(...)
   local parts = {}

@@ -2006,6 +2006,11 @@ HttpClient::RequestId HttpClient::downloadAsync(String url, String filePath, flo
 		progress(true, 0, 0);
 		return 0;
 	}
+	auto fileStr = SharedContent.getFullPathForWriting(filePath);
+	if (fileStr.empty()) {
+		progress(true, 0, 0);
+		return 0;
+	}
 	auto request = register_http_client_request();
 	if (!request) {
 		progress(true, 0, 0);
@@ -2013,7 +2018,6 @@ HttpClient::RequestId HttpClient::downloadAsync(String url, String filePath, flo
 	}
 	auto progressFunc = std::make_shared<std::function<bool(bool interrupted, uint64_t current, uint64_t total)>>(progress);
 	auto completed = std::make_shared<std::atomic_bool>(false);
-	auto fileStr = filePath.toString();
 	auto urlStr = url.toString();
 	auto worker = [request, fileStr, urlStr, timeout, progressFunc, completed]() {
 		DEFER(completed->store(true, std::memory_order_release));
@@ -2034,6 +2038,9 @@ HttpClient::RequestId HttpClient::downloadAsync(String url, String filePath, flo
 			SDL_RWops* out = SDL_RWFromFile(fullname.c_str(), "wb+");
 			if (!out) {
 				Error("invalid local file path \"{}\" to download to", fileStr);
+				SharedApplication.invokeInLogic([progressFunc]() {
+					(*progressFunc)(true, 0, 0);
+				});
 				unregister_http_client_request(request);
 				return;
 			}

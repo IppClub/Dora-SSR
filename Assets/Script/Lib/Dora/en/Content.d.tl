@@ -36,6 +36,7 @@ local record Content
 		} | nil
 
 	-- Saves the specified content to a file with the specified filename.
+	-- Relative paths overwrite a file found in the search/asset paths; otherwise they are saved under writablePath.
 	-- @param filename (string) The name of the file to save.
 	-- @param content (string) The content to save to the file.
 	-- @return (boolean) `true` if the content saves to file successfully, `false` otherwise.
@@ -47,6 +48,7 @@ local record Content
 	exist: function(self: Content, filename: string): boolean
 
 	-- Creates a new directory with the specified path.
+	-- Relative write targets use search/asset matches, or writablePath when unmatched.
 	-- @param path (string) The path of the directory to create.
 	-- @return (boolean) `true` if the directory was created, `false` otherwise.
 	mkdir: function(self: Content, path: string): boolean
@@ -62,12 +64,14 @@ local record Content
 	remove: function(self: Content, path: string): boolean
 
 	-- Copies the file or directory in the specified path to target path.
+	-- Relative source and destination paths use search/asset matches, falling back to writablePath.
 	-- @param srcPath (string) The path of the file or directory to copy.
 	-- @param dstPath (string) The path to copy files to.
 	-- @return (boolean) `true` if the file or directory was copied to target path, `false` otherwise.
 	copy: function(self: Content, srcPath: string, dstPath: string): boolean
 
 	-- Moves the file or directory in the specified path to target path.
+	-- Relative source and destination paths use search/asset matches, falling back to writablePath.
 	-- @param srcPath (string) The path of the file or directory to move.
 	-- @param dstPath (string) The path to move files to.
 	-- @return (boolean) `true` if the file or directory was moved to target path, `false` otherwise.
@@ -119,18 +123,21 @@ local record Content
 		} | nil
 
 	-- Asynchronously saves the specified content to a file with the specified filename.
+	-- Relative paths overwrite a file found in the search/asset paths; otherwise they are saved under writablePath.
 	-- @param filename (string) The name of the file to save.
 	-- @param content (string) The content to save to the file.
 	-- @return (boolean) `true` if the content was saved successfully, `false` otherwise.
 	saveAsync: function(self: Content, filename: string, content: string): boolean
 
 	-- Asynchronously copies a file or a folder from the source path to the destination path.
+	-- Relative source and destination paths use search/asset matches, falling back to writablePath.
 	-- @param src (string) The path of the file or folder to copy.
 	-- @param dst (string) The destination path of the copied files.
 	-- @return (boolean) `true` if the file or folder was copied successfully, `false` otherwise.
 	copyAsync: function(self: Content, src: string, dst: string): boolean
 
 	-- Asynchronously compresses the specified folder to a ZIP archive with the specified filename.
+	-- Relative source and destination paths use search/asset matches, falling back to writablePath.
 	-- @param folderPath (string) The path of the folder to compress, should be under the asset writable path.
 	-- @param zipFile (string) The name of the ZIP archive to create.
 	-- @param filter (function) [optional] A function to filter the files to include in the archive. The function takes a filename as input and returns a boolean indicating whether to include the file. If not provided, all files will be included.
@@ -138,6 +145,7 @@ local record Content
 	zipAsync: function(self: Content, folderPath: string, zipFile: string, filter?: function(string): boolean): boolean
 
 	-- Asynchronously decompresses a ZIP archive to the specified folder.
+	-- Relative source and destination paths use search/asset matches, falling back to writablePath.
 	-- @param zipFile (string) The name of the ZIP archive to decompress, should be a file under the asset writable path.
 	-- @param folderPath (string) The path of the folder to decompress to, should be under the asset writable path.
 	-- @param filter (function) [optional] A function to filter the files to include in the archive. The function takes a filename as input and returns a boolean indicating whether to include the file. If not provided, all files will be included.

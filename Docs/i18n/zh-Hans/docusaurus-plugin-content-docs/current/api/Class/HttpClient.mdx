@@ -208,6 +208,8 @@ getAsync: function(self: HttpClient, url: string, timeout?: number): string | ni
 
 &emsp;&emsp;发起非阻塞的文件下载。
 
+相对写入目标优先使用搜索路径或资源路径的命中结果，未命中时使用 writablePath。
+
 **签名：**
 ```tl
 download: function(self: HttpClient, url: string, fullPath: string, timeout?: number, progress?: function(interrupted: boolean, current: integer, total: integer): boolean): integer
@@ -235,6 +237,8 @@ download: function(self: HttpClient, url: string, fullPath: string, timeout?: nu
 **描述：**
 
 &emsp;&emsp;下载文件并等待完成。该方法必须在协程或线程中调用。
+
+相对写入目标优先使用搜索路径或资源路径的命中结果，未命中时使用 writablePath。
 
 **签名：**
 ```tl

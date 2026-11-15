@@ -31,6 +31,8 @@ public:
 	};
 	std::optional<FileAttr> getAttr(String filename);
 	std::string getFullPath(String filename);
+	// Resolve a write target, falling back to WritablePath; ZIP entries are read-only.
+	std::string getFullPathForWriting(String filename);
 	std::list<std::string> getFullPathsToTry(String filename);
 	std::pair<OwnArray<uint8_t>, size_t> load(String filename);
 	std::string loadStr(String filename);

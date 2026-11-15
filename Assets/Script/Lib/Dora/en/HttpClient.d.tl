@@ -58,6 +58,7 @@ local record HttpClient
 	getAsync: function(self: HttpClient, url: string, timeout?: number): string | nil
 
 	-- Starts a non-blocking file download.
+	-- Relative write targets use search/asset matches, or writablePath when unmatched.
 	-- @param url (string) The URL of the file to download.
 	-- @param fullPath (string) The full path where the downloaded file should be saved.
 	-- @param timeout (number) [optional] The download timeout in seconds (default is 30 seconds).
@@ -66,6 +67,7 @@ local record HttpClient
 	download: function(self: HttpClient, url: string, fullPath: string, timeout?: number, progress?: function(interrupted: boolean, current: integer, total: integer): boolean): integer
 
 	-- Downloads a file and waits until it finishes. This method must be called from a coroutine/thread.
+	-- Relative write targets use search/asset matches, or writablePath when unmatched.
 	-- @param url (string) The URL of the file to download.
 	-- @param fullPath (string) The full path where the downloaded file should be saved.
 	-- @param timeout (number) [optional] The download timeout in seconds (default is 30 seconds).

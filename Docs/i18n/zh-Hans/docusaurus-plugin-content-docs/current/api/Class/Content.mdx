@@ -127,6 +127,8 @@ loadExcel: function(self: Content, filename: string, sheetNames?: {string}):
 
 &emsp;&emsp;保存文本内容到指定文件名的文件中。
 
+相对路径命中搜索路径或资源路径中的文件时覆盖该文件，否则保存到 writablePath 下。
+
 **签名：**
 ```tl
 save: function(self: Content, filename: string, content: string): boolean
@@ -177,6 +179,8 @@ exist: function(self: Content, filename: string): boolean
 **描述：**
 
 &emsp;&emsp;创建具有指定路径的新目录。
+
+相对写入目标优先使用搜索路径或资源路径的命中结果，未命中时使用 writablePath。
 
 **签名：**
 ```tl
@@ -253,6 +257,8 @@ remove: function(self: Content, path: string): boolean
 
 &emsp;&emsp;复制指定路径下的单个文件或目录下的所有文件到目标路径。
 
+相对源路径和目标路径优先使用搜索路径或资源路径的命中结果，未命中时回退到 writablePath。
+
 **签名：**
 ```tl
 copy: function(self: Content, srcPath: string, dstPath: string): boolean
@@ -278,6 +284,8 @@ copy: function(self: Content, srcPath: string, dstPath: string): boolean
 **描述：**
 
 &emsp;&emsp;移动指定路径下的单个文件或目录到目标路径。
+
+相对源路径和目标路径优先使用搜索路径或资源路径的命中结果，未命中时回退到 writablePath。
 
 **签名：**
 ```tl
@@ -495,6 +503,8 @@ loadExcelAsync: function(self: Content, filename: string, sheetNames?: {string})
 
 &emsp;&emsp;异步将指定内容保存到指定文件名的文件中。
 
+相对路径命中搜索路径或资源路径中的文件时覆盖该文件，否则保存到 writablePath 下。
+
 **签名：**
 ```tl
 saveAsync: function(self: Content, filename: string, content: string): boolean
@@ -520,6 +530,8 @@ saveAsync: function(self: Content, filename: string, content: string): boolean
 **描述：**
 
 &emsp;&emsp;异步从源路径复制文件或文件夹到目标路径。
+
+相对源路径和目标路径优先使用搜索路径或资源路径的命中结果，未命中时回退到 writablePath。
 
 **签名：**
 ```tl
@@ -547,6 +559,8 @@ copyAsync: function(self: Content, src: string, dst: string): boolean
 
 &emsp;&emsp;异步将指定文件夹压缩为具有指定文件名的 ZIP 归档文件。
 
+相对源路径和目标路径优先使用搜索路径或资源路径的命中结果，未命中时回退到 writablePath。
+
 **签名：**
 ```tl
 zipAsync: function(self: Content, folderPath: string, zipFile: string, filter?: function(string): boolean): boolean
@@ -573,6 +587,8 @@ zipAsync: function(self: Content, folderPath: string, zipFile: string, filter?: 
 **描述：**
 
 &emsp;&emsp;异步将指定 ZIP 归档文件解压缩到指定的文件夹目录。
+
+相对源路径和目标路径优先使用搜索路径或资源路径的命中结果，未命中时回退到 writablePath。
 
 **签名：**
 ```tl

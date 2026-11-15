@@ -1,41 +1,43 @@
 // @preview-file off clear
 import { Content, Path } from 'Dora';
-import { isValidWorkspacePath, inspectReadableFile, isAgentContentVirtualPath, resolveAgentContentVirtualPath, type DoraDocLanguage } from 'Agent/Tool/Workspace';
+import { inspectReadableFile, isAgentContentVirtualPath, resolveAgentContentVirtualPath, type DoraDocLanguage } from 'Agent/Tool/Workspace';
 
 type NativeMethod = (this: void, self: unknown, ...args: unknown[]) => LuaMultiReturn<unknown[]>;
 
-/** Complete Content facade with project-relative paths and command-local configuration. */
+/** Native Content operations with project-root defaults and command-local configuration. */
 export function createCommandContent(workDir: string, docLanguage?: DoraDocLanguage): object {
-	let assetPath = ".";
-	let writablePath = ".";
+	let assetPath = workDir;
+	let writablePath = workDir;
 	let searchPaths: string[] = [];
-	const relative = (value: unknown): string => {
-		if (typeof value !== "string") error("Content path must be a project-relative string");
+	const normalizePath = (value: unknown): string => {
+		if (typeof value !== "string") error("Content path must be a string");
 		const path = (value as string) === "" ? "." : (value as string);
-		if (!isValidWorkspacePath(path) || path.indexOf("\0") >= 0) error("Content path must stay inside projectDir");
+		if (path.indexOf("\0") >= 0) error("Content path must not contain NUL");
 		return path.split("\\").join("/");
 	};
 	const directory = (value: unknown): string => {
-		const path = relative(value);
+		const path = normalizePath(value);
 		if (isAgentContentVirtualPath(path)) error("Content virtual paths are read-only files, not search/root directories");
-		if (!Content.isdir(Path(workDir, path))) error("Content search/root path must be a project directory");
-		return path;
+		const fullPath = Content.isAbsolutePath(path) ? path : Path(workDir, path);
+		if (!Content.isdir(fullPath)) error("Content search/root path must be an existing directory");
+		return fullPath;
 	};
 	const resolve = (value: unknown, write: boolean): string => {
-		const path = relative(value);
+		const path = normalizePath(value);
 		if (isAgentContentVirtualPath(path)) {
 			if (write) error("Content virtual paths are read-only");
 			const target = resolveAgentContentVirtualPath(workDir, path, docLanguage);
 			if (!target) error("Content virtual file not found or outside its namespace");
 			return target as string;
 		}
+		if (Content.isAbsolutePath(path)) return path;
 		if (!write) {
 			for (const base of searchPaths) {
-				const candidate = Path(workDir, base, path);
+				const candidate = Path(base, path);
 				if (Content.exist(candidate)) return candidate;
 			}
 		}
-		return Path(workDir, write ? writablePath : assetPath, path);
+		return Path(write ? writablePath : assetPath, path);
 	};
 	const methods: Record<string, unknown> = {};
 	let facade: object;
@@ -88,9 +90,10 @@ export function createCommandContent(workDir: string, docLanguage?: DoraDocLangu
 	};
 	methods.removeSearchPath = (...values: unknown[]) => {
 		const [value] = argumentsOf(values);
-		const path = relative(value);
+		const path = normalizePath(value);
 		if (isAgentContentVirtualPath(path)) error("Content virtual paths are read-only files, not search directories");
-		searchPaths = searchPaths.filter(item => item !== path);
+		const fullPath = Content.isAbsolutePath(path) ? path : Path(workDir, path);
+		searchPaths = searchPaths.filter(item => item !== fullPath);
 	};
 	// Full paths are resolved afresh by the facade; never alter the engine cache.
 	methods.clearPathCache = () => {};
@@ -98,7 +101,7 @@ export function createCommandContent(workDir: string, docLanguage?: DoraDocLangu
 		__index: (_self: unknown, key: string): unknown => {
 			if (key === "assetPath") return assetPath;
 			if (key === "writablePath") return writablePath;
-			if (key === "appPath") return ".";
+			if (key === "appPath") return Content.appPath;
 			if (key === "searchPaths") return searchPaths.slice();
 			return methods[key];
 		},
@@ -106,7 +109,7 @@ export function createCommandContent(workDir: string, docLanguage?: DoraDocLangu
 			if (key === "assetPath") assetPath = directory(value);
 			else if (key === "writablePath") writablePath = directory(value);
 			else if (key === "searchPaths") {
-				if (!Array.isArray(value)) error("Content.searchPaths expects an array of project-relative directories");
+				if (!Array.isArray(value)) error("Content.searchPaths expects an array of directories");
 				searchPaths = (value as unknown[]).map(item => directory(item));
 			} else error(`Content.${key} is read-only`);
 		},

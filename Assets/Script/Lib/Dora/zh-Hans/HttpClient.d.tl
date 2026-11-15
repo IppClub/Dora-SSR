@@ -58,6 +58,7 @@ local record HttpClient
 	getAsync: function(self: HttpClient, url: string, timeout?: number): string | nil
 
 	-- 发起非阻塞的文件下载。
+	-- 相对写入目标优先使用搜索路径或资源路径的命中结果，未命中时使用 writablePath。
 	-- @param url (string) 需要下载的文件的URL。
 	-- @param fullPath (string) 下载文件应保存的完整路径。
 	-- @param timeout (number) [可选] 下载超时时间（以秒为单位，默认为30秒）。
@@ -66,6 +67,7 @@ local record HttpClient
 	download: function(self: HttpClient, url: string, fullPath: string, timeout?: number, progress?: function(interrupted: boolean, current: integer, total: integer): boolean): integer
 
 	-- 下载文件并等待完成。该方法必须在协程或线程中调用。
+	-- 相对写入目标优先使用搜索路径或资源路径的命中结果，未命中时使用 writablePath。
 	-- @param url (string) 需要下载的文件的URL。
 	-- @param fullPath (string) 下载文件应保存的完整路径。
 	-- @param timeout (number) [可选] 下载超时时间（以秒为单位，默认为30秒）。

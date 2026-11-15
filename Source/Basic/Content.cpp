@@ -177,8 +177,11 @@ bool Content::copy(String src, String dst) {
 }
 
 bool Content::move(String src, String dst) {
+	auto source = Content::getFullPathForWriting(src);
+	auto target = Content::getFullPathForWriting(dst);
+	if (source.empty() || target.empty()) return false;
 	std::error_code err;
-	fs::rename(src.toString(), dst.toString(), err);
+	fs::rename(source, target, err);
 	if (!err) {
 		return true;
 	}
@@ -189,11 +192,11 @@ bool Content::move(String src, String dst) {
 	if (!isCrossDevice) {
 		Warn("failed to move file from \"{}\" to \"{}\" due to \"{}\", trying copy and remove fallback.", src.toString(), dst.toString(), err.message());
 	}
-	if (!Content::copyUnsafe(src, dst)) {
+	if (!Content::copyUnsafe(source, target)) {
 		Warn("failed to copy file from \"{}\" to \"{}\" during move fallback.", src.toString(), dst.toString());
 		return false;
 	}
-	if (!Content::remove(src)) {
+	if (!Content::remove(source)) {
 		Warn("failed to remove file from \"{}\" after move fallback copy.", src.toString());
 		return false;
 	}
@@ -206,12 +209,8 @@ bool Content::save(String filename, String content) {
 
 bool Content::save(String filename, const uint8_t* content, int64_t size) {
 	PROFILE("FileIO"_slice);
-	auto fullPathAndPackage = Content::getFullPathAndPackage(filename);
-	if (fullPathAndPackage.zipFile) {
-		Error("can not save file \"{}\" to a zip package", filename.toString());
-		return false;
-	}
-	auto fullPath = fullPathAndPackage.fullPath.empty() ? filename.toString() : fullPathAndPackage.fullPath;
+	auto fullPath = Content::getFullPathForWriting(filename);
+	if (fullPath.empty()) return false;
 	SDL_RWops* io = SDL_RWFromFile(fullPath.c_str(), "wb+");
 	if (!io) return false;
 	DEFER(SDL_RWclose(io));
@@ -239,7 +238,9 @@ bool Content::remove(String filename) {
 }
 
 bool Content::createFolder(String folder) {
-	fs::path path = folder.toString();
+	auto target = Content::getFullPathForWriting(folder);
+	if (target.empty()) return false;
+	fs::path path = target;
 	std::error_code err;
 	bool result = fs::create_directories(path, err);
 	WarnIf(err, "failed to create folder due to \"{}\".", err.message());
@@ -1015,6 +1016,16 @@ std::string Content::getFullPath(String filename) {
 	return fullPath.empty() ? filename.toString() : fullPath;
 }
 
+std::string Content::getFullPathForWriting(String filename) {
+	if (filename.empty()) return {};
+	auto result = getFullPathAndPackage(filename);
+	if (result.zipFile) {
+		Error("can not write to \"{}\" in a zip package", filename.toString());
+		return {};
+	}
+	return result.fullPath.empty() ? Path::concat({getWritablePath(), filename}) : result.fullPath;
+}
+
 std::list<std::string> Content::getFullPathsToTry(String filename) {
 	AssertIf(filename.empty(), "invalid filename for full path.");
 
@@ -1121,18 +1132,22 @@ const std::vector<std::string>& Content::getSearchPaths() const noexcept {
 }
 
 bool Content::copyUnsafe(String src, String dst) {
-	std::string srcPath = Content::getFullPath(src);
+	auto source = Content::getFullPathAndPackage(src);
+	auto srcPath = source.fullPath.empty() ? Path::concat({getWritablePath(), src}) : source.fullPath;
+	auto dstPath = Content::getFullPathForWriting(dst);
+	if (dstPath.empty() || !Content::exist(srcPath)) return false;
+	std::error_code sameFileError;
+	if (fs::equivalent(srcPath, dstPath, sameFileError)) return false;
 	// Info("copy file from {}", srcPath);
 	// Info("copy file to {}", dst);
 	if (Content::isPathFolder(srcPath)) {
-		if (!Content::isFileExist(dst)) {
-			if (!Content::createFolder(dst)) {
+		if (!Content::isFileExist(dstPath)) {
+			if (!Content::createFolder(dstPath)) {
 				Error("failed to create folder \"{}\"", dst.toString());
 				return false;
 			}
 		}
-		std::string dstPath = dst.toString();
-		auto folders = Content::getDirEntries(src, true);
+		auto folders = Content::getDirEntries(srcPath, true);
 		for (const std::string& folder : folders) {
 			std::string dstFolder = (fs::path(dstPath) / folder).string();
 			if (!Content::isFileExist(dstFolder)) {
@@ -1146,7 +1161,7 @@ bool Content::copyUnsafe(String src, String dst) {
 				return false;
 			}
 		}
-		auto files = Content::getDirEntries(src, false);
+		auto files = Content::getDirEntries(srcPath, false);
 		for (const std::string& file : files) {
 			// Info("now copy file {}",file);
 			auto fullPath = (fs::path(dstPath) / file).string();
@@ -1166,14 +1181,14 @@ bool Content::copyUnsafe(String src, String dst) {
 			}
 		}
 	} else {
-		auto fullPath = dst.toString();
+		auto fullPath = dstPath;
 		SDL_RWops* io = SDL_RWFromFile(fullPath.c_str(), "wb+");
 		if (!io) {
 			Error("failed to open file: \"{}\"", dst.toString());
 			return false;
 		}
 		DEFER(SDL_RWclose(io));
-		bool result = Content::loadByChunks(src, [&](uint8_t* buffer, int size) {
+		bool result = Content::loadByChunks(srcPath, [&](uint8_t* buffer, int size) {
 			size_t written = SDL_RWwrite(io, buffer, 1, s_cast<size_t>(size));
 			if (written != s_cast<size_t>(size)) {
 				Error("failed to copy to file \"{}\"", dst.toString());
@@ -1286,7 +1301,10 @@ void Content::saveAsync(String filename, OwnArray<uint8_t> content, size_t size,
 
 void Content::zipAsync(String folderPath, String zipFile, const std::function<bool(String)>& filter, const std::function<void(bool)>& callback) {
 	std::error_code err;
-	auto fullFolderPath = Content::getFullPath(folderPath);
+	auto source = Content::getFullPathAndPackage(folderPath);
+	auto fullFolderPath = source.fullPath.empty() ? Path::concat({getWritablePath(), folderPath}) : source.fullPath;
+	auto fullZipPath = Content::getFullPathForWriting(zipFile);
+	if (fullZipPath.empty()) { callback(false); return; }
 	if (!fs::exists(fullFolderPath, err)) {
 		Error("\"{}\" must be a local disk folder to zip", folderPath.toString());
 		callback(false);
@@ -1294,11 +1312,6 @@ void Content::zipAsync(String folderPath, String zipFile, const std::function<bo
 	}
 	if (!Content::isFolder(fullFolderPath)) {
 		Error("\"{}\" must be a folder to zip", folderPath.toString());
-		callback(false);
-		return;
-	}
-	if (!Content::isAbsolutePath(zipFile)) {
-		Error("target zip file must be of an absolute path instead of \"{}\"", zipFile.toString());
 		callback(false);
 		return;
 	}
@@ -1312,7 +1325,7 @@ void Content::zipAsync(String folderPath, String zipFile, const std::function<bo
 		auto fullPath = Path::concat({fullFolderPath, file});
 		filePairs.push_back({fullPath, file});
 	}
-	SharedAsyncThread.run([files = std::move(filePairs), zipFile = zipFile.toString()]() {
+	SharedAsyncThread.run([files = std::move(filePairs), zipFile = std::move(fullZipPath)]() {
 		mz_zip_archive archive;
 		mz_zip_zero_struct(&archive);
 		if (mz_zip_writer_init_file(&archive, zipFile.c_str(), 0)) {
@@ -1341,19 +1354,17 @@ void Content::zipAsync(String folderPath, String zipFile, const std::function<bo
 
 void Content::unzipAsync(String zipFile, String folderPath, const std::function<bool(String)>& filter, const std::function<void(bool)>& callback, uint64_t maxBytes, uint32_t maxFiles) {
 	std::error_code err;
-	auto fullZipPath = getFullPath(zipFile);
+	auto source = Content::getFullPathAndPackage(zipFile);
+	auto fullZipPath = source.fullPath.empty() ? Path::concat({getWritablePath(), zipFile}) : source.fullPath;
+	auto fullFolderPath = Content::getFullPathForWriting(folderPath);
+	if (fullFolderPath.empty()) { callback(false); return; }
 	if (!fs::exists(fullZipPath, err)) {
 		Error("\"{}\" must be a local disk zip file to unzip", zipFile.toString());
 		callback(false);
 		return;
 	}
-	if (Content::exist(folderPath)) {
+	if (Content::exist(fullFolderPath)) {
 		Error("unzip target \"{}\" existed", folderPath.toString());
-		callback(false);
-		return;
-	}
-	if (!Content::isAbsolutePath(folderPath)) {
-		Error("target unzip folder must be of an absolute path instead of \"{}\"", folderPath.toString());
 		callback(false);
 		return;
 	}
@@ -1413,7 +1424,7 @@ void Content::unzipAsync(String zipFile, String folderPath, const std::function<
 			filtered.push_back(file);
 		}
 	}
-	SharedAsyncThread.run([zip = std::move(zip), folderPath = folderPath.toString(), files = std::move(filtered), zipFile = zipFile.toString(), rootDir, this]() {
+	SharedAsyncThread.run([zip = std::move(zip), folderPath = std::move(fullFolderPath), files = std::move(filtered), zipFile = std::move(fullZipPath), rootDir, this]() {
 		for (const auto& file : files) {
 			auto path = Path::concat({folderPath, rootDir.empty() ? file : Path::getRelative(file, rootDir)});
 			if (auto parent = Path::getPath(path); !exist(parent)) {

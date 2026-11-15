@@ -128,6 +128,8 @@ loadExcel: function(self: Content, filename: string, sheetNames?: {string}):
 
 &emsp;&emsp;Saves the specified content to a file with the specified filename.
 
+Relative paths overwrite a file found in the search/asset paths; otherwise they are saved under writablePath.
+
 **Signature:**
 ```tl
 save: function(self: Content, filename: string, content: string): boolean
@@ -178,6 +180,8 @@ exist: function(self: Content, filename: string): boolean
 **Description:**
 
 &emsp;&emsp;Creates a new directory with the specified path.
+
+Relative write targets use search/asset matches, or writablePath when unmatched.
 
 **Signature:**
 ```tl
@@ -254,6 +258,8 @@ remove: function(self: Content, path: string): boolean
 
 &emsp;&emsp;Copies the file or directory in the specified path to target path.
 
+Relative source and destination paths use search/asset matches, falling back to writablePath.
+
 **Signature:**
 ```tl
 copy: function(self: Content, srcPath: string, dstPath: string): boolean
@@ -279,6 +285,8 @@ copy: function(self: Content, srcPath: string, dstPath: string): boolean
 **Description:**
 
 &emsp;&emsp;Moves the file or directory in the specified path to target path.
+
+Relative source and destination paths use search/asset matches, falling back to writablePath.
 
 **Signature:**
 ```tl
@@ -496,6 +504,8 @@ loadExcelAsync: function(self: Content, filename: string, sheetNames?: {string})
 
 &emsp;&emsp;Asynchronously saves the specified content to a file with the specified filename.
 
+Relative paths overwrite a file found in the search/asset paths; otherwise they are saved under writablePath.
+
 **Signature:**
 ```tl
 saveAsync: function(self: Content, filename: string, content: string): boolean
@@ -521,6 +531,8 @@ saveAsync: function(self: Content, filename: string, content: string): boolean
 **Description:**
 
 &emsp;&emsp;Asynchronously copies a file or a folder from the source path to the destination path.
+
+Relative source and destination paths use search/asset matches, falling back to writablePath.
 
 **Signature:**
 ```tl
@@ -548,6 +560,8 @@ copyAsync: function(self: Content, src: string, dst: string): boolean
 
 &emsp;&emsp;Asynchronously compresses the specified folder to a ZIP archive with the specified filename.
 
+Relative source and destination paths use search/asset matches, falling back to writablePath.
+
 **Signature:**
 ```tl
 zipAsync: function(self: Content, folderPath: string, zipFile: string, filter?: function(string): boolean): boolean
@@ -574,6 +588,8 @@ zipAsync: function(self: Content, folderPath: string, zipFile: string, filter?: 
 **Description:**
 
 &emsp;&emsp;Asynchronously decompresses a ZIP archive to the specified folder.
+
+Relative source and destination paths use search/asset matches, falling back to writablePath.
 
 **Signature:**
 ```tl
