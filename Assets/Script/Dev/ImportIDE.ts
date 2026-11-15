@@ -45,7 +45,7 @@ export function getTargets(): IDETarget[] {
 	result.sort((a, b) => b.activeAt - a.activeAt);
 	return result;
 }
-export function openProject(target: IDETarget, root: string): Promise<boolean> {
+export function openProject(target: IDETarget, root: string, entry: string): Promise<boolean> {
 	return new Promise(resolve => {
 		serial++;
 		const requestId = tostring(serial);
@@ -54,7 +54,7 @@ export function openProject(target: IDETarget, root: string): Promise<boolean> {
 		const finish = (success: boolean) => { if (settled) return; settled = true; delete pending[key]; resolve(success); };
 		pending[key] = finish;
 		const started = App.runningTime;
-		send({name: "ImportIDEOpen", target: target.id, requestId, root});
+		send({name: "ImportIDEOpen", target: target.id, requestId, root, entry});
 		Director.systemScheduler.schedule(() => {
 			if (settled) return true;
 			if (HttpServer.wsConnectionCount === 0 || App.runningTime - started > 8) { finish(false); return true; }

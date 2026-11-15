@@ -78,6 +78,10 @@ void activateGuiWindowMac(SDL_Window* window);
 #define DORA_REVISION "4"_slice
 
 namespace {
+#if BX_PLATFORM_WINDOWS && !defined(DORA_AS_LIB)
+bool registerDoraUrlHandler();
+std::string getDoraUrlHandlerState();
+#endif
 #if (BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX || BX_PLATFORM_LINUX) && !defined(DORA_AS_LIB)
 Dora::GuiInstance* guiInstance = nullptr;
 
@@ -1793,6 +1797,17 @@ int Application::mainLogic(Application* app) {
 	}
 
 	SharedPoolManager.push();
+#if BX_PLATFORM_WINDOWS && !defined(DORA_AS_LIB)
+	// Operations are requested by Dev Entry, never by generic engine startup.
+	Ref<Listener> urlHandlerListener{Listener::create("AppURLHandler"s, [](Event* event) {
+		std::string action;
+		if (!event->get(action)) return;
+		if (action != "query" && action != "register") return;
+		const auto state = action == "register" && !registerDoraUrlHandler()
+			? "error"s : getDoraUrlHandlerState();
+		Event::send("AppURLHandlerState"sv, state);
+	})};
+#endif
 #if BX_PLATFORM_ANDROID || BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS
 	app->_appWebViewListener = Listener::create("AppWebView"s, [app](Event* event) {
 		std::string path;
@@ -1923,6 +1938,9 @@ int Application::mainLogic(Application* app) {
 
 #if BX_PLATFORM_ANDROID || BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS
 	app->_appWebViewListener = nullptr;
+#endif
+#if BX_PLATFORM_WINDOWS && !defined(DORA_AS_LIB)
+	urlHandlerListener = nullptr;
 #endif
 #ifdef DORA_AS_LIB
 	bgfx::shutdown();
@@ -2731,6 +2749,26 @@ NS_DORA_END
 
 #ifndef DORA_AS_LIB
 namespace {
+std::string getDoraUrlHandlerState() {
+	std::wstring command(32768, L'\0');
+	DWORD bytes = static_cast<DWORD>(command.size() * sizeof(wchar_t));
+	const auto result = RegGetValueW(HKEY_CLASSES_ROOT, L"dora-ssr\\shell\\open\\command", nullptr,
+		RRF_RT_REG_SZ, nullptr, command.data(), &bytes);
+	if (result == ERROR_FILE_NOT_FOUND || result == ERROR_PATH_NOT_FOUND) return "missing";
+	if (result != ERROR_SUCCESS) return "error";
+	int argc = 0;
+	auto argv = CommandLineToArgvW(command.c_str(), &argc);
+	if (!argv) return "error";
+	std::wstring target = argc > 0 ? argv[0] : L"";
+	LocalFree(argv);
+	const auto attributes = GetFileAttributesW(target.c_str());
+	if (attributes == INVALID_FILE_ATTRIBUTES || (attributes & FILE_ATTRIBUTE_DIRECTORY)) return "missing";
+	std::wstring current(32768, L'\0');
+	const auto length = GetModuleFileNameW(nullptr, current.data(), static_cast<DWORD>(current.size()));
+	if (!length || length >= current.size()) return "error";
+	current.resize(length);
+	return _wcsicmp(target.c_str(), current.c_str()) == 0 ? "current" : "other";
+}
 bool registerDoraUrlHandler() {
 	std::wstring executable(32768, L'\0');
 	const DWORD length = GetModuleFileNameW(nullptr, executable.data(), static_cast<DWORD>(executable.size()));

@@ -118,7 +118,7 @@ function ____exports.start(repository) -- 12
 		phase = "opening" -- 44
 		message = "" -- 44
 		render() -- 44
-		local ____self_1 = openProject(target, project.root) -- 44
+		local ____self_1 = openProject(target, project.root, project.entry) -- 44
 		____self_1["then"]( -- 44
 			____self_1, -- 44
 			function(____, success) -- 45

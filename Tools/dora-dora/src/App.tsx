@@ -138,6 +138,7 @@ const areEditingInfosEqual = (a: Service.EditingInfo | null, b: Service.EditingI
 		if (fileA.folder !== fileB.folder) return false;
 		if (fileA.agentSessionId !== fileB.agentSessionId) return false;
 		if (fileA.workspaceView !== fileB.workspaceView) return false;
+		if (fileA.repositoryRoot !== fileB.repositoryRoot) return false;
 
 		if (fileA.position && fileB.position) {
 			if (fileA.position.lineNumber !== fileB.position.lineNumber) return false;
@@ -433,6 +434,7 @@ interface EditingFile {
 	agentSessionId?: number;
 	agentInitialPrompt?: string;
 	workspaceView?: "agent" | "upload" | "git";
+	repositoryRoot?: string;
 };
 
 interface Modified {
@@ -1578,33 +1580,24 @@ export default function PersistentDrawerLeft() {
 		return true;
 	}, [persistFirstProjectTourCompletion]);
 
-	const openProjectWorkspaceTab = useCallback((projectPath: string, workspaceView: "upload" | "git" = "upload") => {
-		const normalizedTitle = path.basename(projectPath);
-		const existingIndex = files.findIndex(file => file.key === projectPath);
-		if (existingIndex >= 0) {
-			const updatedFile: EditingFile = {
-				...files[existingIndex],
-				title: normalizedTitle,
-				folder: true,
-				workspaceView,
-			};
-			setFiles(prev => prev.map((file, index) => index === existingIndex ? updatedFile : file));
-			switchTab(existingIndex, updatedFile);
-			return;
+	const openProjectWorkspaceTab = useCallback(async (projectPath: string, workspaceView: "upload" | "git" = "upload", entryPath?: string, repositoryRoot = projectPath) => {
+		const rootRes = await Service.agentProjectRoot({path: entryPath ?? projectPath, isDir: entryPath === undefined});
+		if (!rootRes.success) throw new Error(rootRes.message ?? "Could not identify the project");
+		const tabKey = rootRes.found && rootRes.projectRoot ? rootRes.projectRoot : projectPath;
+		let agentSessionId = files.find(file => file.key === tabKey)?.agentSessionId;
+		if (rootRes.found && rootRes.projectRoot && agentSessionId === undefined) {
+			const result = await Service.agentSessionCreate({projectRoot: rootRes.projectRoot, title: rootRes.title});
+			if (!result.success) throw new Error(result.message ?? "Could not open the project workspace");
+			agentSessionId = result.session.id;
 		}
-		const newFile: EditingFile = {
-			key: projectPath,
-			title: normalizedTitle,
-			content: "",
-			contentModified: null,
-			folder: true,
-			status: "normal",
-			onMount: () => { },
-			workspaceView,
-		};
 		setFiles(prev => {
-			const next = [...prev, newFile];
-			switchTab(next.length - 1, newFile);
+			const existingIndex = prev.findIndex(file => file.key === tabKey);
+			const file: EditingFile = {
+				...(existingIndex >= 0 ? prev[existingIndex] : {content: "", contentModified: null, status: "normal" as const, onMount: () => {}}),
+				key: tabKey, title: path.basename(tabKey), folder: true, workspaceView, agentSessionId, repositoryRoot,
+			};
+			const next = existingIndex >= 0 ? prev.map((old, index) => index === existingIndex ? file : old) : [...prev, file];
+			switchTab(existingIndex >= 0 ? existingIndex : next.length - 1, file);
 			return next;
 		});
 	}, [files, switchTab]);
@@ -2316,6 +2309,7 @@ export default function PersistentDrawerLeft() {
 				newFile.particleTextEditing = file.particleTextEditing;
 				newFile.readOnly = file.readOnly;
 				newFile.agentSessionId = file.agentSessionId;
+				newFile.repositoryRoot = file.repositoryRoot;
 				newFile.workspaceView = file.workspaceView ?? (file.agentSessionId !== undefined ? "agent" : (file.folder ? "upload" : undefined));
 				newFile.sortIndex = i;
 				return newFile;
@@ -5151,13 +5145,13 @@ export default function PersistentDrawerLeft() {
 		const editingInfo: Service.EditingInfo = {
 			index: tabIndex ?? 0,
 			files: files.map(f => {
-				const { key, title, mdEditing, yarnTextEditing, bodyTextEditing, particleTextEditing, editor, readOnly, agentSessionId, workspaceView } = f;
+				const { key, title, mdEditing, yarnTextEditing, bodyTextEditing, particleTextEditing, editor, readOnly, agentSessionId, workspaceView, repositoryRoot } = f;
 				let { position } = f;
 				const { folder = false } = f;
 				if (position === undefined && editor !== undefined) {
 					position = editor.getPosition() ?? undefined;
 				}
-				return { key, title, mdEditing, yarnTextEditing, bodyTextEditing, particleTextEditing, position, readOnly, folder, agentSessionId, workspaceView };
+				return { key, title, mdEditing, yarnTextEditing, bodyTextEditing, particleTextEditing, position, readOnly, folder, agentSessionId, workspaceView, repositoryRoot };
 			})
 		};
 		if (areEditingInfosEqual(editingInfo, lastEditingInfo)) {
@@ -5305,12 +5299,26 @@ export default function PersistentDrawerLeft() {
 		openFileInTab(targetPath, path.basename(targetPath), false);
 	}, [openFileInTab]);
 
+	const [importedProjectChoices, setImportedProjectChoices] = useState<{root: string; projects: string[]} | null>(null);
 	useEffect(() => {
 		const openImportedProject = async (message: Service.ImportIDEOpenMessage) => {
 			try {
-				await loadAssets();
+				if (!await loadAssets()) throw new Error("Could not refresh the workspace");
 				await revealTreeNode(message.root);
-				openProjectWorkspaceTab(message.root, "git");
+				const root = await Service.agentProjectRoot({path: message.root, isDir: true});
+				if (!root.success) throw new Error(root.message);
+				if (root.found && root.projectRoot === message.root) {
+					await openProjectWorkspaceTab(message.root, "git");
+				} else {
+					const entries = await Service.entryList(true);
+					if (!entries.success) throw new Error("Could not find imported projects");
+					const projects = [...new Set(entries.games.filter(entry => entry.asProj && isPathWithin(entry.file, message.root)).map(entry => path.dirname(entry.file)))];
+					if (projects.length === 1) await openProjectWorkspaceTab(projects[0], "git", undefined, message.root);
+					else if (projects.length > 1) {
+						await openProjectWorkspaceTab(message.root, "git");
+						setImportedProjectChoices({root: message.root, projects});
+					} else await openProjectWorkspaceTab(message.root, "git", message.entry);
+				}
 				Service.acknowledgeImportIDEOpen(message.requestId, true);
 			} catch {
 				Service.acknowledgeImportIDEOpen(message.requestId, false);
@@ -5321,8 +5329,8 @@ export default function PersistentDrawerLeft() {
 	}, [loadAssets, revealTreeNode, openProjectWorkspaceTab]);
 
 	const onGitOpenProject = useCallback((projectPath: string) => {
-		openProjectWorkspaceTab(projectPath, "git");
-	}, [openProjectWorkspaceTab]);
+		void openProjectWorkspaceTab(projectPath, "git").catch(error => addAlert(String(error), "error"));
+	}, [addAlert, openProjectWorkspaceTab]);
 
 	return (
 		<Entry>
@@ -5376,6 +5384,15 @@ export default function PersistentDrawerLeft() {
 					allowBackgroundInteraction={false}
 				/>
 			) : null}
+			<Dialog open={importedProjectChoices !== null} onClose={() => setImportedProjectChoices(null)} maxWidth="sm" fullWidth>
+				<DialogTitle>{Info.locale.startsWith("zh") ? "选择要打开的 Dora 工程" : "Choose a Dora project"}</DialogTitle>
+				<DialogContent><Stack spacing={1}>
+					{importedProjectChoices?.projects.map(project => <Button key={project} title={project} sx={{justifyContent: "flex-start", textTransform: "none"}} onClick={() => {
+						void openProjectWorkspaceTab(project, "git", undefined, importedProjectChoices.root).then(() => setImportedProjectChoices(null)).catch(error => addAlert(String(error), "error"));
+					}}>{path.relative(importedProjectChoices.root, project) || path.basename(project)}</Button>)}
+				</Stack></DialogContent>
+				<DialogActions><Button onClick={() => setImportedProjectChoices(null)}>{t("menu.close")}</Button></DialogActions>
+			</Dialog>
 			<Dialog
 				maxWidth="lg"
 				open={popupInfo !== null}
@@ -6055,6 +6072,8 @@ export default function PersistentDrawerLeft() {
 									title={file.title}
 									height={editorHeight}
 									uploadPath={file.key}
+									repositoryRoot={file.repositoryRoot}
+									repositoryDisplayPath={file.repositoryRoot ? getWorkspaceDisplayPath(file.repositoryRoot) : undefined}
 									displayPath={getWorkspaceDisplayPath(file.key)}
 									isWorkspaceRoot={file.key === writablePath}
 									agentSessionId={file.agentSessionId}
@@ -6573,6 +6592,8 @@ export default function PersistentDrawerLeft() {
 											title={file.title}
 											height={editorHeight}
 											uploadPath={file.key}
+											repositoryRoot={file.repositoryRoot}
+											repositoryDisplayPath={file.repositoryRoot ? getWorkspaceDisplayPath(file.repositoryRoot) : undefined}
 											isWorkspaceRoot={file.key === writablePath}
 											displayPath={getWorkspaceDisplayPath(file.key, true)}
 											agentInitialPrompt={file.agentInitialPrompt}

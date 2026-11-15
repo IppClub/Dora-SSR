@@ -42,7 +42,7 @@ export function start(repository?: string) {
 	const open = (target: IDETarget) => {
 		if (!project || phase !== "ready") return;
 		phase = "opening"; message = ""; render();
-		openProject(target, project.root).then(success => {
+		openProject(target, project.root, project.entry).then(success => {
 			if (disposed) return;
 			phase = "ready";
 			if (!success) { message = zh ? "IDE 未响应，请重试或重新连接 IDE。" : "The IDE did not respond. Retry or reconnect it."; render(); return; }

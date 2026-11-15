@@ -32,7 +32,7 @@ export interface OpenFileMessage {
 	readOnly?: boolean;
 };
 
-export interface ImportIDEOpenMessage {target: string; requestId: string; root: string;}
+export interface ImportIDEOpenMessage {target: string; requestId: string; root: string; entry?: string;}
 
 type ServiceEvents = {
 	ImportIDEOpen: [ImportIDEOpenMessage];
@@ -1024,6 +1024,7 @@ export interface EditingInfo {
 		folder: boolean,
 		agentSessionId?: number,
 		workspaceView?: "agent" | "upload" | "git",
+		repositoryRoot?: string,
 		mdEditing?: boolean,
 		yarnTextEditing?: boolean,
 		bodyTextEditing?: boolean,

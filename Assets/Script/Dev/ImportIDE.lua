@@ -94,7 +94,7 @@ function ____exports.getTargets() -- 36
 	) -- 45
 	return result -- 46
 end -- 36
-function ____exports.openProject(target, root) -- 48
+function ____exports.openProject(target, root, entry) -- 48
 	return __TS__New( -- 49
 		__TS__Promise, -- 49
 		function(____, resolve) -- 49
@@ -112,7 +112,13 @@ function ____exports.openProject(target, root) -- 48
 			end -- 54
 			pending[key] = finish -- 55
 			local started = App.runningTime -- 56
-			send({name = "ImportIDEOpen", target = target.id, requestId = requestId, root = root}) -- 57
+			send({ -- 57
+				name = "ImportIDEOpen", -- 57
+				target = target.id, -- 57
+				requestId = requestId, -- 57
+				root = root, -- 57
+				entry = entry -- 57
+			}) -- 57
 			Director.systemScheduler:schedule(function() -- 58
 				if settled then -- 58
 					return true -- 59

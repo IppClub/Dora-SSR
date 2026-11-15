@@ -887,6 +887,11 @@ export getCurrentEntryStatus = ->
 
 setupEventHandlers = ->
 	with Director.postNode
+		if App.platform == "Windows"
+			\gslot "AppURLHandlerState", (state) ->
+				allEntries.urlHandlerState = state
+				emit "AppURLHandler", "register" if state == "missing"
+			emit "AppURLHandler", "query"
 		\onAppEvent (eventType) -> switch eventType
 			when "Quit"
 				quit = true
@@ -1200,9 +1205,9 @@ When enabled, regular key and text input events are suppressed; mapped keys are 
 					sleep 2
 					print "Stop #{entry.entryName}"
 
-icon = Path "Script", "Dev", "icon_s.png"
+icon = Path Content.assetPath, "Script", "Dev", "icon_s.png"
 iconTex = nil
-thread -> iconTex = Texture2D icon if Cache\loadAsync icon
+Director.systemScheduler\schedule once -> iconTex = Texture2D icon if Cache\loadAsync icon
 
 webStatus = nil
 urlClicked = nil
@@ -1383,9 +1388,13 @@ footerWindow = do
 					showStats = not showStats
 					config.showStats = showStats
 				SameLine!
-				if Button ">_", Vec2 30, 30
-					showConsole = not showConsole
-					config.showConsole = showConsole
+			if Button ">_", Vec2 30, 30
+				showConsole = not showConsole
+				config.showConsole = showConsole
+			if App.platform == "Windows" and allEntries.urlHandlerState in {"other", "error"}
+				SameLine!
+				if Button zh and "注册浏览器链接" or "Register browser links"
+					emit "AppURLHandler", "register"
 			if isInEntry and updateState.available
 				SameLine!
 				if ImGui.Button zh and "更新可用" or "Update"

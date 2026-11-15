@@ -6,6 +6,7 @@ import Typography from '@mui/material/Typography';
 import { MacScrollbar } from 'mac-scrollbar';
 import { useTranslation } from 'react-i18next';
 import { Color } from './Theme';
+import Info from './Info';
 
 const AgentPanel = React.lazy(() => import('./AgentPanel'));
 const DoraUpload = React.lazy(() => import('./Upload'));
@@ -24,6 +25,8 @@ function PanelFallback() {
 }
 
 interface ProjectWorkspacePanelProps {
+	repositoryRoot?: string;
+	repositoryDisplayPath?: string;
 	active?: boolean;
 	compact?: boolean;
 	title: string;
@@ -53,6 +56,8 @@ export default function ProjectWorkspacePanel(props: ProjectWorkspacePanelProps)
 		title,
 		height,
 		uploadPath,
+		repositoryRoot,
+		repositoryDisplayPath,
 		displayPath,
 		isWorkspaceRoot,
 		agentSessionId,
@@ -210,12 +215,12 @@ export default function ProjectWorkspacePanel(props: ProjectWorkspacePanelProps)
 				{active && currentView === "git" ? (
 					<React.Suspense fallback={<PanelFallback />}>
 						<GitPanel
-							projectRoot={uploadPath}
-							displayPath={displayPath}
+							projectRoot={repositoryRoot ?? uploadPath}
+							displayPath={repositoryDisplayPath ?? displayPath}
 							height={contentHeight}
 							isWorkspaceRoot={isWorkspaceRoot}
 							addAlert={addAlert}
-							onOpenFile={onOpenFile}
+							onOpenFile={file => onOpenFile?.(Info.path.isAbsolute(file) ? file : Info.path.join(repositoryRoot ?? uploadPath, file))}
 							onOpenProject={onOpenProject}
 							onRepositoryFilesChanged={onRepositoryFilesChanged}
 						/>
