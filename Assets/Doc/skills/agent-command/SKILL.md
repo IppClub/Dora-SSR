@@ -22,6 +22,7 @@ Lua command code runs in a temporary environment:
 
 - Dora API globals are available through the command environment.
 - `projectDir` is the current project directory.
+- In `execute_command`, relative path arguments to `Content` APIs resolve from the project root by default.
 - `reportProgress(update)` forwards structured progress to the Agent tool UI.
 - `print(...)` is the only output captured into the tool result.
 - Return values are not captured.
@@ -60,7 +61,7 @@ Use an in-engine test for gameplay state, scheduling, DoraX updates, input handl
 Follow this short path before searching APIs or probing paths:
 
 1. Write a focused test entry in the project's authored language. For TS/TSX, build it first and run the generated Lua entry.
-2. Write the result to a unique marker under the **project root** `.agent/test-results`, not under `Content.writablePath`. The command-side absolute marker is `Path(projectDir, ".agent", "test-results", name)`.
+2. Write the result to a unique marker under the **project root** `.agent/test-results`, not under `Content.writablePath`. The command-side absolute marker is `Path(projectDir, ".agent", "test-results", name)`. In game entries, unmatched relative write targets fall back to `Content.writablePath`.
 3. In an Agent-started entry, the project root is `Content.searchPaths[0]`. Attach scheduled nodes to `Director.entry`; an unattached node is not driven by the scene scheduler.
 4. Remove a stale marker, start the built entry with `enterEntryAsync`, and poll with short `sleep(...)` yields plus an `App.runningTime` deadline.
 5. Read the marker, explicitly call `stopEntry()`, then verify `getEntryStatus().success` and `getEntryStatus().running == false` before asserting the result.
