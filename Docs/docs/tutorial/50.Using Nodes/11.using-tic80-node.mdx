@@ -1,3 +1,7 @@
+import DocScreenshot from '@site/src/components/DocScreenshot';
+import ticImage from '@site/static/img/operations/tic-en.webp';
+import ticSavedImage from '@site/static/img/operations/tic-saved-en.webp';
+
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
@@ -38,11 +42,17 @@ Dora SSR's Web IDE embeds a TIC-80 cartridge editor. Opening a project `.tic` fi
 2. Wait for the **Loaded** status above the editor. The code is ready to edit immediately. Use the editor's toolbar or F1–F5 to switch between code, graphics, maps, sound effects, and music.
 3. Filenames with spaces, Unicode, or special characters work the same way. Saving always targets the original project file.
 
+<DocScreenshot src={ticImage} width={2200} height={1520} alt="game.tic loaded into the TIC-80 code editor" />
+
+Code, sprites, maps, sound effects, and music are different views of the same cartridge. Click inside the editor before using F1–F5, or select the icons along its top edge.
+
 ### 2.2 Editing and Saving
 
 Edit the cartridge, then press **Ctrl+S** while the TIC-80 editor has focus. The Web IDE writes the saved cartridge back to the local project file automatically. There is no separate import or export step.
 
 The status above the editor shows **Unsaved changes**, **Saving…**, or **Saved**. Wait for **Saved** before closing the tab. If saving fails, the error remains visible; keep the editor open, resolve the connection or storage problem, and press Ctrl+S again to retry.
+
+<DocScreenshot src={ticSavedImage} width={2200} height={1520} alt="TIC-80 sprite editor and the Saved status above it" />
 
 ### 2.3 Closing and Reopening
 
@@ -60,7 +70,7 @@ If loading fails, the editor shows **Load failed** and a **Retry loading** butto
 
 ### 2.5 Code Editing Support
 
-The Web IDE provides special support for TIC-80 code editing, making it easier to develop TIC-80 games with autocomplete, type checking, and other editor features.
+The following compiler hints apply to separate source files opened in the Web IDE code editor, rather than the embedded cartridge editor. Source files and `.tic` cartridges are saved separately; editing a source file does not automatically rewrite a cartridge.
 
 #### For Lua, Teal, and YueScript
 

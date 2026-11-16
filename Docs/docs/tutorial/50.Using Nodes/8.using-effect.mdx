@@ -603,7 +603,7 @@ particle\start!
 
 ### 4.3 Customizing Particle Effects
 
-Due to the limited functionality of the `Particle` class, if you need to use it, you might need to modify the engine's particle system editor example (named "Particle"), which is built on the ImGui framework, to create your own particle editor to meet artistic production needs. The `.par` files used in Dora SSR's particle system are essentially XML formatted text files, and you can refer to the editor code for how to generate and export them.
+The Web IDE includes a particle editor. Choose **New → Dora Particle** to create a `.par` file, or open an existing one to adjust parameters and preview the effect. Save it, then load it in your game with `Particle("path/effect.par")`. A `.par` file is XML text and can also be edited as text.
 
 ## 5. Conclusion
 

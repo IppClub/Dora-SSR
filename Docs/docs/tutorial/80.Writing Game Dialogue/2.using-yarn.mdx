@@ -1,3 +1,6 @@
+import DocScreenshot from '@site/src/components/DocScreenshot';
+import yarnTesterImage from '@site/static/img/operations/yarn-tester-en.webp';
+
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
@@ -469,7 +472,7 @@ When you use the visual Yarn editor, the editor checks each node body separately
 
 ### 6.2 Run a File with Yarn Tester
 
-Open **Yarn Tester** from Dora SSR's development tools after saving your `.yarn` file. The tester scans the writable project path for files ending in `.yarn`. If you add a new Yarn file while the tester is already open, reload the tester so the file list is scanned again.
+Open **Projects / Tools → Tools → YarnTester** in the upper-left corner of the Web IDE after saving your `.yarn` file. The tester scans the writable project path for files ending in `.yarn`. If you add a new Yarn file while the tester is open, stop the tool and open YarnTester again to rescan the file list. The **Reload** button inside the tester restarts the selected dialogue; it does not rescan files.
 
 In Yarn Tester:
 
@@ -479,6 +482,10 @@ In Yarn Tester:
 - The tester starts from the `Start` node.
 - Text output appears in the scroll area, options appear as numbered choices, and commands are displayed as `[command]: commandName args`.
 - The **Variables** area shows the runner state. During testing, initial variables can be loaded from leading `// variables:` comments in the Yarn file.
+
+<DocScreenshot src={yarnTesterImage} width={2200} height={1520} alt="Yarn Tester with numbered choices, file selection, Reload and the coins variable" />
+
+Use the numbered buttons at the bottom to choose a branch; use **Next** for ordinary text. In this example, `coins` starts at `3`, visible in Variables. After editing and saving the file, select **Reload** to test from the beginning. With the built-in Web IDE, use the left **IDE** tab to return to editing.
 
 ### 6.3 Common Error Symptoms
 

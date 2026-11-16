@@ -1,41 +1,58 @@
+import DocScreenshot from '@site/src/components/DocScreenshot';
+import planImage from '@site/static/img/operations/mobile-plan-en.webp';
+import playImage from '@site/static/img/operations/mobile-play-en.webp';
+
 # Mobile UI and Remix
 
-Use Mobile UI to browse games and create or edit projects with Dora Agent on your device. To write code in a browser, follow [Quick Start](./10.quick-start.mdx).
+Use Mobile UI to browse local games, ask Dora Agent to change a project, and playtest on the same device. Android/iOS open Mobile UI by default. Windows/macOS open the built-in Web IDE; Linux opens Classic UI. For installation and your first project, see [Quick Start](./10.quick-start.mdx).
 
-## Switch between Mobile and traditional UI
+## Open a project in Remix
 
-Both interfaces are available on Android, iOS, Windows, macOS, and Linux. On first launch, Android/iOS default to Mobile UI. Windows/macOS automatically open the built-in Web IDE; Linux opens the traditional UI. Your selection is remembered in the application's settings on the current device, including when you change workspaces.
+1. Open **Local** in the Feed and find your project.
+2. Select **Remix**, or swipe right on its card, to open the project's conversation.
+3. For a new project, choose **+ New → New game**, enter its name, select **TypeScript** (default) or **Lua**, then choose **Create and Remix**.
+4. If no model is configured, use the setup sheet to select a provider template and enter your own API key. You can return to Remix without creating a configuration and use the header's setup button later.
 
-- In the traditional home screen, select **Mobile UI** at the top to browse the game Feed.
-- Windows/macOS show the built-in Web IDE in the application window; a successful run switches to the game, and the left **IDE** tab returns to editing. An external browser Web IDE takes priority over both local UI modes. When no game is running, the engine shows the same fixed **Web IDE connected** screen, with no mode switch. Local Feed, Remix and playtesting controls are suspended, including text input. Web IDE can still run and stop games normally. After the last Web IDE connection closes, the previous local UI returns without changing your saved preference; if a remote run replaced the scene, Mobile returns to its Feed when the game stops.
-- In the Mobile Feed, select **Classic UI** at the top left to return to the traditional project/tool list and Web IDE connection information.
-- Switching takes effect without restarting the application or Web service. It does not change the workspace, projects, or model configuration.
-- Return from Remix or exit playtesting before switching. During installation, wait for the operation to finish; the switch is temporarily disabled.
+The new-project sheet stays open if the name is empty, contains a path separator, or conflicts with existing content. Change the name and retry.
 
-Mobile UI adapts to the current window or device orientation; selecting it on a desktop does not force a portrait window.
+## Choose Plan or Code, then send
 
-Mobile UI always uses the larger text size; there is no font-size toggle. The Feed opens **Local** when runnable local projects exist, otherwise **Discover**. Returning from Remix or playtesting restores that project's card and its original tab, even when the list has been reordered or the Catalog refreshes. If the original Catalog entry is no longer available, its installed local project is used when present.
+- **Plan**: discuss the change and agree on an approach.
+- **Code**: ask Dora to implement the change in the project.
+- Type your request, then select **Send** (`Ctrl/Cmd+Enter` also sends). Enter alone adds a new line.
+- Switching modes preserves the draft and does not send anything. New sessions default to Code; existing sessions remember their mode, shared with Web IDE.
 
-## Create a project from Mobile Feed
+<DocScreenshot src={planImage} width={860} height={1600} alt="Remix with Plan selected, Code beside it, and a request draft above Send" maxWidth={360} caption="Choose a mode before sending. This screen shows an unsent draft." />
 
-Open **Local**, select **+ New**, then choose **New game**. Enter a project name in the bottom sheet, keep the default **TypeScript** (or choose Lua), then select **Create and Remix**. Mobile creates the matching entry file and initial runnable output in the current workspace, refreshes Local, selects the new project, and opens its Remix conversation. The entry remains available when Local is empty.
+There is no required Plan → Code sequence. After discussing a plan, switch to Code yourself when you want Dora to implement it. Mode switching and sending are unavailable while a task is running, awaiting an answer, or finalizing.
 
-If the name is empty, contains a path separator, or conflicts with an existing file or folder ignoring letter case, the sheet stays open so you can change it. A folder or `init.ts` write failure also leaves a retryable message; an incomplete folder created by that attempt is rolled back without removing existing content. Select **Cancel** or use the system Back action to return to the Feed without creating anything.
+## Follow progress and stop a task
 
-Project names use a single-line input with horizontal scrolling. It shares its input component with the multiline Remix prompt: the border turns gold when focused and gray when focus is lost.
+Work cards and replies appear above the input. Scroll up to read earlier content; select **New activity · Latest** to follow new activity again.
 
-## Following Remix progress
+While Dora is working, **Send** becomes **Stop**. Select Stop and wait for it to finish stopping before sending another request or leaving Remix. The next draft is preserved. When Code work completes, **Play now** starts a playtest. After a Plan reply, continue discussing or switch to Code.
 
-Use **Back** at the top right, or swipe left across the conversation area, to return to the Feed. The whole Remix page follows your drag with the same resistance as Feed cards; releasing a short swipe springs it back, while a completed swipe switches directly to the Feed without an extra slide-out animation. Input editing, buttons, and vertical scrolling do not trigger this gesture. The existing safety rule still applies: stop a running Agent before leaving Remix.
+## Playtest and return to the Feed
 
-The multiline input shows a blinking caret while focused and hides its placeholder. Tap to position the caret, use arrow keys to move, and press Enter for a new line; Ctrl/Cmd+Enter sends. Long text wraps and scrolls inside the input without covering other controls. You can scroll within it with a drag or mouse wheel; editing brings the caret back into view.
+1. Select **Back** in the Remix header (or swipe left across the conversation) to return to the project's Feed card. Stop a running Agent first.
+2. Select **Play**, or swipe left on the local card. Completed Code work can also offer **Play now** in Remix.
+3. Tap the small handle on the right edge of the game to reveal **Exit**, then tap Exit to stop playtesting and return to the Feed.
 
-Tap outside the input or press Esc to dismiss the keyboard and caret without losing your committed draft. An empty input shows its placeholder again; tap it to resume editing. Backgrounding the app or connecting the Web IDE also releases input focus. If a tap cancels unfinished IME composition, it does not send the draft at the same time.
+<DocScreenshot src={playImage} width={860} height={1600} alt="A local game running with the right-edge Exit control expanded" maxWidth={360} />
 
-Use **Plan** or **Code** above the input to manually select the Agent's working mode, just as in Web IDE. New sessions default to Code; existing sessions keep their saved mode, shared with Web IDE. The setting belongs to each project's main session and survives app restarts; having plan files does not enable Plan mode. Sending or reopening Remix does not reset the mode. Switching modes preserves your draft and does not send a request; there is no mandatory Plan → Start Remix sequence. Mode switching and sending are disabled while a task is running, awaiting an answer, or finalizing.
+The exit handle can be dragged vertically. Returning from Remix or playtesting restores the project's card and Feed tab.
 
-Remix shows conversation history and compact work cards in a scrollable area between the fixed header and input controls. Card text and status update while the Agent works. When you are at the bottom, new content stays in view; if you scroll up to read earlier messages, your reading position is preserved. Select **New activity · Latest** to resume following the latest content.
+## Switch interfaces
 
-The lightweight view loads only the latest **10 conversation rounds**, including the current round. A round starts with your request and includes its replies, rather than being a single message. Only the current task shows work cards; earlier rounds show requests and replies. When older rounds are omitted, a notice at the top directs you to Web IDE. There is no “load more” action in Remix. This display limit does not delete history or change the Agent’s context strategy.
+On the Classic home screen, choose **Mobile UI**. In the Mobile Feed, choose **Classic UI** in the upper-left corner. The choice is remembered on this device; switching does not change your workspace or model configurations. Mobile UI follows the window or device orientation.
 
-The button beside the input switches between **Send** when idle and **Stop** while the Agent is working. It stays disabled while stopping or finalizing, then returns to Send; stopping preserves your next draft. Local Agent run/stop checks keep the Remix conversation and input available. Completed Code work stays visible with **Play now**; after a Plan reply, you can continue discussing or manually switch to Code. Web IDE still takes control when connected; open the same project’s **Dora** tab there to see its shared conversation and detailed execution results.
+A connected Web IDE takes control of local editing and playtesting. With the built-in Windows/macOS Web IDE, use the left **IDE** tab to return from the running game. With an external browser, close all Web IDE connections to restore the local Feed or Remix. More file and model operations are covered in [Web IDE: Everyday Operations](./18.web-ide.mdx).
+
+<details>
+<summary>Drafts and conversation history</summary>
+
+Tap outside the input or press Esc to release input focus without losing the committed draft. Tap the input to resume editing; long drafts wrap and scroll inside it.
+
+Remix displays the latest **10 conversation rounds**, including the current one. A round begins with your request and includes its replies. Only the current task shows work cards. If earlier rounds are omitted, open the same project's **Dora** tab in Web IDE for the full history and detailed results. This display limit does not delete history.
+
+</details>

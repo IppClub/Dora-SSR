@@ -1,3 +1,7 @@
+import DocScreenshot from '@site/src/components/DocScreenshot';
+import ticImage from '@site/static/img/operations/tic-zh.webp';
+import ticSavedImage from '@site/static/img/operations/tic-saved-zh.webp';
+
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
@@ -38,11 +42,17 @@ Dora SSR 的 Web IDE 内嵌了 TIC-80 卡带编辑器。打开项目中的 `.tic
 2. 等待编辑器上方显示**已加载**，即可直接编辑代码。使用编辑器工具栏或 F1–F5 切换代码、图形、地图、音效和音乐编辑器。
 3. 包含空格、中文或特殊字符的文件名也可以直接使用，保存时始终写回项目中原来的文件。
 
+<DocScreenshot src={ticImage} width={2200} height={1520} alt="打开 game.tic 后显示已加载，进入 TIC-80 代码编辑页" />
+
+代码、图形、地图、音效和音乐是同一张卡带的不同编辑页。先点击编辑器内部，使其获得键盘焦点，再使用 F1–F5；也可以直接点击顶部图标。
+
 ### 2.2 编辑与保存
 
 编辑卡带后，在 TIC-80 编辑器获得焦点时按 **Ctrl+S**。Web IDE 会自动将保存后的卡带写回本地项目文件，无需单独导入或导出。
 
 编辑器上方会显示**未保存**、**保存中…**或**已保存**。请等待**已保存**后再关闭标签页。保存失败时，错误状态会持续显示；请保留编辑器页面，解决连接或存储问题后，再按 Ctrl+S 重试。
+
+<DocScreenshot src={ticSavedImage} width={2200} height={1520} alt="TIC-80 图形编辑页及顶部的已保存状态" />
 
 ### 2.3 关闭与重新打开
 
@@ -60,7 +70,7 @@ Dora SSR 的 Web IDE 内嵌了 TIC-80 卡带编辑器。打开项目中的 `.tic
 
 ### 2.5 代码编辑支持
 
-Web IDE 为 TIC-80 代码编辑提供了特别支持，使开发 TIC-80 游戏更加轻松，包括自动补全、类型检查和其他编辑器功能。
+以下编译器提示适用于 Web IDE 代码编辑器中单独打开的源码文件，不是内嵌卡带编辑器的功能。独立源码文件与 `.tic` 卡带分别保存，修改源码文件不会自动改写卡带。
 
 #### 对于 Lua、Teal 和 YueScript
 
