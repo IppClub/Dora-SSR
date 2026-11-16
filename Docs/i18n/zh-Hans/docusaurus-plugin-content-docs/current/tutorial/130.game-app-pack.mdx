@@ -125,7 +125,7 @@ main()
 
 | 平台 | 开发工具 | 输出格式 | 签名要求 | 发布渠道 |
 |------|----------|----------|----------|----------|
-| Windows | xmake + Visual Studio C++ 工具 | 包含 .exe 的 ZIP | 可选 | Steam、官网、其他平台 |
+| Windows | xmake + Visual Studio C++ 工具 | 包含 .exe 的 ZIP / MSI 安装包 | 可选 | Steam、官网、其他平台 |
 | macOS | xmake + Xcode | 包含 .app 的 ZIP | 分发时必需 | App Store、官网 |
 | Linux | xmake + 系统开发包 | AppImage | 可选 | Steam、官网 |
 | iOS | xmake + Xcode | 模拟器 ZIP / 真机 .ipa | 真机分发时必需 | App Store |
@@ -140,10 +140,12 @@ main()
 <TabItem value="windows" label="Windows">
 
 ```sh
-xmake app-package --platform=windows --arch=x86 --mode=release
+xmake app-package --platform=windows --arch=x64 --mode=release --windows-backend=d3d12 --format=both
 ```
 
-产物位于 `build/package/` 的对应平台目录；Android 位于 `Projects/Android/Dora/app/build/outputs/`。应用名称、版本、图标与平台资源在 `Projects/` 中修改，构建参数在 `Projects/xmake/` 中修改，不修改生成的 IDE 工程。
+Windows 发布包仅支持 **x64**。`--windows-backend=d3d12` 为默认值；改用 `--windows-backend=wgl` 可生成文件名带 `-opengl` 的 OpenGL 版。`--format` 可选 `zip`（默认）、`msi` 或 `both`。打包 MSI 需要 WiX CLI 和 UI 扩展；发布工作流使用 WiX 5.0.2 和 `WixToolset.UI.wixext/5.0.2`。
+
+产物位于 `build/package/windows/x64/release/d3d12/` 或 `build/package/windows/x64/release/wgl/`。MSI 为当前用户安装，创建开始菜单快捷方式并注册 `dora-ssr://` 链接；ZIP 为便携版，可按需运行 `RegisterDoraLinks.cmd` 注册链接。两种后端共用同一 MSI 产品系列：安装另一后端会替换已有安装，不会并排安装第二份。
 
 </TabItem>
 <TabItem value="macos" label="macOS">

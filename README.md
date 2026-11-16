@@ -371,15 +371,17 @@ fn main () {
 ### Android
 
 1. Install the [APK](https://github.com/IppClub/Dora-SSR/releases/latest) on the target device.
-2. Launch the app — it displays an address to open from a browser on any device on the same network.
-3. Open the address in a browser, and the Web IDE is ready.
+2. Launch the app to open the Mobile Feed; use **Local → + New** to create a project and enter Remix.
+3. To write code on a computer, select **Classic UI**, then open its displayed server address in a browser on the same network.
 
 ### Windows
 
-> [!IMPORTANT]
-> Install the x86 [Visual C++ Redistributable for Visual Studio 2022](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170) first.
+Download a Windows **x64** package from the [release page](https://github.com/IppClub/Dora-SSR/releases/latest). Packages without `-opengl` use **D3D12**; choose the **OpenGL** version if your graphics hardware or driver cannot run the D3D12 version.
 
-Download and extract the [release](https://github.com/IppClub/Dora-SSR/releases/latest), launch the app, and open the displayed address in a browser.
+- **MSI**: run the installer, then launch **Dora SSR** from the Start menu.
+- **ZIP**: extract the entire archive into a writable folder, then run `Dora.exe`, keeping the bundled DLLs and resources together.
+
+The built-in Web IDE opens automatically in the Dora SSR window. Create and run projects there. See the [installation guide](https://dora-ssr.net/docs/tutorial/quick-start) for details, including browser link registration.
 
 ### macOS
 
@@ -389,7 +391,7 @@ Download and extract the [release](https://github.com/IppClub/Dora-SSR/releases/
 brew install --cask ippclub/tap/dora-ssr
 ```
 
-Launch the app and open the displayed address in a browser.
+Launch the app; its built-in Web IDE opens automatically.
 
 ### Linux
 

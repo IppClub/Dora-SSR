@@ -1,187 +1,95 @@
+---
+hide_table_of_contents: true
+---
+
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
-import { version } from '@site/src/version';
+import connectImage from '@site/static/img/quick-start/connect-en.webp';
+import desktopImage from '@site/static/img/quick-start/desktop-en.webp';
+import createImage from '@site/static/img/quick-start/create-en.webp';
+import runImage from '@site/static/img/quick-start/run-en.webp';
+import mobileLocalImage from '@site/static/img/quick-start/mobile-local-en.webp';
+import mobileCreateImage from '@site/static/img/quick-start/mobile-create-en.webp';
+import mobileSetupImage from '@site/static/img/quick-start/mobile-setup-en.webp';
+import mobilePromptImage from '@site/static/img/quick-start/mobile-prompt-en.webp';
 
-# Dora Start!
+# Quick Start
 
-## 1. What is Dora SSR?
+Install Dora SSR, choose your platform below, and make your first interactive scene. You can also [try games in your browser](https://dora-ssr.net/play).
 
-![Dora SSR Intro](@site/static/img/article/detail.svg)
+## Choose your device {#2-installation}
 
-:::info A Short Introduction
-Dora SSR is a game engine for rapid development of games on various devices. It has a built-in easy-to-use Web IDE development tool chain that supports direct game development on mobile phones, open source handhelds and other devices.
-:::
+<Dropdown
+  label="Download Dora SSR"
+  items={[
+    { label: 'GitHub', to: 'https://github.com/ippclub/Dora-SSR/releases/latest', target: '_blank' },
+    { label: 'Gitee', to: 'https://gitee.com/ippclub/Dora-SSR/releases/latest', target: '_blank' },
+    { label: 'GitCode', to: 'https://gitcode.com/ippclub/Dora-SSR/releases', target: '_blank' },
+  ]}/>
 
-:::tip Try It in the Browser First
-No installation required: play games exported with Dora SSR directly in your browser on the [web gallery](https://dora-ssr.net/play).
-:::
+<Tabs groupId="quick-start-platform" defaultValue="desktop">
+<TabItem value="desktop" label="Windows / macOS">
 
-## 2. Installation
+### 1. Install and launch {#desktop-install}
 
-<Tabs groupId="platform-select">
-<TabItem value="android" label="Android">
+- **Windows**: install the **Windows x64 MSI**, then launch Dora SSR from the Start menu. Use the package with `-opengl` if your graphics hardware or driver cannot run the default D3D12 version.
+- **macOS**: extract the macOS package and open Dora, or install with `brew install --cask ippclub/tap/dora-ssr`.
 
-1. Download and install the APK package on the game's running terminal.
+The **built-in Web IDE opens automatically** in the Dora SSR window. Create your first project below.
 
-	<Dropdown
-		label="Download APK"
-		items={[
-			{ label: 'GitHub', to: 'https://github.com/ippclub/Dora-SSR/releases/latest', target: '_blank' },
-			{ label: 'Gitee', to: 'https://gitee.com/ippclub/Dora-SSR/releases/latest', target: '_blank' },
-			{ label: 'GitCode', to: 'https://gitcode.com/ippclub/Dora-SSR/releases', target: '_blank' },
-	]}/>
+<a href={desktopImage} target="_blank" rel="noopener noreferrer" title="Open full-size screenshot">
+  <img src={desktopImage} alt="Dora SSR opens its built-in Web IDE on Windows and macOS; shown here on macOS" loading="lazy" style={{height: 'auto'}} />
+</a>
 
-2. Run the software. If Mobile UI is shown, tap **Classic UI** at the top left of the Feed. Access the server address shown in the traditional UI from a browser on your PC (tablet or other development device) in the LAN.
-3. Start game development.
+Portable ZIP installation and connecting from another device are covered in [Installation](./12.installation.mdx).
 
-</TabItem>
-<TabItem value="windows" label="Windows">
 
-1. Download and install the latest supported X86 Visual C++ v14 Redistributable for Visual Studio 2017-2026 (the MSVC runtime package vc_redist.x86) to run this application. You can download it from [here](https://aka.ms/vc14/vc_redist.x86.exe) (more details see [Microsoft website](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170)).
+### 2. Create a project and add code {#desktop-step-2}
 
-2. Download and run the software.
+1. In the built-in Web IDE's left resource tree, right-click **Workspace** (or touch and hold), then select **New → Folder**.
+2. Enter `Hello`, enable **Create as Project**, keep the default **TypeScript**, and select **OK**.
+3. Expand `Hello`, open `init.ts`, and replace its contents with the code below. It displays a logo that moves to where you click or tap.
 
-	<Dropdown
-		label="Download Software"
-		items={[
-			{ label: 'GitHub', to: 'https://github.com/ippclub/Dora-SSR/releases/latest', target: '_blank' },
-			{ label: 'Gitee', to: 'https://gitee.com/ippclub/Dora-SSR/releases/latest', target: '_blank' },
-			{ label: 'GitCode', to: 'https://gitcode.com/ippclub/Dora-SSR/releases', target: '_blank' },
-	]}/>
+<a href={createImage} target="_blank" rel="noopener noreferrer" title="Open full-size screenshot">
+  <img src={createImage} alt="Create the Hello project: enter its name, enable Create as Project, choose TypeScript, and select OK" loading="lazy" style={{height: 'auto'}} />
+</a>
 
-3. Access the server address displayed by the software through a browser.
-4. Start game development.
+If you prefer another language, select it when creating the project and use the matching example tab.
 
-</TabItem>
-<TabItem value="macos" label="macOS">
+<Tabs groupId="language-select" defaultValue="ts">
+<TabItem value="ts" label="TypeScript">
 
-1. Download and run the software.
+```ts title="Hello/init.ts"
+import {Ease, Move, Node, Sprite} from 'Dora';
+const root = Node();
+const sprite = Sprite("Image/logo.png");
 
-	<Dropdown
-		label="Download Software"
-		items={[
-			{ label: 'GitHub', to: 'https://github.com/ippclub/Dora-SSR/releases/latest', target: '_blank' },
-			{ label: 'Gitee', to: 'https://gitee.com/ippclub/Dora-SSR/releases/latest', target: '_blank' },
-			{ label: 'GitCode', to: 'https://gitcode.com/ippclub/Dora-SSR/releases', target: '_blank' },
-
-	]}/>
-
-	Or you can install with [Homebrew](https://brew.sh) using:
-	```sh
-	brew install --cask ippclub/tap/dora-ssr
-	```
-	Subsequent updates can be performed using the following commands:
-	```sh
-	brew update
-	brew upgrade dora-ssr
-	# or try to update the revision of the same version by reinstalling
-	brew reinstall dora-ssr
-	```
-
-	When you first run the software, you may see a prompt saying "Dora cannot be opened". Please go to "System Preferences" > "Security & Privacy" and click "Open Anyway".
-
-2. Access the server address displayed by the software through a browser.
-3. Start game development.
+if (sprite) {
+	root.addChild(sprite);
+	root.onTapBegan(touch => {
+		sprite.perform(
+			Move(
+				1, // duration in seconds
+				sprite.position, // start position
+				touch.location, // end position
+				Ease.OutBack // easing function
+			)
+		);
+	});
+}
+```
 
 </TabItem>
-<TabItem value="linux" label="Linux">
-
-1. Installation.
-	- Ubuntu
-		```sh
-		sudo add-apt-repository ppa:ippclub/dora-ssr
-		sudo apt update
-		sudo apt install dora-ssr
-		```
-	- Debian Bookworm
-		```sh
-		sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 9C7705BF
-		sudo add-apt-repository -S "deb https://ppa.launchpadcontent.net/ippclub/dora-ssr/ubuntu jammy main"
-		sudo apt update
-		sudo apt install dora-ssr
-		```
-2. Run the software and access the server address displayed by the software through a browser.
-3. Start game development.
-
-</TabItem>
-</Tabs>
-
-### Switch between Mobile and traditional UI
-
-Both interfaces are available on Android, iOS, Windows, macOS, and Linux. On first launch, Android/iOS default to Mobile UI and desktop platforms default to the traditional UI. Your selection is remembered in the application's settings on the current device, including when you change workspaces.
-
-- In the traditional home screen, select **Mobile UI** at the top to browse the game Feed.
-- Connecting Web IDE takes priority over both local UI modes. When no game is running, the engine shows the same fixed **Web IDE connected** screen, with no mode switch. Local Feed, Remix and playtesting controls are suspended, including text input. Web IDE can still run and stop games normally. After the last Web IDE connection closes, the previous local UI returns without changing your saved preference; if a remote run replaced the scene, Mobile returns to its Feed when the game stops.
-- In the Mobile Feed, select **Classic UI** at the top left to return to the traditional project/tool list and Web IDE connection information.
-- Switching takes effect without restarting the application or Web service. It does not change the workspace, projects, or model configuration.
-- Return from Remix or exit playtesting before switching. During installation, wait for the operation to finish; the switch is temporarily disabled.
-
-Mobile UI adapts to the current window or device orientation; selecting it on a desktop does not force a portrait window.
-
-Mobile UI always uses the larger text size; there is no font-size toggle. The Feed opens **Local** when runnable local projects exist, otherwise **Discover**. Returning from Remix or playtesting restores that project's card and its original tab, even when the list has been reordered or the Catalog refreshes. If the original Catalog entry is no longer available, its installed local project is used when present.
-
-### Create a project from Mobile Feed
-
-Open **Local** and select **+ New** at the top. Enter one folder name in the bottom sheet, then select **Create and Remix**. Mobile creates a runnable TypeScript project with `init.ts` and its initial runnable output in the current workspace, refreshes Local, selects the new project, and opens its Remix conversation. The entry remains available when Local is empty.
-
-If the name is empty, contains a path separator, or conflicts with an existing file or folder ignoring letter case, the sheet stays open so you can change it. A folder or `init.ts` write failure also leaves a retryable message; an incomplete folder created by that attempt is rolled back without removing existing content. Select **Cancel** or use the system Back action to return to the Feed without creating anything.
-
-Project names use a single-line input with horizontal scrolling. It shares its input component with the multiline Remix prompt: the border turns gold when focused and gray when focus is lost.
-
-### Following Remix progress
-
-Use **Back** at the top right, or swipe left across the conversation area, to return to the Feed. The whole Remix page follows your drag with the same resistance as Feed cards; releasing a short swipe springs it back, while a completed swipe switches directly to the Feed without an extra slide-out animation. Input editing, buttons, and vertical scrolling do not trigger this gesture. The existing safety rule still applies: stop a running Agent before leaving Remix.
-
-The multiline input shows a blinking caret while focused and hides its placeholder. Tap to position the caret, use arrow keys to move, and press Enter for a new line; Ctrl/Cmd+Enter sends. Long text wraps and scrolls inside the input without covering other controls. You can scroll within it with a drag or mouse wheel; editing brings the caret back into view.
-
-Tap outside the input or press Esc to dismiss the keyboard and caret without losing your committed draft. An empty input shows its placeholder again; tap it to resume editing. Backgrounding the app or connecting the Web IDE also releases input focus. If a tap cancels unfinished IME composition, it does not send the draft at the same time.
-
-Use **Plan** or **Code** above the input to manually select the Agent's working mode, just as in Web IDE. New sessions default to Code; existing sessions keep their saved mode, shared with Web IDE. The setting belongs to each project's main session and survives app restarts; having plan files does not enable Plan mode. Sending or reopening Remix does not reset the mode. Switching modes preserves your draft and does not send a request; there is no mandatory Plan → Start Remix sequence. Mode switching and sending are disabled while a task is running, awaiting an answer, or finalizing.
-
-Remix shows conversation history and compact work cards in a scrollable area between the fixed header and input controls. Card text and status update while the Agent works. When you are at the bottom, new content stays in view; if you scroll up to read earlier messages, your reading position is preserved. Select **New activity · Latest** to resume following the latest content.
-
-The lightweight view loads only the latest **10 conversation rounds**, including the current round. A round starts with your request and includes its replies, rather than being a single message. Only the current task shows work cards; earlier rounds show requests and replies. When older rounds are omitted, a notice at the top directs you to Web IDE. There is no “load more” action in Remix. This display limit does not delete history or change the Agent’s context strategy.
-
-The button beside the input switches between **Send** when idle and **Stop** while the Agent is working. It stays disabled while stopping or finalizing, then returns to Send; stopping preserves your next draft. Local Agent run/stop checks keep the Remix conversation and input available. Completed Code work stays visible with **Play now**; after a Plan reply, you can continue discussing or manually switch to Code. Web IDE still takes control when connected; open the same project’s **Dora** tab there to see its shared conversation and detailed execution results.
-
-## 3. Write the Game
-
-1. Step One: Create a new project
-	- Right-click the **Workspace** root in the Web IDE resource tree on the left (or touch and hold on a touchscreen).
-	- Select **New** → **Folder**, enter `Hello`, enable **Create as Project**, and select Lua under **Project Type** (or TypeScript, TSX, Teal, or YueScript). Select **OK** to create the project and its `init` entry file. The default project type is TypeScript.
-	- If you are trying to use Wa language to develop games, you can skip the step of creating the project folder and create a new game project in Wa language named `Hello`, by selecting the `Wa` language in the new file dialog and then checking the "create as Wa project" option.
-2. Step Two: Write the game code
-	- The project opens in its **Dora** conversation tab. Expand `Hello` in the resource tree, open the generated `init` file, and replace its contents with the matching language example below. If you did not enable **Create as Project**, right-click the folder, select **New** and a language, then enter `init`. When creating a TypeScript file, use the switch beside the name field to choose `.ts` or `.tsx`.
-	- If you are using the Wa language project, you can just reuse the `src/main.wa` file as the game entry code file.
-	- If you are developing a Wa project outside the Web IDE, first start Dora SSR and its Web IDE, then use the built-in Dora CLI mode to create, build, and run it directly. Replace `Dora` with the path to your Dora executable if needed.
-
-	```sh
-	Dora cli wa init hello_dora --host <web_ide_host>
-	cd hello_dora
-	Dora cli wa run --host <web_ide_host>
-	```
-	- Write the code:
-
-<Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
 
 ```lua title="Hello/init.lua"
--- import modules
 local Sprite <const> = require("Sprite")
 local Node <const> = require("Node")
 local Move <const> = require("Move")
 local Ease <const> = require("Ease")
-
--- create the root node of the game scene tree
 local root = Node()
-
--- create a sprite
 local sprite = Sprite("Image/logo.png")
-
--- mount the sprite to the root node
 sprite:addTo(root)
-
--- register for click events to move the sprite
 root:onTapBegan(function(touch)
 	sprite:perform(
 		Move(
@@ -198,24 +106,16 @@ end)
 <TabItem value="tl" label="Teal">
 
 ```tl title="Hello/init.tl"
--- import modules
 local Sprite <const> = require("Sprite")
 local Node <const> = require("Node")
 local Move <const> = require("Move")
 local Ease <const> = require("Ease")
 local type Touch = require("Touch")
-
--- create the root node of the game scene tree
 local root = Node()
-
--- create a sprite
 local sprite = Sprite("Image/logo.png")
 
 if not sprite is nil then
-	-- mount the sprite to the root node
 	root:addChild(sprite)
-
-	-- register for click events to move the sprite
 	root:onTapBegan(function(touch: Touch.Type)
 		sprite:perform(
 			Move(
@@ -230,37 +130,7 @@ end
 ```
 
 </TabItem>
-<TabItem value="ts" label="TypeScript">
 
-```ts title="Hello/init.ts"
-// import modules
-import {Ease, Move, Node, Slot, Sprite} from 'Dora';
-
-// create the root node of the game scene tree
-const root = Node();
-
-// create a sprite
-const sprite = Sprite("Image/logo.png");
-
-if (sprite) {
-	// mount the sprite to the root node
-	root.addChild(sprite);
-
-	// register for click events to move the sprite
-	root.onTapBegan(touch => {
-		sprite.perform(
-			Move(
-				1, // duration in seconds
-				sprite.position, // start position
-				touch.location, // end position
-				Ease.OutBack // easing function
-			)
-		);
-	});
-}
-```
-
-</TabItem>
 <TabItem value="tsx" label="TSX">
 
 ```tsx title="Hello/init.tsx"
@@ -269,8 +139,6 @@ import {React, toNode, toAction, useRef} from 'DoraX';
 import {Ease, Sprite, Touch} from 'Dora';
 
 const sprite = useRef<Sprite.Type>();
-
-// define the touch event handler
 const onTapBegan = (touch: Touch.Type) => {
 	const {current} = sprite;
 	if (current) {
@@ -284,9 +152,6 @@ const onTapBegan = (touch: Touch.Type) => {
 		));
 	}
 };
-
-// create the root node of the game scene tree
-// and a sprite as a child node
 toNode(
 	<node onTapBegan={onTapBegan}>
 		<sprite ref={sprite} file='Image/logo.png'/>
@@ -298,19 +163,10 @@ toNode(
 <TabItem value="yue" label="YueScript">
 
 ```yue title="Hello/init.yue"
--- import modules
 _ENV = Dora
-
--- create a sprite
 sprite = Sprite "Image/logo.png"
-
--- create the root node of the game scene tree
 with Node!
-
-	-- mount the sprite to the root node
 	\addChild sprite
-
-	-- receive and process click events to move the sprite
 	\onTapBegan (touch) ->
 		sprite\perform Move(
 			1 -- duration in seconds
@@ -323,21 +179,15 @@ with Node!
 </TabItem>
 <TabItem value="wa" label="Wa">
 
+For Wa, use **New → Wa** and enable **Create as Wa project** to create `Hello`, then edit `src/main.wa`.
+
 ```go title="Hello/src/main.wa"
-// import module
 import "dora"
 
 func init {
-	// create a sprite
 	sprite := dora.NewSpriteWithFile("Image/logo.png")
-
-	// create the root node of the game scene tree
 	root := dora.NewNode()
-
-	// mount the sprite to the root node
 	root.AddChild(sprite.Node)
-
-	// receive and process click events to move the sprite
 	root.OnTapBegan(func(touch: dora.Touch) {
 		sprite.PerformDef(dora.ActionDefMoveTo(
 			1.0,                  // Duration, in seconds
@@ -352,16 +202,253 @@ func init {
 </TabItem>
 </Tabs>
 
-3. Step Three: Run the game
+### 3. Run it {#desktop-step-3}
 
-Open the project's entry file and save with `Ctrl + S` (`⌘ + S` on macOS). Click the triangular **Run** button in the toolbar, or press `Ctrl + R` (`⌘ + R` on macOS), to run the project containing the current file. The toolbar is at the bottom right on wide desktop layouts and at the top in compact layouts.
+Save with **Ctrl + S**, then click the triangular **Run** button (or press **Ctrl + R**). On macOS, use **⌘** instead of Ctrl.
 
-Click or touch the scene in the Dora SSR engine window to move the sprite. Use the square **Stop** button to end the game. **Run This** runs a single file rather than the whole project.
+On **Windows/macOS**, a successful run switches the same Dora SSR window from the built-in IDE to the game. Click or tap to move the logo; select the **IDE** tab on the left to return to editing, then use **Stop** to end the game.
 
-## 4. Export and Publish the Game
+<a href={runImage} target="_blank" rel="noopener noreferrer" title="Open full-size screenshot">
+  <img src={runImage} alt="Run Hello from the toolbar, then click or tap in the Dora SSR game window" loading="lazy" style={{height: 'auto'}} />
+</a>
 
-1. Right-click the `Hello` project folder in the resource tree (or touch and hold), then select **Export**.
-2. Select **Export ZIP** to download the complete project for backup, sharing, or further development in Dora SSR. **Export obfuscated ZIP** is also available.
-3. To share a browser-playable game, select **Export HTML** for a self-contained Web game that can be opened directly. For website hosting, select **Export server HTML**, extract the archive, and deploy its contents to an HTTP server.
+### 4. Share your game {#desktop-step-4}
 
-Your browser downloads the resulting file when the export finishes. Exporting does not automatically upload or publish the game to a website.
+Right-click the `Hello` folder and select **Export → Export HTML**. Open the downloaded HTML file in a browser to play. Choose **Export ZIP** instead to back up or share the project for further editing.
+
+Next, learn [how to set up a scene](./30.setup-scene.mdx), explore [other languages](./20.language-select.md), or follow the [first game tutorial](../example/10.First%20Game%20Tutorial/1.start.mdx).
+
+</TabItem>
+<TabItem value="mobile" label="Android / iOS">
+
+
+Android users can install the APK from the download page; for iOS builds, see [Development Configuration](./120.dev-configuration.mdx). Launch Dora SSR to open the **Mobile Feed**.
+
+1. Browse **Discover** to try a game, or open **Local → + New → New game** to create your own.
+2. Enter `Hello`, keep the default **TypeScript**, and select **Create and Remix**. In Remix, configure a model when prompted, describe the game you want, then send your request.
+3. When the task finishes, select **Play now**. See [Mobile UI and Remix](./15.mobile-ui.mdx) for editing and playtesting controls.
+
+<div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 360px), 1fr))', gap: '1rem', maxWidth: '900px', margin: '1.5rem auto'}}>
+  <figure style={{margin: 0}}>
+    <figcaption style={{marginBottom: '0.5rem'}}>1. Local → + New → New game</figcaption>
+    <a href={mobileLocalImage} target="_blank" rel="noopener noreferrer" title="Open full-size screenshot">
+      <img src={mobileLocalImage} alt="Mobile Local screen with the New entry at the top right" loading="lazy" style={{width: '100%', height: 'auto'}} />
+    </a>
+  </figure>
+  <figure style={{margin: 0}}>
+    <figcaption style={{marginBottom: '0.5rem'}}>2. Name the project and open Remix</figcaption>
+    <a href={mobileCreateImage} target="_blank" rel="noopener noreferrer" title="Open full-size screenshot">
+      <img src={mobileCreateImage} alt="Create the Hello project using TypeScript and select Create and Remix" loading="lazy" style={{width: '100%', height: 'auto'}} />
+    </a>
+  </figure>
+  <figure style={{margin: 0}}>
+    <figcaption style={{marginBottom: '0.5rem'}}>3. Set up AI on first use</figcaption>
+    <a href={mobileSetupImage} target="_blank" rel="noopener noreferrer" title="Open full-size screenshot">
+      <img src={mobileSetupImage} alt="Choose an AI configuration template and enter your own API key on first use" loading="lazy" style={{width: '100%', height: 'auto'}} />
+    </a>
+  </figure>
+  <figure style={{margin: 0}}>
+    <figcaption style={{marginBottom: '0.5rem'}}>4. Describe your game in Remix</figcaption>
+    <a href={mobilePromptImage} target="_blank" rel="noopener noreferrer" title="Open full-size screenshot">
+      <img src={mobilePromptImage} alt="Describe a game in the Hello Remix input field" loading="lazy" style={{width: '100%', height: 'auto'}} />
+    </a>
+  </figure>
+</div>
+
+Prefer to write code on your computer? Select **Classic UI** at the top left of the Feed, then open the displayed server address in a browser on the same local network. Follow the [first game tutorial](../example/10.First%20Game%20Tutorial/1.start.mdx) to create and run a project in the Web IDE.
+
+
+</TabItem>
+<TabItem value="linux" label="Linux">
+
+### 1. Install and connect {#linux-install}
+
+On Ubuntu:
+
+```sh
+sudo add-apt-repository ppa:ippclub/dora-ssr
+sudo apt update
+sudo apt install dora-ssr
+```
+
+Launch Dora SSR and open its displayed server address in a browser. If the browser is on another device, keep both devices on the same local network. Continue with the code example below.
+
+<a href={connectImage} target="_blank" rel="noopener noreferrer" title="Open full-size screenshot">
+  <img src={connectImage} alt="Open the server address displayed by Dora SSR in a browser to enter the Web IDE" loading="lazy" style={{height: 'auto'}} />
+</a>
+
+Other installation options are in [Installation](./12.installation.mdx).
+
+
+### 2. Create a project and add code {#linux-step-2}
+
+1. In the browser Web IDE's left resource tree, right-click **Workspace** (or touch and hold), then select **New → Folder**.
+2. Enter `Hello`, enable **Create as Project**, keep the default **TypeScript**, and select **OK**.
+3. Expand `Hello`, open `init.ts`, and replace its contents with the code below. It displays a logo that moves to where you click or tap.
+
+<a href={createImage} target="_blank" rel="noopener noreferrer" title="Open full-size screenshot">
+  <img src={createImage} alt="Create the Hello project: enter its name, enable Create as Project, choose TypeScript, and select OK" loading="lazy" style={{height: 'auto'}} />
+</a>
+
+If you prefer another language, select it when creating the project and use the matching example tab.
+
+<Tabs groupId="language-select" defaultValue="ts">
+<TabItem value="ts" label="TypeScript">
+
+```ts title="Hello/init.ts"
+import {Ease, Move, Node, Sprite} from 'Dora';
+const root = Node();
+const sprite = Sprite("Image/logo.png");
+
+if (sprite) {
+	root.addChild(sprite);
+	root.onTapBegan(touch => {
+		sprite.perform(
+			Move(
+				1, // duration in seconds
+				sprite.position, // start position
+				touch.location, // end position
+				Ease.OutBack // easing function
+			)
+		);
+	});
+}
+```
+
+</TabItem>
+<TabItem value="lua" label="Lua">
+
+```lua title="Hello/init.lua"
+local Sprite <const> = require("Sprite")
+local Node <const> = require("Node")
+local Move <const> = require("Move")
+local Ease <const> = require("Ease")
+local root = Node()
+local sprite = Sprite("Image/logo.png")
+sprite:addTo(root)
+root:onTapBegan(function(touch)
+	sprite:perform(
+		Move(
+			1, -- duration in seconds
+			sprite.position, -- start position
+			touch.location, -- end position
+			Ease.OutBack -- easing function
+		)
+	)
+end)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl title="Hello/init.tl"
+local Sprite <const> = require("Sprite")
+local Node <const> = require("Node")
+local Move <const> = require("Move")
+local Ease <const> = require("Ease")
+local type Touch = require("Touch")
+local root = Node()
+local sprite = Sprite("Image/logo.png")
+
+if not sprite is nil then
+	root:addChild(sprite)
+	root:onTapBegan(function(touch: Touch.Type)
+		sprite:perform(
+			Move(
+				1, -- duration in seconds
+				sprite.position, -- start position
+				touch.location, -- end position
+				Ease.OutBack -- easing function
+			)
+		)
+	end)
+end
+```
+
+</TabItem>
+
+<TabItem value="tsx" label="TSX">
+
+```tsx title="Hello/init.tsx"
+// @preview-file on
+import {React, toNode, toAction, useRef} from 'DoraX';
+import {Ease, Sprite, Touch} from 'Dora';
+
+const sprite = useRef<Sprite.Type>();
+const onTapBegan = (touch: Touch.Type) => {
+	const {current} = sprite;
+	if (current) {
+		const {x, y} = touch.location;
+		current.perform(toAction(
+			<move time={1}
+				startX={current.x} startY={current.y}
+				stopX={x} stopY={y}
+				easing={Ease.OutBack}
+			/>
+		));
+	}
+};
+toNode(
+	<node onTapBegan={onTapBegan}>
+		<sprite ref={sprite} file='Image/logo.png'/>
+	</node>
+);
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue title="Hello/init.yue"
+_ENV = Dora
+sprite = Sprite "Image/logo.png"
+with Node!
+	\addChild sprite
+	\onTapBegan (touch) ->
+		sprite\perform Move(
+			1 -- duration in seconds
+			sprite.position -- start position
+			touch.location -- end position
+			Ease.OutBack -- easing function
+		)
+```
+
+</TabItem>
+<TabItem value="wa" label="Wa">
+
+For Wa, use **New → Wa** and enable **Create as Wa project** to create `Hello`, then edit `src/main.wa`.
+
+```go title="Hello/src/main.wa"
+import "dora"
+
+func init {
+	sprite := dora.NewSpriteWithFile("Image/logo.png")
+	root := dora.NewNode()
+	root.AddChild(sprite.Node)
+	root.OnTapBegan(func(touch: dora.Touch) {
+		sprite.PerformDef(dora.ActionDefMoveTo(
+			1.0,                  // Duration, in seconds
+			sprite.GetPosition(), // Start position
+			touch.GetLocation(),  // End position
+			dora.EaseOutBack,     // Easing function
+		), false)
+	})
+}
+```
+
+</TabItem>
+</Tabs>
+
+### 3. Run it {#linux-step-3}
+
+Save with **Ctrl + S**, then click the triangular **Run** button (or press **Ctrl + R**). On macOS, use **⌘** instead of Ctrl.
+
+When using an **external browser**, the editor stays in the browser and the game runs in the Dora SSR window.
+
+### 4. Share your game {#linux-step-4}
+
+Right-click the `Hello` folder and select **Export → Export HTML**. Open the downloaded HTML file in a browser to play. Choose **Export ZIP** instead to back up or share the project for further editing.
+
+Next, learn [how to set up a scene](./30.setup-scene.mdx), explore [other languages](./20.language-select.md), or follow the [first game tutorial](../example/10.First%20Game%20Tutorial/1.start.mdx).
+
+</TabItem>
+</Tabs>

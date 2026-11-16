@@ -125,7 +125,7 @@ main()
 
 | Platform | Development Tools | Output Format | Signature Requirements | Distribution Channels |
 |----------|------------------|---------------|----------------------|----------------------|
-| Windows | xmake + Visual Studio C++ tools | ZIP containing .exe | Optional | Steam, official website, other platforms |
+| Windows | xmake + Visual Studio C++ tools | ZIP containing .exe / MSI installer | Optional | Steam, official website, other platforms |
 | macOS | xmake + Xcode | ZIP containing .app | Required for distribution | App Store, official website |
 | Linux | xmake + system development packages | AppImage | Optional | Steam, official website |
 | iOS | xmake + Xcode | Simulator ZIP / device .ipa | Required for device distribution | App Store |
@@ -140,10 +140,12 @@ Run these commands from the Dora-SSR repository root after installing the [build
 <TabItem value="windows" label="Windows">
 
 ```sh
-xmake app-package --platform=windows --arch=x86 --mode=release
+xmake app-package --platform=windows --arch=x64 --mode=release --windows-backend=d3d12 --format=both
 ```
 
-Outputs are under the platform directory in `build/package/`; Android outputs remain under `Projects/Android/Dora/app/build/outputs/`. Edit app metadata/resources under `Projects/` and build settings under `Projects/xmake/`, not generated IDE projects.
+Windows distribution packages support **x64** only. `--windows-backend=d3d12` is the default; use `--windows-backend=wgl` to create the OpenGL version, whose filename includes `-opengl`. `--format=zip` (the default), `msi`, or `both` selects the output format. MSI packaging requires the WiX CLI and UI extension; the release workflow uses WiX 5.0.2 with `WixToolset.UI.wixext/5.0.2`.
+
+Outputs are under `build/package/windows/x64/release/d3d12/` or `build/package/windows/x64/release/wgl/`. The MSI installs for the current user, creates a Start menu shortcut, and registers `dora-ssr://` links. The ZIP is portable; `RegisterDoraLinks.cmd` registers those links when needed. Both backends share one MSI product family: installing the other backend replaces the existing installation rather than installing a second copy.
 
 </TabItem>
 <TabItem value="macos" label="macOS">

@@ -1,0 +1,96 @@
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# 安装指南
+
+选择你的平台，按下方步骤安装。首次使用可先跟随[快速开始](./10.quick-start.mdx)完成一个小例子。
+
+<Tabs groupId="platform-select">
+<TabItem value="android" label="Android">
+
+1. 在游戏的运行终端下载并安装 APK 包。
+
+	<Dropdown
+		label="下载 APK"
+		items={[
+			{ label: 'GitHub', to: 'https://github.com/ippclub/Dora-SSR/releases/latest', target: '_blank' },
+			{ label: 'Gitee', to: 'https://gitee.com/ippclub/Dora-SSR/releases/latest', target: '_blank' },
+			{ label: 'GitCode', to: 'https://gitcode.com/ippclub/Dora-SSR/releases', target: '_blank' },
+	]}/>
+
+2. 启动后默认进入 Mobile 首页，可通过「本地 → + 新建」创建项目并进入 Remix。若要用电脑手写代码，请点击 Feed 左上角「传统模式」，在同一局域网的电脑浏览器中打开显示的服务器地址。
+3. 开始游戏开发。
+
+</TabItem>
+<TabItem value="windows" label="Windows">
+
+1. 从发布页下载 Windows **x64** 软件包。不带 `-opengl` 的包使用 **Direct3D 12（D3D12）**；如果显卡或驱动无法运行 D3D12 版，可选择带 `-opengl` 的版本。
+
+	<Dropdown
+		label="下载软件"
+		items={[
+			{ label: 'GitHub', to: 'https://github.com/ippclub/Dora-SSR/releases/latest', target: '_blank' },
+			{ label: 'Gitee', to: 'https://gitee.com/ippclub/Dora-SSR/releases/latest', target: '_blank' },
+			{ label: 'GitCode', to: 'https://gitcode.com/ippclub/Dora-SSR/releases', target: '_blank' },
+	]}/>
+
+2. 选择一种安装方式：
+   - **MSI 安装版**（`windows-x64.msi` 或 `windows-x64-opengl.msi`）：运行安装程序，再从开始菜单启动 **Dora SSR**。默认安装目录为 `%LOCALAPPDATA%\Programs\Dora SSR`。
+   - **ZIP 便携版**（`windows-x64.zip` 或 `windows-x64-opengl.zip`）：将整个压缩包解压到可写目录，再运行 `Dora.exe`。请将随包 DLL 和资源目录保留在可执行文件旁。
+3. Dora SSR 会自动打开内置 Web IDE，可直接在应用窗口中新建和编辑项目。
+4. 开始游戏开发。
+
+MSI 安装版会为当前用户注册 `dora-ssr://` 链接。ZIP 便携版如需从浏览器打开此类链接，可运行 `Dora.exe` 旁的 `RegisterDoraLinks.cmd`；移动解压目录后需重新注册。
+
+</TabItem>
+<TabItem value="macos" label="macOS">
+
+1. 下载并运行软件。
+
+	<Dropdown
+		label="下载软件"
+		items={[
+			{ label: 'GitHub', to: 'https://github.com/ippclub/Dora-SSR/releases/latest', target: '_blank' },
+			{ label: 'Gitee', to: 'https://gitee.com/ippclub/Dora-SSR/releases/latest', target: '_blank' },
+			{ label: 'GitCode', to: 'https://gitcode.com/ippclub/Dora-SSR/releases', target: '_blank' },
+	]}/>
+
+	或者您也可以通过 [Homebrew](https://brew.sh) 使用以下命令安装：
+	```sh
+	brew install --cask ippclub/tap/dora-ssr
+	```
+	后续更新请使用以下命令：
+	```sh
+	brew update
+	brew upgrade dora-ssr
+	# 或者也可以尝试下面的命令来更新同一版本下的 bug 修订版
+	brew reinstall dora-ssr
+	```
+
+	首次运行软件时，您可能会看到“Dora 无法打开”的提示。请前往“系统偏好设置” > “安全性与隐私”并点击“仍要打开”。
+
+2. Dora SSR 会自动打开内置 Web IDE，可直接在应用窗口中新建和编辑项目。
+3. 开始游戏开发。
+
+</TabItem>
+<TabItem value="linux" label="Linux">
+
+1. 安装软件：
+	- Ubuntu
+		```sh
+		sudo add-apt-repository ppa:ippclub/dora-ssr
+		sudo apt update
+		sudo apt install dora-ssr
+		```
+	- Debian Bookworm
+		```sh
+		sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 9C7705BF
+		sudo add-apt-repository -S "deb https://ppa.launchpadcontent.net/ippclub/dora-ssr/ubuntu jammy main"
+		sudo apt update
+		sudo apt install dora-ssr
+		```
+2. 运行软件，通过浏览器访问软件显示的服务器地址。
+3. 开始游戏开发。
+
+</TabItem>
+</Tabs>
