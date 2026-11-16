@@ -1,0 +1,55 @@
+import DocScreenshot from '@site/src/components/DocScreenshot';
+import layoutImage from '@site/static/img/operations/body-layout-zh.webp';
+import propertiesImage from '@site/static/img/operations/body-properties-zh.webp';
+import testImage from '@site/static/img/operations/body-test-zh.webp';
+
+# 在 Web IDE 中编辑物理刚体
+
+内置刚体编辑器用 `.b.lua` 资源保存形状、刚体属性和关节。本页制作一个静态平台和一个下落的圆形。通过代码创建物理对象的方式见[物理节点（一）](./4.using-physics-1.mdx)和[物理节点（二）](./5.using-physics-2.mdx)。
+
+[下载资源编辑器示例](@site/static/files/resource-editors-demo.zip)，上传并解压到工作空间，打开 `PhysicsLab/scene.b.lua`。创建空文件时，右键点击项目文件夹，选择**新建 → Dora 物理**。
+
+## 1. 放置两个形状
+
+使用画布左侧**新建**区域中的图标，鼠标停留可查看名称。
+
+1. 选择**矩形**，在画布原点下方点击，创建平台。
+2. 选中平台，把**名称**设为 `ground`、**类型**设为**静态**（Static），位置 X/Y 设为 `0` / `-160`，尺寸 X/Y 设为 `500` / `30`。尺寸字段在属性区中，向下滚动即可找到。
+3. 选择**圆形**，在平台上方点击。名称设为 `ball`，类型保持**动态**（Dynamic），位置 X/Y 设为 `0` / `115`。示例中的半径为 `48`。
+4. 点击右侧列表中的对象，可以重新查看属性。用移动、缩放、旋转工具或数值框精确调整。
+
+<DocScreenshot src={layoutImage} width={2400} height={1600} alt="刚体编辑器：动态圆形 ball 位于静态矩形 ground 上方" />
+
+## 2. 检查物理属性
+
+静态（Static）让平台保持不动，动态（Dynamic）让圆形参与运动与碰撞。尺寸、半径定义碰撞形状；密度、摩擦和弹性影响质量、滑动和反弹。先使用默认值，再逐项修改并比较结果。
+
+本例中，圆形的线性加速度使用 `(0, -10)`。可以先不设置外观图片，用编辑器中的彩色形状验证碰撞，再加入美术资源。
+
+<DocScreenshot src={propertiesImage} width={580} height={780} alt="平台属性：尺寸、密度、摩擦和弹性" maxWidth={400} />
+
+## 3. 测试、停止与保存
+
+点击左侧**测试**区域的三角形按钮。圆形应下落到平台上，而静态平台保持不动。点击方形**停止**按钮，退出测试并回到可编辑布局。
+
+<DocScreenshot src={testImage} width={2400} height={1600} alt="刚体测试正在运行，圆形已经落到平台上" />
+
+测试中的运动不会替换保存的初始布局。停止测试后，按 `Ctrl+S`（macOS 为 `⌘+S`）保存，等待标签页名称前的星号消失，再重新打开资源确认。
+
+## 4. 在游戏中加载资源
+
+`BodyEx` 会把保存的刚体和关节创建到 `PhysicsWorld` 中。`PhysicsLab` 包含以下入口脚本：
+
+```lua
+local Dora = require("Dora")
+local BodyEx = require("BodyEx")
+local world = Dora.PhysicsWorld()
+world.showDebug = true
+world:addTo(Dora.Director.entry)
+local assembly = BodyEx("scene.b.lua", world)
+if assembly then assembly:addTo(world) end
+```
+
+可以传入完整文件名 `scene.b.lua`，也可以传入基本名称 `scene`，由 BodyEx 补上 `.b.lua`。运行项目之前先保存资源。开启 `showDebug` 可以查看尚未添加美术图片的刚体；调试形状的颜色不属于精灵图片。
+
+制作更复杂的组合时，可在属性区添加子形状，或使用关节工具连接刚体。选择关节端点前，先给刚体设置互不相同的名称。

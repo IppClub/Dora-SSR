@@ -31,6 +31,8 @@ import modelsImage from '@site/static/img/operations/models-zh.webp';
 
 <DocScreenshot src={uploadImage} width={2200} height={1350} alt="文件页：上传本地文件、下载网络资源和创建文本文件" />
 
+导入公开 Git 仓库的流程见[从仓库导入项目](./19.import-project.mdx)。
+
 ## 运行项目或单独运行文件
 
 鼠标停在工具栏图标上可查看名称。宽屏布局的工具栏位于底部，紧凑布局位于顶部。
@@ -54,8 +56,8 @@ Windows/macOS 运行成功后，应用窗口会显示游戏，点击左侧 **IDE
 | --- | --- |
 | **导出 ZIP 包** | 项目压缩包，适合备份或分享给其他 Dora 用户。 |
 | **导出混淆代码 ZIP 包** | 对支持的源码进行编译和混淆后打包。 |
-| **导出 HTML** | 可直接打开的独立 Web 游戏。 |
-| **导出 Server 版 HTML** | 用于通过 HTTP 服务发布的 Web 游戏。 |
+| **导出 HTML** | 包含 Web 游戏的 ZIP；完整解压后直接打开 `index.html`。 |
+| **导出 Server 版 HTML** | 包含 Web 游戏的 ZIP；解压后通过 HTTP 服务发布。 |
 
 识别到可运行项目时，才会显示 Web 导出选项。等待下载完成后，打开导出的游戏确认运行结果。更多交付说明见[项目打包](./130.game-app-pack.mdx)。
 

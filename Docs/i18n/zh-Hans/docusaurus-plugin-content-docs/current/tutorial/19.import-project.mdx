@@ -1,0 +1,44 @@
+import DocScreenshot from '@site/src/components/DocScreenshot';
+import inputImage from '@site/static/img/operations/import-input-zh.webp';
+import progressImage from '@site/static/img/operations/import-progress-zh.webp';
+import readyImage from '@site/static/img/operations/import-ready-zh.webp';
+
+# 从仓库导入项目
+
+用内置仓库导入工具，将公开的 Dora 项目下载到工作空间，再交给 Web IDE 打开。本地 ZIP 文件的导入方式见[上传与解压缩](./18.web-ide.mdx#添加资源或导入项目)。
+
+## 1. 打开导入工具
+
+在 Web IDE 左上角选择**项目 / 工具 → 工具 → 从仓库导入**。输入仓库的公开 HTTPS 地址，或点击**粘贴仓库地址**，再点击**导入项目**。
+
+例如：`https://github.com/IppClub/Dora-Example`。支持 GitHub、AtomGit、Gitee 和 GitCode 的仓库地址。请填写仓库根地址，避免复制到某个文件、分支或子目录的页面地址。
+
+<DocScreenshot src={inputImage} width={1120} height={1000} alt="仓库导入界面：已填写公开仓库地址，可点击导入项目" maxWidth={650} />
+
+## 2. 等待下载与校验
+
+工具会显示克隆和资源校验的进度。保持 Dora 开启，直到出现**项目已导入**。仓库需要包含 Dora 的 `init` 入口；只有 TypeScript 源码的项目，运行前可能仍需在 IDE 中构建。
+
+<DocScreenshot src={progressImage} width={1120} height={1000} alt="仓库克隆进度，以及取消按钮" maxWidth={650} />
+
+- 点击**取消**可以停止本次导入，未完成的下载不会作为完整项目安装。
+- 导入失败时，点击**查看详情**阅读原因，检查地址与网络连接后点击**重试**。
+- 再次导入之前已经完成的同一仓库时，会复用原目录并保留本地修改，不会自动拉取新提交。
+
+## 3. 打开导入后的项目
+
+源码就绪后，选择**在内置 IDE 中打开**或**在浏览器 IDE 中打开**。连接了多个 IDE 会话时，选择希望使用的那个。点击**完成**会关闭导入工具，不会把项目打开到其他会话中。没有连接 IDE 时，**查看项目**会返回启动页并定位项目入口。
+
+<DocScreenshot src={readyImage} width={1120} height={1000} alt="项目导入完成，可选择在已连接的 IDE 会话中打开" maxWidth={650} />
+
+打开项目不会自动运行其中的代码。在 IDE 中打开入口文件，按需构建，再点击**运行**。仓库包含多个示例时，先选择希望运行的具体示例项目。
+
+## 4. 通过仓库链接打开
+
+Dora 导入链接可以打开同一工具，并预先填写仓库地址：
+
+```text
+dora-ssr://open?repo=https%3A%2F%2Fgithub.com%2FIppClub%2FDora-Example
+```
+
+浏览器询问是否打开 Dora 时，允许打开即可。桌面端由已安装的应用或软件包注册协议；Windows 便携版可使用附带的 `RegisterDoraLinks.cmd`。链接没有唤起 Dora 时，先启动应用，再手动打开导入工具。Android 也支持这类导入链接。

@@ -1,9 +1,45 @@
+import DocScreenshot from '@site/src/components/DocScreenshot';
+import exportImage from '@site/static/img/operations/export-dialog-zh.webp';
+import exportFilesImage from '@site/static/img/operations/export-files.webp';
+import exportBrowserImage from '@site/static/img/operations/export-browser.webp';
+
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
 # 如何打包游戏为独立的应用
 
-&emsp;&emsp;本教程将指导您如何使用 Dora SSR 游戏引擎将游戏项目打包为独立运行的软件包，使其不依赖于 Dora SSR 的开发辅助工具界面及 Web IDE 功能。
+本页先介绍 Web IDE 的 Web 游戏导出，再说明从引擎源码制作原生应用包的流程。
+
+## 从 Web IDE 导出可玩的 Web 游戏
+
+项目完成后，可以直接使用 Web IDE 导出。保持项目根目录包含 `init` 的正常结构，这个流程不需要构建引擎源码。
+
+1. 保存项目，并先运行一次，确认脚本和资源能够加载。
+2. 右键点击**项目文件夹**，选择**导出**；也可以打开项目文件，点击工具栏的导出按钮。
+3. 本地直接打开的游戏选择**导出 HTML**；通过 HTTP 服务发布的游戏选择**导出 Server 版 HTML**。等待打包，再选择下载的保存位置。
+
+<DocScreenshot src={exportImage} width={960} height={1040} alt="项目导出对话框：ZIP 及两种 Web 导出格式" maxWidth={600} />
+
+### 解压并打开成品
+
+**导出 HTML 下载的是 ZIP 压缩包**，例如 `Hello-web-html.zip`。完整解压后，在浏览器中打开根目录的 `index.html`。保留配套文件和 `html-assets` 目录；只复制 `index.html` 会缺少引擎和游戏资源。
+
+<DocScreenshot src={exportFilesImage} width={1030} height={440} alt="解压后的 Web 游戏文件，选中 index.html，旁边保留 html-assets 和配套文件" maxWidth={600} />
+
+下图是从 Hello 项目导出后，在 Edge 中直接打开解压目录的运行结果。
+
+<DocScreenshot src={exportBrowserImage} width={3008} height={1724} alt="导出的 Hello 项目已从解压目录在浏览器中运行" />
+
+选择**导出 Server 版 HTML**时，解压 ZIP，将整个输出目录上传到静态网站，再通过 HTTPS 或 localhost 打开其中的 `index.html`。该格式需要服务器，发布要求见压缩包内的 `README-Web.txt`。Godot Web 包还需要 COOP/COEP 响应头。
+
+### 分享前验证
+
+- 对照项目在 Dora 中的表现，检查导出后图片、字体、声音和输入是否正常。
+- 服务器版本要测试部署后的网址和资源请求，不使用双击文件的方式验证。
+- 备份或分享可编辑工程时选择**导出 ZIP 包**；HTML 选项则包含 Web 运行时。
+- 项目修改后重新导出，并完整替换发布目录中的成品文件。
+
+格式对照表见 [Web IDE 常用操作](./18.web-ide.mdx#导出项目)。下方流程概览和各平台章节介绍从引擎源码打包的方式。
 
 ## 打包流程概览
 
@@ -23,7 +59,7 @@ graph TD
 
 ## 1. 准备游戏资源
 
-&emsp;&emsp;在打包之前，首先确保所有游戏资源都已经正确放置在游戏项目的 `Assets` 目录下。
+以下 `Assets` 指引擎原生应用的发行资源目录。Web IDE 项目可以直接保留 `init`、Image、Audio 等项目目录；使用上方的导出流程时，无需把它们改成这里的结构。
 
 ### 1.1 标准项目结构
 
@@ -66,19 +102,21 @@ Assets/
 └── gamecontrollerdb.txt     # 游戏手柄配置文件
 ```
 
-### 2.2 可以删除的文件
+### 2.2 按启动依赖裁剪文件
 
 ```
 Assets/
-├── Script/Dev/              # 开发程序（可删除）
-├── Script/Tools/            # 开发辅助工具（可删除）
+├── Script/Dev/              # 替换默认开发启动入口后，才可裁剪
+├── Script/Tools/            # 不被游戏入口使用的开发工具
 ├── Script/Lib/Dora/         # 引擎 API 定义文件（可删除）
 ├── Doc/                     # 文档（可删除）
-├── www/                     # Web IDE 文件（可删除）
+├── www/                     # 不再使用 Web IDE 时的候选裁剪内容
 └── [其他开发相关文件]          # 可删除
 ```
 
 > **优化建议**：删除不必要的文件可以显著减小应用包大小，通常可以减少发布应用的体积。
+
+默认 `Assets/Script/init.yue` 对应的启动脚本会加载 `Script.Dev.Bootstrap` 和 `Script.Dev.Entry`。保留默认启动方式时，需要保留这些依赖。制作游戏专用资源包时，先准备独立的游戏启动入口并验证启动，再裁剪未使用的开发工具；不要直接删除工作中的引擎源码目录。
 
 ## 3. 设置资源搜索路径
 
@@ -100,14 +138,11 @@ Dora SSR Web IDE 默认的资源搜索路径：
 local Path <const> = require("Path")
 local Content <const> = require("Content")
 
--- 获取当前脚本路径
-local currentScriptPath = Path:getScriptPath(...)
-
 -- 设置资源搜索路径
 Content.searchPaths = {
-	Path(currentScriptPath, "Script"),        -- 游戏脚本目录
+	Path(Content.assetPath, "Script"),        -- 游戏脚本目录
 	Path(Content.assetPath, "Script", "Lib"), -- 引擎库目录
-	Path(currentScriptPath),                  -- 游戏根目录
+	Content.assetPath,                  -- 游戏根目录
 }
 
 -- 游戏主逻辑
@@ -123,6 +158,8 @@ main()
 
 ### 4.1 平台对比表
 
+<div style={{maxWidth: '100%', overflowX: 'auto'}}>
+
 | 平台 | 开发工具 | 输出格式 | 签名要求 | 发布渠道 |
 |------|----------|----------|----------|----------|
 | Windows | xmake + Visual Studio C++ 工具 | 包含 .exe 的 ZIP / MSI 安装包 | 可选 | Steam、官网、其他平台 |
@@ -131,6 +168,10 @@ main()
 | iOS | xmake + Xcode | 模拟器 ZIP / 真机 .ipa | 真机分发时必需 | App Store |
 | Android | xmake + Android Studio SDK/Gradle/CMake | .apk/.aab | 分发时必需 | Google Play、其他商店 |
 | Web | xmake 管理的 Emscripten + Node.js | 静态网站目录 | 无 | itch.io（HTML）、GitHub Pages、任意静态托管 |
+
+</div>
+
+下列原生平台任务构建并打包 Dora 的平台应用。游戏专用启动资源、应用标识和发行签名需要一并配置；任务不会自动把当前工作空间项目变成游戏专用安装包。
 
 ### 4.2 各平台的打包操作
 
@@ -245,13 +286,14 @@ local Content <const> = require("Content")
 local Node <const> = require("Node")
 local Sprite <const> = require("Sprite")
 local Label <const> = require("Label")
+local Vec2 <const> = require("Vec2")
+local Director <const> = require("Director")
 
 -- 设置资源搜索路径
-local currentScriptPath = Path:getScriptPath(...)
 Content.searchPaths = {
-	Path(currentScriptPath, "Script"),
+	Path(Content.assetPath, "Script"),
 	Path(Content.assetPath, "Script", "Lib"),
-	Path(currentScriptPath),
+	Content.assetPath,
 }
 
 -- 游戏主场景
@@ -265,12 +307,14 @@ local function createGameScene()
 	-- 创建可点击的方块
 	local block = Sprite("Image/block.png")
 	block:addTo(scene)
-	block.position = Vec2(400, 300)
+	block.position = Vec2(0, -50)
+	block.touchEnabled = true
 
 	-- 创建分数显示
-	local scoreLabel = Label("Font/game-font.ttf", 32)
+	local scoreLabel = Label("game-font", 32)
 	scoreLabel:addTo(scene)
-	scoreLabel.position = Vec2(400, 500)
+	scoreLabel.position = Vec2(0, 100)
+	scoreLabel.text = "Score: 0"
 
 	local score = 0
 
@@ -302,8 +346,8 @@ gameScene:addTo(Director.entry)
    - 将字体文件放入 `Assets/Font/`
 
 2. **精简目录**
-   - 删除 `Assets/Script/Dev/` 目录
-   - 删除 `Assets/Doc/` 目录
+   - 在独立的发行资源副本中配置游戏启动入口
+   - 启动验证通过后，仅移除入口不再依赖的工具和文档
 
 3. **选择平台打包**
    - 按照上述平台指南进行配置和构建
@@ -340,15 +384,9 @@ gameScene:addTo(Director.entry)
 
 ## 总结
 
-&emsp;&emsp;通过遵循本教程的步骤，您可以成功将 Dora SSR 游戏项目打包为独立的应用程序。关键要点包括：
+Web 游戏可以从 Web IDE 直接导出：完整解压 HTML 版的 ZIP 后打开 `index.html`，或把 Server 版的整个目录部署到服务器。分享可编辑工程使用普通 ZIP 导出。
 
-1. **正确组织项目结构**，确保所有必要资源都在 `Assets` 目录下
-2. **精简开发文件**，减小最终应用包大小
-3. **配置正确的资源搜索路径**，确保资源加载正常
-4. **选择合适的平台工具**，按照平台要求进行配置和构建
-5. **充分测试**，确保应用在各种环境下都能正常运行
-
-&emsp;&emsp;打包完成后，您的游戏就可以脱离 Dora SSR 的开发环境，作为独立的应用程序分发给玩家了！
+原生应用需要配置游戏启动资源、平台构建与签名。精简资源之前先验证启动依赖，完成打包后再检查图片、字体、声音和输入。
 
 ## 相关文档
 

@@ -1,3 +1,7 @@
+import DocScreenshot from '@site/src/components/DocScreenshot';
+import startImage from '@site/static/img/operations/firstgame-start.webp';
+import helloImage from '@site/static/img/operations/firstgame-hello.webp';
+
 # 第一章：初识 Dora：游戏开发入门
 
 &emsp;&emsp;在本章中，我们将一起踏上 Dora 游戏引擎的学习之旅。你将了解 Dora 的基本概念，学习如何搭建开发环境，并创建第一个简单的游戏项目，为后续的学习打下基础。
@@ -14,13 +18,19 @@
 
 ---
 
+## 最后会做出什么
+
+本系列制作一个《Dodge the Creeps》躲避游戏：从开始界面进入游戏，用键盘或虚拟方向键移动角色，躲避不断出现的敌人，并在碰撞后显示 Game Over、返回开始界面。本章先运行 Hello 示例，确认开发环境可用。
+
+<DocScreenshot src={startImage} width={1400} height={1600} alt="完整游戏的开始界面：Dodge the Creeps 标题与 Start 按钮" maxWidth={420} />
+
 ## 2. 搭建开发环境
 
 &emsp;&emsp;根据不同的操作系统，Dora 提供了灵活的安装方式。请根据您的设备系统按照以下步骤进行安装。
 
-1. 在游戏的运行终端上下载并安装 Dora SSR 软件。详细安装步骤请参考[这里](/docs/tutorial/quick-start#2-安装)的安装步骤。
+1. 在游戏的运行终端上下载并安装 Dora SSR 软件。详细安装步骤请参考[安装指南](../../tutorial/12.installation.mdx)的安装步骤。
 2. **Windows/macOS**：启动应用后，直接使用自动打开的内置 Web IDE。
-3. **Android/iOS**：默认进入 Mobile 界面。要在电脑上跟随本教程手写代码，请点击 Feed 左上角「传统模式」，再在同一局域网的电脑浏览器中打开显示的服务器地址。**Linux**：启动 Dora SSR 后，通过浏览器打开显示的地址。
+3. **Android/iOS**：默认进入 Mobile 界面。要在电脑上跟随本教程手写代码，请点击 Feed 左上角「切换传统界面」，再在同一局域网的电脑浏览器中打开显示的服务器地址。**Linux**：启动 Dora SSR 后，通过浏览器打开显示的地址。
 
 ## 3. 编写第一个游戏程序
 
@@ -59,6 +69,10 @@
 3. 程序会自动重新编译并运行，你可以看到游戏窗口中显示“Hello, Dora!”的文字。
 
 ---
+
+<DocScreenshot src={helloImage} width={1600} height={900} alt="首个 TSX 项目运行后显示 Hello, Dora!" maxWidth={800} />
+
+Windows/macOS 运行时，游戏显示在应用窗口中，点击左侧 **IDE** 返回编辑。运行失败时，使用[日志面板](../../tutorial/125.using-log-and-profiler.mdx)检查首条错误。
 
 ## 4. 探索 Dora 的开发者工具
 

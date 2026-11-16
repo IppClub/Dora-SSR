@@ -1,6 +1,11 @@
+import DocScreenshot from '@site/src/components/DocScreenshot';
+import startImage from '@site/static/img/operations/firstgame-start.webp';
+import playImage from '@site/static/img/operations/firstgame-play.webp';
+import overImage from '@site/static/img/operations/firstgame-over.webp';
+
 # Chapter 8: Game Interface: Start and End Scenes
 
-In this chapter, we'll learn how to create a start interface and end scenes for a game. The start interface introduces the game title and guides players into the gameplay, while the end scene displays the game over state and the score. Through scene transitions, we can provide a complete interactive experience for the game.
+This chapter connects the start interface and the collision-triggered game-over message into a complete game flow. The example shows Game Over, keeps the score label visible, and returns to the start screen after about two seconds.
 
 #### **Objectives**
 
@@ -10,6 +15,24 @@ In this chapter, we'll learn how to create a start interface and end scenes for 
 4. Use `InputManager` to respond to player input.
 
 ---
+
+## Run through the complete flow
+
+Save and run the same `dodge_the_creeps` project. These screenshots come from the [complete example](https://github.com/IppClub/Dora-Demo/tree/main/Dodge%20the%20Creeps) and provide checkpoints for the interaction:
+
+1. **Start**: the title and **Start** button appear. Click Start or press Enter to enter the game.
+
+<DocScreenshot src={startImage} width={1400} height={1600} alt="Game start interface and Start button" maxWidth={420} />
+
+2. **Play**: use **W/A/S/D** or the virtual direction pad to move. Enemies continue spawning and the score appears at the top; this example increments it when an enemy leaves the scoring area.
+
+<DocScreenshot src={playImage} width={1400} height={1600} alt="Game in progress with the player, enemies, score and virtual direction pad" maxWidth={420} />
+
+3. **End and restart**: collide with an enemy and check that **Game Over** appears and the player is removed. Wait about two seconds for the start screen, then select Start to check the next round. The example retains its scoring logic during the message; stop spawning and score updates as well if you want a frozen final score.
+
+<DocScreenshot src={overImage} width={1400} height={1600} alt="Game Over after a collision, before returning automatically to the start interface" maxWidth={420} />
+
+If Start does not respond, check the InputManager UI context and start-event connection. If the character does not move, check that entering Game switches to the Game input context.
 
 ## 1. Creating the Start Interface
 

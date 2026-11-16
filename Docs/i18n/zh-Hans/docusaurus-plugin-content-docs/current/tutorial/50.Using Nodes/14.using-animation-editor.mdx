@@ -1,0 +1,71 @@
+import DocScreenshot from '@site/src/components/DocScreenshot';
+import clipsImage from '@site/static/img/operations/animation-clips-zh.webp';
+import poseImage from '@site/static/img/operations/animation-pose-zh.webp';
+import keyImage from '@site/static/img/operations/animation-key-zh.webp';
+import playImage from '@site/static/img/operations/animation-play-zh.webp';
+
+# 在 Web IDE 中编辑模型动画
+
+用内置动画编辑器组合图片、调整基础位置，并在 `.model` 文件中制作动画。在代码中加载 Model、Spine 和 DragonBones 资源的方式见[动画节点](./2.using-playable.mdx)。
+
+[下载资源编辑器示例](@site/static/files/resource-editors-demo.zip)，上传并解压到工作空间，打开 `AnimationLab/xiaoli.model`。截图使用这个角色，工程中包含原始图片、图集和已保存的 `wave` 动画。自行创建时，右键点击项目文件夹，选择**新建 → Dora 动画**。
+
+## 1. 准备并选择图集
+
+模型使用 `.clip` 图集描述及其配套 `.png`。制作新资源时，可以在模型旁创建 `character.clips` 这样的目录，把各张 PNG 放入其中。
+
+1. 打开 `.model`，选择左侧**切片**标签。
+2. 刚添加 `.clips` 目录时，点击**刷新**。
+3. 点击该目录旁的**打包**，生成 `.clip` 和 `.png`；**全部打包**处理列表中的所有目录。
+4. 点击**设置**绑定该目录的图集，或在标签上方的**切片**下拉框中选择已有 `.clip`。
+
+已有模型及其配套 `.clip`、`.png` 可以直接打开。修改原始图片后重新打包；图集命名规则见 [TexturePacker](./12.using-texture-packer.mdx)。
+
+<DocScreenshot src={clipsImage} width={2400} height={1600} alt="动画编辑器切片页：原始图片目录、设置与打包按钮" />
+
+## 2. 调整基础位置
+
+右侧有三种模式：
+
+| 模式 | 编辑内容 |
+| --- | --- |
+| **基础位置** | 各节点默认的位置、缩放、旋转和图片。 |
+| **外观** | 按名称保存各部件显示或隐藏的组合。 |
+| **动画** | 随时间变化的轨道与关键帧。 |
+
+在**节点树**中选择父节点，点击**添加节点**。选中新节点，切到**基础位置**，通过属性中的**切片**选择图集里的图片。可以直接修改 X/Y、缩放、角度和锚点，也可以用画布上的移动、缩放、旋转工具。修改父节点的位置时，子节点会一起移动。
+
+打开已有模型时，先在节点树中选择部件，查看它的属性。基础位置模式修改默认姿态；修改某个动画帧时，先切到动画模式。
+
+<DocScreenshot src={poseImage} width={2400} height={1600} alt="角色节点树、选中的部件和基础位置属性" />
+
+## 3. 添加两个关键帧
+
+按以下步骤制作示例中的小幅倾斜动画：
+
+1. 选择**动画 → 添加动画**，在名称框中将新动画改名为 `wave`。使用下载的示例时，直接选择已有 `wave` 即可。
+2. 在节点树中选择要运动的部件。示例使用 `unit02`，它是多个角色部件的父节点。
+3. 将**时间**设为 `0`，点击**添加帧**。
+4. 将时间设为 `0.5`，点击添加帧，再把这一帧的**角度**改为 `12`。
+5. 点击底部时间轴上的关键帧，比较两帧的姿态。当前时间没有关键帧时，先添加，再修改该帧的属性。
+
+<DocScreenshot src={keyImage} width={1500} height={1360} alt="wave 动画的 0.5 秒关键帧：时间轴中有两帧，角度为 12 度" />
+
+点击**播放**预览，点击**暂停**停在当前时间；勾选**循环**可反复播放。这里预览的是编辑器中的动画，测试整个游戏时使用 Web IDE 的运行按钮。
+
+<DocScreenshot src={playImage} width={1500} height={1360} alt="动画正在循环播放，时间轴随播放推进" />
+
+## 4. 保存并加载模型
+
+按 `Ctrl+S`（macOS 为 `⌘+S`），等待标签页名称前的星号消失。重新打开文件，确认动画和关键帧仍在。移动资源时，将 `.model`、`.clip` 和 `.png` 一起保留。
+
+例如，`AnimationLab/init.lua` 加载保存后的模型：
+
+```lua
+local Dora = require("Dora")
+local model = Dora.Model("xiaoli.model")
+model:addTo(Dora.Director.entry)
+model:play("wave", true)
+```
+
+`.model` 是资源文件：**运行**会启动所属项目的入口；**运行文件**不能单独执行模型。

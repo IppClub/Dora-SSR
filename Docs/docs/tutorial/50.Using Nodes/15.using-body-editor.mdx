@@ -1,0 +1,55 @@
+import DocScreenshot from '@site/src/components/DocScreenshot';
+import layoutImage from '@site/static/img/operations/body-layout-en.webp';
+import propertiesImage from '@site/static/img/operations/body-properties-en.webp';
+import testImage from '@site/static/img/operations/body-test-en.webp';
+
+# Edit Physics Bodies in the Web IDE
+
+The built-in body editor creates `.b.lua` resources containing shapes, body properties, and joints. This walkthrough builds a static platform and a falling disk. For the code-based approach, see [Physics Nodes I](./4.using-physics-1.mdx) and [Physics Nodes II](./5.using-physics-2.mdx).
+
+[Download the resource editor examples](@site/static/files/resource-editors-demo.zip), upload and unzip them in Workspace, then open `PhysicsLab/scene.b.lua`. To create an empty file, right-click a project folder and choose **New → Dora Body**.
+
+## 1. Place two shapes
+
+Use the icons in the canvas's left **New** column. Hover over an icon for its name.
+
+1. Choose **Rectangle**, then click below the canvas origin to create the platform.
+2. Select it and set **Name** to `ground`, **Type** to `Static`, Position X/Y to `0` / `-160`, and Size X/Y to `500` / `30`. Scroll down inside Properties to find the size fields.
+3. Choose **Disk**, then click above the platform. Set its name to `ball`, keep Type as `Dynamic`, and set Position X/Y to `0` / `115`. The example uses a radius of `48`.
+4. Select an item in the list on the right to inspect it again. Use Move/Scale/Rotate or the numeric fields for precise changes.
+
+<DocScreenshot src={layoutImage} width={2400} height={1600} alt="Body editor with a dynamic ball above a static ground rectangle" />
+
+## 2. Check the physical properties
+
+**Static** keeps the platform in place; **Dynamic** lets the ball move and collide. Size/radius describes the collision geometry. Density, friction, and restitution control mass, sliding, and bounce. Start with the default values, then change one property at a time.
+
+For this example, use linear acceleration `(0, -10)` on the ball. A face image is optional: the editor's colored shapes let you test collisions before adding artwork.
+
+<DocScreenshot src={propertiesImage} width={580} height={780} alt="Ground properties showing size, density, friction and restitution" maxWidth={400} />
+
+## 3. Test, stop, and save
+
+Click the triangle under **Test** in the left column. The ball should fall onto the platform while the static platform stays in place. Click the square **Stop** control to leave testing and return to the editable layout.
+
+<DocScreenshot src={testImage} width={2400} height={1600} alt="Body editor test running, with the disk resting on the platform" />
+
+Test motion does not replace the saved starting layout. Stop testing, then save with `Ctrl+S` (`⌘+S` on macOS). Wait for the tab's asterisk to disappear and reopen the resource to verify it.
+
+## 4. Load the saved resource in a game
+
+`BodyEx` creates the saved bodies and joints in a `PhysicsWorld`. This is the entry script included in `PhysicsLab`:
+
+```lua
+local Dora = require("Dora")
+local BodyEx = require("BodyEx")
+local world = Dora.PhysicsWorld()
+world.showDebug = true
+world:addTo(Dora.Director.entry)
+local assembly = BodyEx("scene.b.lua", world)
+if assembly then assembly:addTo(world) end
+```
+
+Use the complete filename `scene.b.lua`, or the base name `scene` (BodyEx appends `.b.lua`). Save the resource before running the project. Enable `showDebug` to inspect bodies without artwork; the colored debug shapes are not sprite images.
+
+For more complex assemblies, add sub-shapes through Properties or use the Joint tool to connect bodies. Give bodies distinct names before selecting them as joint endpoints.

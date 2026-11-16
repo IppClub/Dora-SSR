@@ -1,0 +1,44 @@
+import DocScreenshot from '@site/src/components/DocScreenshot';
+import inputImage from '@site/static/img/operations/import-input-en.webp';
+import progressImage from '@site/static/img/operations/import-progress-en.webp';
+import readyImage from '@site/static/img/operations/import-ready-en.webp';
+
+# Import a Project from a Repository
+
+Use the built-in repository importer to download a public Dora project into your workspace, then open it in the Web IDE. For local ZIP files, use [Upload and Unzip](./18.web-ide.mdx#add-resources-or-import-a-project).
+
+## 1. Open the importer
+
+In the Web IDE, select **Projects / Tools → Tools → Import repository** in the upper-left corner. Enter the repository's public HTTPS address, or select **Paste repository URL**, then choose **Import**.
+
+Use an address such as `https://github.com/IppClub/Dora-Example`. GitHub, AtomGit, Gitee, and GitCode repository addresses are supported. Paste the repository root rather than a file, branch, or directory URL.
+
+<DocScreenshot src={inputImage} width={1120} height={1000} alt="Repository importer with a public repository URL entered and Import ready" maxWidth={650} />
+
+## 2. Wait for download and verification
+
+The tool shows cloning and resource verification progress. Keep Dora open until **Project imported** appears. The repository needs a Dora `init` entry; a source-only TypeScript project may still need to be built in the IDE before running.
+
+<DocScreenshot src={progressImage} width={1120} height={1000} alt="Repository cloning progress with a Cancel button" maxWidth={650} />
+
+- **Cancel** stops the current import. An unfinished checkout is not installed as a completed project.
+- If importing fails, use **Show details** to read the reason. Check the address and network connection, then choose **Retry**.
+- Importing the same previously completed repository reuses its existing directory and preserves local edits. It does not automatically pull new commits.
+
+## 3. Open the imported project
+
+When the source is ready, select **Open in embedded IDE** or **Open in browser IDE**. If several IDE sessions are connected, choose the one you want to use. Selecting **Done** closes the importer without opening the project in another session. If no IDE is connected, **View project** returns to the launcher and reveals the project entry.
+
+<DocScreenshot src={readyImage} width={1120} height={1000} alt="Project imported successfully, with choices for opening it in connected IDE sessions" maxWidth={650} />
+
+Opening the project does not run its code. In the IDE, open the entry file, build if needed, then select **Run** when you are ready. For a repository containing multiple examples, choose the particular example project you want to run.
+
+## 4. Opening a repository link
+
+A Dora import link can open the same tool with an address already filled in:
+
+```text
+dora-ssr://open?repo=https%3A%2F%2Fgithub.com%2FIppClub%2FDora-Example
+```
+
+Allow the browser to open Dora when prompted. Desktop registration is provided by the installed app or package; on portable Windows, use the accompanying `RegisterDoraLinks.cmd`. If the link does not open Dora, launch the application and use the importer directly. Android also supports these import links.

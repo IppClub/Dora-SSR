@@ -1,0 +1,71 @@
+import DocScreenshot from '@site/src/components/DocScreenshot';
+import clipsImage from '@site/static/img/operations/animation-clips-en.webp';
+import poseImage from '@site/static/img/operations/animation-pose-en.webp';
+import keyImage from '@site/static/img/operations/animation-key-en.webp';
+import playImage from '@site/static/img/operations/animation-play-en.webp';
+
+# Edit Model Animations in the Web IDE
+
+Use the built-in animation editor to assemble sprites, set their base pose, and animate them in a `.model` file. For loading Model, Spine, and DragonBones resources in code, see [Playable](./2.using-playable.mdx).
+
+[Download the resource editor examples](@site/static/files/resource-editors-demo.zip), upload and unzip them in Workspace, then open `AnimationLab/xiaoli.model`. The screenshots use this character; its source images, atlas, and saved `wave` animation are included. To start from scratch, right-click a project folder and choose **New → Dora Animation**.
+
+## 1. Prepare and select an atlas
+
+A model uses a `.clip` atlas description and its `.png`. For new images, create a sibling folder such as `character.clips` and place the individual PNGs inside it.
+
+1. Open the `.model`, then select **Clips** on the left.
+2. Select **Refresh** if you just added a `.clips` directory.
+3. Use **Pack** beside that directory to generate its `.clip` and `.png`; **Pack All** processes all listed directories.
+4. Use **Set** to bind that directory's atlas, or select an existing `.clip` in the **Clip** dropdown above the tabs.
+
+Existing models with their matching `.clip` and `.png` can be opened directly. Repack after changing source images; see [TexturePacker](./12.using-texture-packer.mdx) for atlas naming rules.
+
+<DocScreenshot src={clipsImage} width={2400} height={1600} alt="Animation editor Clips tab with the source directory, Set and Pack buttons" />
+
+## 2. Build the base pose
+
+The right panel has three modes:
+
+| Mode | What it edits |
+| --- | --- |
+| **Pose** | The default position, scale, rotation, and sprite of each node. |
+| **Look** | Named sets of visible and hidden parts. |
+| **Animation** | Time-based tracks and keyframes. |
+
+In **Tree**, select a parent and choose **Add Child**. Select the new child, switch to **Pose**, and use its **Clip** field to choose an image from the atlas. Adjust X/Y, scale, angle, and anchor in the property panel, or use the canvas Move/Scale/Rotate tools. Moving a parent also moves its children.
+
+For an existing model, select a part in the tree to inspect it before editing. Changes in Pose affect the base pose; select Animation when you intend to change a particular animation frame.
+
+<DocScreenshot src={poseImage} width={2400} height={1600} alt="Character node tree, selected part and Pose properties" />
+
+## 3. Add two keyframes
+
+To reproduce the small tilting animation in the example:
+
+1. Select **Animation → Add Animation**, then rename the new animation to `wave` in its name field. In the downloaded example, select the existing `wave` instead.
+2. Select the part to animate in Tree. The example uses `unit02`, a parent of the character's body parts.
+3. Set **Time** to `0`, then choose **Add Key**.
+4. Set Time to `0.5`, choose Add Key, and change that frame's **Angle** to `12`.
+5. Select the keys on the bottom timeline to compare the poses. If there is no key at the current time, add one before editing its frame properties.
+
+<DocScreenshot src={keyImage} width={1500} height={1360} alt="wave animation at 0.5 seconds, with two timeline keys and an angle of 12 degrees" />
+
+Select **Play** to preview and **Pause** to stop at the current time. Enable **Loop** to repeat. The preview plays inside the editor; use the Web IDE's Run button to test the containing game project.
+
+<DocScreenshot src={playImage} width={1500} height={1360} alt="Animation preview playing with Loop enabled and the timeline advancing" />
+
+## 4. Save and use the model
+
+Press `Ctrl+S` (`⌘+S` on macOS) and wait for the tab's asterisk to disappear. Reopen the file and check that the animation and keyframes remain. Keep the `.model`, `.clip`, and `.png` together when moving the resource.
+
+For example, `AnimationLab/init.lua` loads the saved model:
+
+```lua
+local Dora = require("Dora")
+local model = Dora.Model("xiaoli.model")
+model:addTo(Dora.Director.entry)
+model:play("wave", true)
+```
+
+A `.model` is a resource: **Run** starts its containing project's entry; **Run This** does not run a model by itself.
