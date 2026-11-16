@@ -413,7 +413,7 @@ function sanitizeVisionActionParamsForCompression(params: Record<string, unknown
 	const projected: Record<string, unknown> = {};
 	if (typeof params.question === "string") projected.question = params.question;
 	if (typeof params.criteria === "string") projected.criteria = params.criteria;
-	if (isArray(params.paths)) projected.paths = params.paths.slice(0, 3);
+	if (isArray(params.paths)) projected.imageCount = params.paths.length;
 	return projected;
 }
 
@@ -428,11 +428,6 @@ function projectVisionResultForCompression(content: string): string {
 	}
 	const projected: Record<string, unknown> = {};
 	if (decoded.success !== undefined) projected.success = decoded.success;
-	if (isArray(decoded.paths)) projected.paths = decoded.paths.slice(0, 3);
-	if (isArray(decoded.images)) projected.images = decoded.images.slice(0, 3).map(item => {
-		if (!isRecord(item)) return {};
-		return {path: item.path, width: item.width, height: item.height};
-	});
 	if (typeof decoded.report === "string") {
 		projected.report = truncateHistoryText(
 			decoded.report,
@@ -461,7 +456,7 @@ function projectToolResultContentForLLM(tool: string, content: string): string {
 		);
 	}
 	let projected = decoded;
-	if (tool === "edit_file" || tool === "write_file" || tool === "delete_file") {
+	if (tool === "edit_file") {
 		projected = projectEditResultForLLM(decoded);
 	} else if (tool === "build") {
 		projected = projectBuildResultForLLM(decoded);
@@ -485,23 +480,132 @@ function projectToolResultContentForLLM(tool: string, content: string): string {
 	};
 	return toJson(fallback, false);
 }
-export function projectMessagesForLLMContext(messages: Message[]): Message[] {
+// ---- Mechanical history trims (LLM-context projection only) ----
+// Session history keeps the originals; only the outgoing request shrinks.
+// Each rule keeps the most recent material intact so the model can still
+// iterate on its latest probe/edit, and one-time prefix shifts are accepted
+// (a trimmed message stays trimmed forever after, so caches re-stabilize).
+const TRIM_RECENT_ASSISTANT_TURNS = 2;
+const TRIM_STUB_HEAD_CHARS = 140;
+const TRIM_RESULT_KEEP_CHARS = 200;
+
+function elidedStub(kind: string, original: string): string {
+	return toJson({
+		[kind]: `${original.length} chars elided from LLM history`,
+		head: utf8TakeHead(original, TRIM_STUB_HEAD_CHARS),
+	}, false);
+}
+
+function lastReadIndexByPath(messages: Message[]): Record<string, number> {
+	const last: Record<string, number> = {};
+	for (let i = 0; i < messages.length; i++) {
+		const message = messages[i];
+		if (message.role !== "tool" || message.name !== "read_file" || typeof message.content !== "string") continue;
+		const [decoded] = AgentUtils.safeJsonDecode(message.content);
+		if (!isRecord(decoded) || !isArray(decoded.results)) continue;
+		for (let j = 0; j < decoded.results.length; j++) {
+			const entry = decoded.results[j];
+			if (isRecord(entry) && typeof entry.path === "string") last[entry.path] = i;
+		}
+	}
+	return last;
+}
+
+function readPathsOf(content: string): string[] {
+	const [decoded] = AgentUtils.safeJsonDecode(content);
+	if (!isRecord(decoded) || !isArray(decoded.results)) return [];
+	const paths: string[] = [];
+	for (let j = 0; j < decoded.results.length; j++) {
+		const entry = decoded.results[j];
+		if (isRecord(entry) && typeof entry.path === "string") paths.push(entry.path);
+	}
+	return paths;
+}
+
+// While the raw message payload sits well below the effective input budget,
+// aging-window trims are skipped so every request shares a byte-stable prefix
+// and provider prompt caching absorbs the whole history. Near the budget,
+// space wins over cache and all trims apply. Deterministic and one-time
+// trims (result silencing, superseded reads) stay on in both modes because
+// each message changes at most once and then stays stable.
+const TRIM_TIGHT_PAYLOAD_FRACTION = 0.6;
+
+function rawMessageChars(messages: Message[]): number {
+	let total = 0;
+	for (let i = 0; i < messages.length; i++) {
+		const message = messages[i];
+		if (typeof message.content === "string") total += message.content.length;
+		if (typeof message.reasoning_content === "string") total += message.reasoning_content.length;
+		if (message.tool_calls) {
+			for (let j = 0; j < message.tool_calls.length; j++) {
+				const fn = message.tool_calls[j].function;
+				if (fn !== undefined && typeof fn.arguments === "string") total += fn.arguments.length;
+			}
+		}
+	}
+	return total;
+}
+
+export function projectMessagesForLLMContext(messages: Message[], charBudget?: number): Message[] {
 	// Session history remains the source of truth for persistence and UI events.
 	// Tool-call arguments remain byte-for-byte unchanged so the normal Agent loop
 	// sees the exact calls that were originally stored and preserves cache prefixes.
+	const tight = !(typeof charBudget === "number" && charBudget > 0)
+		|| rawMessageChars(messages) > charBudget * TRIM_TIGHT_PAYLOAD_FRACTION;
+	const lastReadByPath = lastReadIndexByPath(messages);
+	const recentAssistant: Record<number, boolean> = {};
+	let seenFromEnd = 0;
+	for (let i = messages.length - 1; i >= 0; i--) {
+		if (messages[i].role !== "assistant") continue;
+		seenFromEnd += 1;
+		if (seenFromEnd <= TRIM_RECENT_ASSISTANT_TURNS) recentAssistant[i] = true;
+	}
 	const projected: Message[] = [];
 	for (let i = 0; i < messages.length; i++) {
 		const message = messages[i];
-		const next: Message = {role: message.role, content: message.content, name: message.name,
- tool_call_id: message.tool_call_id, reasoning_content: message.reasoning_content, tool_calls: message.tool_calls};
- if ((message as Message & {inputKind?: string}).inputKind === "steer") {
-  next.content = `The user sent an update to the current task while you were working. Apply it together with the original goal and continue this task.
-
-${message.content ?? ""}`;
- }
-		if (message.role === "assistant" && (!message.tool_calls || message.tool_calls.length === 0)) next.reasoning_content = undefined; // DeepSeek replays reasoning only with its tool calls.
+		const next: Message = { ...message };
+		if (message.role === "assistant") {
+			if (!message.tool_calls || message.tool_calls.length === 0) {
+				next.reasoning_content = undefined; // DeepSeek replays reasoning only with its tool calls.
+			} else if (message.reasoning_content && recentAssistant[i] !== true && tight) {
+				// Old tool-calling turns: the paired reasoning already produced its
+				// tool result and the model re-plans from live context, not from
+				// replayed chains. Skipped in cache-first mode (roomy budget) so the
+				// prefix stays byte-stable; applied when space matters more.
+				next.reasoning_content = undefined;
+			}
+			if (tight && message.tool_calls && message.tool_calls.length > 0 && recentAssistant[i] !== true) {
+				// Authoring-call arguments carry full file bodies (edit_file
+				// old_str/new_str, write_file content). Once the write landed, the
+				// result and the file on disk are the truth, not the old payload.
+				next.tool_calls = message.tool_calls.map(toolCall => {
+					const fn = toolCall.function;
+					if (fn === undefined) return toolCall;
+					if (fn.name !== "edit_file" && fn.name !== "write_file") return toolCall;
+					if (typeof fn.arguments !== "string") return toolCall;
+					if (fn.arguments.length <= TRIM_RESULT_KEEP_CHARS || fn.arguments.indexOf("argsElided") >= 0) return toolCall;
+					return { ...toolCall, function: { ...fn, arguments: elidedStub("argsElided", fn.arguments) } };
+				});
+			}
+		}
 		if (message.role === "tool" && typeof message.content === "string") {
-			next.content = projectToolResultContentForLLM(message.name ?? "tool", message.content);
+			let content = projectToolResultContentForLLM(message.name ?? "tool", message.content);
+			if (message.name === "read_file" && content.length > TRIM_RESULT_KEEP_CHARS) {
+				// A later read of the same path supersedes this snapshot; keep the
+				// newest read per path byte-stable and stub the older ones.
+				const paths = readPathsOf(content);
+				let anyFresh = false;
+				for (let j = 0; j < paths.length; j++) {
+					if (lastReadByPath[paths[j]] === i) anyFresh = true;
+				}
+				if (paths.length > 0 && !anyFresh) content = elidedStub("supersededRead", content);
+			}
+			if ((message.name === "write_file" || message.name === "edit_file") && content.length > TRIM_RESULT_KEEP_CHARS) {
+				// Successful write/edit confirmations need only their head once a
+				// later action exists; the file on disk is the source of truth.
+				content = elidedStub("savedResultElided", content);
+			}
+			next.content = content;
 		}
 		projected.push(next);
 	}
@@ -509,10 +613,7 @@ ${message.content ?? ""}`;
 }
 
 export function projectMessagesForCompression(messages: Message[]): Message[] {
-	const projected = projectMessagesForLLMContext(messages).map((message,index)=>{
-  const source = messages[index] as Message & {inputId?:number;inputKind?:"prompt"|"steer";taskId?:number};
-  return {...message,inputId:source.inputId,inputKind:source.inputKind,taskId:source.taskId};
- });
+	const projected = projectMessagesForLLMContext(messages);
 	const visionCallIds: Record<string, boolean> = {};
 	for (let i = 0; i < projected.length; i++) {
 		const message = projected[i];
