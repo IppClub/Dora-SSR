@@ -2,12 +2,91 @@ import DocScreenshot from '@site/src/components/DocScreenshot';
 import inputImage from '@site/static/img/operations/import-input-zh.webp';
 import progressImage from '@site/static/img/operations/import-progress-zh.webp';
 import readyImage from '@site/static/img/operations/import-ready-zh.webp';
+import gitInput from '@site/static/img/operations/git-clone-input-zh.webp';
+import gitProgress from '@site/static/img/operations/git-clone-progress-zh.webp';
+import gitReady from '@site/static/img/operations/git-clone-ready-zh.webp';
+import goEntry from '@site/static/img/operations/go-import-entry-zh.webp';
+import goPreview from '@site/static/img/operations/go-import-preview-zh.webp';
+import goReady from '@site/static/img/operations/go-import-ready-zh.webp';
 
-# 从仓库导入项目
+# 获取项目：导入与克隆
 
-用内置仓库导入工具，将公开的 Dora 项目下载到工作空间，再交给 Web IDE 打开。本地 ZIP 文件的导入方式见[上传与解压缩](./18.web-ide.mdx#添加资源或导入项目)。
+先根据手里的内容选择入口。仓库链接、Go 模式作品包和 Web IDE 的 Git 面板分别对应不同流程。
 
-## 1. 打开导入工具
+<div style={{maxWidth: '100%', overflowX: 'auto'}}>
+
+| 入口 | 适用场景 | 操作结果 |
+| --- | --- | --- |
+| **Web IDE → Git → 克隆仓库** | 在 IDE 中克隆 Git 仓库。 | 克隆到当前所选位置的子目录，并在当前 IDE 中打开。 |
+| **Go 模式 → 导入作品包 / 发现** | 导入本地作品 ZIP，或安装资源目录中的游戏。 | 添加或安装为可在本地试玩、Remix 的作品。 |
+| **`dora-ssr://open?repo=…`** | 从浏览器或其他应用打开分享的公开仓库链接。 | 唤起 Dora 的专用仓库导入工具，自动下载并校验项目。 |
+
+</div>
+
+## 在 Web IDE 中克隆 Git 仓库
+
+### 打开 Git 并填写克隆信息
+
+1. 右键点击**工作空间**或目标文件夹，选择**上传**，打开该目录的工作空间页。
+2. 选择**文件**旁边的 **Git**。当前位置尚不是 Git 仓库时，会显示**仓库设置 → 克隆仓库**。
+3. 填写**克隆 URL** 和**目标文件夹**。本例使用 `https://github.com/IppClub/Dora-Example` 和 `Dora-Example`。
+4. **分支**留空使用远端默认分支。**深度**可选：填写 `1` 表示浅克隆，留空则获取完整历史。
+
+<DocScreenshot src={gitInput} width={2400} height={1600} alt="Web IDE 的 Git 克隆表单：仓库地址、目标文件夹与深度 1" />
+
+目标文件夹会创建在页面顶部所示目录下。已存在且非空的目标会被拒绝，请换一个文件夹名。当前位置已经是仓库时，会显示 Git 管理界面；回到上级或选择其他目标目录，再克隆新仓库。
+
+### 开始克隆并等待完成
+
+点击**克隆仓库**。Git 任务区域会显示命令与进度，点击**取消**可停止任务。失败时阅读任务输出，检查地址和网络，并确认目标目录是否残留部分下载内容，再重试。
+
+<DocScreenshot src={gitProgress} width={2400} height={1600} alt="Web IDE 的 Git 克隆任务正在运行，显示进度与取消按钮" />
+
+### 检查已打开的仓库
+
+成功后，克隆目录会在**当前 IDE** 中打开，Git 页显示分支、远程仓库和本地变更。切换到**文件**，或展开左侧目录树，检查项目内容。克隆不会运行代码，也不检查 Dora 的 `init` 入口；先选择可运行的 Dora 项目，按需构建，再点击**运行**。
+
+<DocScreenshot src={gitReady} width={2400} height={1600} alt="克隆完成后在当前 IDE 打开的 Dora-Example，显示 Git 分支与远程仓库" />
+
+## 在 Go 模式中导入或安装作品
+
+### 选择本地作品包
+
+在 **Go 模式**中选择**本地 → + 新建 → 导入作品包**，再通过文件选择器打开 ZIP 作品包。其他作品通过**分享作品 → 保存作品包**保存的 ZIP，也可以从这里导入。
+
+<DocScreenshot src={goEntry} width={860} height={1600} alt="Go 模式本地页的添加作品面板，可选择导入作品包" maxWidth={360} />
+
+### 检查并导入
+
+Dora 会检查 ZIP，并显示作品标题和包大小。选择**导入并试玩**会安装并立即运行；选择**仅导入**只安装，不启动。本例导入一个很小的 `Hello.zip` 项目。
+
+<DocScreenshot src={goPreview} width={860} height={1600} alt="Go 模式作品包预览，可选择导入并试玩或仅导入" maxWidth={360} />
+
+作品包根目录或唯一的顶层文件夹内，必须包含可运行的 `init` 入口。只有 TypeScript/TSX 源码的项目，应先在 Dora 中构建再打包。检查失败时，根据提示修正并重新选择 ZIP；Web 导出包不是源码作品包。
+
+### 试玩或 Remix 已导入的作品
+
+选择**仅导入**后，作品会出现在**本地**页。点击**试玩**运行，或点击 **Remix 作品**继续修改。同名目录已存在时，会创建带编号的新目录，保留原作品。
+
+<DocScreenshot src={goReady} width={860} height={1600} alt="导入后的 Hello 出现在 Go 模式本地页，可试玩或 Remix" maxWidth={360} />
+
+在**发现**页，对支持本地安装的资源点击试玩或 Remix，会先下载并准备资源；在线试玩卡片则打开网络游戏。完整流程见 [Go / 移动界面与 Remix](./15.mobile-ui.mdx)。通过 Web IDE 文件树导入 ZIP，见[上传与解压缩](./18.web-ide.mdx#添加资源或导入项目)。
+
+## 通过仓库链接唤起 Dora
+
+```text
+dora-ssr://open?repo=https%3A%2F%2Fgithub.com%2FIppClub%2FDora-Example
+```
+
+浏览器询问是否打开 Dora 时，允许打开。Dora 随后进入专用导入工具，**自动开始**该仓库的导入；这不是在 Web IDE 中点击克隆，也不是导入 Go 模式的 ZIP 作品包。校验完成后，再选择打开项目的位置。
+
+桌面端由已安装的应用或软件包注册协议；Windows 便携版可使用附带的 `RegisterDoraLinks.cmd`。Android 也支持这类链接。链接没有唤起 Dora 时，可以按下方步骤手动打开专用工具。
+
+## 手动使用专用仓库导入工具
+
+以下截图展示的是运行在 Dora 应用中的工具界面，不是 Web IDE 的 Git 面板。**项目 / 工具 → 工具 → 从仓库导入**虽然位于 IDE 的工具列表中，启动的仍是这个独立工具。
+
+### 输入仓库地址
 
 在 Web IDE 左上角选择**项目 / 工具 → 工具 → 从仓库导入**。输入仓库的公开 HTTPS 地址，或点击**粘贴仓库地址**，再点击**导入项目**。
 
@@ -15,7 +94,7 @@ import readyImage from '@site/static/img/operations/import-ready-zh.webp';
 
 <DocScreenshot src={inputImage} width={1120} height={1000} alt="仓库导入界面：已填写公开仓库地址，可点击导入项目" maxWidth={650} />
 
-## 2. 等待下载与校验
+### 下载与校验
 
 工具会显示克隆和资源校验的进度。保持 Dora 开启，直到出现**项目已导入**。仓库需要包含 Dora 的 `init` 入口；只有 TypeScript 源码的项目，运行前可能仍需在 IDE 中构建。
 
@@ -25,20 +104,10 @@ import readyImage from '@site/static/img/operations/import-ready-zh.webp';
 - 导入失败时，点击**查看详情**阅读原因，检查地址与网络连接后点击**重试**。
 - 再次导入之前已经完成的同一仓库时，会复用原目录并保留本地修改，不会自动拉取新提交。
 
-## 3. 打开导入后的项目
+### 选择打开结果的位置
 
 源码就绪后，选择**在内置 IDE 中打开**或**在浏览器 IDE 中打开**。连接了多个 IDE 会话时，选择希望使用的那个。点击**完成**会关闭导入工具，不会把项目打开到其他会话中。没有连接 IDE 时，**查看项目**会返回启动页并定位项目入口。
 
 <DocScreenshot src={readyImage} width={1120} height={1000} alt="项目导入完成，可选择在已连接的 IDE 会话中打开" maxWidth={650} />
 
 打开项目不会自动运行其中的代码。在 IDE 中打开入口文件，按需构建，再点击**运行**。仓库包含多个示例时，先选择希望运行的具体示例项目。
-
-## 4. 通过仓库链接打开
-
-Dora 导入链接可以打开同一工具，并预先填写仓库地址：
-
-```text
-dora-ssr://open?repo=https%3A%2F%2Fgithub.com%2FIppClub%2FDora-Example
-```
-
-浏览器询问是否打开 Dora 时，允许打开即可。桌面端由已安装的应用或软件包注册协议；Windows 便携版可使用附带的 `RegisterDoraLinks.cmd`。链接没有唤起 Dora 时，先启动应用，再手动打开导入工具。Android 也支持这类导入链接。
