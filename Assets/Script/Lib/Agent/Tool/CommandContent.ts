@@ -69,7 +69,7 @@ export function createCommandContent(workDir: string, docLanguage?: DoraDocLangu
 		};
 	};
 	for (const name of ["exist", "isdir", "getAttr", "getDirs", "getFiles", "getAllFiles", "getFullPath", "glob", "searchFilesAsync", "loadExcel", "loadExcelAsync"]) delegate(name, [false]);
-	for (const name of ["load", "loadAsync"]) delegate(name, [false], true);
+	for (const name of ["load", "loadAsync"]) delegate(name, [false]); // No binary inspect: Lua strings handle raw bytes; agents need binary reads for audio/image analysis
 	for (const name of ["save", "saveAsync", "mkdir", "remove"]) delegate(name, [true]);
 	for (const name of ["copy", "copyAsync", "zipAsync", "unzipAsync"]) delegate(name, [false, true]);
 	// A move mutates its source as well as its destination.
