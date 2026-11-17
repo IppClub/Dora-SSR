@@ -75,6 +75,32 @@
 
 这说明后端执行基础已足够，不需要再重新定义底层文件操作协议。
 
+### 4.1.1 `read_file` 的二进制资源元数据
+
+二进制读取仍返回 `success: false`、`isBinary: true` 和文件字节数，不返回 `content`、原始字节或 Base64。可识别的游戏资源在拒绝结果中附加 `metadata`，仅描述文件头中可确定的事实：
+
+| 格式 | 元数据 |
+| --- | --- |
+| PNG、JPEG、GIF、BMP、WebP | 图片宽高 |
+| WAV、FLAC、Ogg Vorbis/Opus | 声道数、采样率；可可靠计算时提供时长，部分格式提供位深 |
+| GLB 2 | 容器版本；JSON 块完全落在探测范围内时提供网格、材质和动画数量 |
+
+例如，读取 PNG 可返回：
+
+```json
+{
+  "success": false,
+  "isBinary": true,
+  "size": 2048,
+  "message": "file is binary and cannot be previewed by read_file (2048 bytes)",
+  "metadata": { "kind": "image", "format": "png", "source": "header", "width": 128, "height": 64 }
+}
+```
+
+解析复用 `Content.read`，头部最多读取 64 KiB。Ogg 文件不超过 16 MiB 时，可额外读取最多 64 KiB 尾部，并核对结束页和逻辑流标识后计算时长；更大的 Ogg 不探测尾部。格式通过签名识别，不以扩展名推断。未识别、损坏或元数据超出探测范围时返回 `metadataMessage`；缺失字段表示未知，不作估算。
+
+批量读取保留每项拒绝状态及元数据，二进制项不计入成功读取数。元数据不证明资源能正常渲染或播放，也不代替 `analyze_image` 的视觉检查。该能力不向 `execute_command` 开放二进制内容读取。
+
 ### 4.2 Web IDE 后端
 
 #### `Assets/Script/Dev/WebServer.yue`

@@ -36,6 +36,9 @@ public:
 	std::list<std::string> getFullPathsToTry(String filename);
 	std::pair<OwnArray<uint8_t>, size_t> load(String filename);
 	std::string loadStr(String filename);
+	// Read at most length bytes at a zero-based offset in the uncompressed file.
+	// Returns an empty string at EOF, for an empty range, or on failure.
+	std::string read(String filename, int64_t offset, int64_t length);
 	const bgfx::Memory* loadBX(String filename);
 	bool copy(String src, String dst);
 	bool move(String src, String dst);

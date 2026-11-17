@@ -23,6 +23,7 @@ THE SOFTWARE.
 ****************************************************************************/
 #pragma once
 
+#include <cstdint>
 #include <functional>
 #include <list>
 #include <optional>
@@ -87,6 +88,7 @@ public:
 	std::pair<Dora::OwnArray<uint8_t>, size_t> getFileData(const std::string& filename);
 
 	std::string getFileDataAsString(const std::string& filename);
+	std::string getFileDataRange(const std::string& filename, int64_t offset, int64_t length);
 
 	bool getFileDataByChunks(const std::string& fileName, const std::function<bool(unsigned char*, int)>& handler);
 

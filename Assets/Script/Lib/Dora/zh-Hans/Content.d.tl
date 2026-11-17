@@ -22,6 +22,14 @@ local record Content
 	-- @return (string) 读取的文件内容。
 	load: function(self: Content, filename: string): string
 
+	-- 按字节范围读取，支持二进制文件、ZIP 条目和 APK 资源，不会将整个文件读入内存。
+	-- 压缩条目从头逐块解压，内存有界，但较大偏移可能较慢。
+	-- @param filename (string) 要读取的文件名。
+	-- @param offset (integer) 解压后文件中从 0 开始的非负字节偏移。
+	-- @param length (integer) 最多读取的非负字节数。
+	-- @return (string) 二进制字符串；到末尾时可能短于请求长度。到达末尾、长度为 0、参数无效或读取失败时返回空字符串。
+	read: function(self: Content, filename: string, offset: integer, length: integer): string
+
 	-- 以阻塞的方式按表名读取 Excel 文件的内容。
 	-- @param filename (string) 要读取的 Excel 文件名。
 	-- @param sheetNames ({string}) [可选] 要读取的Excel表名的字符串列表。如果不提供，则默认会读取所有表。

@@ -4415,6 +4415,16 @@ class Content {
 	load(filename: string): string;
 
 	/**
+	 * 按字节范围读取，支持二进制文件、ZIP 条目和 APK 资源，不会将整个文件读入内存。
+	 * 压缩条目从头逐块解压，内存有界，但较大偏移可能较慢。
+	 * @param filename 要读取的文件名。
+	 * @param offset 解压后文件中从 0 开始的非负整数字节偏移。
+	 * @param length 最多读取的字节数，必须为非负整数。
+	 * @returns 二进制字符串；到末尾时可能短于请求长度。到达末尾、长度为 0、参数无效或读取失败时返回空字符串。
+	 */
+	read(filename: string, offset: number, length: number): string;
+
+	/**
 	 * 加载具有指定文件名和可选表名的 Excel 文件的内容。
 	 * @param filename 要加载的 Excel 文件的名称。
 	 * @param sheetNames 表示要加载的表的名称的字符串数组。如果未提供，将加载所有表。

@@ -3,6 +3,7 @@ import { Content, Path, App, Director, once } from 'Dora';
 import type { SearchFilesResult } from 'Dora';
 import * as AgentConfig from 'Agent/Config/Defaults';
 import { Log } from 'Agent/Utils';
+import { readBinaryResourceMetadata, type BinaryResourceMetadata } from 'Agent/Tool/BinaryMetadata';
 
 export type ListFilesResult = {
 	success: true;
@@ -37,6 +38,8 @@ export type ReadFileResult = {
 	message: string;
 	size?: number;
 	isBinary?: boolean;
+	metadata?: BinaryResourceMetadata;
+	metadataMessage?: string;
 };
 
 export type WorkspaceTextTargetResult = {
@@ -460,26 +463,31 @@ function readEngineLogFile(path: string): ReadFileResult | undefined {
 	return { success: true, content, size: content.length };
 }
 
+function readTextOrBinaryMetadata(fullPath: string): ReadFileResult {
+	const attr = inspectReadableFile(fullPath);
+	if (!attr.success) {
+		if (attr.isBinary && attr.size !== undefined) {
+			return { ...attr, ...readBinaryResourceMetadata(fullPath, attr.size) };
+		}
+		return attr;
+	}
+	return { success: true, content: Content.load(fullPath), size: attr.size };
+}
+
 function readWorkspaceFile(workDir: string, path: string, docLanguage?: DoraDocLanguage): ReadFileResult {
 	const engineLog = readEngineLogFile(path);
 	if (engineLog) return engineLog;
 	const fullPath = resolveWorkspaceFilePath(workDir, path);
 	if (fullPath && Content.exist(fullPath) && !Content.isdir(fullPath)) {
-		const attr = inspectReadableFile(fullPath);
-		if (!attr.success) return attr;
-		return { success: true, content: Content.load(fullPath), size: attr.size };
+		return readTextOrBinaryMetadata(fullPath);
 	}
 	const docPath = resolveAgentDoraDocFilePath(path, docLanguage);
 	if (docPath) {
-		const attr = inspectReadableFile(docPath);
-		if (!attr.success) return attr;
-		return { success: true, content: Content.load(docPath), size: attr.size };
+		return readTextOrBinaryMetadata(docPath);
 	}
 	const skillPath = resolveAgentSkillFilePath(workDir, path);
 	if (skillPath) {
-		const attr = inspectReadableFile(skillPath);
-		if (!attr.success) return attr;
-		return { success: true, content: Content.load(skillPath), size: attr.size };
+		return readTextOrBinaryMetadata(skillPath);
 	}
 	if (!fullPath) return { success: false, message: "invalid path or workDir" };
 	return { success: false, message: "file not found" };

@@ -87,6 +87,38 @@ load: function(self: Content, filename: string): string
 | --- | --- |
 | string | 读取的文件内容。 |
 
+## read
+
+**类型：** 函数。
+
+**描述：**
+
+从解压后文件中以 0 为起点的 `offset` 字节位置，最多读取 `length` 字节。支持二进制文件、ZIP 条目和 Android APK 资源。普通文件直接定位；压缩条目从头逐块解压，内存有界，但较大偏移可能较慢。内存中只保留请求范围的数据。
+
+**签名：**
+```tl
+read: function(self: Content, filename: string, offset: integer, length: integer): string
+```
+
+**参数：**
+
+| 参数 | 类型 | 描述 |
+| --- | --- | --- |
+| filename | string | 要读取的文件名。 |
+| offset | integer | 从 0 开始的非负字节偏移。 |
+| length | integer | 最多读取的非负字节数。 |
+
+**返回值：**
+
+| 类型 | 描述 |
+| --- | --- |
+| string | 二进制字符串；到末尾时可能短于请求长度。到达末尾、长度为 0、参数无效或读取失败时返回空字符串。 |
+
+**用法：**
+```lua
+local header = Content:read("image.png", 0, 24)
+```
+
 ## loadExcel
 
 **类型：** 函数。

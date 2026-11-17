@@ -23,6 +23,14 @@ local record Content
 	-- @return (string) The content of the loaded file.
 	load: function(self: Content, filename: string): string
 
+	-- Reads a byte range without loading the entire file. Supports binary files, ZIP entries and APK assets.
+	-- Compressed entries are decoded from the beginning with bounded memory; large offsets can be slow.
+	-- @param filename (string) The file to read.
+	-- @param offset (integer) Zero-based, nonnegative byte offset in the uncompressed file.
+	-- @param length (integer) Maximum byte count. Must be nonnegative.
+	-- @return (string) Binary data, possibly shorter at EOF. Empty for EOF, zero length, invalid arguments or read failure.
+	read: function(self: Content, filename: string, offset: integer, length: integer): string
+
 	-- Loads the content of an Excel file with the specified filename and optional sheet names
 	-- @param filename (string) The name of the Excel file to load
 	-- @param sheetNames ({string}) [optional] An array of strings representing the names of the sheets to load. If not provided, all sheets will be loaded.

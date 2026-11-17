@@ -252,6 +252,36 @@ std::pair<Dora::OwnArray<uint8_t>, size_t> ZipFile::getFileData(const std::strin
 	return {MakeOwnArray(buf), size};
 }
 
+std::string ZipFile::getFileDataRange(const std::string& filename, int64_t offset, int64_t length) {
+	if (!_file || offset < 0 || length <= 0) return {};
+	const auto size = getFileSize(filename);
+	if (!size || s_cast<uint64_t>(offset) >= *size) return {};
+	const auto count = std::min(s_cast<uint64_t>(length), *size - s_cast<uint64_t>(offset));
+	std::string result;
+	if (count > result.max_size()) return {};
+	const auto entry = _file->fileList.find(getSearchName(filename));
+	auto iter = mz_zip_reader_extract_file_iter_new(&_file->archive, entry->second.name.c_str(), 0);
+	if (!iter) return {};
+	DEFER(mz_zip_reader_extract_iter_free(iter));
+	// Compressed entries must be decoded from the start, but discarded bytes
+	// never accumulate in memory. Offsets refer to the uncompressed content.
+	uint8_t buffer[DORA_COPY_BUFFER_SIZE];
+	uint64_t remaining = s_cast<uint64_t>(offset);
+	while (remaining > 0) {
+		const auto n = mz_zip_reader_extract_iter_read(iter, buffer, std::min<uint64_t>(remaining, sizeof(buffer)));
+		if (n == 0) return {};
+		remaining -= n;
+	}
+	result.resize(s_cast<size_t>(count));
+	size_t read = 0;
+	while (read < result.size()) {
+		const auto n = mz_zip_reader_extract_iter_read(iter, result.data() + read, result.size() - read);
+		if (n == 0) return {};
+		read += n;
+	}
+	return result;
+}
+
 bool ZipFile::getFileDataByChunks(const std::string& fileName, const std::function<bool(unsigned char*, int)>& handler) {
 	BLOCK_START {
 		BREAK_IF(!_file);
@@ -261,6 +291,8 @@ bool ZipFile::getFileDataByChunks(const std::string& fileName, const std::functi
 		auto it = _file->fileList.find(searchName);
 		BREAK_IF(it == _file->fileList.end());
 		auto zipIter = mz_zip_reader_extract_file_iter_new(archive, it->second.name.c_str(), 0);
+		BREAK_IF(!zipIter);
+		DEFER(mz_zip_reader_extract_iter_free(zipIter));
 		uint8_t buf[DORA_COPY_BUFFER_SIZE];
 		size_t nSize = 0, total = 0;
 		do {
@@ -272,7 +304,6 @@ bool ZipFile::getFileDataByChunks(const std::string& fileName, const std::functi
 			}
 			total += nSize;
 		} while (nSize != 0);
-		mz_zip_reader_extract_iter_free(zipIter);
 		if (total == 0 || total == (int)it->second.size) {
 			return true;
 		} else {

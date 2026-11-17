@@ -4422,6 +4422,16 @@ class Content {
 	load(filename: string): string;
 
 	/**
+	 * Reads a byte range without loading the entire file. Supports binary files, ZIP entries and APK assets.
+	 * Compressed entries are decoded from the beginning with bounded memory; large offsets can be slow.
+	 * @param filename The file to read.
+	 * @param offset Zero-based, nonnegative integer byte offset in the uncompressed file.
+	 * @param length Maximum byte count. Must be a nonnegative integer.
+	 * @returns Binary data, possibly shorter at EOF. Empty for EOF, zero length, invalid arguments or read failure.
+	 */
+	read(filename: string, offset: number, length: number): string;
+
+	/**
 	 * Loads the content of an Excel file with the specified filename and optional sheet names.
 	 * @param filename The name of the Excel file to load.
 	 * @param sheetNames An array of strings representing the names of the sheets to load. If not provided, all sheets will be loaded.

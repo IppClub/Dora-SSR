@@ -88,6 +88,38 @@ load: function(self: Content, filename: string): string
 | --- | --- |
 | string | The content of the loaded file. |
 
+## read
+
+**Type:** Function.
+
+**Description:**
+
+Reads at most `length` bytes starting at a zero-based `offset` in the uncompressed file. Supports binary files, ZIP entries and Android APK assets. Ordinary files are positioned directly; compressed entries are decoded from the beginning with bounded memory, so large offsets can be slow. Only the requested range is retained in memory.
+
+**Signature:**
+```tl
+read: function(self: Content, filename: string, offset: integer, length: integer): string
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| filename | string | The file to read. |
+| offset | integer | Nonnegative byte offset, starting from 0. |
+| length | integer | Maximum number of bytes to read; must be nonnegative. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | Binary data, possibly shorter at EOF. Empty for EOF, zero length, invalid arguments or read failure. |
+
+**Usage:**
+```lua
+local header = Content:read("image.png", 0, 24)
+```
+
 ## loadExcel
 
 **Type:** Function.

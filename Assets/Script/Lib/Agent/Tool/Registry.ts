@@ -148,7 +148,7 @@ const AGENT_TOOL_DEFINITION_SOURCES: AgentToolDefinitionSource[] = [
 		name: "read_file",
 		roles: ["main", "sub"],
 		workModes: ["code", "plan"],
-		description: "Read one file range or an ordered batch of independent file ranges from the workspace, built-in documents, or the virtual engine log.",
+		description: "Read one file range or an ordered batch of independent file ranges from the workspace, built-in documents, or the virtual engine log. Binary content is rejected; supported game assets also return header-derived metadata.",
 		parameters: READ_FILE_PARAMETERS,
 		modelInputSchema: context => ({
 			...createInputSchemaFromParameters(READ_FILE_PARAMETERS, context),
@@ -173,7 +173,8 @@ const AGENT_TOOL_DEFINITION_SOURCES: AgentToolDefinitionSource[] = [
 			"Batch ranges are independent and ordered. A failed read remains in results and does not discard successful reads.",
 			"startLine defaults to 1. If endLine is omitted, read at most 300 lines from the resolved starting line (start + 299), capped at EOF. Negative indices count backward from EOF; explicit endLine=-1 reads through EOF. Line 0 is invalid.",
 			"Read @dora_full_logs.txt to inspect the current Dora engine log snapshot; it is a read-only virtual path, not a workspace file.",
-		"Use analyze_image to inspect PNG/JPEG images through the configured vision service; read_file is for text.",
+			"Binary reads remain failures (success=false, isBinary=true) and never return raw content. Supported PNG/JPEG/GIF/BMP/WebP, WAV/FLAC/Ogg Vorbis/Opus and GLB assets may include metadata such as dimensions, audio parameters/duration, or model counts. Missing fields are unknown; header metadata does not verify rendering, playback or asset integrity.",
+			"Use analyze_image to inspect PNG/JPEG appearance through the configured vision service; binary metadata alone is not visual inspection.",
 			"Paths returned by search_dora_doc are authoritative built-in documentation paths and can be read directly without modifying them.",
 		],
 		parallelSafe: true,

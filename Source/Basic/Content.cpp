@@ -161,6 +161,35 @@ std::string Content::loadStr(String filename) {
 	return loadInMainUnsafe(filename);
 }
 
+std::string Content::read(String filename, int64_t offset, int64_t length) {
+	if (filename.empty() || offset < 0 || length <= 0) return {};
+	std::string result;
+	_thread->runInMainSync([&]() {
+		auto resolved = getFullPathAndPackage(filename);
+		if (resolved.zipFile) {
+			result = resolved.zipFile->getFileDataRange(resolved.zipRelativePath, offset, length);
+			return;
+		}
+#if BX_PLATFORM_ANDROID
+		if (isAndroidAsset(resolved.fullPath)) {
+			result = _apkFile->getFileDataRange(getAndroidAssetName(resolved.fullPath), offset, length);
+			return;
+		}
+#endif
+		if (resolved.fullPath.empty()) return;
+		SDL_RWops* io = SDL_RWFromFile(resolved.fullPath.c_str(), "rb");
+		if (!io) return;
+		DEFER(SDL_RWclose(io));
+		const auto size = SDL_RWsize(io);
+		if (size < 0 || offset >= size || SDL_RWseek(io, offset, RW_SEEK_SET) != offset) return;
+		const auto count = s_cast<uint64_t>(std::min<int64_t>(length, size - offset));
+		if (count > result.max_size()) return;
+		result.resize(s_cast<size_t>(count));
+		if (SDL_RWread(io, result.data(), 1, result.size()) != result.size()) result.clear();
+	});
+	return result;
+}
+
 const bgfx::Memory* Content::loadBX(String filename) {
 	int64_t size = 0;
 	uint8_t* data = loadInMainUnsafe(filename, size);
