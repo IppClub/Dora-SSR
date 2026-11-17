@@ -383,6 +383,7 @@ const AGENT_TOOL_DEFINITION_SOURCES: AgentToolDefinitionSource[] = [
 			{ name: "title", type: "string", description: "Spawn form: short tab title for the sub agent. Required when prompt is present; ignored otherwise." },
 			{ name: "expectedOutput", type: "string", description: "Spawn form: optional expected result summary." },
 			{ name: "filesHint", type: "array", items: { type: "string" }, description: "Spawn form: optional likely files or directories involved." },
+			{ name: "agentType", type: "string", enum: ["audio", "visual", "level", "test", "general"], description: "Spawn form: optional agent specialization type. Determines the UI icon/color and hints at which skill to load. Defaults to general." },
 			{ name: "status", type: "string", enum: ["active_or_recent", "running", "done", "failed", "all"], description: "List form: optional status filter. Defaults to active_or_recent." },
 			{ name: "limit", type: "number", description: "List form: maximum number of items to return. Defaults to 5." },
 			{ name: "offset", type: "number", description: "List form: offset for paging older items." },

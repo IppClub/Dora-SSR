@@ -53,9 +53,17 @@ export function AgentPanel({state, onLoadHistory, loadingHistory = false, connec
   const messages=state?state.messages.orderedIds.map(id=>state.messages.byId.get(id)!):[];
   const steps=state?state.steps.orderedIds.map(id=>state.steps.byId.get(id)!):[];
   const timeline=useAgentTimeline(messages,steps,currentTaskId);
-  const messageView=(message:typeof messages[number])=>message.role==='user'?<SharedAgentUserMessage key={`message-${message.id}`} message={message}/>:<article key={`message-${message.id}`} className={`agent-message ${message.role}`}><header>Dora Agent</header><SharedAgentMarkdown content={message.displayContent ?? message.content}/></article>;
-  return <aside className="agent-pane" aria-label="Dora Agent">
-    <div className="pane-header"><h2><span>✦</span> Dora Agent</h2><span className="badge">{state?.deleted ? '会话已删除' : active ? connection === 'closed' ? '已断开' : connection === 'resync-required' ? '待同步' : statuses[state.session.status] ?? state.session.status : '待接入'}</span></div>
+  const agentTypeMeta:Record<string,{icon:string;label:string}>={
+  audio:{icon:'🎵',label:'音频设计师'},
+  visual:{icon:'🎨',label:'视觉设计师'},
+  level:{icon:'🗺️',label:'关卡设计师'},
+  test:{icon:'🧪',label:'测试工程师'},
+  general:{icon:'✦',label:'Agent'},
+};
+const agentType=(()=>{try{const t=(state.session as any).agentType;return agentTypeMeta[t]??agentTypeMeta.general}catch{return agentTypeMeta.general}})();
+const messageView=(message:typeof messages[number])=>message.role==='user'?<SharedAgentUserMessage key={`message-${message.id}`} message={message}/>:<article key={`message-${message.id}`} className={`agent-message ${message.role}`}><header>{agentType.icon} {agentType.label}</header><SharedAgentMarkdown content={message.displayContent ?? message.content}/></article>;
+  return <aside className={`agent-pane agent-kind-${state.session.kind} agent-type-${(state.session as any).agentType||"general"}`} aria-label="Dora Agent">
+    <div className="pane-header"><h2><span>{agentType.icon}</span> {agentType.label}</h2><span className="badge">{state?.deleted ? '会话已删除' : active ? connection === 'closed' ? '已断开' : connection === 'resync-required' ? '待同步' : statuses[state.session.status] ?? state.session.status : '待接入'}</span></div>
     {controls}
     {!active ? <div className="agent-body"><div className="agent-mark">✦</div><h2>{state?.deleted ? '这个会话已删除' : '和你的想法一起成长'}</h2><p>描述玩法、调整细节，<br/>让 Agent 帮你把游戏做出来。</p><div className="agent-note">当前版本尚未连接 Agent 服务，不会调用模型或产生模型费用。</div></div> :
       <div className="agent-transcript-wrap"><div ref={transcript} className="agent-transcript" aria-label="Agent 会话记录" onScroll={event=>{const atBottom=isAgentTranscriptAtBottom(event.currentTarget);followTail.current=atBottom;setShowLatest(!atBottom);}}>
