@@ -1,3 +1,7 @@
+import DocScreenshot from '@site/src/components/DocScreenshot';
+import logImage from '@site/static/img/operations/log-zh.webp';
+import profilerImage from '@site/static/img/operations/profiler-zh.webp';
+
 # 使用日志面板和性能分析面板
 
 Dora SSR 的 Web IDE 内置了日志面板和性能分析面板。日志面板用于查看运行时输出，性能分析面板用于观察帧耗时、渲染开销、资源加载耗时、对象数量和内存占用。脚本无法运行、资源加载失败，或游戏在新增内容后变卡时，这两个面板通常是第一处排查入口。
@@ -7,6 +11,8 @@ Dora SSR 的 Web IDE 内置了日志面板和性能分析面板。日志面板�
 点击 Web IDE 工具栏的终端图标「查看日志」。工具栏在桌面宽屏下位于右下角，紧凑布局下位于顶部。也可按 `Ctrl + .`（macOS 为 `⌘ + .`）。构建或运行报错的提示消息中，也可能出现「查看日志」链接，点击可打开同一个面板。
 
 面板会显示当前日志流。带有 `[error]`、`[warning]` 或 `[info]` 的日志会被高亮，日志区域支持选择文本，也支持在当前日志中搜索。
+
+<DocScreenshot src={logImage} width={2120} height={1290} alt="日志面板：输出、搜索、命令行、性能切换、重载和清空" />
 
 ## 2. 清空、重载和保存日志
 
@@ -45,12 +51,16 @@ App.targetFPS = 60
 性能分析面板分为几个区域：
 
 - **Basic**：渲染器名称、是否启用多线程渲染、后备缓冲区尺寸、Draw Call、三角形数量、线段数量、可视区域尺寸、VSync、FPS 限制、目标 FPS、当前 FPS 和固定更新 FPS。
-- **Time**：平均 CPU 耗时和 GPU 耗时，单位是毫秒。帧耗时曲线会把 CPU、GPU、Delta 时间和目标帧率基准线放在一起比较。60 FPS 的基准线约为 `16.67 ms`；超过基准线表示这一帧可能无法达到目标帧率。
+- **Time**：最近一秒内每帧平均 CPU 和 GPU 耗时，单位是毫秒。帧耗时峰值曲线按秒汇总 CPU、GPU、Delta 的峰值，并与目标帧率基准线比较。60 FPS 的基准线约为 `16.67 ms`；超过基准线表示这一帧可能无法达到目标帧率。
 - **Object**：C++ 对象、Lua 对象、Lua 回调、纹理、字体和音频资源数量。离开场景后这些数量仍持续增长时，可能存在节点、回调或缓存资源没有释放的问题。
 - **Memory**：内存池、Lua、Teal、Wasm、纹理、字体和音频内存占用。加载场景或切换大资源时，可以观察这里是否出现异常增长。
 - **Loader Time Costs**：资源或模块加载耗时表，包含顺序、耗时、深度和模块名。按 **Time** 排序可以找出加载最慢的模块或资源。Depth 表示嵌套加载层级；表格上方还会汇总顶层加载耗时。
 
 性能分析面板也可以直接调整 `App.targetFPS`、`Director.scheduler.fixedFPS`、`View.vsync` 和 `App.fpsLimited`。排查性能问题时，建议先固定目标帧率，再比较不同场景或修改前后的数据。
+
+<DocScreenshot src={profilerImage} width={2120} height={1290} alt="性能面板：基础信息、CPU 和 GPU 耗时、对象数量与内存占用" />
+
+先看当前帧率，再比较平均 CPU/GPU 耗时与帧耗时峰值；向下滚动性能区域，可查看加载耗时表。修改资源后重新运行场景，再按 Time 排序查找慢加载项。面板中的对象数量和内存会受缓存影响，单次增长不能直接判定为泄漏。
 
 ## 5. 常见问题
 

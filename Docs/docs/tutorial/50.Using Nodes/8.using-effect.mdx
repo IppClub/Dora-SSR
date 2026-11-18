@@ -1,3 +1,8 @@
+import DocScreenshot from '@site/src/components/DocScreenshot';
+import particleImage from '@site/static/img/operations/particle-overview-en.webp';
+import particleFieldsImage from '@site/static/img/operations/particle-fields-en.webp';
+import particleRunImage from '@site/static/img/operations/particle-runtime.webp';
+
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
@@ -6,6 +11,8 @@ import TabItem from '@theme/TabItem';
 ## 1. Introduction
 
 In game development, effects are crucial elements that enhance the visual experience. They can enrich the game's atmosphere, highlight key events, and provide instant visual feedback. This tutorial will introduce how to use the Effekseer effect system in the Dora SSR engine, as well as how to utilize the engine's built-in Particle system.
+
+For `.par` authoring steps and screenshots, jump to the [particle editor walkthrough](#43-edit-particles-in-the-web-ide).
 
 ## 2. What is Effekseer?
 
@@ -601,12 +608,42 @@ particle\start!
 </TabItem>
 </Tabs>
 
-### 4.3 Customizing Particle Effects
+### 4.3 Edit particles in the Web IDE
 
-Due to the limited functionality of the `Particle` class, if you need to use it, you might need to modify the engine's particle system editor example (named "Particle"), which is built on the ImGui framework, to create your own particle editor to meet artistic production needs. The `.par` files used in Dora SSR's particle system are essentially XML formatted text files, and you can refer to the editor code for how to generate and export them.
+[Download the resource editor examples](@site/static/files/resource-editors-demo.zip), upload and unzip them in Workspace, and open `ResourceLab/fire.par`. The saved example uses the Magic preset. To create your own resource, right-click a project folder and choose **New → Dora Particle**.
+
+1. Open the `.par` file to enter the particle editor.
+2. Choose a preset on the right, such as **Fire** or **Magic**, as a starting point. Applying a preset changes the particle settings; save when you want to keep them.
+3. Adjust **Emission**, **Max**, **Life**, and **Life Var** under General. For example, reduce Emission to `90` and compare particle density in the preview.
+4. Use **Pause/Play** to inspect motion and **Restart** to begin again. These controls affect the editor preview.
+
+<DocScreenshot src={particleImage} width={2400} height={1600} alt="Particle editor with presets, live preview and General settings" />
+
+Scroll down inside the right panel for more controls:
+
+- **Color** and **Size / Rotation** change color, fade, size, and spin over a particle's lifetime.
+- **Texture** selects the image; use **…** to browse resources. An empty texture uses the default particle texture. Keep custom texture files with the project.
+- **Emitter → Gravity / Radius** selects the motion model. Adjust its speed, acceleration, or radius settings and compare the preview.
+
+<DocScreenshot src={particleFieldsImage} width={660} height={1360} alt="Particle texture, blending and Gravity emitter controls" maxWidth={450} />
+
+Save with `Ctrl+S` (`⌘+S` on macOS), wait for the tab's asterisk to disappear, and reopen the file to confirm the settings. A `.par` is an XML resource; **Open as text** is available when you need to inspect the saved data.
+
+Run the containing project to check the effect in the engine. The included `ResourceLab/init.lua` uses:
+
+```lua
+local Dora = require("Dora")
+local particle = Dora.Particle("fire.par")
+particle.scaleX = 3
+particle.scaleY = 3
+particle:addTo(Dora.Director.entry)
+particle:start()
+```
+
+<DocScreenshot src={particleRunImage} width={1200} height={850} alt="The saved particle resource running in a Dora scene" maxWidth={600} caption="The entry script scales this effect by 3 for the runtime preview." />
+
+Save resource changes before running the project again. A `.par` cannot be executed with Run This; it is loaded by the project's script.
 
 ## 5. Conclusion
 
-This article introduced how to use the Effekseer effect system in the Dora SSR engine. With the `EffekNode` class, developers can easily load and control various complex effects in their games. We also mentioned the legacy `Particle` class.
-
-Effekseer provides powerful support for the creation and management of game effects, and it is generally recommended to use Effekseer for new projects to handle effects. We hope this tutorial helps you quickly get started with the effect system in Dora SSR and create stunning game effects.
+Use `EffekNode` for effects authored in Effekseer and `Particle` for `.par` resources. Author `.par` effects in the Web IDE particle editor, save them, then check them in the game scene.

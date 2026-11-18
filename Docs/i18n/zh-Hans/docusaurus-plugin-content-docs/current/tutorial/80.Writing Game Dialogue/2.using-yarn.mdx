@@ -1,3 +1,6 @@
+import DocScreenshot from '@site/src/components/DocScreenshot';
+import yarnTesterImage from '@site/static/img/operations/yarn-tester-zh.webp';
+
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
@@ -467,16 +470,20 @@ Yarn 脚本通常会在剧情仍然变化时反复修改。Dora SSR 提供了两
 
 ### 6.2 使用 Yarn Tester 运行文件
 
-保存 `.yarn` 文件后，可以从 Dora SSR 的开发工具中打开 **Yarn Tester**。测试器会扫描可写项目路径下所有以 `.yarn` 结尾的文件。如果测试器已经打开后才新增 Yarn 文件，请重新加载测试器，让文件列表重新扫描。
+保存 `.yarn` 文件后，可以点击 Web IDE 左上角**项目 / 工具 → 工具 → YarnTester**，打开 Yarn 测试工具。测试器会扫描可写项目路径下所有以 `.yarn` 结尾的文件。如果打开测试器后才新增 Yarn 文件，请停止工具，再重新打开 YarnTester，扫描文件列表。界面中的**重载**仅重新开始当前对话，不会重新扫描文件。
 
 在 Yarn Tester 中：
 
-- 使用 **Filter** 缩小文件列表。
-- 使用 **File** 选择要运行的 `.yarn` 文件。
-- 修改并保存文件后，点击 **Reload** 重新创建 runner。
+- 使用 **筛选** 缩小文件列表。
+- 使用 **文件** 选择要运行的 `.yarn` 文件。
+- 修改并保存文件后，点击 **重载** 重新创建 runner。
 - 测试器会从 `Start` 节点开始运行。
 - 文本会显示在滚动区域中，选项会显示为编号选择，命令会显示为 `[command]: commandName args`。
-- **Variables** 区域会显示 runner 的状态。测试模式下，初始变量可以从 Yarn 文件开头的 `// variables:` 注释中读取。
+- **变量** 区域会显示 runner 的状态。测试模式下，初始变量可以从 Yarn 文件开头的 `// variables:` 注释中读取。
+
+<DocScreenshot src={yarnTesterImage} width={2200} height={1520} alt="Yarn 测试工具中的编号分支、文件选择、重载和 coins 变量" />
+
+点击底部编号按钮选择对应分支；普通文本用 **Next** 继续。示例中 `coins` 的初始值为 `3`，可在右侧变量区确认。文件修改并保存后，点击**重载**从头测试；使用内嵌 Web IDE 时，点击左侧 **IDE** 标签返回编辑器。
 
 ### 6.3 常见错误现象
 
@@ -488,7 +495,7 @@ Yarn 脚本通常会在剧情仍然变化时反复修改。Dora SSR 提供了两
 
 **需要选择却直接继续**：如果剧情正在等待玩家选择，但代码调用了不带参数的 `advance()`，runner 会返回 `required a choice to continue`。此时应保持选项 UI，直到玩家选择一个可用分支。
 
-**脚本语法错误**：无效 Yarn 语法会被编辑器检查发现，或在 Yarn Tester 重新加载文件时出现。在 Yarn Tester 中，加载失败会显示 `failed to load file ...`，后面跟着编译器错误。优先修复报错节点和报错行，保存文件后再点击 **Reload**。
+**脚本语法错误**：无效 Yarn 语法会被编辑器检查发现，或在 Yarn Tester 重新加载文件时出现。在 Yarn Tester 中，加载失败会显示 `failed to load file ...`，后面跟着编译器错误。优先修复报错节点和报错行，保存文件后再点击 **重载**。
 
 ### 6.4 运行时错误行号如何映射回 Yarn 文本
 

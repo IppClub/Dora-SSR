@@ -1,9 +1,13 @@
+import DocScreenshot from '@site/src/components/DocScreenshot';
+import atlasMenuImage from '@site/static/img/operations/atlas-menu-en.webp';
+import atlasResultImage from '@site/static/img/operations/atlas-result-en.webp';
+
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
 # Packing Sprite Images with TexturePacker
 
-TexturePacker is a built-in Dora SSR tool for turning many small image files into one texture atlas. The tool follows the same rule shown in its in-app tooltip: put image files in a folder whose name ends with `.clips`, reload the TexturePacker tool so it can find that folder, and generate a packed `.png` image plus a matching `.clip` description file.
+TexturePacker combines small images into a texture atlas. Put the images in a folder ending in `.clips`, then choose **Pack Atlas** in the Web IDE resource tree to generate a `.png` image and `.clip` description. You can also use the built-in TexturePacker tool.
 
 For example, a folder named `items.clips` is packed into `items.png` and `items.clip`. The `.png` stores the combined atlas image, and the `.clip` stores the names and rectangles of the original images so `Sprite` can load them later.
 
@@ -31,11 +35,13 @@ The image name without the extension becomes the clip name. In the example above
 
 ## 2. Generate `.png` and `.clip`
 
-Open the TexturePacker tool from Dora SSR's development tools. If your `.clips` folder was created after the tool opened, reload TexturePacker so the folder list is scanned again.
+1. Right-click the `.clips` folder in the resource tree (touch and hold on a touchscreen), then choose **Pack Atlas**.
+2. Wait for the success message, then find the matching `.png` and `.clip` beside the folder.
+3. Click the generated `.png` to check that all images were packed. Pack again after changing the source images.
 
-Then select the folder and click `Generate Clip`.
+<DocScreenshot src={atlasMenuImage} width={1100} height={1150} alt="Right-click items.clips and choose Pack Atlas" maxWidth={600} />
 
-Alternatively, right-click the `.clips` folder in the Web IDE resource tree (or touch and hold) and select **Pack Atlas** to generate the matching `.png` and `.clip` files alongside it.
+Alternatively, open **Projects / Tools → Tools → TexturePacker** in the upper-left corner, select the directory, and choose **Generate Clip**. Reload the tool if you created the `.clips` directory after opening it.
 
 ```text
 Image/
@@ -48,6 +54,8 @@ Image/
 ```
 
 TexturePacker adds padding around each image, packs the images into a render target, saves the atlas as `items.png`, and writes the clip metadata as `items.clip`.
+
+<DocScreenshot src={atlasResultImage} width={1700} height={850} alt="Generated items.png preview beside items.clip and the source items.clips folder" caption="This example packs two Dora images; each clip takes its name from its source filename." />
 
 ## 3. Use the Atlas with `Sprite`
 

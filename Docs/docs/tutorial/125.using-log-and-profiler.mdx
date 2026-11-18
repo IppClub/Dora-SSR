@@ -1,3 +1,7 @@
+import DocScreenshot from '@site/src/components/DocScreenshot';
+import logImage from '@site/static/img/operations/log-en.webp';
+import profilerImage from '@site/static/img/operations/profiler-en.webp';
+
 # Using the Log and Profiler Panels
 
 Dora SSR's Web IDE includes a log panel for checking runtime output and a profiler panel for watching frame time, rendering cost, resource loading time, object counts, and memory usage. Together they are useful when a script does not run, a resource fails to load, or a game becomes slow after adding new content.
@@ -7,6 +11,8 @@ Dora SSR's Web IDE includes a log panel for checking runtime output and a profil
 Click the terminal icon (**View Log**) in the Web IDE toolbar. The toolbar is at the bottom right on wide desktop layouts and at the top in compact layouts. You can also press `Ctrl + .` (`⌘ + .` on macOS). When a build or runtime error is reported by the IDE, the alert message can also include a **View Log** link that opens the same panel.
 
 The panel shows the active log stream. Log entries marked with `[error]`, `[warning]`, or `[info]` are highlighted, and the log view supports selecting text and searching inside the visible log.
+
+<DocScreenshot src={logImage} width={2120} height={1290} alt="Log panel with output, search, command line, profiler toggle, Reload and Clear" />
 
 ## 2. Clear, Reload, and Save Logs
 
@@ -45,12 +51,16 @@ Use the **Performance** or **Log** button at the bottom of the log panel to swit
 The profiler is split into several areas:
 
 - **Basic**: renderer name, whether multi-threaded rendering is enabled, back buffer size, draw calls, triangles, lines, visual size, VSync, FPS limit, target FPS, current FPS, and fixed update FPS.
-- **Time**: average CPU time and GPU time in milliseconds. The frame-time chart compares CPU, GPU, and delta time against the target-frame baseline. For 60 FPS, the baseline is about `16.67 ms`; values above the baseline mean the frame may miss the target.
+- **Time**: average CPU and GPU time per frame over the last second, in milliseconds. The frame-time peak chart summarizes CPU, GPU, and delta peaks each second against the target-frame baseline. For 60 FPS, the baseline is about `16.67 ms`; values above the baseline mean the frame may miss the target.
 - **Object**: counts for C++ objects, Lua objects, Lua callbacks, textures, fonts, and audio resources. Rising counts after leaving a scene may indicate leaked nodes, callbacks, or cached resources.
 - **Memory**: memory pool, Lua, Teal, Wasm, texture, font, and audio memory. Watch these while loading scenes or swapping large assets.
 - **Loader Time Costs**: resource/module loading cost rows with order, time, depth, and module name. Sort by **Time** to find slow modules and large resource loads. Depth shows nested load relationships; top-level rows are also summed above the table.
 
 The profiler also lets you change `App.targetFPS`, `Director.scheduler.fixedFPS`, `View.vsync`, and `App.fpsLimited` from the panel. Use these controls to compare performance under the same target frame rate.
+
+<DocScreenshot src={profilerImage} width={2120} height={1290} alt="Profiler showing Basic, CPU and GPU time, object counts and memory" />
+
+Start with Current FPS, then compare average CPU/GPU time and frame-time peaks. Scroll down inside the profiler area for Loader Time Costs. Rerun the scene after changing resources, then sort by Time to find slow loads. Caches affect object and memory counts, so a single increase does not establish a leak.
 
 ## 5. Common Problems
 

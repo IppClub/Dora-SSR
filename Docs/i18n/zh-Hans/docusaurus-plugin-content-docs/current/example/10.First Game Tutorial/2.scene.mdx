@@ -30,6 +30,12 @@ dodge_the_creeps
 
 ---
 
+## 开始前：准备同一个游戏工程
+
+新建一个 **TSX** 项目，命名为 `dodge_the_creeps`。后续章节在它的 `init.tsx` 中逐步添加或替换对应函数；局部代码块不是每次都用来替换整个文件。
+
+从[完整示例工程](https://github.com/IppClub/Dora-Demo/tree/main/Dodge%20the%20Creeps)获取 `Image`、`Audio` 和 `Font` 目录，放到项目根目录，与 `init.tsx` 并列。保留 `Image/art.clip`、`Image/art.png`、音频和字体文件的原名，后面的代码会按这些路径加载。也可以先按[仓库导入指南](../../tutorial/19.import-project.mdx)导入 Dora-Demo，再查看其中的 Dodge the Creeps 工程。
+
 ## 1. 场景与节点的基本概念
 
 &emsp;&emsp;在游戏开发中，“场景”是游戏的一部分，例如主菜单场景、游戏场景和结束场景。场景中包含的元素被称为“节点”，它们可以是精灵、物理物体、标签等。

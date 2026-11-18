@@ -1,0 +1,113 @@
+import DocScreenshot from '@site/src/components/DocScreenshot';
+import inputImage from '@site/static/img/operations/import-input-en.webp';
+import progressImage from '@site/static/img/operations/import-progress-en.webp';
+import readyImage from '@site/static/img/operations/import-ready-en.webp';
+import gitInput from '@site/static/img/operations/git-clone-input-en.webp';
+import gitProgress from '@site/static/img/operations/git-clone-progress-en.webp';
+import gitReady from '@site/static/img/operations/git-clone-ready-en.webp';
+import goEntry from '@site/static/img/operations/go-import-entry-en.webp';
+import goPreview from '@site/static/img/operations/go-import-preview-en.webp';
+import goReady from '@site/static/img/operations/go-import-ready-en.webp';
+
+# Get Projects: Import and Clone
+
+Choose the entry that matches what you have. A repository link, a Go-mode game package, and the Web IDE Git panel follow different workflows.
+
+<div style={{maxWidth: '100%', overflowX: 'auto'}}>
+
+| Entry | Use it for | What happens |
+| --- | --- | --- |
+| **Web IDE → Git → Clone Repository** | Clone a Git repository while working in the IDE. | Clone into a subdirectory of the selected location, then open it in the current IDE. |
+| **Go Mode → Import package / Discover** | Import a local game ZIP, or install a catalog game. | Add/install the game for local play and Remix. |
+| **`dora-ssr://open?repo=…`** | Open a shared public repository link from a browser or another app. | Launch Dora's dedicated repository importer and start downloading and verifying the project. |
+
+</div>
+
+## Clone a repository in the Web IDE
+
+### Open Git and fill in the clone form
+
+1. Right-click **Workspace** or a destination folder and choose **Upload** to open its workspace page.
+2. Select **Git** beside **Files**. A location that is not already a Git repository shows **Repository Setup → Clone Repository**.
+3. Enter **Clone URL** and **Target folder**. For this example, use `https://github.com/IppClub/Dora-Example` and `Dora-Example`.
+4. Leave **Branch** empty to use the remote's default branch. **Depth** is optional: enter `1` for a shallow clone, or leave it empty for full history.
+
+<DocScreenshot src={gitInput} width={2400} height={1600} alt="Web IDE Git clone form with repository URL, target folder, and depth 1" />
+
+The target folder is created under the directory shown at the top of this page. An existing non-empty target is rejected; choose another folder name. If the selected directory is already a repository, its Git management view appears instead. Return to its parent or another destination to clone a new repository.
+
+### Clone and wait
+
+Select **Clone Repository**. The Git task displays the command and progress; **Cancel** stops the task. On failure, read the task output, check the URL and network, and check whether a partial target directory remains before retrying.
+
+<DocScreenshot src={gitProgress} width={2400} height={1600} alt="Web IDE Git clone task running with progress and Cancel" />
+
+### Check the opened repository
+
+On success, the cloned directory opens in the **current IDE**, with its branch, remote, and local changes visible in Git. Switch to **Files** or expand the folder in the left tree to inspect the project. Cloning does not run code or check for a Dora `init` entry; choose a runnable Dora project and build it if needed before selecting **Run**.
+
+<DocScreenshot src={gitReady} width={2400} height={1600} alt="Dora-Example opened in the current IDE after cloning, with its Git branch and remote" />
+
+## Import or install a game in Go Mode
+
+### Choose a local package
+
+In **Go Mode**, select **Local → + New → Import package**, then choose a ZIP game package in the file picker. A ZIP saved using another game's **Share game → Save package** can be imported here.
+
+<DocScreenshot src={goEntry} width={860} height={1600} alt="Go Mode Local page with Add game and Import package" maxWidth={360} />
+
+### Inspect and import
+
+Dora checks the ZIP and shows the game title and package size. Choose **Import & play** to install and start the game, or **Import** to install without starting it. The example below imports a small `Hello.zip` project.
+
+<DocScreenshot src={goPreview} width={860} height={1600} alt="Go Mode package preview offering Import and play or Import" maxWidth={360} />
+
+The package must contain a runnable `init` entry at its root or inside a single top-level folder. A source-only TypeScript/TSX project must be built in Dora before packaging. If inspection fails, read the message and choose a corrected ZIP; a Web export ZIP is not a source game package.
+
+### Play or Remix the imported game
+
+After **Import**, the game appears in **Local**. Select **Play** to run it, or **Remix game** to continue editing. Importing a game with the same folder name creates a numbered folder, preserving the existing game.
+
+<DocScreenshot src={goReady} width={860} height={1600} alt="Imported Hello game in Go Mode Local, ready to Play or Remix" maxWidth={360} />
+
+In **Discover**, a locally installable catalog game's Play or Remix action downloads and prepares its resource first. Web-play cards open the online game. See [Go / Mobile UI and Remix](./15.mobile-ui.mdx) for the full workflow. To import a ZIP using the Web IDE file tree instead, see [Upload and Unzip](./18.web-ide.mdx#add-resources-or-import-a-project).
+
+## Open a repository link
+
+```text
+dora-ssr://open?repo=https%3A%2F%2Fgithub.com%2FIppClub%2FDora-Example
+```
+
+Allow the browser to open Dora when prompted. Dora then enters the dedicated importer and **automatically starts** the repository import. This does not click Clone in the Web IDE or import a Go-mode ZIP package. After verification, choose where to open the imported project.
+
+Desktop registration is provided by the installed app or package; on portable Windows, use the accompanying `RegisterDoraLinks.cmd`. Android also supports these links. If a link does not launch Dora, open the dedicated importer manually as described below.
+
+## Use the dedicated repository importer manually
+
+The following screenshots show the tool running in the Dora application. They are not screenshots of the Web IDE Git panel. Opening **Projects / Tools → Tools → Import repository** starts this separate tool even though its launch button is in the IDE.
+
+### Enter an address
+
+In the Web IDE, select **Projects / Tools → Tools → Import repository** in the upper-left corner. Enter the repository's public HTTPS address, or select **Paste repository URL**, then choose **Import**.
+
+Use an address such as `https://github.com/IppClub/Dora-Example`. GitHub, AtomGit, Gitee, and GitCode repository addresses are supported. Paste the repository root rather than a file, branch, or directory URL.
+
+<DocScreenshot src={inputImage} width={1120} height={1000} alt="Repository importer with a public repository URL entered and Import ready" maxWidth={650} />
+
+### Download and verify
+
+The tool shows cloning and resource verification progress. Keep Dora open until **Project imported** appears. The repository needs a Dora `init` entry; a source-only TypeScript project may still need to be built in the IDE before running.
+
+<DocScreenshot src={progressImage} width={1120} height={1000} alt="Repository cloning progress with a Cancel button" maxWidth={650} />
+
+- **Cancel** stops the current import. An unfinished checkout is not installed as a completed project.
+- If importing fails, use **Show details** to read the reason. Check the address and network connection, then choose **Retry**.
+- Importing the same previously completed repository reuses its existing directory and preserves local edits. It does not automatically pull new commits.
+
+### Choose where to open the result
+
+When the source is ready, select **Open in embedded IDE** or **Open in browser IDE**. If several IDE sessions are connected, choose the one you want to use. Selecting **Done** closes the importer without opening the project in another session. If no IDE is connected, **View project** returns to the launcher and reveals the project entry.
+
+<DocScreenshot src={readyImage} width={1120} height={1000} alt="Project imported successfully, with choices for opening it in connected IDE sessions" maxWidth={650} />
+
+Opening the project does not run its code. In the IDE, open the entry file, build if needed, then select **Run** when you are ready. For a repository containing multiple examples, choose the particular example project you want to run.

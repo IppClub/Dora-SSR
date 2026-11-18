@@ -1,0 +1,74 @@
+import DocScreenshot from '@site/src/components/DocScreenshot';
+import filesImage from '@site/static/img/operations/menu-en.webp';
+import uploadImage from '@site/static/img/operations/upload-en.webp';
+import exportImage from '@site/static/img/operations/export-en.webp';
+import modelsImage from '@site/static/img/operations/models-en.webp';
+
+# Web IDE: Everyday Operations
+
+After [Quick Start](./10.quick-start.mdx), use this page to add resources, run a project, export it, and configure Dora Agent.
+
+## Find files and open the file menu
+
+Select **Explorer** in the upper-left corner. Expand **Workspace**, then your project folder. Right-click a file or folder (touch and hold on a touchscreen) to open its menu.
+
+- **New** creates a file or folder inside the selected folder. To create a runnable project, choose **Folder**, enable **Create as Project**, and select a language.
+- **Rename** changes the selected item's name; update any code that uses its old path.
+- **Copy Path** copies its path for use in code or commands.
+- Click a file to edit it. Save with `Ctrl+S` (`⌘+S` on macOS); an asterisk in the tab means there are unsaved changes.
+
+<DocScreenshot src={filesImage} width={1200} height={1100} alt="Project folder context menu with New, Rename, Upload and Export" />
+
+For entry files and module lookup rules, see [Project Management](./100.project-management.mdx).
+
+## Add resources or import a project
+
+1. Right-click the **destination folder** and choose **Upload**. Its **Files** tab opens.
+2. Under **Upload Local Files**, select files or drag them into the upload area. Wait for the upload to finish, then check the resource tree.
+3. To import a ZIP project, upload the `.zip`, right-click it in the tree, and choose **Unzip**. Expand the extracted folder and open its entry file.
+
+The same page offers **Download Network Resource** for a resource URL and **Create Text File** for pasted text. Uploaded files are stored on the device running Dora, including when you connect from another device's browser.
+
+<DocScreenshot src={uploadImage} width={2200} height={1350} alt="Files page with local upload, network download and text file creation" />
+
+For public Git repositories, see [Git clone and other project import entries](./19.import-project.mdx#clone-a-repository-in-the-web-ide).
+
+## Run the project or just one file
+
+Hover over a toolbar icon to see its name. The toolbar appears along the bottom in wide layouts and at the top in compact layouts.
+
+| Action | Use it for |
+| --- | --- |
+| **Run** | Start the current file's project through its `init` entry. When selecting a project folder, run that folder's entry. |
+| **Run This** | Execute the current runnable file directly, such as a small preview script. It does not accept a folder. |
+| **Stop** | Stop the current run, then edit and run again. |
+| **Build** | Compile supported project sources and check build errors before running or exporting. |
+
+For example, with `preview.lua` open inside a project, **Run** starts the project's `init.lua`; **Run This** starts `preview.lua`. Save your edits before either action. If the run fails, open **View Log** and follow [Log and Profiler](./125.using-log-and-profiler.mdx).
+
+On Windows/macOS, a successful run switches the application window to the game. Select the left **IDE** tab to return. With an external browser, keep Dora open to see the game there.
+
+## Export a project
+
+Right-click the project folder and choose **Export**, or open a project file and use the toolbar's **Export** button. Choose the format for your next step:
+
+| Format | Result |
+| --- | --- |
+| **Export ZIP** | A project archive for backup or sharing with another Dora user. |
+| **Export obfuscated ZIP** | An archive with supported sources compiled and obfuscated. |
+| **Export HTML** | A ZIP containing a Web game; extract everything, then open `index.html` directly. |
+| **Export server HTML** | A ZIP containing a Web game to extract and serve over HTTP. |
+
+Web export choices appear for recognized runnable projects. Wait for the download to finish, then test the exported game. See [Packaging Projects](./130.game-app-pack.mdx) for delivery details.
+
+<DocScreenshot src={exportImage} width={1080} height={1120} alt="Project export dialog with ZIP, obfuscated ZIP, HTML and server HTML choices" />
+
+## Configure Dora Agent
+
+Open **LLM Config** from the toolbar. In **Agent Configuration → LLM API**, choose **Add**, select a provider template, and enter your API key. Check the URL and model against your provider's settings before creating the configuration. The **Local Agent** tab is for a supported agent installed on the computer running Dora.
+
+Right-click your project folder and choose **Dora!** to open its conversation. Select the configuration there, choose **Plan** to discuss a change or **Code** to implement it, then send your request. Switching modes alone does not send a request.
+
+<DocScreenshot src={modelsImage} width={1900} height={710} alt="Agent Configuration dialog with LLM API and Local Agent tabs and an Add button" />
+
+For the device-oriented workflow, see [Mobile UI and Remix](./15.mobile-ui.mdx). Specialized tools have their own walkthroughs: [TexturePacker](./50.Using%20Nodes/12.using-texture-packer.mdx), [TIC-80](./50.Using%20Nodes/11.using-tic80-node.mdx), and [Yarn](./80.Writing%20Game%20Dialogue/1.introduction-to-yarn.md).

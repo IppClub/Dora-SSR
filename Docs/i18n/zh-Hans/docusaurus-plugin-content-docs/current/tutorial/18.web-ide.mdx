@@ -1,0 +1,74 @@
+import DocScreenshot from '@site/src/components/DocScreenshot';
+import filesImage from '@site/static/img/operations/menu-zh.webp';
+import uploadImage from '@site/static/img/operations/upload-zh.webp';
+import exportImage from '@site/static/img/operations/export-zh.webp';
+import modelsImage from '@site/static/img/operations/models-zh.webp';
+
+# Web IDE 常用操作
+
+完成[快速开始](./10.quick-start.mdx)后，可以参照本页添加资源、运行项目、导出作品和配置 Dora Agent。
+
+## 找到文件与操作菜单
+
+点击左上角的**资源管理器**，展开**工作空间**和项目文件夹。右键点击文件或文件夹（触屏上长按），即可打开操作菜单。
+
+- **新建**：在选中的文件夹内创建文件或目录。创建可运行的项目时，选择**文件夹**，勾选**创建为项目**，再选择语言。
+- **重命名**：修改名称后，记得同步修改代码中引用的旧路径。
+- **复制路径**：将路径复制到代码或命令中使用。
+- 点击文件即可编辑。按 `Ctrl+S`（macOS 为 `⌘+S`）保存；标签页名称前的星号表示尚有未保存的修改。
+
+<DocScreenshot src={filesImage} width={1200} height={1100} alt="项目文件夹右键菜单：新建、重命名、上传和导出" />
+
+入口文件与模块查找规则见[项目管理](./100.project-management.mdx)。
+
+## 添加资源或导入项目
+
+1. 右键点击**目标文件夹**，选择**上传**，打开该目录的**文件**页。
+2. 在**上传本地文件**中选择文件，或将文件拖入上传区域。等待上传完成，再到资源树中确认。
+3. 导入 ZIP 项目时，先上传 `.zip`，再右键点击它，选择**解压缩**。展开解压后的目录，打开入口文件。
+
+同一页面还提供**下载网络资源**和**创建文本文件**，分别用于导入资源网址和粘贴文本。文件会存到运行 Dora 的设备上；使用另一台设备的浏览器连接时也是如此。
+
+<DocScreenshot src={uploadImage} width={2200} height={1350} alt="文件页：上传本地文件、下载网络资源和创建文本文件" />
+
+导入公开 Git 仓库的流程见[Git 克隆及其他项目获取入口](./19.import-project.mdx#在-web-ide-中克隆-git-仓库)。
+
+## 运行项目或单独运行文件
+
+鼠标停在工具栏图标上可查看名称。宽屏布局的工具栏位于底部，紧凑布局位于顶部。
+
+| 操作 | 用途 |
+| --- | --- |
+| **运行** | 从当前文件所属项目的 `init` 入口启动；选中项目文件夹时，启动该目录的入口。 |
+| **运行文件** | 直接运行当前可执行文件，适合单独预览一个小脚本；不能用于文件夹。 |
+| **停止** | 停止当前运行，修改后可再次启动。 |
+| **编译生成** | 编译支持的项目源码，在运行或导出前检查编译错误。 |
+
+例如，在项目中打开 `preview.lua` 时，**运行**会启动项目的 `init.lua`，**运行文件**会启动 `preview.lua`。操作前先保存。运行失败时，打开**查看日志**，参照[日志与性能分析](./125.using-log-and-profiler.mdx)定位问题。
+
+Windows/macOS 运行成功后，应用窗口会显示游戏，点击左侧 **IDE** 标签可返回编辑。使用外部浏览器时，保持 Dora 应用开启，在应用窗口查看游戏。
+
+## 导出项目
+
+右键点击项目文件夹，选择**导出**；也可以打开项目文件后，点击工具栏的**导出**按钮。按用途选择格式：
+
+| 格式 | 结果 |
+| --- | --- |
+| **导出 ZIP 包** | 项目压缩包，适合备份或分享给其他 Dora 用户。 |
+| **导出混淆代码 ZIP 包** | 对支持的源码进行编译和混淆后打包。 |
+| **导出 HTML** | 包含 Web 游戏的 ZIP；完整解压后直接打开 `index.html`。 |
+| **导出 Server 版 HTML** | 包含 Web 游戏的 ZIP；解压后通过 HTTP 服务发布。 |
+
+识别到可运行项目时，才会显示 Web 导出选项。等待下载完成后，打开导出的游戏确认运行结果。更多交付说明见[项目打包](./130.game-app-pack.mdx)。
+
+<DocScreenshot src={exportImage} width={1080} height={1120} alt="项目导出对话框：ZIP、混淆 ZIP、HTML 和服务器 HTML" />
+
+## 配置 Dora Agent
+
+点击工具栏的 **大模型配置**，在 **Agent 配置 → 大模型 API** 中点击**新增**，选择服务商模板并填写自己的 API Key。创建配置前，按服务商提供的信息核对 URL 和模型名称。**本地 Agent** 标签用于连接运行 Dora 的电脑上已安装且受支持的 Agent。
+
+右键点击项目文件夹，选择 **Dora!**，打开项目会话。选择配置，用**计划**讨论改动，或用**执行**实现改动，再发送需求。单纯切换模式不会发送请求。
+
+<DocScreenshot src={modelsImage} width={1900} height={710} alt="Agent 配置：大模型 API、本地 Agent 标签和新增按钮" />
+
+面向设备的操作流程见[移动界面与 Remix](./15.mobile-ui.mdx)。专用工具另有配图指南：[TexturePacker](./50.Using%20Nodes/12.using-texture-packer.mdx)、[TIC-80](./50.Using%20Nodes/11.using-tic80-node.mdx) 和 [Yarn](./80.Writing%20Game%20Dialogue/1.introduction-to-yarn.md)。

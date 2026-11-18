@@ -371,15 +371,17 @@ fn main () {
 ### Android
 
 1. 在目标设备上下载并安装 [APK](https://github.com/IppClub/Dora-SSR/releases/latest)。
-2. 启动软件，它会显示一个地址，供同一网络内其他设备的浏览器访问。
-3. 在浏览器中打开该地址，即可进入 Web IDE。
+2. 启动后默认进入 Mobile 首页，可通过「本地 → + 新建」创建项目并进入 Remix。
+3. 若要用电脑手写代码，请切换到「传统模式」，再在同一局域网的电脑浏览器中打开显示的服务器地址。
 
 ### Windows
 
-> [!IMPORTANT]
-> 请先安装 Visual Studio 2022 的 X86 [Visual C++ 可再发行组件包](https://learn.microsoft.com/zh-cn/cpp/windows/latest-supported-vc-redist?view=msvc-170)。
+从[发布页](https://github.com/IppClub/Dora-SSR/releases/latest)下载 Windows **x64** 软件包。不带 `-opengl` 的包使用 **D3D12**；如果显卡或驱动无法运行 D3D12 版，可选择 **OpenGL** 版。
 
-下载并解压[软件](https://github.com/IppClub/Dora-SSR/releases/latest)，启动后通过浏览器访问显示的地址。
+- **MSI 安装版**：运行安装程序，再从开始菜单启动 **Dora SSR**。
+- **ZIP 便携版**：将整个压缩包解压到可写目录，再运行 `Dora.exe`，保留随包 DLL 和资源目录。
+
+启动后会自动打开内置 Web IDE，可直接在 Dora SSR 窗口中新建和运行项目。浏览器链接注册等详情见[安装指南](https://dora-ssr.net/zh-Hans/docs/tutorial/quick-start)。
 
 ### macOS
 
@@ -389,7 +391,7 @@ fn main () {
 brew install --cask ippclub/tap/dora-ssr
 ```
 
-启动软件，并通过浏览器访问显示的地址。
+启动软件后会自动打开内置 Web IDE，可直接在应用窗口中开始开发。
 
 ### Linux
 

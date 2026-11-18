@@ -1,9 +1,13 @@
+import DocScreenshot from '@site/src/components/DocScreenshot';
+import atlasMenuImage from '@site/static/img/operations/atlas-menu-zh.webp';
+import atlasResultImage from '@site/static/img/operations/atlas-result-zh.webp';
+
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
 # 使用 TexturePacker 打包 Sprite 图片
 
-TexturePacker 是 Dora SSR 内置的纹理打包工具，用于把多张小图合并成一张图集。工具遵循界面 tooltip 中说明的规则：把图片文件放入一个以 `.clips` 结尾的文件夹中，重新加载 TexturePacker 让工具找到该文件夹，然后生成一个打包后的 `.png` 图像和一个对应的 `.clip` 描述文件。
+TexturePacker 用于把多张小图合并成一张图集。将图片放入以 `.clips` 结尾的文件夹，在 Web IDE 资源树中选择**打包图集**，即可生成 `.png` 图像和 `.clip` 描述文件；也可以使用内置 TexturePacker 工具。
 
 例如，`items.clips` 文件夹会被打包成 `items.png` 和 `items.clip`。`.png` 保存合并后的图集图片，`.clip` 保存原始图片名称和矩形区域，之后 `Sprite` 就可以通过它加载图集中的图片。
 
@@ -31,11 +35,13 @@ Image/
 
 ## 2. 生成 `.png` 和 `.clip`
 
-从 Dora SSR 的开发工具中打开 TexturePacker。如果 `.clips` 文件夹是在工具打开后创建的，请重新加载 TexturePacker，让工具重新扫描目录列表。
+1. 在 Web IDE 资源树中右键点击 `.clips` 文件夹（触屏可长按），选择**打包图集**。
+2. 等待成功提示，在该文件夹旁确认出现同名 `.png` 和 `.clip`。
+3. 点击生成的 `.png`，检查图片是否全部打入图集。修改原始图片后，再次执行打包。
 
-然后选择对应文件夹，点击「生成切片图集」（英文界面为 `Generate Clip`）。
+<DocScreenshot src={atlasMenuImage} width={1100} height={1150} alt="右键点击 items.clips，选择打包图集" maxWidth={600} />
 
-也可以直接在 Web IDE 资源树中右键点击 `.clips` 文件夹（触屏可长按），选择「打包图集」，生成同目录下对应的 `.png` 和 `.clip` 文件。
+也可以点击左上角**项目 / 工具 → 工具 → TexturePacker**，选择目录后点击**生成切片图集**（英文为 Generate Clip）。若打开工具后才创建 `.clips` 目录，请重新加载工具，让它重新扫描。
 
 ```text
 Image/
@@ -48,6 +54,8 @@ Image/
 ```
 
 TexturePacker 会为每张图片加入 padding，把图片排布到一个渲染目标中，将图集保存为 `items.png`，并把切片元数据写入 `items.clip`。
+
+<DocScreenshot src={atlasResultImage} width={1700} height={850} alt="生成的 items.png 预览，以及资源树中的 items.clip 和 items.clips" caption="示例使用两张 Dora 图片；切片名称来自各自的文件名。" />
 
 ## 3. 通过 `Sprite` 使用图集
 

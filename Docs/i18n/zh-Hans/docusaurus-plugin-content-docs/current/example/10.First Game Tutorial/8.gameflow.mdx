@@ -1,6 +1,11 @@
+import DocScreenshot from '@site/src/components/DocScreenshot';
+import startImage from '@site/static/img/operations/firstgame-start.webp';
+import playImage from '@site/static/img/operations/firstgame-play.webp';
+import overImage from '@site/static/img/operations/firstgame-over.webp';
+
 # 第八章：游戏界面：开始和结束场景
 
-&emsp;&emsp;在这一章节中，我们将学习如何为游戏创建开始界面和结束场景。开始界面用于展示游戏标题并引导玩家进入游戏，而结束场景用于显示游戏结束状态和得分。通过场景的切换，我们可以为游戏实现完整的交互体验。
+本章加入开始界面与碰撞后的结束提示，串起完整游戏流程。当前示例会在碰撞后显示 Game Over、保留画面中的计分标签，并在约 2 秒后返回开始界面。
 
 #### **目标**
 
@@ -10,6 +15,24 @@
 4. 使用 `InputManager` 响应玩家的启动操作。
 
 ---
+
+## 先跑一遍完整流程
+
+保存并运行同一个 `dodge_the_creeps` 项目。以下截图来自[完整示例](https://github.com/IppClub/Dora-Demo/tree/main/Dodge%20the%20Creeps)，可以用来对照交互结果：
+
+1. **开始**：看到标题与 **Start** 按钮，点击按钮或按 Enter，进入游戏。
+
+<DocScreenshot src={startImage} width={1400} height={1600} alt="游戏开始界面和 Start 按钮" maxWidth={420} />
+
+2. **游戏中**：用 **W/A/S/D** 或虚拟方向键移动。敌人持续出现，顶部显示得分；本例在敌人离开计分区域时增加分数。
+
+<DocScreenshot src={playImage} width={1400} height={1600} alt="游戏运行中：玩家、多个敌人、顶部得分和虚拟方向键" maxWidth={420} />
+
+3. **结束与重开**：让玩家碰到敌人，确认出现 **Game Over**，玩家被移除；等待约 2 秒返回开始界面，再点击 Start 验证下一局。当前示例在提示期间仍保留原来的计分逻辑；需要固定最终得分时，应同时停止该局的刷怪与计分更新。
+
+<DocScreenshot src={overImage} width={1400} height={1600} alt="碰撞后显示 Game Over，随后会自动返回开始界面" maxWidth={420} />
+
+如果只有标题但按钮无法开始，先检查 InputManager 的 UI 上下文和启动事件是否连通；如果人物无法移动，检查进入 Game 后是否已切换到 Game 输入上下文。
 
 ## 1. 创建开始界面
 

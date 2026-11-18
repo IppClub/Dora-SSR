@@ -1,3 +1,8 @@
+import DocScreenshot from '@site/src/components/DocScreenshot';
+import particleImage from '@site/static/img/operations/particle-overview-zh.webp';
+import particleFieldsImage from '@site/static/img/operations/particle-fields-zh.webp';
+import particleRunImage from '@site/static/img/operations/particle-runtime.webp';
+
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
@@ -6,6 +11,8 @@ import TabItem from '@theme/TabItem';
 ## 1. 引言
 
 &emsp;&emsp;在游戏开发中，特效是提升游戏视觉体验的重要元素。它们可以增强游戏的氛围、突出关键事件，并提供即时的视觉反馈。本教程将介绍如何在 Dora SSR 引擎中使用 Effekseer 特效系统，以及如何使用引擎自带的 Particle 粒子系统。
+
+制作 `.par` 粒子的操作步骤与截图见[粒子编辑器](#43-在-web-ide-中编辑粒子)。
 
 ## 2. 什么是 Effekseer？
 
@@ -601,12 +608,42 @@ particle\start!
 </TabItem>
 </Tabs>
 
-### 4.3 自定义粒子效果
+### 4.3 在 Web IDE 中编辑粒子
 
-&emsp;&emsp;由于 `Particle` 类功能有限，如果需要使用它，可能需要自行修改引擎中基于 ImGui 框架编写的粒子系统的编辑器示例（名为“Particle”）来定制自己的粒子编辑器，以满足美术制作的需求。Dora SSR 的粒子系统加载使用的 `.par` 文件，本质是一个 XML 格式的文本文件，可以参考编辑器代码如何进行生成和导出。
+[下载资源编辑器示例](@site/static/files/resource-editors-demo.zip)，上传并解压到工作空间，打开 `ResourceLab/fire.par`。示例保存的是“魔法”预设。自行创建时，右键点击项目文件夹，选择**新建 → Dora 粒子**。
+
+1. 点击 `.par` 文件，进入粒子编辑器。
+2. 在右侧选择**火焰**或**魔法**等预设作为起点。应用预设会修改粒子参数，保存后才会保留这些修改。
+3. 在**通用**区域调整**发射率**、**最大数量**、**生命周期**和**生命周期变化**。例如，把发射率改为 `90`，比较预览中粒子的疏密。
+4. 用**暂停 / 播放**观察运动，用**重新播放**从头预览。这些按钮控制编辑器内的预览。
+
+<DocScreenshot src={particleImage} width={2400} height={1600} alt="粒子编辑器：预设、实时预览和常规参数" />
+
+在右侧面板内向下滚动，可以找到更多参数：
+
+- **颜色**与**尺寸 / 旋转**调整粒子生命周期中的颜色、淡出、大小和旋转。
+- **纹理**指定图片，点击 **…** 浏览资源；留空时使用默认粒子纹理。使用自定义图片时，将它与项目一起保留。
+- **发射器 → 重力 / 半径**选择运动模型，再调整速度、加速度或半径等参数，观察预览变化。
+
+<DocScreenshot src={particleFieldsImage} width={660} height={1360} alt="粒子的纹理、混合方式和重力发射器参数" maxWidth={450} />
+
+按 `Ctrl+S`（macOS 为 `⌘+S`）保存，等待标签页名称前的星号消失，再重新打开文件确认参数。`.par` 是 XML 资源，需要检查保存的数据时，可以使用**作为文本打开**。
+
+运行所属项目，在引擎中核对效果。示例 `ResourceLab/init.lua` 使用以下代码：
+
+```lua
+local Dora = require("Dora")
+local particle = Dora.Particle("fire.par")
+particle.scaleX = 3
+particle.scaleY = 3
+particle:addTo(Dora.Director.entry)
+particle:start()
+```
+
+<DocScreenshot src={particleRunImage} width={1200} height={850} alt="保存后的粒子资源正在 Dora 场景中运行" maxWidth={600} caption="入口脚本将这个特效放大 3 倍，方便观察运行效果。" />
+
+修改资源后，先保存再重新运行项目。`.par` 由项目脚本加载，不能使用“运行文件”单独执行。
 
 ## 5. 总结
 
-&emsp;&emsp;本文介绍了如何在 Dora SSR 引擎中使用 Effekseer 特效系统。通过 `EffekNode` 类，开发者可以方便地在游戏中加载和控制各种复杂的特效。同时，我们也提到了历史遗留的 `Particle` 类。
-
-&emsp;&emsp;Effekseer 为游戏特效的制作和管理提供了强大的支持，比较建议新项目采用 Effekseer 来处理特效。希望本教程能帮助您快速上手 Dora SSR 的特效系统，创造出令人惊艳的游戏效果。
+用 `EffekNode` 加载 Effekseer 制作的特效，用 `Particle` 加载 `.par` 粒子资源。制作 `.par` 时，可以直接使用 Web IDE 的粒子编辑器，保存后再放入游戏场景验证。
