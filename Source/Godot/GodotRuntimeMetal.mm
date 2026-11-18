@@ -18,6 +18,7 @@
 #import <Metal/Metal.h>
 #include <dlfcn.h>
 #include <atomic>
+#include <chrono>
 #include <filesystem>
 
 NS_DORA_BEGIN
@@ -139,6 +140,17 @@ class MetalSession final : public GodotSession, public std::enable_shared_from_t
     bool _ready=false,_started=false;
     std::atomic<bool> _closing{false}, _requestedPaused{false};
     std::atomic<uint64_t> _consumers{0}, _gpuErrors{0};
+    using StartupClock = std::chrono::steady_clock;
+    StartupClock::time_point _startupTime;
+    bool _traceStartup = std::getenv("DORA_GODOT_TRACE_STARTUP") != nullptr;
+    void traceStartup(const char* phase, StartupClock::time_point started) const {
+        if (_traceStartup) {
+            const auto now = StartupClock::now();
+            Info("Godot Metal startup {}: {:.2f} ms (total {:.2f} ms)", phase,
+                std::chrono::duration<double, std::milli>(now - started).count(),
+                std::chrono::duration<double, std::milli>(now - _startupTime).count());
+        }
+    }
     bool queryIME(DoraGodotIMEState &state) {
         state={sizeof(state),0,0,0,0};
         return imeAPI.get_state && imeAPI.get_state(_handle,&state) && acceptIMEState(state);
@@ -158,14 +170,18 @@ class MetalSession final : public GodotSession, public std::enable_shared_from_t
         auto self=shared_from_this();
         @autoreleasepool {
             if (self->_closing) return;
+            self->traceStartup("boot dispatched", self->_startupTime);
             DoraGodotConfig config{sizeof(config),DORA_GODOT_METAL,(uint32_t)width,(uint32_t)height,(uint32_t)buffers,
                 project.c_str(),scene.c_str(),bgfx::getInternalData()->context};
             runtimeLog.beginProject();
+            auto phase = StartupClock::now();
             self->_handle=api.open(&config);
+            self->traceStartup("open project", phase);
             if (!self->_handle) { self->fail(api.last_error(nullptr)); return; }
             activeHandle=self->_handle;
             if (self->_closing) return;
             uint64_t nativeTargets[DORA_GODOT_MAX_BUFFERS]{};
+            phase = StartupClock::now();
             for (int i=0;i<buffers;++i) nativeTargets[i]=uint64_t(bgfx::getNativeTexture(handles[i]));
             if (!metalTargetsAPI.bind(self->_handle,width,height,nativeTargets,buffers)) { self->fail(api.last_error(self->_handle));return; }
             for (int i=0;i<buffers;++i) {
@@ -175,7 +191,10 @@ class MetalSession final : public GodotSession, public std::enable_shared_from_t
                 if ((uintptr_t)slot.texture!=nativeTargets[i]) { self->fail("Godot returned a different Metal host target"); return; }
             }
             api.set_paused(self->_handle,self->_requestedPaused.load());
+            self->traceStartup("bind targets", phase);
+            phase = StartupClock::now();
             const uint64_t first=api.advance(self->_handle,0,0);
+            self->traceStartup("submit first frame", phase);
             DoraGodotIMEState initialIME{};const bool hasInitialIME=self->queryIME(initialIME);
             DoraGodotOutputSize initialOutput{};initialOutput.size=sizeof(initialOutput);
             if (!first && !(outputAPI.get_size && outputAPI.get_size(self->_handle,&initialOutput) && initialOutput.resize_pending
@@ -185,9 +204,12 @@ class MetalSession final : public GodotSession, public std::enable_shared_from_t
             }
             if (first && !self->_reads.produced(0,first)) { self->fail("invalid initial Godot GPU production"); return; }
             activeSession=self;
+            phase = StartupClock::now();
             if (audioAPI.read_pcm && !self->_audio.configure(audioAPI,self->_handle)) { self->fail("Godot audio stream configuration failed"); return; }
             const std::string diagnostic=api.last_error(self->_handle);
-            SharedApplication.invokeInLogic([self,width,height,first,initialOutput,initialIME,hasInitialIME,diagnostic] {
+            self->traceStartup("audio setup", phase);
+            const auto publish = StartupClock::now();
+            SharedApplication.invokeInLogic([self,width,height,first,initialOutput,initialIME,hasInitialIME,diagnostic,publish] {
                 if (self->_closing) return;
                 auto *node=self->node();
                 if (!node) { self->close(); return; }
@@ -208,6 +230,7 @@ class MetalSession final : public GodotSession, public std::enable_shared_from_t
                 node->setTexture(self->_textures[0]);
                 node->setTextureRect({0,0,(float)width,(float)height});
                 self->running(true);
+                self->traceStartup("publish texture", publish);
             });
         }
     }
@@ -223,6 +246,7 @@ public:
         if (!clientReserved.compare_exchange_strong(free,true)) { error("Godot already has an active node"); return false; }
         if (bgfx::getRendererType()!=bgfx::RendererType::Metal) { clientReserved=false; error("Godot requires the Metal renderer on macOS"); return false; }
         _width=width; _height=height;
+        _startupTime = StartupClock::now();
         _ownsReservation=true;
         _buffers=buffers; _ring.configure(buffers); _reads.configure(buffers);
         for (int i=0;i<buffers;++i) _pendingHandles.push_back(bgfx::createTexture2D(width,height,false,1,bgfx::TextureFormat::RGBA8,BGFX_TEXTURE_RT|BGFX_SAMPLER_U_CLAMP|BGFX_SAMPLER_V_CLAMP));
@@ -231,7 +255,9 @@ public:
         const auto handles=_pendingHandles;
         SharedApplication.invokeInRender([self,project,scene,width,height,buffers,resourceFrame,handles] {
             if (self->_closing) return;
+            const auto phase = StartupClock::now();
             if (!loadAPI()) { self->fail(loaderError); return; }
+            self->traceStartup("load library API", phase);
             bootQueue.schedule(resourceFrame,[self,project,scene,width,height,buffers,handles] {
                 self->boot(project,scene,width,height,buffers,handles);
             });

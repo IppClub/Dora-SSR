@@ -162,6 +162,7 @@ namespace {
 HWND ideWindow = nullptr, ideHandle = nullptr, ideMenu = nullptr, ideStatus = nullptr;
 WNDPROC ideOriginalProc = nullptr;
 bool ideVisible = false;
+bool ideRestoreClipChildren = false;
 bool ideToggleHeld = false;
 uint64_t ideSwitchSerial = 0;
 std::wstring idePendingRun;
@@ -469,6 +470,10 @@ void Application::closeIDEWebView() {
 	if (ideWindow) {
   KillTimer(ideWindow, ideMenuTimer);
   if (ideOriginalProc) SetWindowLongPtrW(ideWindow, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(ideOriginalProc));
+  if (ideRestoreClipChildren) {
+   SetWindowLongPtrW(ideWindow, GWL_STYLE, GetWindowLongPtrW(ideWindow, GWL_STYLE) | WS_CLIPCHILDREN);
+   ideRestoreClipChildren = false;
+  }
  }
  if (ideHandle) DestroyWindow(ideHandle);
  if (ideMenu) DestroyWindow(ideMenu);
@@ -494,6 +499,13 @@ void Application::setIDEWebView(const std::string& requestedAction) {
   SDL_SysWMinfo info; SDL_VERSION(&info.version);
   if (!SDL_GetWindowWMInfo(_sdlWindow, &info)) { closeIDEWebView(); return; }
   ideWindow = info.info.win.window;
+		if (bgfx::getRendererType() == bgfx::RendererType::OpenGL) {
+			const auto style = GetWindowLongPtrW(ideWindow, GWL_STYLE);
+			// WGL must update the parent drawable even while WebView2 covers it.
+			if (style & WS_CLIPCHILDREN) {
+				ideRestoreClipChildren = SetWindowLongPtrW(ideWindow, GWL_STYLE, style & ~WS_CLIPCHILDREN) != 0;
+			}
+		}
   ideOriginalProc = reinterpret_cast<WNDPROC>(SetWindowLongPtrW(ideWindow, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(ideWindowProc)));
   WNDCLASSW type{}; type.lpfnWndProc = ideOverlayProc; type.hInstance = GetModuleHandleW(nullptr);
   type.hCursor = LoadCursor(nullptr, IDC_HAND); type.lpszClassName = L"DoraWebIDESidePane";

@@ -23,6 +23,7 @@
 #include "scene/main/scene_tree.h"
 #include "scene/theme/theme_db.h"
 #include "servers/audio/audio_server.h"
+#include <functional>
 #include <string>
 #include <set>
 #include <vector>
@@ -62,13 +63,15 @@ inline void begin_node_boundary() {
     }, &preserved_nodes);
     node_boundary_active=true;
 }
-inline bool start(GodotInstance *instance) {
+inline bool start(GodotInstance *instance, const std::function<void(const char *)> &trace = {}) {
     DoraGodotDiagnostics::begin();
     // Match GodotInstance::start, but capture after engine setup and before
     // Main::start creates the project SceneTree/autoloads/script instances.
     if (Main::setup2()!=OK) return false;
+    if (trace) trace("initialize Godot servers");
     source_classes("res://");
     begin_node_boundary();
+    if (trace) trace("register project classes");
     return instance->start_embedded_project();
 }
 inline bool contains_preserved_node(Node *node) {

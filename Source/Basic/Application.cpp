@@ -1812,16 +1812,23 @@ int Application::mainLogic(Application* app) {
 	app->_appWebViewListener = Listener::create("AppWebView"s, [app](Event* event) {
 		std::string path;
 		bool visible = false;
-		if (event->get(path, visible)) {
-#if BX_PLATFORM_ANDROID
-			setAndroidAppWebView(path, visible);
-#else
-			app->invokeInRender([app, path, visible]() {
-				if (path == "/compiler.html") app->setCompilerWebView(path, visible);
-				else if (path.starts_with("/ide/")) app->setIDEWebView(path.substr(5));
-			});
-#endif
+		if (event->getArgsCount() == 1) {
+			if (!event->get(path) || path != "/ide/hide") return;
+		} else if (!event->get(path, visible)) {
+			return;
 		}
+#if BX_PLATFORM_ANDROID
+		setAndroidAppWebView(path, visible);
+#else
+		if (path == "/ide/prepare-game-frames") {
+			SharedDirector.prepareIDEGameFrames();
+			return;
+		}
+		app->invokeInRender([app, path, visible]() {
+			if (path == "/compiler.html") app->setCompilerWebView(path, visible);
+			else if (path.starts_with("/ide/")) app->setIDEWebView(path.substr(5));
+		});
+#endif
 	});
 #endif // BX_PLATFORM_ANDROID || BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS
 	if (!SharedDirector.init()) {

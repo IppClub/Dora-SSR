@@ -53,7 +53,12 @@ function M.waitForFrameAsync(entry, runId, expectGodot, checkPreview)
 			if not game.running then ready = false end
 		end
 		if ready then
-			readyFrame = readyFrame or App.frame
+			if not readyFrame then
+				if App.platform == "macOS" or App.platform == "Windows" then
+					Dora.emit("AppWebView", "/ide/prepare-game-frames", true)
+				end
+				readyFrame = App.frame
+			end
 			-- running becomes true when the texture is published on the logic
 			-- thread. Cross two frame boundaries before allowing native hide.
 			if App.frame - readyFrame >= 2 then

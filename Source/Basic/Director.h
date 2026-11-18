@@ -53,6 +53,9 @@ public:
 	bool init();
 	void doLogic();
 	void doRender();
+#if BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS
+	void prepareIDEGameFrames() { _ideGameFrames = 2; }
+#endif
 	void handleSDLEvent(const SDL_Event& event);
 
 	void pushCamera(NotNull<Camera, 1> camera);
@@ -176,6 +179,9 @@ private:
 	NVGcontext* _retiredNVGContext = nullptr;
 	bool _paused;
 	bool _stoped;
+#if BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS
+	int _ideGameFrames = 0;
+#endif
 	Color _clearColor;
 	Ref<Node> _ui;
 	Ref<Node> _ui3D;

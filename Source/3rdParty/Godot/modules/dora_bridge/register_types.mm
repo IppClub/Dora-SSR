@@ -34,6 +34,7 @@
 #include "servers/rendering/storage/texture_storage.h"
 #import <Metal/Metal.h>
 #include <atomic>
+#include <chrono>
 #include <cstdio>
 #include <cstdlib>
 #include <string>
@@ -149,6 +150,16 @@ const char *inspect_scene(const DoraGodotConfig *config,const char *file,const c
 }
 
 void *open(const DoraGodotConfig *config) {
+    using StartupClock = std::chrono::steady_clock;
+    auto phase = StartupClock::now();
+    const bool trace_startup = std::getenv("DORA_GODOT_TRACE_STARTUP") != nullptr;
+    auto trace = [&](const char *name) {
+        if (!trace_startup) return;
+        const auto now = StartupClock::now();
+        std::fprintf(stderr, "Godot Metal bridge %s: %.2f ms\n", name,
+            std::chrono::duration<double, std::milli>(now - phase).count());
+        phase = now;
+    };
     runtime.error.clear();
     if (!config || config->size < sizeof(*config) || config->backend != DORA_GODOT_METAL
         || !config->project_path || !*config->project_path || !config->native_device
@@ -180,6 +191,7 @@ void *open(const DoraGodotConfig *config) {
             (char*)"--disable-render-loop", (char*)"--disable-crash-handler", (char*)"--resolution", (char*)resolution.c_str()};
         runtime.instance = (GodotInstance*)libgodot_create_godot_instance(sizeof(args)/sizeof(args[0]), args, extension_init);
         if (!runtime.instance) { runtime.error = "LibGodot initialization failed"; return nullptr; }
+        trace("create LibGodot instance");
         if (runtime.supports_project_unload) {
             // Renderer/ShaderRD objects survive projects. A relative user://
             // cache would silently change roots after the next settings load.
@@ -191,7 +203,8 @@ void *open(const DoraGodotConfig *config) {
             print_line("DORA_GODOT_PROJECT_CACHE "+cache);
         }
         if (!runtime.scene.empty()) ProjectSettings::get_singleton()->set("application/run/main_scene", String::utf8(runtime.scene.c_str()));
-        if (!(runtime.supports_project_unload ? DoraGodotProject::start(runtime.instance) : runtime.instance->start())) { runtime.error = "Godot project startup failed"; runtime.terminated=true; return nullptr; }
+        trace("configure initial project");
+        if (!(runtime.supports_project_unload ? DoraGodotProject::start(runtime.instance, trace) : runtime.instance->start())) { runtime.error = "Godot project startup failed"; runtime.terminated=true; return nullptr; }
         if (runtime.supports_project_unload && !DoraGodotProject::supported(runtime.error)) { runtime.terminated=true; return nullptr; }
         runtime.tree = Object::cast_to<SceneTree>(OS::get_singleton()->get_main_loop());
         if (!runtime.tree) { runtime.error = "project does not use SceneTree"; return nullptr; }
@@ -216,11 +229,17 @@ void *open(const DoraGodotConfig *config) {
         const String scene = runtime.scene.empty() ? String(ProjectSettings::get_singleton()->get("application/run/main_scene")) : String::utf8(runtime.scene.c_str());
         if (runtime.tree->change_scene_to_file(scene) != OK) { runtime.error = "cannot load Godot scene"; return nullptr; }
     }
+    trace("load scene tree");
     if (runtime.supports_project_unload) print_line(vformat("DORA_GODOT_PROJECT_ID instance=%d tree=%d", uint64_t(runtime.instance->get_instance_id()), uint64_t(runtime.tree->get_instance_id())));
     runtime.tree->set_pause(false);
     runtime.root->set_transparent_background(true);
     runtime.root->set_disable_input(false);
-    for (int i = 0; i < 3; ++i) { runtime.instance->iteration(); draw(); }
+    for (int i = 0; i < 3; ++i) {
+        runtime.instance->iteration();
+        trace("startup iteration");
+        draw();
+        trace("offscreen warmup draw");
+    }
     RID texture = output.texture(runtime.root);
     runtime.source = (__bridge id<MTLTexture>)(void*)(uintptr_t)RenderingServer::get_singleton()->texture_get_native_handle(texture);
     if (!runtime.source || (__bridge void*)runtime.source.device != config->native_device || runtime.source.pixelFormat != MTLPixelFormatRGBA8Unorm) {
@@ -237,6 +256,7 @@ void *open(const DoraGodotConfig *config) {
     }
     runtime.sequence = 0; runtime.completed = 0; runtime.errors = 0; runtime.reuse_waits = 0;
     runtime.paused = false; runtime.active = true;
+    trace("allocate bridge buffers");
     return &runtime;
 }
 int bind_targets(void *handle,uint32_t width,uint32_t height,const uint64_t *textures,uint32_t count) {
