@@ -21,13 +21,23 @@ export function buildAgentTimeline(messages:readonly AgentSessionMessage[],steps
 export function useAgentTimeline(messages:readonly AgentSessionMessage[],steps:readonly AgentSessionStep[],currentTaskId?:number){return useMemo(()=>buildAgentTimeline(messages,steps,currentTaskId),[messages,steps,currentTaskId]);}
 
 type AgentStepParam={label:string;value?:string};
-const agentTypeIcons:Record<string,string>={
-  audio:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="11" height="11"><path d="M21 16V3a1 1 0 0 0-1.28-.96l-10 2.917a1 1 0 0 0-.72.96V19"/><circle cx="18" cy="16" r="3"/><circle cx="6" cy="19" r="3"/></svg>',
-  visual:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="11" height="11"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>',
-  level:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="11" height="11"><path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z"/><path d="M15 5.764v15"/><path d="M9 3.236v15"/></svg>',
-  test:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="11" height="11"><path d="M14 2v6a2 2 0 0 0 .245.96l5.51 10.08A2 2 0 0 1 18 22H6a2 2 0 0 1-1.755-2.96l5.51-10.08A2 2 0 0 0 10 8V2"/><path d="M6.453 15h11.094"/><path d="M8.5 2h7"/></svg>',
-  general:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="11" height="11"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/><path d="m8 10 1.5 1.5L11 9"/></svg>',
+const agentTypeIcons = {
+  audio: <><path d="M21 16V3a1 1 0 0 0-1.28-.96l-10 2.917a1 1 0 0 0-.72.96V19"/><circle cx="18" cy="16" r="3"/><circle cx="6" cy="19" r="3"/></>,
+  visual: <><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></>,
+  level: <><path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z"/><path d="M15 5.764v15"/><path d="M9 3.236v15"/></>,
+  test: <><path d="M14 2v6a2 2 0 0 0 .245.96l5.51 10.08A2 2 0 0 1 18 22H6a2 2 0 0 1-1.755-2.96l5.51-10.08A2 2 0 0 0 10 8V2"/><path d="M6.453 15h11.094"/><path d="M8.5 2h7"/></>,
+  general: <><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/><path d="m8 10 1.5 1.5L11 9"/></>,
 };
+function AgentTypeBadge({value}:{value:unknown}){
+  const requested = stringValue(value);
+  const type = Object.prototype.hasOwnProperty.call(agentTypeIcons, requested) ? requested as keyof typeof agentTypeIcons : 'general';
+  return <span className="agent-type-badge">
+    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      {agentTypeIcons[type]}
+    </svg>
+    {type}
+  </span>;
+}
 const stepToolNames:Record<string,string>={message:'消息',read_file:'文件读取',edit_file:'编辑文件',write_file:'写入文件',spawn_agent:'子代理',delete_file:'删除文件',grep_files:'搜索文件',glob_files:'列出文件',search_dora_doc:'搜索引擎文档',context_handoff:'上下文交接',compress_memory:'记忆压缩',merge_memory:'合并记忆',spawn_sub_agent:'派出子代理',list_sub_agents:'列出子代理',sub_agent_handoff:'子代理交接',build:'构建',fetch_url:'网络获取',execute_command:'执行命令',analyze_image:'画面分析',ask_user:'询问用户',finish:'收工'};
 const stepStatuses:Record<string,string>={PENDING:'等待中',RUNNING:'进行中',DONE:'已完成',FAILED:'失败',STOPPED:'已停止'};
 const stringValue=(value:unknown)=>typeof value==='string'?value:'';
@@ -48,7 +58,8 @@ function summarizeStepParams(step:AgentSessionStep):AgentStepParam[]{
   if(step.tool==='build'){const paths=[stringValue(params.path),...stringList(params.paths)].filter(Boolean);paths.forEach(path=>push('构建目标',path==='.'?'整个工作区':path));return items;}
   if(step.tool==='fetch_url'){push('链接',stringValue(params.url));push('目标',stringValue(params.target));return items;}
   if(step.tool==='execute_command'){push('模式',stringValue(params.mode));if(params.mode==='git')push('命令',stringValue(params.command));push('工作目录',stringValue(params.cwd));const timeout=numberValue(params.timeoutSeconds);if(timeout!==undefined)push('超时',`${timeout} 秒`);return items;}
-  if(step.tool==='spawn_agent'){const at=stringValue(params.agentType)||'general';const icon=agentTypeIcons[at]||agentTypeIcons.general;push('标题',stringValue(params.title)||'');push('类型',`${icon} ${at}`);return items;}if(step.tool==='list_sub_agents'){push('状态',stringValue(params.status));push('查询',stringValue(params.query));return items;}
+  if(step.tool==='spawn_agent'){push('标题',stringValue(params.title));return items;}
+  if(step.tool==='list_sub_agents'){push('状态',stringValue(params.status));push('查询',stringValue(params.query));return items;}
   if(step.tool==='compress_memory'){const round=numberValue(params.round),messages=numberValue(params.pendingMessages);if(round!==undefined)push('轮次',String(round));if(messages!==undefined)push('消息数',String(messages));return items;}
   return items;
 }
@@ -71,7 +82,7 @@ function AgentStepCards({steps,onOpenFile,running=false}:{steps:readonly AgentSe
     const answer=step.tool==='questionnaire_answer'?stringValue(result.displayText):'';
     const checkpoint=step.tool==='context_handoff'?stringValue(step.params?.summary):'';
     return <article key={step.id} className={`dora-agent-step ${step.status.toLowerCase()}`} data-agent-step-id={step.id}>
-      <header><span className="dora-agent-step-number">{step.step}</span><span className="dora-agent-step-tool">{stepToolNames[step.tool]??step.tool}</span>{step.status!=='DONE'&&<span className="dora-agent-step-status">{stepStatuses[step.status]??step.status}</span>}</header>
+      <header><span className="dora-agent-step-number">{step.step}</span><span className="dora-agent-step-tool">{stepToolNames[step.tool]??step.tool}</span>{step.tool==='spawn_agent'&&<AgentTypeBadge value={step.params?.agentType}/>}{step.status!=='DONE'&&<span className="dora-agent-step-status">{stepStatuses[step.status]??step.status}</span>}</header>
       {(step.reasoningContent??'').trim()&&<AgentReasoning content={step.reasoningContent}/>}
       {answer?<SharedAgentMarkdown className="dora-agent-step-answer" content={answer}/>:<>{step.reason&&<SharedAgentMarkdown className="dora-agent-step-reason" content={step.reason}/>}</>}
       {params.length>0&&<dl className="dora-agent-step-params">{params.map((item,index)=><React.Fragment key={`${item.label}:${item.value}:${index}`}><dt>{item.label}</dt><dd>{item.value}</dd></React.Fragment>)}</dl>}
