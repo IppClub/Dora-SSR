@@ -586,6 +586,7 @@ const spawnAgent: AgentToolHandler = async (context, input) => {
 		prompt,
 		expectedOutput: typeof input.expectedOutput === "string" ? input.expectedOutput : undefined,
 		filesHint,
+		agentType: typeof input.agentType === "string" && input.agentType !== "" ? input.agentType : undefined,
 		disabledAgentTools: context.disabledAgentTools,
 	});
 	if (!result.success) return { output: result };

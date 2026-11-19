@@ -282,10 +282,19 @@ export function validateAgentToolInput(tool: AgentToolName, input: Record<string
 			if (Array.isArray(value.filesHint)) {
 				value.filesHint = value.filesHint.filter(item => typeof item === "string").map(item => AgentUtils.sanitizeUTF8(item as string));
 			}
+			const agentType = typeof value.agentType === "string" ? value.agentType.trim() : "";
+			if (agentType !== "") {
+				if (["audio", "visual", "level", "test", "general"].indexOf(agentType) < 0) {
+					return { success: false, message: "spawn_agent agentType must be one of audio/visual/level/test/general" };
+				}
+				value.agentType = agentType;
+			} else {
+				value.agentType = undefined;
+			}
 		} else {
 			// List form: no prompt, no spawn fields.
-			if (value.title !== undefined || value.expectedOutput !== undefined || value.filesHint !== undefined) {
-				return { success: false, message: "spawn_agent list form cannot carry spawn fields (title/expectedOutput/filesHint)" };
+			if (value.title !== undefined || value.expectedOutput !== undefined || value.filesHint !== undefined || value.agentType !== undefined) {
+				return { success: false, message: "spawn_agent list form cannot carry spawn fields (title/expectedOutput/filesHint/agentType)" };
 			}
 			value.prompt = undefined;
 			value.title = undefined;

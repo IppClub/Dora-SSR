@@ -11,6 +11,7 @@ import * as AgentConfig from 'Agent/Config/Defaults';
 import * as AgentToolRegistry from 'Agent/Tool/Registry';
 import * as AgentRuntimePolicy from 'Agent/Runtime/Policy';
 import * as LocalAgent from 'Agent/Runtime/LocalAgent';
+import * as TeamWake from 'Agent/Runtime/TeamWake';
 import * as Tools from 'Agent/Tools';
 import {
 	TABLE_SESSION,
@@ -2396,6 +2397,7 @@ async function spawnSubAgentSession(request: {
 	prompt: string;
 	expectedOutput?: string;
 	filesHint?: string[];
+	agentType?: string;
 	disabledAgentTools?: AgentToolName[];
 	llmConfig?: LLMConfig;
 }): Promise<
@@ -2440,6 +2442,17 @@ async function spawnSubAgentSession(request: {
 	if (runningSubSessionCount >= MAX_CONCURRENT_SUB_AGENTS) {
 		return { success: false, message: "已达到子代理并发上限，暂无法派出新的代理。" };
 	}
+	const agentType = typeof request.agentType === "string" ? request.agentType.trim() : "";
+	let subPrompt = normalizedPrompt;
+	if (agentType !== "" && agentType !== "general") {
+		const wakeContext = TeamWake.buildTeamWakeContext(parentSession.projectRoot, agentType);
+		if (wakeContext !== "") {
+			subPrompt = `${wakeContext}\n\n---\n\n# Task\n${normalizedPrompt}`;
+			Log("Info", `[AgentSession] team wake context type=${agentType} added_len=${subPrompt.length - normalizedPrompt.length}`);
+		} else {
+			Log("Info", `[AgentSession] team wake context type=${agentType} empty (no team files yet)`);
+		}
+	}
 	const created = createSubSession(parentSessionId, request.title);
 	if (!created.success) {
 		return created;
@@ -2453,6 +2466,7 @@ async function spawnSubAgentSession(request: {
 		goal: normalizedTitle !== "" ? normalizedTitle : request.title,
 		expectedOutput: request.expectedOutput ?? "",
 		filesHint: request.filesHint ?? [],
+		agentType,
 		status: "RUNNING",
 		success: false,
 		resultFilePath: "",
@@ -2463,7 +2477,7 @@ async function spawnSubAgentSession(request: {
 		finishedAt: "",
 		finishedAtTs: 0,
 	});
-	const sent = sendPrompt(created.session.id, normalizedPrompt, request.disabledAgentTools, undefined, undefined, request.llmConfig);
+	const sent = sendPrompt(created.session.id, subPrompt, request.disabledAgentTools, undefined, undefined, request.llmConfig);
 	if (!sent.success) {
 		return { success: false, message: sent.message };
 	}
