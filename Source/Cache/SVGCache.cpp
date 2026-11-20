@@ -276,6 +276,84 @@ struct PathData {
 	FillStrokeData fillStroke;
 };
 
+static bool readPathNumber(std::string_view& path, float& value) {
+	size_t length = 0;
+	auto peek = [&]() { return length < path.size() ? path[length] : '\0'; };
+	auto readDigits = [&]() {
+		size_t start = length;
+		while (peek() >= '0' && peek() <= '9') ++length;
+		return length != start;
+	};
+
+	if (peek() == '+' || peek() == '-') ++length;
+	bool hasDigits = readDigits();
+	if (peek() == '.') {
+		++length;
+		hasDigits = readDigits() || hasDigits;
+	}
+	if (!hasDigits) return false;
+	if (peek() == 'e' || peek() == 'E') {
+		++length;
+		if (peek() == '+' || peek() == '-') ++length;
+		if (!readDigits()) return false;
+	}
+	value = Slice(path.substr(0, length)).toFloat();
+	path.remove_prefix(length);
+	return std::isfinite(value);
+}
+
+static bool parsePath(std::string_view path, const std::unordered_map<char, int>& params, std::list<CommandData>& commands) {
+	auto skipWhitespace = [&]() {
+		while (!path.empty() && std::string_view(" \t\r\n").find(path.front()) != std::string_view::npos) {
+			path.remove_prefix(1);
+		}
+	};
+	auto skipSeparator = [&]() {
+		skipWhitespace();
+		if (!path.empty() && path.front() == ',') {
+			path.remove_prefix(1);
+			skipWhitespace();
+		}
+	};
+
+	char command = 0;
+	skipWhitespace();
+	while (!path.empty()) {
+		auto kind = static_cast<char>(std::toupper(static_cast<unsigned char>(path.front())));
+		if (params.find(kind) != params.end()) {
+			command = path.front();
+			path.remove_prefix(1);
+			skipWhitespace();
+		} else {
+			if (!command) return false;
+			kind = static_cast<char>(std::toupper(command));
+			skipSeparator();
+		}
+		if (commands.empty() && kind != 'M') return false;
+
+		const int count = params.at(kind);
+		std::vector<float> args;
+		args.reserve(count);
+		for (int i = 0; i < count; ++i) {
+			if (i > 0) skipSeparator();
+			float value;
+			if (kind == 'A' && (i == 3 || i == 4)) {
+				if (path.empty() || (path.front() != '0' && path.front() != '1')) return false;
+				value = path.front() - '0';
+				path.remove_prefix(1);
+			} else if (!readPathNumber(path, value)) {
+				return false;
+			}
+			args.push_back(value);
+		}
+		commands.push_back({command, std::move(args)});
+		if (kind == 'M') command = command == 'm' ? 'l' : 'L';
+		if (kind == 'Z') command = 0;
+		skipWhitespace();
+	}
+	return true;
+}
+
 static void drawArc(NVGcontext* context, const Vec2& start, const std::vector<float>& args) {
 	constexpr float Pi = 3.14159265358979323846f;
 	float rx = std::abs(args[0]);
@@ -372,6 +450,84 @@ static void drawArc(NVGcontext* context, const Vec2& start, const std::vector<fl
 			control1.x, control1.y,
 			control2.x, control2.y,
 			segmentEnd.x, segmentEnd.y);
+	}
+}
+
+static void drawPath(NVGcontext* context, const std::list<CommandData>& commands) {
+	Vec2 current = Vec2::zero;
+	Vec2 start = Vec2::zero;
+	Vec2 control = Vec2::zero;
+	char previous = 0;
+	int subPathCount = 0;
+	for (const auto& [command, args] : commands) {
+		const auto kind = static_cast<char>(std::toupper(command));
+		const Vec2 offset = std::islower(command) ? current : Vec2::zero;
+		auto point = [&](int index) {
+			return Vec2{args[index] + offset.x, args[index + 1] + offset.y};
+		};
+		auto reflectedControl = [&]() {
+			return Vec2{2.0f * current.x - control.x, 2.0f * current.y - control.y};
+		};
+
+		if (previous == 'Z' && kind != 'M' && kind != 'Z') {
+			++subPathCount;
+			nvgMoveTo(context, current.x, current.y);
+		}
+		switch (kind) {
+			case 'M':
+				start = current = point(0);
+				++subPathCount;
+				nvgMoveTo(context, current.x, current.y);
+				break;
+			case 'H':
+			case 'V':
+			case 'L': {
+				const Vec2 end = kind == 'H' ? Vec2{args[0] + offset.x, current.y}
+					: kind == 'V' ? Vec2{current.x, args[0] + offset.y}
+								  : point(0);
+				if ((previous == 'M' || previous == 'L') && end.x == current.x && end.y == current.y) continue;
+				nvgLineTo(context, end.x, end.y);
+				current = end;
+				previous = 'L';
+				continue;
+			}
+			case 'C':
+			case 'S': {
+				const bool smooth = kind == 'S';
+				const Vec2 first = smooth
+					? (previous == 'C' || previous == 'S' ? reflectedControl() : current)
+					: point(0);
+				control = point(smooth ? 0 : 2);
+				current = point(smooth ? 2 : 4);
+				nvgBezierTo(context, first.x, first.y, control.x, control.y, current.x, current.y);
+				break;
+			}
+			case 'Q':
+			case 'T':
+				control = kind == 'Q' ? point(0)
+					: previous == 'Q' || previous == 'T' ? reflectedControl() : current;
+				current = point(kind == 'Q' ? 2 : 0);
+				nvgQuadTo(context, control.x, control.y, current.x, current.y);
+				break;
+			case 'A': {
+				const Vec2 end = point(5);
+				auto absoluteArgs = args;
+				absoluteArgs[5] = end.x;
+				absoluteArgs[6] = end.y;
+				drawArc(context, current, absoluteArgs);
+				current = end;
+				break;
+			}
+			case 'Z':
+				if (previous == 'Z') continue;
+				nvgClosePath(context);
+				if (subPathCount > 1) {
+					nvgPathWinding(context, subPathCount % 2 == 0 ? NVG_HOLE : NVG_SOLID);
+				}
+				current = start;
+				break;
+		}
+		previous = kind;
 	}
 }
 
@@ -581,111 +737,9 @@ void SVGCache::Parser::xmlSAX2StartElement(std::string_view name, const std::vec
 			PathData data;
 			ATTR_START
 			case "d"_hash: {
-				std::string parameterString;
-				std::list<std::string> parameters;
-				std::optional<char> command;
-				bool foundDecimalSeparator = false;
-				auto executeCommand = [&]() {
-					if (!command) return;
-					int parameterCount = _params[std::toupper(command.value())];
-					if (parameterCount == 0) {
-						if (parameters.empty()) {
-							data.commands.push_back({command.value()});
-						} else
-							throw rapidxml::parse_error(
-								fmt::format("Path command {} should not take parameters: {}", command.value(), parameters.size()).c_str(),
-								r_cast<void*>(c_cast<char*>(name.data())));
-					} else {
-						if (parameters.size() % parameterCount != 0) {
-							throw rapidxml::parse_error(
-								fmt::format("Path command {} should take {} parameters instead of {}", command.value(), parameterCount, parameters.size()).c_str(),
-								r_cast<void*>(c_cast<char*>(name.data())));
-						}
-						while (!parameters.empty()) {
-							std::vector<float> args;
-							for (int i = 0; i < parameterCount; ++i) {
-								args.push_back(Slice(parameters.front()).toFloat());
-								parameters.pop_front();
-							}
-							data.commands.push_back({command.value(), std::move(args)});
-						}
-					}
-				};
-				for (auto ch : v) {
-					if (ch == '\n' || ch == '\t') continue;
-					switch (ch) {
-						case 't':
-							throw rapidxml::parse_error(
-								fmt::format("Path command {} is not implemeneted", command.value()).c_str(),
-								r_cast<void*>(c_cast<char*>(name.data())));
-							break;
-						case 'a':
-						case 'c':
-						case 'h':
-						case 'l':
-						case 'm':
-						case 's':
-						case 'q':
-						case 'v':
-						case 'z':
-						case 'A':
-						case 'C':
-						case 'H':
-						case 'L':
-						case 'M':
-						case 'S':
-						case 'Q':
-						case 'T':
-						case 'V':
-						case 'Z': {
-							if (!parameterString.empty()) {
-								parameters.push_back(parameterString);
-								parameterString.clear();
-							}
-							executeCommand();
-							command = ch;
-							parameters.clear();
-							foundDecimalSeparator = false;
-							break;
-						}
-						case ' ':
-						case ',':
-						case '-': {
-							if (!parameterString.empty()) {
-								parameters.push_back(parameterString);
-								parameterString.clear();
-								foundDecimalSeparator = false;
-							}
-							if (ch == '-') {
-								parameterString += ch;
-								foundDecimalSeparator = false;
-							}
-							break;
-						}
-						case '.': {
-							if (foundDecimalSeparator) {
-								parameters.push_back(parameterString);
-								parameterString.clear();
-								parameterString += ch;
-							} else {
-								foundDecimalSeparator = true;
-								parameterString += ch;
-							}
-							break;
-						}
-						default: {
-							if (command && std::isdigit(ch)) {
-								parameterString += ch;
-							}
-							break;
-						}
-					}
+				if (!parsePath(v.toView(), _params, data.commands)) {
+					throw rapidxml::parse_error("Invalid SVG path data", r_cast<void*>(c_cast<char*>(name.data())));
 				}
-				if (!parameterString.empty()) {
-					parameters.push_back(parameterString);
-					parameterString.clear();
-				}
-				executeCommand();
 				break;
 			}
 			case "style"_hash: attribStyle(data.fillStroke, v); break;
@@ -695,137 +749,7 @@ void SVGCache::Parser::xmlSAX2StartElement(std::string_view name, const std::vec
 				ATTR_STOP
 				def->_commands.push_back([data = std::move(data)](SVGDef::Context* ctx) {
 					drawBegin(ctx);
-					std::optional<CommandData> previousPath;
-					std::optional<Vec2> previousMovePoint;
-					std::optional<char> previousCommand;
-					std::vector<float> previousParameters;
-					int subPathCount = 0;
-					for (const auto& cmd : data.commands) {
-						// Converts relative coordinates to absolute coordinates.
-						std::vector<float> args = cmd.args;
-						if (std::islower(cmd.command)) {
-							auto previous = ctx->previousPathXY.back();
-							switch (cmd.command) {
-								case 'a': {
-									args[5] += previous.x;
-									args[6] += previous.y;
-									break;
-								}
-								case 'c':
-								case 'h':
-								case 'l':
-								case 'm':
-								case 's':
-								case 'q': {
-									for (size_t i = 0; i < cmd.args.size(); ++i) {
-										args[i] += (&previous.x)[i % 2];
-									}
-									break;
-								}
-								case 'v': {
-									args = {previous.y + args[0]};
-									break;
-								}
-								default: break;
-							}
-						}
-						char command = std::toupper(cmd.command);
-						// Converts 'H', 'S' and 'V' commands to other generic commands.
-						switch (command) {
-							case 'H':
-								command = 'L';
-								args = {args[0], ctx->previousPathXY.back().y};
-								break;
-							case 'S':
-								if (!previousPath) {
-									previousCommand.reset();
-								} else {
-									previousCommand = previousPath->command;
-									previousParameters = previousPath->args;
-								}
-								if (previousCommand == 'C') {
-									float previousX = previousParameters[4];
-									float previousY = previousParameters[5];
-									float previousX2 = previousParameters[2];
-									float previousY2 = previousParameters[3];
-									float x1 = 2.0f * previousX - previousX2;
-									float y1 = 2.0f * previousY - previousY2;
-									command = 'C';
-									args.insert(args.begin(), y1);
-									args.insert(args.begin(), x1);
-								} else {
-									size_t last = previousParameters.size() - 1;
-									float x = previousParameters[last];
-									float y = previousParameters[last - 1];
-									command = 'C';
-									args.insert(args.begin(), y);
-									args.insert(args.begin(), x);
-								}
-								break;
-							case 'V':
-								command = 'L';
-								args = {ctx->previousPathXY.back().x, args[0]};
-								break;
-						}
-						// Moves to the previous move point if the previous command is closepath.
-						if (previousPath
-							&& previousMovePoint
-							&& previousPath->command == 'Z'
-							&& command != 'M') {
-							subPathCount++;
-							nvgMoveTo(ctx->nvg, previousMovePoint->x, previousMovePoint->y);
-						}
-						// Handles generic commands.
-						switch (command) {
-							case 'A':
-								drawArc(ctx->nvg, ctx->previousPathXY.back(), args);
-								ctx->previousPathXY.back() = {args[5], args[6]};
-								previousPath = {command, args};
-								break;
-							case 'C':
-								nvgBezierTo(ctx->nvg, args[0], args[1], args[2], args[3], args[4], args[5]);
-								ctx->previousPathXY.back() = {args[4], args[5]};
-								previousPath = {command, args};
-								break;
-							case 'L': {
-								if ((previousPath->command == 'M'
-										|| previousPath->command == 'L')
-									&& args[0] == ctx->previousPathXY.back().x
-									&& args[1] == ctx->previousPathXY.back().y) {
-									break;
-								}
-								nvgLineTo(ctx->nvg, args[0], args[1]);
-								ctx->previousPathXY.back() = {args[0], args[1]};
-								previousPath = {command, args};
-								break;
-							}
-							case 'M':
-								subPathCount++;
-								nvgMoveTo(ctx->nvg, args[0], args[1]);
-								ctx->previousPathXY.back() = {args[0], args[1]};
-								previousMovePoint = {args[0], args[1]};
-								previousPath = {command, args};
-								break;
-							case 'Q':
-								nvgQuadTo(ctx->nvg, args[0], args[1], args[2], args[3]);
-								ctx->previousPathXY.back() = {args[2], args[3]};
-								previousPath = {command, args};
-								break;
-							case 'Z':
-								if (previousPath->command == 'M') {
-									break;
-								}
-								nvgClosePath(ctx->nvg);
-								if (subPathCount > 1) {
-									nvgPathWinding(ctx->nvg, subPathCount % 2 == 0 ? NVG_HOLE : NVG_SOLID);
-								}
-								previousPath = {command, args};
-								break;
-							default:
-								Error("Path command {} is not implemented", command);
-								break;
-						}
-					}
+					drawPath(ctx->nvg, data.commands);
 					drawEnd(ctx, data.fillStroke);
 				});
 				break;
