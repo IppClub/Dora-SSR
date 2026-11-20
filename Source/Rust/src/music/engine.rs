@@ -2512,8 +2512,8 @@ fn note_name_to_midi(value: &str) -> Option<i32> {
 		(0, rest)
 	};
 	let octave: i32 = octave.parse().ok()?;
-	let key = (octave + 1) * 12 + natural + accidental;
-	(0..=127).contains(&key).then_some(key)
+	let key = (i64::from(octave) + 1) * 12 + natural + accidental;
+	(0..=127).contains(&key).then_some(key as i32)
 }
 
 fn resolve_pitch(value: &Pitch) -> Option<i32> {
@@ -4452,6 +4452,16 @@ mod tests {
 				"definition": {definition}
 			}}"#
 		)
+	}
+
+	#[test]
+	fn note_names_respect_midi_bounds_at_extreme_octaves() {
+		assert_eq!(note_name_to_midi("C-1"), Some(0));
+		assert_eq!(note_name_to_midi("G9"), Some(127));
+		assert_eq!(note_name_to_midi("Cb-1"), None);
+		assert_eq!(note_name_to_midi("G#9"), None);
+		assert_eq!(note_name_to_midi("C2147483647"), None);
+		assert_eq!(note_name_to_midi("C-2147483648"), None);
 	}
 
 	#[test]
