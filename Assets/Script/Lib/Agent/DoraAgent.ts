@@ -1,5 +1,5 @@
 // @preview-file off clear
-import { resolveVisionBinding, VISION_UNAVAILABLE_MESSAGE } from 'Agent/Tool/VisionBinding';
+import { resolveTaskVisionBinding, VISION_UNAVAILABLE_MESSAGE, type VisionBinding } from 'Agent/Tool/VisionBinding';
 import { getVisionTaskUsage, type VisionTaskUsage } from 'Agent/Tool/VisionAnalysis';
 import { Path, Content } from 'Dora';
 import { Flow, Node } from 'Agent/Runtime/Flow';
@@ -415,6 +415,8 @@ interface AgentFileContextItem {
 }
 
 interface AgentShared {
+	visionBinding?: VisionBinding;
+	visionUnavailable: boolean;
 	memoryScope: string;
 	pendingPrefixCheckpoint?: { summary: string; boundary: number };
  inputSource?: AgentInputSource;
@@ -485,39 +487,11 @@ function emitLLMContextMetrics(
 	shared: AgentShared,
 	step: number,
 	phase: string,
-	messages: Message[],
-	options: Record<string, unknown>
+	request: ReturnType<typeof AgentUtils.planAgentDecisionRequest>
 ) {
-	const fitted = AgentUtils.fitMessagesToContext(messages, options, shared.llmConfig);
-	const messagesTokens = fitted.originalTokens;
-	// Calculate tool definitions separately - they are fixed overhead, not conversation usage
-	let toolDefinitionsTokens = 0;
-	if (options.tools && Array.isArray(options.tools)) {
-		const [toolsText] = AgentUtils.safeJsonEncode(options.tools as object);
-		toolDefinitionsTokens = toolsText ? AgentUtils.estimateTextTokens(toolsText) : 0;
-	}
-	// Exclude tools from optionsTokens since we track them separately
-	const optionsWithoutTools = { ...options };
-	delete optionsWithoutTools.tools;
-	const [optionsText] = AgentUtils.safeJsonEncode(optionsWithoutTools as object);
-	const optionsTokens = optionsText ? AgentUtils.estimateTextTokens(optionsText) : 0;
-	const contextWindow = shared.llmConfig.contextWindow > 0
-		? math.floor(shared.llmConfig.contextWindow)
-		: 64000;
-	const explicitMax = typeof options.max_tokens === "number"
-		? math.floor(options.max_tokens)
-		: (typeof options.max_completion_tokens === "number"
-			? math.floor(options.max_completion_tokens)
-			: 0);
-	const reservedOutputTokens = explicitMax > 0
-		? math.max(256, explicitMax)
-		: math.max(1024, math.floor(contextWindow * 0.2));
-	const structuralOverhead = math.max(256, messages.length * 16);
-	// Present usage against the configured context window while preserving the
-	// exact request-fit boundary: input plus all reserved overhead reaches 100%
-	// at the same point where originalTokens reaches the effective input budget.
-	const usedTokens = messagesTokens + math.max(0, contextWindow - fitted.budgetTokens);
-	const maxTokens = contextWindow;
+	const { options, contextWindow, messagesTokens, structuralOverhead, usedTokens, outputLimit } = request;
+	const [toolsText] = AgentUtils.safeJsonEncode(options.tools as object);
+	const toolDefinitionsTokens = toolsText ? AgentUtils.estimateTextTokens(toolsText) : 0;
 	emitAgentEvent(shared, {
 		type: "metrics_updated",
 		sessionId: shared.sessionId,
@@ -526,15 +500,15 @@ function emitLLMContextMetrics(
 		metrics: {
 			context: {
 				usedTokens,
-				maxTokens,
-				ratio: math.max(0, math.min(1, usedTokens / maxTokens)),
+				maxTokens: contextWindow,
+				ratio: math.max(0, math.min(1, usedTokens / contextWindow)),
 				messagesTokens,
-				optionsTokens,
+				optionsTokens: math.max(0, usedTokens - messagesTokens - structuralOverhead - toolDefinitionsTokens),
 				toolDefinitionsTokens,
-				reservedOutputTokens,
+				reservedOutputTokens: outputLimit,
 				structuralOverhead,
 				contextWindow,
-				source: "llm_input_estimate",
+				source: "llm_input_only_estimate",
 				updatedAt: os.time(),
 				phase,
 				step,
@@ -961,24 +935,13 @@ async function maybeCompressHistory(
 			false,
 			includePendingUserPrompt ? pendingUserPrompt : ""
 		);
-		const triggerOptions = {
-			...shared.llmOptions,
-			...(AgentUtils.useFastGlmToolDecision(shared.llmConfig.model, shared.llmOptions)
-				? { reasoning_effort: "minimal" }
-				: {}),
-			tools: decisionTools(shared),
-		};
-		const fitted = AgentUtils.fitMessagesToContext(triggerMessages, triggerOptions, shared.llmConfig);
-		// Start with headroom, using the exact next request including tools and
-		// pending user input. Keep the existing half-budget compression target.
-		if (fitted.originalTokens < fitted.budgetTokens * 0.9) return;
-		if (fitted.originalTokens < fitted.budgetTokens * 0.97 && memory.compressor.isCompressionBreakerOpen()) return;
-		if (getActiveRealMessageCount(shared) <= 0 || fitted.budgetTokens <= 0) {
-			if (fitted.originalTokens < fitted.budgetTokens) return;
+		const budget = planDecisionRequest(shared, triggerMessages);
+		if (budget.messagesTokens <= budget.inputBudget) return;
+		if (getActiveRealMessageCount(shared) <= 0 || budget.inputBudget <= 0) {
 			throw new Error("The current instructions and configured output limit leave insufficient context space. Reduce the output limit or shorten the instructions; history was preserved.");
 		}
 		compressionRound += 1;
-		AgentUtils.Log("Info", `[Memory] Effective input budget reached tokens=${fitted.originalTokens} budget=${fitted.budgetTokens} round=${compressionRound}`);
+		AgentUtils.Log("Info", `[Memory] Effective input budget reached tokens=${budget.messagesTokens} budget=${budget.inputBudget} round=${compressionRound}`);
 		shared.step += 1;
 		const stepId = shared.step;
 		const pendingMessages = activeMessages.length;
@@ -995,8 +958,8 @@ async function maybeCompressHistory(
 				pendingMessages,
 				coveredThroughIndex: shared.lastConsolidatedIndex,
 				uncoveredMessages: uncoveredMessages.length,
-				inputTokens: fitted.originalTokens,
-				inputBudgetTokens: fitted.budgetTokens,
+				inputTokens: budget.messagesTokens,
+				inputBudgetTokens: budget.inputBudget,
 			},
 		});
 		const result = await memory.compressor.compress(
@@ -1007,10 +970,10 @@ async function maybeCompressHistory(
 			{
 				sharedPrefix: canUsePrefixHandoff(shared) ? {
 					messages: triggerMessages,
-					options: AgentUtils.applyCustomLLMOptions(triggerOptions, shared.llmConfig.customOptions),
+					options: budget.options,
 				} : undefined,
 				onDevelopmentCalls: message => runPrefixDevelopmentCalls(shared, message, recoveryChain),
-				targetTokens: math.max(1, fitted.originalTokens - math.floor(fitted.budgetTokens * 0.5)),
+				targetTokens: math.max(1, budget.messagesTokens - math.floor(budget.inputBudget * 0.5)),
 				stopToken: shared.stopToken,
 				onInput: (phase, messages, options) => {
 					saveStepLLMDebugInput(shared, stepId, phase, messages, options);
@@ -1046,9 +1009,6 @@ async function maybeCompressHistory(
 				},
 			});
 			if (shared.stopToken.stopped) throw new Error(getCancelledReason(shared));
-			// A failed proactive attempt can continue with the intact request.
-			// Never clip history to make an over-budget request sendable.
-			if (fitted.originalTokens < fitted.budgetTokens) return;
 			throw new Error(result?.error ?? "Memory compression could not make progress; history was preserved.");
 		}
 		const effectiveCompressedCount = math.max(
@@ -1056,7 +1016,6 @@ async function maybeCompressHistory(
 			result.compressedCount - (typeof shared.carryMessageIndex === "number" ? 1 : 0)
 		);
 		if (effectiveCompressedCount <= 0) {
-			if (fitted.originalTokens < fitted.budgetTokens) return;
 			throw new Error("Memory compression covered only the carried instruction and could not reduce the active history.");
 		}
 		commitCompressedSessionState(shared, result);
@@ -1083,10 +1042,10 @@ async function maybeCompressHistory(
 		});
 		const nextMessages = buildDecisionMessages(shared, undefined, 1, undefined, false,
 			includePendingUserPrompt ? pendingUserPrompt : "");
-		const nextFit = AgentUtils.fitMessagesToContext(nextMessages, triggerOptions, shared.llmConfig);
-		AgentUtils.Log("Info", `[Memory] Compressed ${effectiveCompressedCount} messages (round ${compressionRound}) tokens=${fitted.originalTokens}->${nextFit.originalTokens}`);
-		if (nextFit.originalTokens >= fitted.originalTokens) {
-			if (nextFit.originalTokens < nextFit.budgetTokens) return;
+		const nextBudget = planDecisionRequest(shared, nextMessages);
+		AgentUtils.Log("Info", `[Memory] Compressed ${effectiveCompressedCount} messages (round ${compressionRound}) tokens=${budget.messagesTokens}->${nextBudget.messagesTokens}`);
+		if (nextBudget.messagesTokens >= budget.messagesTokens) {
+			if (nextBudget.messagesTokens <= nextBudget.inputBudget) return;
 			throw new Error("Memory compression did not reduce the effective request size. The remaining instructions or memory exceed the context budget; task paused.");
 		}
 	}
@@ -1202,11 +1161,28 @@ async function compactActiveHistory(shared: AgentShared, repeatedOutput = false)
 	return { rounds, totalCompressed };
 }
 
+function planDecisionRequest(shared: AgentShared, messages: Message[]) {
+	const options = {
+		...shared.llmOptions,
+		...(AgentUtils.useFastGlmToolDecision(shared.llmConfig.model, shared.llmOptions)
+			? { reasoning_effort: "minimal" }
+			: {}),
+		tools: decisionTools(shared),
+	};
+	return AgentUtils.planAgentDecisionRequest(messages, options, shared.llmConfig);
+}
+
+function refreshSessionContextEstimate(shared: AgentShared, phase: string): void {
+	const messages = buildDecisionMessages(shared, undefined, 1, undefined, false);
+	emitLLMContextMetrics(shared, shared.step, phase, planDecisionRequest(shared, messages));
+}
+
 async function compactAllHistory(shared: AgentShared): Promise<CodingAgentRunResult> {
 	try {
 		for (let i = shared.messages.length - 1;i >= 0;i--) { const m = shared.messages[i]; if (m.role === 'user' && m.content && getPromptCommand(m.content) === undefined) { shared.userQuery = m.content; break; } }
 		const { rounds, totalCompressed } = await compactActiveHistory(shared);
 		if (shared.stopToken.stopped) return finalizeAgentFailure(shared, getCancelledReason(shared));
+		refreshSessionContextEstimate(shared, "after_compaction");
 		Tools.setTaskStatus(shared.taskId, "DONE");
 		return emitAgentTaskFinishEvent(shared, true, shared.useChineseResponse
 			? `会话整理完成，共整理 ${totalCompressed} 条消息，耗时 ${rounds} 轮。`
@@ -1249,6 +1225,7 @@ function clearSessionHistory(shared: AgentShared): CodingAgentRunResult {
 	shared.lastConsolidatedIndex = 0;
 	shared.carryMessageIndex = undefined;
 	persistHistoryState(shared);
+	refreshSessionContextEstimate(shared, "after_clear");
 	Tools.setTaskStatus(shared.taskId, "DONE");
 	return emitAgentTaskFinishEvent(
 		shared,
@@ -1548,7 +1525,7 @@ function validateDecisionForShared(
 	}
 	if (!isToolAllowedForRole(shared, tool)) {
 		if (getDecisionDisabledAgentTools(shared).indexOf(tool) >= 0) {
-			return { success: false, message: tool === "analyze_image" && !resolveVisionBinding(shared.llmConfig)
+			return { success: false, message: tool === "analyze_image" && shared.visionUnavailable
 				? VISION_UNAVAILABLE_MESSAGE
 				: `${tool} is disabled for this task. Retrying will not enable it; check the task's tool settings.` };
 		}
@@ -1569,9 +1546,7 @@ function buildAgentSystemPrompt(shared: AgentShared): string {
 	];
 	if (canUsePrefixHandoff(shared)) sections.push('context_handoff is available throughout this session for substantial context checkpoints. It is not a final response or routine progress report. Separate observed facts and passed checks from hypotheses and unverified work. Never redo completed tool calls after checkpointing.');
 	if (getDecisionDisabledAgentTools(shared).indexOf("analyze_image") >= 0) {
-		sections.push(!resolveVisionBinding(shared.llmConfig)
-			? VISION_UNAVAILABLE_MESSAGE
-			: "analyze_image is disabled for this task. Do not attempt image analysis or claim to have inspected images; explain the limitation when visual inspection is needed.");
+		sections.push("Image analysis is unavailable for this task. Treat screenshots and image metadata as evidence only for what you can verify without visual inspection. If visual inspection is needed, explain the limitation.");
 	}
 	if (shared.role === "main") {
 		const planPath = Path(shared.workingDir, AgentRuntimePolicy.AGENT_PLAN_FILE);
@@ -1729,26 +1704,27 @@ class MainDecisionAgent extends Node<AgentShared> {
 			return { success: false, message: getCancelledReason(shared) };
 		}
 		AgentUtils.Log("Info", `[CodingAgent] tool-calling decision start step=${shared.step + 1}${lastError ? ` retry_error=${lastError}` : ""}`);
-		const tools = decisionTools(shared);
 		const messages = buildDecisionMessages(shared, lastError, attempt, lastRaw);
 		const stepId = shared.step + 1;
-		const useFastGlmToolDecision = AgentUtils.useFastGlmToolDecision(shared.llmConfig.model, shared.llmOptions);
-		const llmOptions = {
-			...shared.llmOptions,
-			...(useFastGlmToolDecision ? { reasoning_effort: "minimal" } : {}),
-			tools,
-		};
-		emitLLMContextMetrics(shared, stepId, "decision_tool_calling", messages, llmOptions);
+		const request = planDecisionRequest(shared, messages);
+		const llmOptions = request.options;
+		if (request.outputLimit < 1 || request.messagesTokens > request.inputBudget) {
+			return { success: false, message: "The next model request has insufficient context space for output. History was preserved.", requestFailed: true };
+		}
+		emitLLMContextMetrics(shared, stepId, "decision_tool_calling", request);
 		saveStepLLMDebugInput(shared, stepId, "decision_tool_calling", messages, llmOptions);
 		let lastStreamContent = "";
 		let lastStreamReasoning = "";
 		const remainingWorkSteps = getRemainingAgentWorkSteps(shared.agentStepCount, shared.maxSteps);
+		// The request planner already applied custom options before capping output.
+		const requestConfig = { ...shared.llmConfig };
+		delete requestConfig.customOptions;
 		// Complete-output repetition must be checked before any tool is allowed to run.
 		const res = await AgentUtils.callLLMStreamAggregated(
 			messages,
 			llmOptions,
 			shared.stopToken,
-			shared.llmConfig,
+			requestConfig,
 			(response) => {
 				const streamMessage = response.choices?.[0]?.message;
 				const nextContent = typeof streamMessage?.content === "string"
@@ -2149,7 +2125,7 @@ function createAgentToolExecutionContext(
 		taskId: shared.taskId,
 		step: action.step,
 		workingDir: shared.workingDir,
-		visionBinding: resolveVisionBinding(shared.llmConfig),
+		visionBinding: shared.visionBinding,
 		visionTaskContext: contextParts.filter(item => item !== "").join("\n\n"),
 		role: shared.role,
 		workMode: shared.workMode,
@@ -2623,7 +2599,10 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 	}
 	const llmConfig = {...llmConfigRes.config};
 	const disabledAgentTools = (options.disabledAgentTools ?? []).slice();
-	if (!resolveVisionBinding(llmConfig) && disabledAgentTools.indexOf("analyze_image") < 0) disabledAgentTools.push("analyze_image");
+	const visionEnabled = disabledAgentTools.indexOf("analyze_image") < 0;
+	const visionBinding = visionEnabled ? resolveTaskVisionBinding(llmConfig, AgentUtils.getSavedLLMConfigs) : undefined;
+	const visionUnavailable = visionEnabled && !visionBinding;
+	if (visionUnavailable) disabledAgentTools.push("analyze_image");
 	const taskRes = options.taskId !== undefined
 		? { success: true as const, taskId: options.taskId }
 		: Tools.createTask(normalizedPrompt, options.workMode ?? "code");
@@ -2674,6 +2653,8 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 		useChineseResponse: options.useChineseResponse === true,
 		workMode: options.workMode ?? "code",
 		llmOptions: buildLLMOptions(llmConfig, options.llmOptions),
+		visionBinding,
+		visionUnavailable,
 		llmConfig,
 		onEvent: options.onEvent,
 		promptPack,
@@ -2798,6 +2779,7 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 			return emitAgentTaskFinishEvent(shared, false,
 				shared.response || (shared.useChineseResponse ? "本轮达到处理上限，工作尚未完成。" : "This task reached its processing limit with work remaining."));
 		}
+		refreshSessionContextEstimate(shared, "after_response");
 		Tools.setTaskStatus(shared.taskId, "DONE");
 		return emitAgentTaskFinishEvent(shared, true,
 			shared.response || (shared.useChineseResponse ? "任务完成。" : "Task completed."));

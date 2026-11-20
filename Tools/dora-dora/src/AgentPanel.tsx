@@ -95,7 +95,6 @@ function getFiniteNumber(value: unknown): number | undefined {
 export default function AgentPanel(props: AgentPanelProps) {
 	const HISTORY_VISIBLE_ROUNDS = 10;
 	const CURRENT_STEPS_VISIBLE_COUNT = 80;
-	const EXECUTE_COMMAND_TOOL = "execute_command";
 	const { t } = useTranslation();
 	const { active = true, compact = false, sessionId, projectRoot, title, height, showHeader = true, initialPrompt, addAlert, onInitialPromptConsumed, onRollbackComplete, onOpenFile, onOpenLLMConfig } = props;
 	const [initialSnapshot] = useState(() => getAgentSessionSnapshot(sessionId));
@@ -105,6 +104,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 	);
 	const [prompt, setPrompt] = useState("");
 	const [loading, setLoading] = useState(false);
+	const [changingWorkMode, setChangingWorkMode] = useState(false);
 	const [stoppingTaskId, setStoppingTaskId] = useState<number | null>(null);
 	const [continueLoadingTaskId, setContinueLoadingTaskId] = useState<number | null>(null);
 	const [finishHandoffLoadingTaskId, setFinishHandoffLoadingTaskId] = useState<number | null>(null);
@@ -143,10 +143,6 @@ export default function AgentPanel(props: AgentPanelProps) {
 	const selectedLLMConfigIdRef = React.useRef(selectedLLMConfigId);
 	const [selectedBackendId, setSelectedBackendId] = useState<string>(() => window.localStorage.getItem(AGENT_BACKEND_STORAGE_KEY) ?? (selectedLLMConfigId ? `llm:${selectedLLMConfigId}` : ''));
 	const selectedBackendIdRef = React.useRef(selectedBackendId);
-	// Engine-side Lua/Git commands are bounded by the Agent command sandbox and
-	// are required for real build/runtime validation. Keep network fetch opt-in,
-	// but make local validation available in every new main session.
-	const [disabledAgentTools, setDisabledAgentTools] = useState<string[]>([]);
 	const scrollRef = React.useRef<HTMLElement | null>(null);
 	const contentRef = React.useRef<HTMLDivElement | null>(null);
 	const isFollowingOutputRef = React.useRef(true);
@@ -212,15 +208,6 @@ export default function AgentPanel(props: AgentPanelProps) {
 			return a.id - b.id;
 		});
 	}, [relatedSessions]);
-	const executeCommandEnabled = disabledAgentTools.indexOf(EXECUTE_COMMAND_TOOL) < 0;
-	const setExecuteCommandEnabled = React.useCallback((enabled: boolean) => {
-		setDisabledAgentTools(prev => {
-			const disabled = prev.indexOf(EXECUTE_COMMAND_TOOL) >= 0;
-			if (enabled && disabled) return prev.filter(tool => tool !== EXECUTE_COMMAND_TOOL);
-			if (!enabled && !disabled) return [...prev, EXECUTE_COMMAND_TOOL];
-			return prev;
-		});
-	}, []);
 
 	const tabLabelMap = useMemo(() => {
 		const map = new Map<number, string>();
@@ -871,7 +858,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 	}, [addAlert, projectRoot, t]);
 
 	const sendPromptText = React.useCallback(async (text: string, targetSessionId = selectedSessionId, requestedWorkMode = workMode, submission?: Service.AgentInputSubmission) => {
-		if ((!text && !submission?.action) || loading || continueLoadingTaskId !== null) return;
+		if ((!text && !submission?.action) || loading || changingWorkMode || continueLoadingTaskId !== null) return;
 		setLoading(true);
 		try {
 			const backendId = selectedBackendIdRef.current;
@@ -886,7 +873,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 			}
 			const res = localId !== undefined
 				? await Service.agentSessionSendLocal({sessionId: targetSessionId, prompt: text, localAgentConfigId: localId, submission})
-				: await Service.agentSessionSend({sessionId: targetSessionId, prompt: text, llmConfigId: llmConfigId!, disabledAgentTools, workMode: requestedWorkMode, submission});
+				: await Service.agentSessionSend({sessionId: targetSessionId, prompt: text, llmConfigId: llmConfigId!, workMode: requestedWorkMode, submission});
 			if (!res.success) {
 				if (res.message.includes("LLM config")) {
 					setLLMConfigMissing(true);
@@ -902,10 +889,10 @@ export default function AgentPanel(props: AgentPanelProps) {
 		} finally {
 			setLoading(false);
 		}
-	}, [addAlert, resolveLLMConfigId, continueLoadingTaskId, loading, disabledAgentTools, refresh, selectedSessionId, stopProjectRunBeforeAgent, t, workMode]);
+	}, [addAlert, resolveLLMConfigId, continueLoadingTaskId, loading, changingWorkMode, refresh, selectedSessionId, stopProjectRunBeforeAgent, t, workMode]);
 
 	const resendPromptText = React.useCallback(async (message: Service.AgentSessionMessage, text: string) => {
-		if (text === "" || loading || continueLoadingTaskId !== null || session?.currentTaskStatus === "RUNNING") return false;
+		if (text === "" || loading || changingWorkMode || continueLoadingTaskId !== null || session?.currentTaskStatus === "RUNNING") return false;
 		setLoading(true);
 		try {
 			const llmConfigId = await resolveLLMConfigId();
@@ -922,7 +909,6 @@ export default function AgentPanel(props: AgentPanelProps) {
 				messageId: message.id,
 				prompt: text,
 				llmConfigId,
-				disabledAgentTools,
 				workMode,
 			});
 			if (!res.success) {
@@ -940,7 +926,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 		} finally {
 			setLoading(false);
 		}
-	}, [addAlert, resolveLLMConfigId, continueLoadingTaskId, loading, disabledAgentTools, refresh, selectedSessionId, session?.currentTaskStatus, stopProjectRunBeforeAgent, t, workMode]);
+	}, [addAlert, resolveLLMConfigId, continueLoadingTaskId, loading, changingWorkMode, refresh, selectedSessionId, session?.currentTaskStatus, stopProjectRunBeforeAgent, t, workMode]);
 
 	const submitQuestionnaire = React.useCallback(async (answers: Service.AgentQuestionnaireAnswer[]) => {
 		if (!pendingQuestionnaire || questionnaireSubmitting) return;
@@ -999,9 +985,9 @@ export default function AgentPanel(props: AgentPanelProps) {
 	}, [addAlert, resolveLLMConfigId, pendingQuestionnaire, questionnaireSubmitting, refresh, selectedSessionId, t]);
 
 	const changeWorkMode = React.useCallback(async (planMode: boolean) => {
-		if (loading || session?.currentTaskStatus === "RUNNING" || session?.currentTaskStatus === "WAITING_USER") return;
+		if (loading || changingWorkMode || session?.currentTaskStatus === "RUNNING" || session?.currentTaskStatus === "WAITING_USER") return;
 		const nextMode = planMode ? "plan" : "code";
-		setLoading(true);
+		setChangingWorkMode(true);
 		try {
 			const res = await Service.agentSessionSetMode({ sessionId: selectedSessionId, workMode: nextMode });
 			if (!res.success) {
@@ -1011,12 +997,12 @@ export default function AgentPanel(props: AgentPanelProps) {
 			setSession(res.session);
 			setWorkMode(res.session.workMode);
 		} finally {
-			setLoading(false);
+			setChangingWorkMode(false);
 		}
-	}, [addAlert, loading, selectedSessionId, session?.currentTaskStatus]);
+	}, [addAlert, changingWorkMode, loading, selectedSessionId, session?.currentTaskStatus]);
 
 	const startDevelopment = React.useCallback(async () => {
-		if (loading || session?.currentTaskStatus === "RUNNING" || session?.currentTaskStatus === "WAITING_USER") return;
+		if (loading || changingWorkMode || session?.currentTaskStatus === "RUNNING" || session?.currentTaskStatus === "WAITING_USER") return;
 		const modeResult = await Service.agentSessionSetMode({ sessionId: selectedSessionId, workMode: "code" });
 		if (!modeResult.success) {
 			addAlert?.(modeResult.message, "error");
@@ -1025,7 +1011,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 		setSession(modeResult.session);
 		setWorkMode("code");
 		await sendPromptText(t("agent.plan.startPrompt"), selectedSessionId, "code");
-	}, [addAlert, loading, selectedSessionId, sendPromptText, session?.currentTaskStatus, t]);
+	}, [addAlert, changingWorkMode, loading, selectedSessionId, sendPromptText, session?.currentTaskStatus, t]);
 
 	const onSend = async (delivery?: "queue"|"steer", submittedText?:string, requestId?:string) => {
 		const text = submittedText ?? prompt.trim();
@@ -1049,7 +1035,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 
 	const onContinueTask = async () => {
 		const taskId = continuableTaskId;
-		if (!taskId || loading || continueLoadingTaskId !== null || session?.currentTaskStatus === "RUNNING") return;
+		if (!taskId || loading || changingWorkMode || continueLoadingTaskId !== null || session?.currentTaskStatus === "RUNNING") return;
 		setContinueLoadingTaskId(taskId);
 		try {
 			const llmConfigId = await resolveLLMConfigId();
@@ -1064,7 +1050,6 @@ export default function AgentPanel(props: AgentPanelProps) {
 			const res = await Service.agentSessionContinue({
 				sessionId: selectedSessionId,
 				llmConfigId,
-				disabledAgentTools,
 			});
 			if (!res.success) {
 				if (res.message.includes("LLM config")) {
@@ -1247,6 +1232,33 @@ export default function AgentPanel(props: AgentPanelProps) {
 			);
 		});
 	}, [orderedRelatedSessions, selectedSessionId, selectSession, tabLabelMap]);
+	const showDevelopmentActionSlot = hasActivePlan && session?.kind === "main"
+		&& visibleSummaryMessages.length > 0 && !showSummaryShimmer;
+	const developmentAction = showDevelopmentActionSlot ? (
+		<Button
+			size="small"
+			variant="outlined"
+			disabled={workMode !== "plan" || loading || changingWorkMode || session.currentTaskStatus === "RUNNING" || session.currentTaskStatus === "WAITING_USER"}
+			onClick={() => void startDevelopment()}
+			sx={{
+				// Reserve the action's height so toggling the mode cannot move the transcript.
+				visibility: workMode === "plan" ? "visible" : "hidden",
+				color: Color.TextSecondary,
+				borderColor: Color.Line,
+				borderRadius: 999,
+				"&.Mui-disabled": {
+					color: Color.TextSecondary,
+					borderColor: Color.Line,
+				},
+				"&:hover": {
+					borderColor: Color.Line,
+					backgroundColor: "rgba(255,255,255,0.03)",
+				},
+			}}
+		>
+			{t("agent.plan.start")}
+		</Button>
+	) : null;
 	const isSessionHydrating = hydratingSessionId === selectedSessionId;
 	const showEmptyState = !isSessionHydrating
 		&& messages.length === 0
@@ -1592,57 +1604,15 @@ export default function AgentPanel(props: AgentPanelProps) {
 											</Button>
 										) : null}
 										{finishHandoffLoadingTaskId === continuableTaskId ? <CircularProgress size={16} /> : null}
-										{workMode === "plan" && hasActivePlan && session?.kind === "main" && visibleSummaryMessages.length > 0 && !showSummaryShimmer ? (
-											<Button
-												size="small"
-												variant="outlined"
-												disabled={loading || session.currentTaskStatus === "RUNNING" || session.currentTaskStatus === "WAITING_USER"}
-												onClick={() => void startDevelopment()}
-												sx={{
-													color: Color.TextSecondary,
-													borderColor: Color.Line,
-													borderRadius: 999,
-													"&.Mui-disabled": {
-														color: Color.TextSecondary,
-														borderColor: Color.Line,
-													},
-													"&:hover": {
-														borderColor: Color.Line,
-														backgroundColor: "rgba(255,255,255,0.03)",
-													},
-												}}
-											>
-												{t("agent.plan.start")}
-											</Button>
-										) : null}
+										{developmentAction}
 									</Stack>
 								) : null}
 								{showSummaryShimmer ? (
 									<AgentReasoning key={activeReasoningStep?.id ?? "waiting"} active content={activeReasoningStep?.reasoningContent ?? ""} thinkingLabel={t("agent.thinking")} label={t("agent.reasoning")} />
 								) : null}
-								{workMode === "plan" && hasActivePlan && session?.kind === "main" && visibleSummaryMessages.length > 0 && !showSummaryShimmer && !continuableTaskId ? (
+								{developmentAction && !continuableTaskId ? (
 									<Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 1.5 }}>
-										<Button
-											size="small"
-											variant="outlined"
-											disabled={loading || session.currentTaskStatus === "RUNNING" || session.currentTaskStatus === "WAITING_USER"}
-											onClick={() => void startDevelopment()}
-											sx={{
-												color: Color.TextSecondary,
-												borderColor: Color.Line,
-												borderRadius: 999,
-												"&.Mui-disabled": {
-													color: Color.TextSecondary,
-													borderColor: Color.Line,
-												},
-												"&:hover": {
-													borderColor: Color.Line,
-													backgroundColor: "rgba(255,255,255,0.03)",
-												},
-											}}
-										>
-											{t("agent.plan.start")}
-										</Button>
+										{developmentAction}
 									</Stack>
 								) : null}
 							</Box>
@@ -1695,7 +1665,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 				<AgentComposer
 					compact={compact}
 					prompt={prompt}
-					loading={loading || continueLoadingTaskId !== null || finishHandoffLoadingTaskId !== null || stoppingTaskId !== null}
+					loading={loading || changingWorkMode || continueLoadingTaskId !== null || finishHandoffLoadingTaskId !== null || stoppingTaskId !== null}
 						running={session?.currentTaskStatus === "RUNNING"}
 						stopping={stoppingTaskId !== null}
 						canStop={session?.currentTaskStatus === "RUNNING" && session?.currentTaskFinalizing !== true && stoppingTaskId === null}
@@ -1707,7 +1677,6 @@ export default function AgentPanel(props: AgentPanelProps) {
 					newSessionLabel={localBackendSelected ? t("agent.newSession") : undefined}
 					newSessionLoading={localBackendSelected && resettingLocalSession}
 					newSessionDisabled={localBackendSelected && (resettingLocalSession || session?.currentTaskStatus === "RUNNING")}
-					executeCommandEnabled={!localBackendSelected && executeCommandEnabled}
 					planMode={!localBackendSelected && workMode === "plan"}
 					llmConfigs={backendChoices}
 					llmConfigId={selectedBackendId || undefined}
@@ -1717,10 +1686,9 @@ export default function AgentPanel(props: AgentPanelProps) {
 					attachmentScopeKey={`${projectRoot}:${selectedSessionId}`}
                     onUploadAttachment={(file,id,signal)=>uploadAgentAttachment(projectRoot,file,id,signal)}
                     onSend={onSend}
-					onStop={() => void onStop()}
-					onNewSession={localBackendSelected ? () => void newLocalSession() : undefined}
-					onExecuteCommandEnabledChange={session?.kind === "main" && !localBackendSelected ? setExecuteCommandEnabled : undefined}
-					onPlanModeChange={session?.kind === "main" && !localBackendSelected ? value => void changeWorkMode(value) : undefined}
+					onStop={onStop}
+					onNewSession={localBackendSelected ? newLocalSession : undefined}
+					onPlanModeChange={session?.kind === "main" && !localBackendSelected ? changeWorkMode : undefined}
 					onLLMConfigChange={selectLLMConfig}
 				/>
 			</>}

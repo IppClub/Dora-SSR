@@ -268,6 +268,7 @@ const App = React.lazy(() => Service.info().then((res) => {
 	Info.path = res.platform === "Windows" ? Path.win32 : Path.posix;
 	Info.version = res.version;
 	Info.engineDev = res.engineDev;
+	Info.debugging = res.debugging === true;
 	Info.webProfiler = res.webProfiler;
 	Info.drawerWidth = res.drawerWidth;
 	Info.webIDETourCompleted = res.webIDETourCompleted;

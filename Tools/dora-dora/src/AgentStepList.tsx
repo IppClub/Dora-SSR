@@ -12,6 +12,7 @@ import { MacScrollbar } from 'mac-scrollbar';
 import { useTranslation } from 'react-i18next';
 import type { AgentChangeSetSummary, AgentCheckpointDiffFile, AgentCheckpointItem, AgentSessionStep } from './Service';
 import { Color } from './Theme';
+import Info from './Info';
 import AgentChangeSetSummaryCard from './AgentChangeSetSummary';
 import { recordAgentRowRender } from './AgentRenderDiagnostics';
 import Markdown from './Markdown';
@@ -567,11 +568,10 @@ function AgentStepListBody(props: AgentStepListProps) {
 					? step.result.transcript
 					: "";
 				const isSystemStep = step.tool === "context_handoff" || step.tool === "compress_memory" || step.tool === "merge_memory" || step.tool === "sub_agent_handoff";
-				const hasCompletedToolOutcome = step.status === "FAILED"
+				const toolFailureMessage = Info.debugging === true && step.status === "FAILED"
 					&& (!isSystemStep || step.tool === "context_handoff")
-					&& step.result?.success === false
-					&& step.result?.interrupted !== true;
-				const toolFailureMessage = hasCompletedToolOutcome && typeof step.result?.message === "string"
+					&& step.result?.success === false && step.result?.interrupted !== true
+					&& typeof step.result.message === "string"
 					? step.result.message.trim()
 					: "";
 				return (
@@ -599,7 +599,7 @@ function AgentStepListBody(props: AgentStepListProps) {
 									color: isSystemStep ? "rgb(255,214,153)" : Color.TextPrimary,
 								}}
 							/>
-							{step.status !== "DONE" && !hasCompletedToolOutcome ? (
+							{step.status !== "DONE" ? (
 								<Chip size="small" label={step.status} variant="outlined" sx={{ borderColor: Color.Line, color: Color.TextSecondary }} />
 							) : null}
 						</Stack>

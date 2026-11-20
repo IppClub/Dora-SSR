@@ -127,7 +127,7 @@ export function createAgentWasmSource(module:AgentHostModule, sessionId:number, 
           }catch(error){reject(error);}
         },fail});
         signal.addEventListener('abort',abort,{once:true});
-        try{module.ccall('dora_web_agent_request',null,['string'],[JSON.stringify({operation:'prompt',sessionId,requestId,prompt,workMode:options.workMode,disabledAgentTools:options.disabledAgentTools,submission:options.submission,llmConfig})]);}
+        try{module.ccall('dora_web_agent_request',null,['string'],[JSON.stringify({operation:'prompt',sessionId,requestId,prompt,workMode:options.workMode,submission:options.submission,llmConfig})]);}
         catch(error){fail(error);}
       });
     },

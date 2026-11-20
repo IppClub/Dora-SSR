@@ -9,12 +9,12 @@ import type {AgentModelQueueState} from './agent-model-queue';
 
 const statuses: Record<string, string> = {IDLE:'就绪', RUNNING:'进行中', WAITING_USER:'等待回答', DONE:'已完成', FAILED:'失败', STOPPED:'已停止', PENDING:'等待中'};
 export interface AgentComposer extends AgentInputControls {
-  value:string;onChange:(value:string)=>void;onSubmit:(delivery?:AgentInputDelivery)=>void;disabled:boolean;busy:boolean;placeholder?:string;submitLabel?:string;
+  value:string;onChange:(value:string)=>void;onSubmit:(delivery?:AgentInputDelivery)=>void|Promise<void>;disabled:boolean;busy:boolean;placeholder?:string;submitLabel?:string;
 	status?:string;
-  stopping?:boolean;onStop?:()=>void;
-  planMode?:boolean;executeCommandEnabled?:boolean;
+  stopping?:boolean;onStop?:()=>void|Promise<void>;
+  planMode?:boolean;
   models?:Array<{id:string;name:string}>;modelId?:string;
-  onPlanModeChange?:(value:boolean)=>void;onExecuteCommandEnabledChange?:(value:boolean)=>void;onModelChange?:(value:string)=>void;
+  onPlanModeChange?:(value:boolean)=>void;onModelChange?:(value:string)=>void;
 }
 export interface AgentQuestionnaireControl {submitting:boolean;onSubmit:(answers:AgentQuestionnaireAnswer[])=>void;onCancel:()=>void}
 export function isAgentTranscriptAtBottom(element:Pick<HTMLElement,'scrollHeight'|'scrollTop'|'clientHeight'>,threshold=48){return element.scrollHeight-element.scrollTop-element.clientHeight<threshold;}
@@ -72,7 +72,7 @@ export function AgentPanel({state, onLoadHistory, loadingHistory = false, connec
         {(state.session.metrics?.usage||modelGrantId)&&<div className="agent-usage"><span>累计 Token {state.session.metrics?.usage?.totalTokens ?? '未报告'}</span>{modelGrantId&&<ModelAllowance compact grantId={modelGrantId} refreshSignal={`${state.session.currentTaskId??''}:${state.session.currentTaskStatus??state.session.status}:${state.session.metrics?.usage?.requestCount??0}:${state.session.metrics?.usage?.totalTokens??0}`}/>}</div>}
       </div>{showLatest&&<button type="button" className="agent-scroll-latest" onClick={()=>{const element=transcript.current;if(!element)return;followTail.current=true;element.scrollTop=element.scrollHeight;setShowLatest(false);}}>↓ 滚动到最新消息</button>}</div>}
     {state?.pendingQuestionnaire&&questionnaire?<SharedAgentQuestionnaire questionnaire={state.pendingQuestionnaire} submitting={questionnaire.submitting} onSubmit={questionnaire.onSubmit} onCancel={questionnaire.onCancel}/>:<SharedAgentComposer compact prompt={composer?.value??''} loading={composer?.busy??false} running={running} stopping={composer?.stopping??false} canStop={!!composer?.onStop&&!composer.stopping&&!state?.session.currentTaskFinalizing} disabled={!composer||composer.disabled} ariaLabel="Agent 描述" maxLength={5000}
-      planMode={composer?.planMode??state?.session.workMode==='plan'} executeCommandEnabled={composer?.executeCommandEnabled??true}
+      planMode={composer?.planMode??state?.session.workMode==='plan'}
       {...(composer?.models?{models:composer.models}:{})} {...(composer?.modelId?{modelId:composer.modelId}:{})}
       usedTokens={state?.session.metrics?.context?.usedTokens??0} maxTokens={state?.session.metrics?.context?.maxTokens??64000} contextRatio={state?.session.metrics?.context?.ratio??0}
       {...(state?.session.metrics?.usage?{actualUsage:{inputTokens:state.session.metrics.usage.inputTokens,outputTokens:state.session.metrics.usage.outputTokens,...(state.session.metrics.usage.cachedInputTokens===undefined?{}:{cachedInputTokens:state.session.metrics.usage.cachedInputTokens}),requestCount:state.session.metrics.usage.requestCount}}:{})}
@@ -83,7 +83,6 @@ export function AgentPanel({state, onLoadHistory, loadingHistory = false, connec
       {...(composer?.onInputAction?{onInputAction:composer.onInputAction}:{})}
       {...(composer?.onStop?{onStop:composer.onStop}:{})}
       {...(composer?.onPlanModeChange?{onPlanModeChange:composer.onPlanModeChange}:{})}
-      {...(composer?.onExecuteCommandEnabledChange?{onExecuteCommandEnabledChange:composer.onExecuteCommandEnabledChange}:{})}
       {...(composer?.onModelChange?{onModelChange:(value:string|number)=>composer.onModelChange?.(String(value))}:{})}
     />}
   </aside>;

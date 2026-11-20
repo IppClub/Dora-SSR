@@ -77,7 +77,7 @@ function StepCodeBlock({title,content}:{title:string;content:string}){return <de
 function AgentStepCards({steps,onOpenFile,running=false}:{steps:readonly AgentSessionStep[];running?:boolean;onOpenFile?:(path:string)=>void}){
   return <div className="dora-agent-step-list">{steps.map(step=>{
     if (!hasAgentStepCard(step)) return <AgentReasoning key={step.id} content={step.reasoningContent} active={running && step.status==='RUNNING' && step===steps[steps.length-1]}/>;
-    const params=summarizeStepParams(step),buildItems=step.tool==='build'?buildResults(step):[],result=step.result??{},failure=step.status==='FAILED'&&result.success===false?stringValue(result.message):'',progress=step.status==='RUNNING'?numberValue(result.progress):undefined;
+    const params=summarizeStepParams(step),buildItems=step.tool==='build'?buildResults(step):[],result=step.result??{},progress=step.status==='RUNNING'?numberValue(result.progress):undefined;
     const commandCode=step.tool==='execute_command'&&step.params?.mode==='lua'?stringValue(step.params.code):'',commandOutput=step.tool==='execute_command'?stringValue(result.output):'';
     const answer=step.tool==='questionnaire_answer'?stringValue(result.displayText):'';
     const checkpoint=step.tool==='context_handoff'?stringValue(step.params?.summary):'';
@@ -90,7 +90,6 @@ function AgentStepCards({steps,onOpenFile,running=false}:{steps:readonly AgentSe
       {checkpoint&&<details className="dora-agent-step-block"><summary>交接摘要</summary><div style={{maxHeight:360,overflow:'auto',overflowWrap:'anywhere'}}><SharedAgentMarkdown content={checkpoint}/></div></details>}
       {commandCode&&<StepCodeBlock title="脚本代码" content={commandCode}/>}{commandOutput&&<StepCodeBlock title="输出结果" content={commandOutput}/>}
       {buildItems.length>0&&<details className="dora-agent-build-results"><summary>构建结果 · {buildItems.length}</summary>{buildItems.map((item,index)=><div key={`${item.file}:${index}`} className={item.success?'success':'failed'}><strong>{item.success?'成功':'失败'}</strong><code>{item.file}</code>{item.message&&<p>{item.message}</p>}</div>)}</details>}
-      {failure&&<p className="dora-agent-step-error">{failure}</p>}
       {step.files&&step.files.length>0&&<div className="dora-agent-step-files">{step.files.map((file,index)=><button key={`${file.path}:${index}`} type="button" disabled={!onOpenFile} onClick={()=>onOpenFile?.(file.path)}><span>{file.op}</span>{file.path}</button>)}</div>}
     </article>;
   })}</div>;

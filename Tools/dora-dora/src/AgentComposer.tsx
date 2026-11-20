@@ -21,14 +21,13 @@ interface AgentComposerProps extends AgentInputControls {
 	compact?:boolean;prompt:string;loading:boolean;running:boolean;stopping?:boolean;canStop?:boolean;
 	contextRatio?:number;usedTokens?:number;maxTokens?:number;actualUsage?:AgentActualUsage;
 	hideContextUsage?:boolean;
-	executeCommandEnabled?:boolean;planMode?:boolean;
+	planMode?:boolean;
 	llmConfigs?:Array<{id:string|number;name:string}>;llmConfigId?:string|number;
 	status?:string;newSessionLabel?:string;newSessionLoading?:boolean;newSessionDisabled?:boolean;
 	onPromptChange:(value:string)=>void;onSend:(delivery?:AgentInputDelivery,text?:string,requestId?:string)=>void|boolean|Promise<void|boolean>;
-	onUploadAttachment?:(file:File,id:string,signal:AbortSignal)=>Promise<string>;attachmentScopeKey?:string;onStop:()=>void;
-	onNewSession?:()=>void;
-	onExecuteCommandEnabledChange?:(value:boolean)=>void;
-	onPlanModeChange?:(value:boolean)=>void;onLLMConfigChange?:(value:string|number)=>void;
+	onUploadAttachment?:(file:File,id:string,signal:AbortSignal)=>Promise<string>;attachmentScopeKey?:string;onStop:()=>void|Promise<void>;
+	onNewSession?:()=>void|Promise<void>;
+	onPlanModeChange?:(value:boolean)=>void|Promise<void>;onLLMConfigChange?:(value:string|number)=>void;
 }
 
 function compactNumber(value:number){if(value>=1_000_000)return`${(value/1_000_000).toFixed(1)}m`;if(value>=1_000)return`${(value/1_000).toFixed(1)}k`;return String(Math.max(0,Math.round(value)));}
@@ -46,20 +45,19 @@ export default function AgentComposer(props:AgentComposerProps){
 		{...(props.status?{status:props.status}:{})}
 		{...(!hideContextUsage?{contextRatio:props.contextRatio??0,usedTokens:props.usedTokens??0,maxTokens:props.maxTokens??64000}:{})}
 		{...(!hideContextUsage&&props.actualUsage?{actualUsage:props.actualUsage}:{})}
-		executeCommandEnabled={props.executeCommandEnabled??false} planMode={props.planMode??false}
+		planMode={props.planMode??false}
 		models={props.llmConfigs??[]} {...(props.llmConfigId===undefined?{}:{modelId:props.llmConfigId})}
 		labels={{
             attachFiles:t('agent.attachFiles'),attachmentList:t('agent.attachmentList'),removeAttachment:name=>t('agent.removeAttachment',{name}),sendFailed:t('agent.attachmentSendFailed'),attachmentContext:t('agent.attachmentContext'),
 			promptPlaceholder:t('agent.promptPlaceholder'),planPromptPlaceholder:t('agent.planPromptPlaceholder'),send:t('agent.send'),stop:t('menu.stop'),stopping:t('agent.stopping'),
-			planMode:t('agent.planMode'),planModeInactive:t('agent.planModeInactive'),planModeToggle:t('agent.planModeToggle'),executeCommand:t('agent.executeCommand'),executeCommandToggle:t('agent.executeCommandToggle'),
+			planMode:t('agent.planMode'),planModeInactive:t('agent.planModeInactive'),planModeToggle:t('agent.planModeToggle'),
 			selectModel:t('agent.selectModel'),modelForNextRun:t('agent.modelForNextRun'),contextUsage:(used,max,percent)=>hideContextUsage?hiddenContextUsageLabel:t('agent.contextEstimateTitle',{used,max,percent}),
 			actualUsage:usage=>t(usage.cachedInputTokens===undefined?'agent.actualUsageTitle':'agent.actualUsageWithCacheTitle',{input:compactNumber(usage.inputTokens),output:compactNumber(usage.outputTokens),cached:compactNumber(usage.cachedInputTokens??0),cachePercent:usage.inputTokens>0?Math.round(((usage.cachedInputTokens??0)/usage.inputTokens)*100):0,requests:compactNumber(usage.requestCount??0)}),
 		}}
         {...(props.pendingInputs?{pendingInputs:props.pendingInputs}:{})} canSteer={props.canSteer!==false}
         {...(props.onInputAction?{onInputAction:props.onInputAction}:{})}
-        leadingAction={props.onNewSession?<Tooltip title={t('agent.newSessionHint')}><span><Button data-agent-new-session="true" size="small" aria-label={props.newSessionLabel} disabled={props.newSessionDisabled||props.newSessionLoading} onClick={props.onNewSession} sx={{minWidth:0,color:Color.TextSecondary}}>{props.newSessionLoading?<CircularProgress size={14}/>:<AddCommentOutlinedIcon sx={{fontSize:16}}/>}{!compact&&props.newSessionLabel}</Button></span></Tooltip>:null}
+        leadingAction={props.onNewSession?runAction=><Tooltip title={t('agent.newSessionHint')}><span><Button data-agent-new-session="true" size="small" aria-label={props.newSessionLabel} disabled={props.newSessionDisabled||props.newSessionLoading} onClick={()=>void runAction(()=>props.onNewSession?.())} sx={{minWidth:0,color:Color.TextSecondary}}>{props.newSessionLoading?<CircularProgress size={14}/>:<AddCommentOutlinedIcon sx={{fontSize:16}}/>}{!compact&&props.newSessionLabel}</Button></span></Tooltip>:undefined}
 		onUploadAttachment={props.onUploadAttachment} attachmentScopeKey={props.attachmentScopeKey} onPromptChange={props.onPromptChange} onSend={props.onSend} onStop={props.onStop}
-		{...(props.onExecuteCommandEnabledChange?{onExecuteCommandEnabledChange:props.onExecuteCommandEnabledChange}:{})}
 		{...(props.onPlanModeChange?{onPlanModeChange:props.onPlanModeChange}:{})}
 		{...(props.onLLMConfigChange?{onModelChange:(value:string|number)=>props.onLLMConfigChange?.(value)}:{})}
 	/></Box>;

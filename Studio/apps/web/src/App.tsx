@@ -95,12 +95,11 @@ export function App({agent:providedAgent,agentHostOrigin,modelGrantId,accountId,
   const [idea,setIdea]=useState(''),[preparingIdea,setPreparingIdea]=useState(false);
   const [followupPrompt,setFollowupPrompt]=useState(''),[sendingFollowup,setSendingFollowup]=useState(false),[stoppingAgent,setStoppingAgent]=useState(false);
   const [agentWorkMode,setAgentWorkMode]=useState<AgentWorkMode>('code');
-  const [agentExecuteCommandEnabled,setAgentExecuteCommandEnabled]=useState(true);
   const [questionnaireSubmitting,setQuestionnaireSubmitting]=useState(false);
   const [grantChoices,setGrantChoices]=useState<ModelGrantChoice[]>([]),[chosenGrantId,setChosenGrantId]=useState(''),[grantLoading,setGrantLoading]=useState(false),[grantFailed,setGrantFailed]=useState(false),[grantRefresh,setGrantRefresh]=useState(0);
   const selectedGrantId=modelGrantId??chosenGrantId;
   const activeGrantId=modelGrantId??(chosenGrantId||project?.creation?.grantId);
-  const agentPromptOptions:AgentPromptOptions={workMode:agentWorkMode,disabledAgentTools:[...(agentExecuteCommandEnabled?[]:['execute_command'] as const)]};
+  const agentPromptOptions:AgentPromptOptions={workMode:agentWorkMode};
   const catalog=useProjectCatalog(ready?storage.current:null,accountId);
   const [openingProjectId,setOpeningProjectId]=useState('');
   const [projectOpenProgress,setProjectOpenProgress]=useState<ProjectOpenProgress>();
@@ -381,7 +380,7 @@ export function App({agent:providedAgent,agentHostOrigin,modelGrantId,accountId,
     setCheckpoints(null);setFollowupPrompt('');setFinishedIdea(undefined);setProjectInfoOpen(false);setProjectInfoAttention(false);
     setPreparationFailure(false);
     setChosenGrantId(next.creation?.grantId??'');
-    setAgentWorkMode('code');setAgentExecuteCommandEnabled(true);
+    setAgentWorkMode('code');
     resetBuild(); setProject(next); setDraft(next.snapshot); setDirty(false); setSelected(next.snapshot.entry); setError('');setWorkspaceView(readViewPreference(next.snapshot.projectId));
   }
   function selectWorkspaceView(view:WorkspaceView){
@@ -805,10 +804,10 @@ export function App({agent:providedAgent,agentHostOrigin,modelGrantId,accountId,
     :!selectedGrantId?'请选择授权模型'
     :'描述与模型选择会保存到新项目';
   const agentComposerSettings={
-    planMode:agentWorkMode==='plan',executeCommandEnabled:agentExecuteCommandEnabled,
+    planMode:agentWorkMode==='plan',
     models:grantChoices.filter(item=>item.enabled).map(item=>({id:item.grantId,name:`${item.label} · ${item.model}`})),
     ...(activeGrantId?{modelId:activeGrantId}:{}),
-    onPlanModeChange:(enabled:boolean)=>setAgentWorkMode(enabled?'plan':'code'),onExecuteCommandEnabledChange:setAgentExecuteCommandEnabled,
+    onPlanModeChange:(enabled:boolean)=>setAgentWorkMode(enabled?'plan':'code'),
     ...(modelGrantId?{}:{onModelChange:setChosenGrantId}),
   };
   return <div className={`app-shell${!draft||!project?' home-shell':''}`}>
@@ -846,10 +845,10 @@ export function App({agent:providedAgent,agentHostOrigin,modelGrantId,accountId,
               <div className="diagnostics"><div className="section-label">构建消息 <span>{diagnosticErrors} 错误 · {diagnosticWarnings} 警告</span></div>{diagnostics.map((d, i) => <button key={i} onClick={() => locate(d)}><span className={`diagnostic-kind ${d.severity}`}>{d.severity==='error'?'错误':d.severity==='warning'?'警告':'提示'}</span><span>{d.message}<small>{d.path ?? '编译器'} · {d.code}</small></span></button>)}</div>
             </div>}
             <div className="agent-workspace-view" hidden={workspaceView !== 'agent'}>
-              {agent && agent.projectId === project.snapshot.projectId ? <AgentSessionPanel modelGrantId={activeGrantId} {...(agent.modelQueue?{modelQueue:agent.modelQueue}:{})} controller={agent.controller} busy={busy} {...(showAgentReconnect?{reconnect:{run:()=>void retryIdeaPreparation(),disabled:dirty||preparingIdea,status:reconnectStatus}}:{})} composer={{value:followupPrompt,onChange:setFollowupPrompt,onSubmit:delivery=>void (project.creation&&!foreignAgentProject?sendFollowupPrompt(delivery):startProjectAgent()),onInputAction:async(command,content)=>{await sendFollowupPrompt('queue',command,content);},disabled:followupDisabled,busy:sendingFollowup||preparingIdea,...(followupStatus?{status:followupStatus}:{}),placeholder:project.creation&&!foreignAgentProject?'继续描述你希望修改的玩法…':'描述希望 Agent 为当前项目实现的玩法…',submitLabel:foreignAgentProject?'创建当前账号副本并启动 ↑':project.creation?'发送 ↑':'启动 Agent ↑',...(agent.stopTask?{onStop:()=>void stopAgentTask(),stopping:stoppingAgent}:{}),...agentComposerSettings}} {...(agent.handleQuestionnaire&&activeGrantId&&sessionSnapshot?.state.pendingQuestionnaire?{questionnaire:{submitting:questionnaireSubmitting,onSubmit:(answers:AgentQuestionnaireAnswer[])=>void handleAgentQuestionnaire('respond',sessionSnapshot.state.pendingQuestionnaire!.id,answers),onCancel:()=>void handleAgentQuestionnaire('cancel',sessionSnapshot.state.pendingQuestionnaire!.id)}}:{})} synchronization={agentSyncFailure&&agent.syncProject?{
+              {agent && agent.projectId === project.snapshot.projectId ? <AgentSessionPanel modelGrantId={activeGrantId} {...(agent.modelQueue?{modelQueue:agent.modelQueue}:{})} controller={agent.controller} busy={busy} {...(showAgentReconnect?{reconnect:{run:()=>void retryIdeaPreparation(),disabled:dirty||preparingIdea,status:reconnectStatus}}:{})} composer={{value:followupPrompt,onChange:setFollowupPrompt,onSubmit:async delivery=>{await (project.creation&&!foreignAgentProject?sendFollowupPrompt(delivery):startProjectAgent());},onInputAction:async(command,content)=>{await sendFollowupPrompt('queue',command,content);},disabled:followupDisabled,busy:sendingFollowup||preparingIdea,...(followupStatus?{status:followupStatus}:{}),placeholder:project.creation&&!foreignAgentProject?'继续描述你希望修改的玩法…':'描述希望 Agent 为当前项目实现的玩法…',submitLabel:foreignAgentProject?'创建当前账号副本并启动 ↑':project.creation?'发送 ↑':'启动 Agent ↑',...(agent.stopTask?{onStop:stopAgentTask,stopping:stoppingAgent}:{}),...agentComposerSettings}} {...(agent.handleQuestionnaire&&activeGrantId&&sessionSnapshot?.state.pendingQuestionnaire?{questionnaire:{submitting:questionnaireSubmitting,onSubmit:(answers:AgentQuestionnaireAnswer[])=>void handleAgentQuestionnaire('respond',sessionSnapshot.state.pendingQuestionnaire!.id,answers),onCancel:()=>void handleAgentQuestionnaire('cancel',sessionSnapshot.state.pendingQuestionnaire!.id)}}:{})} synchronization={agentSyncFailure&&agent.syncProject?{
                 run:()=>void syncAgentProject(),disabled:dirty,
                 status:agentSyncing?'正在重试同步…':'Agent 自动同步失败；前端工作区内容未丢失。',
-			  }:undefined} writeback={writebackRecoveryNeeded&&agent.captureProject&&agent.syncProject?{run:()=>void receiveAgentProject(),disabled:dirty||agentBaseline?.owner!==agent,status:'Agent 自动回写失败；请重试接收，前端现有内容不会被直接覆盖。'}:undefined}/> : <AgentPanel modelGrantId={activeGrantId} controls={reconnectControl} composer={{value:followupPrompt,onChange:setFollowupPrompt,onSubmit:delivery=>void (project.creation&&!foreignAgentProject?sendFollowupPrompt(delivery):startProjectAgent()),onInputAction:async(command,content)=>{await sendFollowupPrompt('queue',command,content);},disabled:followupDisabled,busy:sendingFollowup||preparingIdea,...(followupStatus?{status:followupStatus}:{}),placeholder:project.creation&&!foreignAgentProject?'继续描述你希望修改的玩法…':'描述希望 Agent 为当前项目实现的玩法…',submitLabel:foreignAgentProject?'创建当前账号副本并启动 ↑':project.creation?'发送 ↑':'启动 Agent ↑',...agentComposerSettings}}/>}
+			  }:undefined} writeback={writebackRecoveryNeeded&&agent.captureProject&&agent.syncProject?{run:()=>void receiveAgentProject(),disabled:dirty||agentBaseline?.owner!==agent,status:'Agent 自动回写失败；请重试接收，前端现有内容不会被直接覆盖。'}:undefined}/> : <AgentPanel modelGrantId={activeGrantId} controls={reconnectControl} composer={{value:followupPrompt,onChange:setFollowupPrompt,onSubmit:async delivery=>{await (project.creation&&!foreignAgentProject?sendFollowupPrompt(delivery):startProjectAgent());},onInputAction:async(command,content)=>{await sendFollowupPrompt('queue',command,content);},disabled:followupDisabled,busy:sendingFollowup||preparingIdea,...(followupStatus?{status:followupStatus}:{}),placeholder:project.creation&&!foreignAgentProject?'继续描述你希望修改的玩法…':'描述希望 Agent 为当前项目实现的玩法…',submitLabel:foreignAgentProject?'创建当前账号副本并启动 ↑':project.creation?'发送 ↑':'启动 Agent ↑',...agentComposerSettings}}/>}
             </div>
           </section>
         </div>

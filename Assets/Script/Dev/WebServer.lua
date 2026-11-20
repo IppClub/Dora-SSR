@@ -3917,6 +3917,7 @@ HttpServer:post("/info", function(req) -- 1494
 		platform = App.platform, -- 1503
 		locale = App.locale, -- 1504
 		version = App.version, -- 1505
+		debugging = App.debugging, -- 1505
 		engineDev = engineDev, -- 1506
 		webProfiler = webProfiler, -- 1507
 		drawerWidth = drawerWidth, -- 1508

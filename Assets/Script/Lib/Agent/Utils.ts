@@ -528,6 +528,31 @@ function getReservedOutputTokens(options: Record<string, unknown>, contextWindow
 	return math.max(1024, math.floor(contextWindow * 0.2));
 }
 
+/** Plan an Agent decision without treating its configured maximum output as used input. */
+export function planAgentDecisionRequest(messages: Message[], options: Record<string, unknown>, config: LLMConfig) {
+	const contextWindow = config.contextWindow > 0 ? math.floor(config.contextWindow) : 64000;
+	const requestOptions = { ...applyCustomLLMOptions(options, config.customOptions) };
+	const outputField = typeof requestOptions.max_completion_tokens === "number" ? "max_completion_tokens" : "max_tokens";
+	const configuredOutput = requestOptions[outputField];
+	const outputCeiling = typeof configuredOutput === "number" && configuredOutput >= 1
+		? math.floor(configuredOutput)
+		: getReservedOutputTokens({}, contextWindow);
+	// Send only one output field, keeping providers that require max_completion_tokens compatible.
+	delete requestOptions.max_tokens;
+	delete requestOptions.max_completion_tokens;
+	requestOptions[outputField] = outputCeiling;
+	const messagesTokens = estimateMessagesTokens(messages);
+	const structuralOverhead = math.max(256, messages.length * 16);
+	const fixedTokens = estimateOptionsTokens(requestOptions) + structuralOverhead;
+	const usedTokens = messagesTokens + fixedTokens;
+	const safetyMargin = 256;
+	const minimumOutput = math.max(256, math.min(1024, outputCeiling));
+	const inputBudget = math.max(0, contextWindow - fixedTokens - safetyMargin - minimumOutput);
+	const outputLimit = math.min(outputCeiling, math.max(0, contextWindow - usedTokens - safetyMargin));
+	requestOptions[outputField] = outputLimit;
+	return { options: requestOptions, contextWindow, messagesTokens, structuralOverhead, usedTokens, inputBudget, outputLimit };
+}
+
 export function getInputTokenBudget(messages: Message[], options: Record<string, unknown>, config: LLMConfig): number {
 	const contextWindow = config.contextWindow > 0
 		? math.floor(config.contextWindow)
@@ -1316,6 +1341,8 @@ export function applyCustomLLMOptions(
 		// Dora-owned auxiliary request settings are consumed by MemoryCompressor.
 		// They are not provider API fields and must never leak into normal calls.
 		if (key === "auxiliaryOptions" || key === "visionModel") continue;
+		// Agent requests supply a capability-filtered tool schema.
+		if (key === "tools" && options.tools !== undefined) continue;
 		const value = customOptions[key];
 		if (value === json.null) {
 			delete merged[key];
@@ -1381,6 +1408,19 @@ function parseLLMConfig(config: Record<string, unknown> | undefined): { success:
 			customOptions: normalizeLLMCustomOptions(config["custom_options"]),
 		},
 	};
+}
+
+export function getSavedLLMConfigs(): LLMConfig[] {
+	const records = getLLMConfigRecords();
+	// Prefer the active saved configuration, then use a stable order by ID.
+	records.sort((a, b) => {
+		const activeOrder = Number(b.active !== 0) - Number(a.active !== 0);
+		return activeOrder !== 0 ? activeOrder : Number(a.id) - Number(b.id);
+	});
+	return records.flatMap(record => {
+		const result = parseLLMConfig(record);
+		return result.success ? [result.config] : [];
+	});
 }
 
 export function getLLMConfig(configId: unknown): { success: true; id: number; config: LLMConfig } | { success: false; message: string } {

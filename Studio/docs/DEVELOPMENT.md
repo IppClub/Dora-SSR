@@ -423,9 +423,9 @@ Agent 使用 `analyze_image` 读取项目相对路径的 PNG/JPEG，不限于 `.
 
 Web IDE 的“自定义参数（JSON，可选）”可以整体留空，留空使用默认请求配置。也可只填写所需覆盖参数，不强制要求 `auxiliaryOptions`；显式填写时仍须是对象，空对象保持默认辅助请求配置。保存并重新打开空配置时不会自动补入参数。
 
-Web IDE 的大模型 API 配置提供“视觉模型（可选）”。其值保存在现有自定义参数 JSON 的 `visionModel`，例如 `{"visionModel":"my-vision-model","auxiliaryOptions":{}}`。填写后使用当前 URL 与密钥请求该模型；接口须兼容 Chat Completions 的 `image_url` 输入。官方已支持服务保留其请求配置，自定义服务使用通用图片请求。留空保持原有默认绑定；未知服务不会自动启用视觉。此字段不会发到主模型或记忆压缩请求。平台托管 Studio 的视觉模型仍由服务端授权确定。
+Web IDE 的大模型 API 配置提供“视觉模型（可选）”。其值保存在现有自定义参数 JSON 的 `visionModel`，例如 `{"visionModel":"my-vision-model","auxiliaryOptions":{}}`。填写后使用当前 URL 与密钥请求该模型；接口须兼容 Chat Completions 的 `image_url` 输入。官方已支持服务保留其请求配置，自定义服务使用通用图片请求。留空时优先使用当前服务的默认视觉路由。对于没有默认路由的本地 Agent，自动选择一项已保存的 DeepSeek 官方直连或智谱 GLM Coding Plan 配置，图片由选中的服务处理。此字段不会发到主模型或记忆压缩请求。平台托管 Studio 的视觉模型仍由服务端授权确定。
 
-The optional Vision model field is stored as `customOptions.visionModel`. `analyze_image` accepts any project-relative PNG/JPEG. An explicit model uses the configured Chat Completions endpoint and key; an empty value preserves existing default routing. This metadata is excluded from text/compression provider requests. Managed Studio model grants remain server-controlled.
+The optional Vision model field is stored as `customOptions.visionModel`. `analyze_image` accepts any project-relative PNG/JPEG. An explicit model uses the configured Chat Completions endpoint and key; an empty value uses the current provider’s default vision route when supported. A local Agent with no default route selects a saved official DeepSeek or GLM Coding Plan configuration and sends images to that provider. This metadata is excluded from text/compression provider requests. Managed Studio model grants remain server-controlled.
 
 从 Dora-Example 运行 `DORA_SSR_ROOT=/path/to/Dora-SSR node Test/DoraStudio/run.mjs --no-build test-agent-vision-input.mjs` 编译生产 Agent 并在 Lua 中检查 `analyze_image` 的原生参数解析、注册表校验及视觉请求执行器。需要 `lua` 和 `dkjson`。`paths` 严格要求数组，不接受 JSON 编码的数组字符串；工具描述只提供原生函数调用示例。测试同时覆盖数量、路径范围、PNG/JPEG 内容与大小、中文文本边界、路径去空格后的实际读取、三图附件顺序、响应失败/截断/模型不匹配、持久化预算、超时及取消时序。特别检查响应已到达时取消仍保留已发出请求的计数和 usage，但不发布分析正文；无效参数不会读取文件或发出视觉请求。回归日志写入仓库 `build/agent-vision-input-qa/regression.log`。
 

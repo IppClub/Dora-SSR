@@ -4,7 +4,7 @@ import type { LLMConfig } from 'Agent/Utils';
 /** Increment when a fixed vision route or its request profile changes. */
 export const VISION_PROFILE_VERSION = 8;
 
-export const VISION_UNAVAILABLE_MESSAGE = "当前大模型服务没有可用视觉通道。请检查 Agent 设置中的模型服务与 API 接口地址。";
+export const VISION_UNAVAILABLE_MESSAGE = "没有可用的视觉配置。请在 Agent 设置中填写当前配置的视觉模型，或保存受支持的官方 DeepSeek / GLM Coding Plan 配置。";
 
 export interface VisionBinding {
 	provider: "deepseek" | "glm-coding-cn" | "custom";
@@ -39,6 +39,19 @@ export function resolveVisionBinding(config: LLMConfig): VisionBinding | undefin
 	}
 	if (customModel !== "" && (url.startsWith("https://") || url.startsWith("http://"))) {
 		return {provider: "custom", model: customModel, url: config.url.trim(), apiKey: config.apiKey, customModel: true};
+	}
+	return undefined;
+}
+
+export function resolveTaskVisionBinding(config: LLMConfig, getSavedConfigs: () => LLMConfig[]): VisionBinding | undefined {
+	const current = resolveVisionBinding(config);
+	const customModel = config.customOptions?.visionModel;
+	if (current || config.studioGateway || (typeof customModel === "string" && customModel.trim() !== "")) {
+		return current;
+	}
+	for (const candidate of getSavedConfigs()) {
+		const binding = resolveVisionBinding(candidate);
+		if (binding && binding.provider !== "custom") return binding;
 	}
 	return undefined;
 }

@@ -1667,944 +1667,947 @@ function MemoryCompressor.prototype.compress(self, messages, llmOptions, maxLLMT
 			), -- 1685
 			getAuxiliaryLLMOptions(self.config.llmConfig) -- 1688
 		) -- 1688
-		local chunk = {} -- 1689
-		local prefixFallbackReason -- 1690
-		local ____hasReturned, ____returnValue -- 1690
-		local ____try = __TS__AsyncAwaiter(function() -- 1690
-			local ____opt_9 = context and context.stopToken -- 1690
-			if ____opt_9 and ____opt_9.stopped then -- 1690
-				error( -- 1692
-					__TS__New(Error, "Memory compression cancelled"), -- 1692
-					0 -- 1692
-				) -- 1692
-			end -- 1692
-			local ____temp_15 -- 1693
-			if decisionMode == "tool_calling" and (context and context.sharedPrefix) then -- 1693
-				____temp_15 = __TS__Await(self:trySharedPrefixHandoff(currentMemory, compressionLLMOptions, context)) -- 1694
-			else -- 1694
-				____temp_15 = nil -- 1695
+		if type(compressionLLMOptions.max_completion_tokens) == "number" then -- 1688
+			__TS__Delete(compressionLLMOptions, "max_tokens") -- 1690
+		end -- 1690
+		local chunk = {} -- 1692
+		local prefixFallbackReason -- 1693
+		local ____hasReturned, ____returnValue -- 1693
+		local ____try = __TS__AsyncAwaiter(function() -- 1693
+			local ____opt_9 = context and context.stopToken -- 1693
+			if ____opt_9 and ____opt_9.stopped then -- 1693
+				error( -- 1695
+					__TS__New(Error, "Memory compression cancelled"), -- 1695
+					0 -- 1695
+				) -- 1695
 			end -- 1695
-			local handoff = ____temp_15 -- 1693
-			if handoff then -- 1693
-				if not handoff.success then -- 1693
-					prefixFallbackReason = handoff.error or "Invalid checkpoint" -- 1700
-					Log( -- 1701
-						"Warn", -- 1701
-						"[Memory] prefix checkpoint failed; falling back to structured compression: " .. tostring(handoff.error) -- 1701
-					) -- 1701
-				else -- 1701
-					local boundary = self:buildSafeBoundary(toCompress, #toCompress) -- 1703
-					self.storage:appendHistoryRecord({ts = handoff.ts, summary = handoff.summary}) -- 1704
-					self.consecutiveFailures = 0 -- 1705
-					____hasReturned = true -- 1706
-					____returnValue = __TS__ObjectAssign({}, handoff, {compressedCount = boundary.compressedCount, carryMessageIndex = boundary.carryMessageIndex}) -- 1706
-					return -- 1706
-				end -- 1706
-			end -- 1706
-			local ____opt_16 = context and context.stopToken -- 1706
-			if ____opt_16 and ____opt_16.stopped then -- 1706
-				error( -- 1709
-					__TS__New(Error, "Memory compression cancelled"), -- 1709
-					0 -- 1709
-				) -- 1709
+			local ____temp_15 -- 1696
+			if decisionMode == "tool_calling" and (context and context.sharedPrefix) then -- 1696
+				____temp_15 = __TS__Await(self:trySharedPrefixHandoff(currentMemory, compressionLLMOptions, context)) -- 1697
+			else -- 1697
+				____temp_15 = nil -- 1698
+			end -- 1698
+			local handoff = ____temp_15 -- 1696
+			if handoff then -- 1696
+				if not handoff.success then -- 1696
+					prefixFallbackReason = handoff.error or "Invalid checkpoint" -- 1703
+					Log( -- 1704
+						"Warn", -- 1704
+						"[Memory] prefix checkpoint failed; falling back to structured compression: " .. tostring(handoff.error) -- 1704
+					) -- 1704
+				else -- 1704
+					local boundary = self:buildSafeBoundary(toCompress, #toCompress) -- 1706
+					self.storage:appendHistoryRecord({ts = handoff.ts, summary = handoff.summary}) -- 1707
+					self.consecutiveFailures = 0 -- 1708
+					____hasReturned = true -- 1709
+					____returnValue = __TS__ObjectAssign({}, handoff, {compressedCount = boundary.compressedCount, carryMessageIndex = boundary.carryMessageIndex}) -- 1709
+					return -- 1709
+				end -- 1709
 			end -- 1709
-			local historyBudget = self:buildBoundedCompressionSections(currentMemory, "", compressionLLMOptions).historyBudget -- 1710
-			local ____self_findCompressionBoundary_24 = self.findCompressionBoundary -- 1711
-			local ____temp_23 = boundaryMessages and #boundaryMessages == #toCompress and boundaryMessages or toCompress -- 1712
-			local ____temp_22 -- 1715
-			if boundaryMode == "budget_max" then -- 1715
-				____temp_22 = nil -- 1715
-			else -- 1715
-				____temp_22 = context and context.targetTokens -- 1715
-			end -- 1715
-			local boundary = ____self_findCompressionBoundary_24( -- 1711
-				self, -- 1711
-				____temp_23, -- 1712
-				toCompress, -- 1713
-				historyBudget, -- 1714
-				____temp_22 -- 1714
-			) -- 1714
-			chunk = __TS__ArraySlice(toCompress, 0, boundary.chunkEnd) -- 1717
-			if #chunk == 0 then -- 1717
-				error( -- 1718
-					__TS__New(MemoryCompressionBudgetError, "No complete historical action fits the memory compression input budget. Reduce the output limit or increase contextWindow."), -- 1718
-					0 -- 1718
-				) -- 1718
+			local ____opt_16 = context and context.stopToken -- 1709
+			if ____opt_16 and ____opt_16.stopped then -- 1709
+				error( -- 1712
+					__TS__New(Error, "Memory compression cancelled"), -- 1712
+					0 -- 1712
+				) -- 1712
+			end -- 1712
+			local historyBudget = self:buildBoundedCompressionSections(currentMemory, "", compressionLLMOptions).historyBudget -- 1713
+			local ____self_findCompressionBoundary_24 = self.findCompressionBoundary -- 1714
+			local ____temp_23 = boundaryMessages and #boundaryMessages == #toCompress and boundaryMessages or toCompress -- 1715
+			local ____temp_22 -- 1718
+			if boundaryMode == "budget_max" then -- 1718
+				____temp_22 = nil -- 1718
+			else -- 1718
+				____temp_22 = context and context.targetTokens -- 1718
 			end -- 1718
-			local historyText = self:formatMessagesForCompression(chunk) -- 1721
-			local ____opt_25 = context and context.stopToken -- 1721
-			if ____opt_25 and ____opt_25.stopped then -- 1721
-				error( -- 1723
-					__TS__New(Error, "Memory compression cancelled"), -- 1723
-					0 -- 1723
-				) -- 1723
-			end -- 1723
-			local result = __TS__Await(self:callLLMForCompression( -- 1724
-				currentMemory, -- 1725
-				historyText, -- 1726
-				compressionLLMOptions, -- 1727
-				maxLLMTry or 3, -- 1728
-				decisionMode, -- 1729
-				context -- 1730
-			)) -- 1730
-			local ____opt_29 = context and context.stopToken -- 1730
-			if ____opt_29 and ____opt_29.stopped then -- 1730
-				error( -- 1733
-					__TS__New(Error, "Memory compression cancelled"), -- 1733
-					0 -- 1733
-				) -- 1733
-			end -- 1733
-			if result.success then -- 1733
-				self.storage:writeMemory(result.memoryUpdate) -- 1736
-				if type(result.projectMemoryUpdate) == "string" then -- 1736
-					self.storage:writeProjectMemory(result.projectMemoryUpdate) -- 1738
-				end -- 1738
-				if type(result.sessionSummaryUpdate) == "string" then -- 1738
-					self.storage:writeSessionSummary(result.sessionSummaryUpdate) -- 1741
+			local boundary = ____self_findCompressionBoundary_24( -- 1714
+				self, -- 1714
+				____temp_23, -- 1715
+				toCompress, -- 1716
+				historyBudget, -- 1717
+				____temp_22 -- 1717
+			) -- 1717
+			chunk = __TS__ArraySlice(toCompress, 0, boundary.chunkEnd) -- 1720
+			if #chunk == 0 then -- 1720
+				error( -- 1721
+					__TS__New(MemoryCompressionBudgetError, "No complete historical action fits the memory compression input budget. Reduce the output limit or increase contextWindow."), -- 1721
+					0 -- 1721
+				) -- 1721
+			end -- 1721
+			local historyText = self:formatMessagesForCompression(chunk) -- 1724
+			local ____opt_25 = context and context.stopToken -- 1724
+			if ____opt_25 and ____opt_25.stopped then -- 1724
+				error( -- 1726
+					__TS__New(Error, "Memory compression cancelled"), -- 1726
+					0 -- 1726
+				) -- 1726
+			end -- 1726
+			local result = __TS__Await(self:callLLMForCompression( -- 1727
+				currentMemory, -- 1728
+				historyText, -- 1729
+				compressionLLMOptions, -- 1730
+				maxLLMTry or 3, -- 1731
+				decisionMode, -- 1732
+				context -- 1733
+			)) -- 1733
+			local ____opt_29 = context and context.stopToken -- 1733
+			if ____opt_29 and ____opt_29.stopped then -- 1733
+				error( -- 1736
+					__TS__New(Error, "Memory compression cancelled"), -- 1736
+					0 -- 1736
+				) -- 1736
+			end -- 1736
+			if result.success then -- 1736
+				self.storage:writeMemory(result.memoryUpdate) -- 1739
+				if type(result.projectMemoryUpdate) == "string" then -- 1739
+					self.storage:writeProjectMemory(result.projectMemoryUpdate) -- 1741
 				end -- 1741
-				if result.ts then -- 1741
-					self.storage:appendHistoryRecord({ts = result.ts, summary = result.summary}) -- 1744
+				if type(result.sessionSummaryUpdate) == "string" then -- 1741
+					self.storage:writeSessionSummary(result.sessionSummaryUpdate) -- 1744
 				end -- 1744
-				self.consecutiveFailures = 0 -- 1749
-				____hasReturned = true -- 1751
-				____returnValue = __TS__ObjectAssign({}, result, {prefixFallbackReason = prefixFallbackReason, compressedCount = boundary.compressedCount, carryMessageIndex = boundary.carryMessageIndex}) -- 1751
-				return -- 1751
-			end -- 1751
-			____hasReturned = true -- 1760
-			____returnValue = self:handleCompressionFailure(chunk, result.error or "Unknown error") -- 1760
-			return -- 1760
-		end) -- 1760
-		____try = ____try.catch( -- 1760
-			____try, -- 1760
-			function(____, ____error) -- 1760
-				return __TS__AsyncAwaiter(function() -- 1760
-					local ____opt_33 = context and context.stopToken -- 1760
-					if ____opt_33 and ____opt_33.stopped then -- 1760
-						____hasReturned = true -- 1765
-						____returnValue = {success = false, memoryUpdate = currentMemory, compressedCount = 0, error = context.stopToken.reason or "Memory compression cancelled"} -- 1765
-						return -- 1765
-					end -- 1765
-					if __TS__InstanceOf(____error, MemoryCompressionBudgetError) then -- 1765
-						____hasReturned = true -- 1766
-						____returnValue = {success = false, memoryUpdate = currentMemory, compressedCount = 0, error = ____error.message} -- 1766
-						return -- 1766
-					end -- 1766
-					____hasReturned = true -- 1767
-					____returnValue = self:handleCompressionFailure( -- 1767
-						chunk, -- 1767
-						__TS__InstanceOf(____error, Error) and ____error.message or "Unknown error" -- 1767
-					) -- 1767
-					return -- 1767
-				end) -- 1767
-			end -- 1767
-		) -- 1767
-		__TS__Await(____try) -- 1691
-		if ____hasReturned then -- 1691
-			return ____awaiter_resolve(nil, ____returnValue) -- 1691
-		end -- 1691
-	end) -- 1691
+				if result.ts then -- 1744
+					self.storage:appendHistoryRecord({ts = result.ts, summary = result.summary}) -- 1747
+				end -- 1747
+				self.consecutiveFailures = 0 -- 1752
+				____hasReturned = true -- 1754
+				____returnValue = __TS__ObjectAssign({}, result, {prefixFallbackReason = prefixFallbackReason, compressedCount = boundary.compressedCount, carryMessageIndex = boundary.carryMessageIndex}) -- 1754
+				return -- 1754
+			end -- 1754
+			____hasReturned = true -- 1763
+			____returnValue = self:handleCompressionFailure(chunk, result.error or "Unknown error") -- 1763
+			return -- 1763
+		end) -- 1763
+		____try = ____try.catch( -- 1763
+			____try, -- 1763
+			function(____, ____error) -- 1763
+				return __TS__AsyncAwaiter(function() -- 1763
+					local ____opt_33 = context and context.stopToken -- 1763
+					if ____opt_33 and ____opt_33.stopped then -- 1763
+						____hasReturned = true -- 1768
+						____returnValue = {success = false, memoryUpdate = currentMemory, compressedCount = 0, error = context.stopToken.reason or "Memory compression cancelled"} -- 1768
+						return -- 1768
+					end -- 1768
+					if __TS__InstanceOf(____error, MemoryCompressionBudgetError) then -- 1768
+						____hasReturned = true -- 1769
+						____returnValue = {success = false, memoryUpdate = currentMemory, compressedCount = 0, error = ____error.message} -- 1769
+						return -- 1769
+					end -- 1769
+					____hasReturned = true -- 1770
+					____returnValue = self:handleCompressionFailure( -- 1770
+						chunk, -- 1770
+						__TS__InstanceOf(____error, Error) and ____error.message or "Unknown error" -- 1770
+					) -- 1770
+					return -- 1770
+				end) -- 1770
+			end -- 1770
+		) -- 1770
+		__TS__Await(____try) -- 1694
+		if ____hasReturned then -- 1694
+			return ____awaiter_resolve(nil, ____returnValue) -- 1694
+		end -- 1694
+	end) -- 1694
 end -- 1671
-function MemoryCompressor.prototype.trySharedPrefixHandoff(self, currentMemory, llmOptions, context) -- 1771
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 1771
-		local shared = context.sharedPrefix -- 1776
-		if not shared or #shared.messages == 0 or not shared.options.tools then -- 1776
-			return ____awaiter_resolve(nil, nil) -- 1776
-		end -- 1776
-		local ____shared_options_model_39 = shared.options.model -- 1779
-		if ____shared_options_model_39 == nil then -- 1779
-			local ____opt_37 = self.config.llmConfig.customOptions -- 1779
-			____shared_options_model_39 = ____opt_37 and ____opt_37.model -- 1779
+function MemoryCompressor.prototype.trySharedPrefixHandoff(self, currentMemory, llmOptions, context) -- 1774
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 1774
+		local shared = context.sharedPrefix -- 1779
+		if not shared or #shared.messages == 0 or not shared.options.tools then -- 1779
+			return ____awaiter_resolve(nil, nil) -- 1779
 		end -- 1779
-		local ____shared_options_model_39_40 = ____shared_options_model_39 -- 1779
-		if ____shared_options_model_39_40 == nil then -- 1779
-			____shared_options_model_39_40 = self.config.llmConfig.model -- 1779
-		end -- 1779
-		local mainModel = ____shared_options_model_39_40 -- 1779
-		local ____llmOptions_model_41 = llmOptions.model -- 1780
-		if ____llmOptions_model_41 == nil then -- 1780
-			____llmOptions_model_41 = mainModel -- 1780
-		end -- 1780
-		if ____llmOptions_model_41 ~= mainModel then -- 1780
-			return ____awaiter_resolve(nil, nil) -- 1780
-		end -- 1780
-		local directive = "Create a checkpoint for the next model continuing this task. Preserve current scope and corrections, latest values, necessary paths, actual validation state and first open next action. Separate observed facts from hypotheses. Saved source changes do not prove build/runtime success. Do not redo completed work. Current user instructions and later tool results outrank the checkpoint. Call context_handoff with three nonempty fields. Other development calls will run normally and their results remain active." -- 1781
-		local ____array_42 = __TS__SparseArrayNew(table.unpack(shared.messages)) -- 1781
-		__TS__SparseArrayPush(____array_42, {role = "user", content = directive}) -- 1781
-		local messages = {__TS__SparseArraySpread(____array_42)} -- 1782
-		local options = __TS__ObjectAssign({}, llmOptions, {tools = shared.options.tools}) -- 1783
-		__TS__Delete(options, "tool_choice") -- 1784
-		local fitted = fitMessagesToContext(messages, options, self.config.llmConfig) -- 1785
-		if fitted.originalTokens > fitted.budgetTokens then -- 1785
-			return ____awaiter_resolve(nil, {success = false, memoryUpdate = currentMemory, compressedCount = 0, error = "Shared prefix plus checkpoint directive exceeds the input budget"}) -- 1785
-		end -- 1785
-		local ____this_44 -- 1785
-		____this_44 = context -- 1787
-		local ____opt_43 = ____this_44.onInput -- 1787
-		if ____opt_43 ~= nil then -- 1787
-			____opt_43(____this_44, "memory_compression_handoff", messages, options) -- 1787
-		end -- 1787
-		local response = __TS__Await(callLLM( -- 1788
-			messages, -- 1788
-			options, -- 1788
-			context.stopToken, -- 1788
-			buildCompressionLLMConfig(self.config.llmConfig) -- 1788
-		)) -- 1788
-		local ____opt_45 = context.stopToken -- 1788
-		if ____opt_45 and ____opt_45.stopped then -- 1788
-			error( -- 1789
-				__TS__New(Error, "Memory compression cancelled"), -- 1789
-				0 -- 1789
-			) -- 1789
-		end -- 1789
-		if not response.success then -- 1789
-			local ____this_48 -- 1789
-			____this_48 = context -- 1791
-			local ____opt_47 = ____this_48.onOutput -- 1791
-			if ____opt_47 ~= nil then -- 1791
-				____opt_47(____this_48, "memory_compression_handoff", response.raw or response.message, {success = false}) -- 1791
-			end -- 1791
-			return ____awaiter_resolve(nil, {success = false, memoryUpdate = currentMemory, compressedCount = 0, error = response.message}) -- 1791
-		end -- 1791
-		local usage = extractLLMTokenUsage(response.response) -- 1794
-		if usage then -- 1794
-			local ____this_50 -- 1794
-			____this_50 = context -- 1795
-			local ____opt_49 = ____this_50.onUsage -- 1795
-			if ____opt_49 ~= nil then -- 1795
-				____opt_49(____this_50, "memory_compression_handoff", usage) -- 1795
-			end -- 1795
-		end -- 1795
-		local ____opt_51 = response.response.choices -- 1795
-		local choice = ____opt_51 and ____opt_51[1] -- 1796
-		local ____temp_59 = choice and choice.message -- 1797
-		local ____opt_55 = choice and choice.message -- 1797
-		local message = __TS__ObjectAssign({}, ____temp_59, {role = ____opt_55 and ____opt_55.role or "assistant"}) -- 1797
-		local parsed = parseToolHandoff(choice and choice.finish_reason or "", message) -- 1798
-		if parsed.complete and #parsed.calls > 0 then -- 1798
-			if not context.onDevelopmentCalls then -- 1798
-				return ____awaiter_resolve(nil, {success = false, memoryUpdate = currentMemory, compressedCount = 0, error = "Development calls require the Agent executor"}) -- 1798
+		local ____shared_options_model_39 = shared.options.model -- 1782
+		if ____shared_options_model_39 == nil then -- 1782
+			local ____opt_37 = self.config.llmConfig.customOptions -- 1782
+			____shared_options_model_39 = ____opt_37 and ____opt_37.model -- 1782
+		end -- 1782
+		local ____shared_options_model_39_40 = ____shared_options_model_39 -- 1782
+		if ____shared_options_model_39_40 == nil then -- 1782
+			____shared_options_model_39_40 = self.config.llmConfig.model -- 1782
+		end -- 1782
+		local mainModel = ____shared_options_model_39_40 -- 1782
+		local ____llmOptions_model_41 = llmOptions.model -- 1783
+		if ____llmOptions_model_41 == nil then -- 1783
+			____llmOptions_model_41 = mainModel -- 1783
+		end -- 1783
+		if ____llmOptions_model_41 ~= mainModel then -- 1783
+			return ____awaiter_resolve(nil, nil) -- 1783
+		end -- 1783
+		local directive = "Create a checkpoint for the next model continuing this task. Preserve current scope and corrections, latest values, necessary paths, actual validation state and first open next action. Separate observed facts from hypotheses. Saved source changes do not prove build/runtime success. Do not redo completed work. Current user instructions and later tool results outrank the checkpoint. Call context_handoff with three nonempty fields. Other development calls will run normally and their results remain active." -- 1784
+		local ____array_42 = __TS__SparseArrayNew(table.unpack(shared.messages)) -- 1784
+		__TS__SparseArrayPush(____array_42, {role = "user", content = directive}) -- 1784
+		local messages = {__TS__SparseArraySpread(____array_42)} -- 1785
+		local options = __TS__ObjectAssign({}, llmOptions, {tools = shared.options.tools}) -- 1786
+		__TS__Delete(options, "tool_choice") -- 1787
+		local fitted = fitMessagesToContext(messages, options, self.config.llmConfig) -- 1788
+		if fitted.originalTokens > fitted.budgetTokens then -- 1788
+			return ____awaiter_resolve(nil, {success = false, memoryUpdate = currentMemory, compressedCount = 0, error = "Shared prefix plus checkpoint directive exceeds the input budget"}) -- 1788
+		end -- 1788
+		local ____this_44 -- 1788
+		____this_44 = context -- 1790
+		local ____opt_43 = ____this_44.onInput -- 1790
+		if ____opt_43 ~= nil then -- 1790
+			____opt_43(____this_44, "memory_compression_handoff", messages, options) -- 1790
+		end -- 1790
+		local response = __TS__Await(callLLM( -- 1791
+			messages, -- 1791
+			options, -- 1791
+			context.stopToken, -- 1791
+			buildCompressionLLMConfig(self.config.llmConfig) -- 1791
+		)) -- 1791
+		local ____opt_45 = context.stopToken -- 1791
+		if ____opt_45 and ____opt_45.stopped then -- 1791
+			error( -- 1792
+				__TS__New(Error, "Memory compression cancelled"), -- 1792
+				0 -- 1792
+			) -- 1792
+		end -- 1792
+		if not response.success then -- 1792
+			local ____this_48 -- 1792
+			____this_48 = context -- 1794
+			local ____opt_47 = ____this_48.onOutput -- 1794
+			if ____opt_47 ~= nil then -- 1794
+				____opt_47(____this_48, "memory_compression_handoff", response.raw or response.message, {success = false}) -- 1794
+			end -- 1794
+			return ____awaiter_resolve(nil, {success = false, memoryUpdate = currentMemory, compressedCount = 0, error = response.message}) -- 1794
+		end -- 1794
+		local usage = extractLLMTokenUsage(response.response) -- 1797
+		if usage then -- 1797
+			local ____this_50 -- 1797
+			____this_50 = context -- 1798
+			local ____opt_49 = ____this_50.onUsage -- 1798
+			if ____opt_49 ~= nil then -- 1798
+				____opt_49(____this_50, "memory_compression_handoff", usage) -- 1798
 			end -- 1798
-			__TS__Await(context:onDevelopmentCalls({role = "assistant", content = "Checkpoint-time development calls; results below are authoritative.", tool_calls = parsed.calls})) -- 1801
-		end -- 1801
-		local ____opt_62 = context.stopToken -- 1801
-		if ____opt_62 and ____opt_62.stopped then -- 1801
-			error( -- 1803
-				__TS__New(Error, "Memory compression cancelled"), -- 1803
-				0 -- 1803
-			) -- 1803
-		end -- 1803
-		local success = parsed.summary ~= nil -- 1804
-		local ____this_65 -- 1804
-		____this_65 = context -- 1805
-		local ____opt_64 = ____this_65.onOutput -- 1805
-		if ____opt_64 ~= nil then -- 1805
-			____opt_64( -- 1805
-				____this_65, -- 1805
-				"memory_compression_handoff", -- 1805
-				encodeCompressionDebugJSON(response.response), -- 1805
-				{success = success, protocol = "tool", error = parsed.error} -- 1805
-			) -- 1805
-		end -- 1805
-		if not success then -- 1805
-			return ____awaiter_resolve(nil, {success = false, memoryUpdate = currentMemory, compressedCount = 0, error = parsed.error or "Invalid handoff"}) -- 1805
-		end -- 1805
-		return ____awaiter_resolve( -- 1805
-			nil, -- 1805
-			{ -- 1807
-				success = true, -- 1807
-				handoff = true, -- 1807
-				memoryUpdate = currentMemory, -- 1807
-				compressedCount = 0, -- 1807
-				ts = os.date("%Y-%m-%d %H:%M"), -- 1807
-				summary = parsed.summary -- 1807
-			} -- 1807
-		) -- 1807
-	end) -- 1807
-end -- 1771
-function MemoryCompressor.prototype.findCompressionBoundary(self, boundaryMessages, compressionMessages, historyBudget, targetTokens) -- 1817
-	local historyTokens = 0 -- 1823
-	local removedTokens = 0 -- 1824
-	local carriedInstructionTokens = 0 -- 1825
-	local lastBoundary = 0 -- 1826
-	local pendingToolCalls = {} -- 1827
-	local pendingCount = 0 -- 1828
-	do -- 1828
-		local i = 0 -- 1829
-		while i < #compressionMessages do -- 1829
-			local message = compressionMessages[i + 1] -- 1830
-			historyTokens = historyTokens + self:estimateCompressionMessageTokens(message, i) -- 1831
-			if historyTokens > historyBudget then -- 1831
-				break -- 1832
-			end -- 1832
-			local decisionTokens = self:estimateCompressionMessageTokens(boundaryMessages[i + 1], i) -- 1833
-			removedTokens = removedTokens + decisionTokens -- 1834
-			if message.role == "user" and message.inputKind ~= "steer" then -- 1834
-				carriedInstructionTokens = decisionTokens -- 1835
+		end -- 1798
+		local ____opt_51 = response.response.choices -- 1798
+		local choice = ____opt_51 and ____opt_51[1] -- 1799
+		local ____temp_59 = choice and choice.message -- 1800
+		local ____opt_55 = choice and choice.message -- 1800
+		local message = __TS__ObjectAssign({}, ____temp_59, {role = ____opt_55 and ____opt_55.role or "assistant"}) -- 1800
+		local parsed = parseToolHandoff(choice and choice.finish_reason or "", message) -- 1801
+		if parsed.complete and #parsed.calls > 0 then -- 1801
+			if not context.onDevelopmentCalls then -- 1801
+				return ____awaiter_resolve(nil, {success = false, memoryUpdate = currentMemory, compressedCount = 0, error = "Development calls require the Agent executor"}) -- 1801
+			end -- 1801
+			__TS__Await(context:onDevelopmentCalls({role = "assistant", content = "Checkpoint-time development calls; results below are authoritative.", tool_calls = parsed.calls})) -- 1804
+		end -- 1804
+		local ____opt_62 = context.stopToken -- 1804
+		if ____opt_62 and ____opt_62.stopped then -- 1804
+			error( -- 1806
+				__TS__New(Error, "Memory compression cancelled"), -- 1806
+				0 -- 1806
+			) -- 1806
+		end -- 1806
+		local success = parsed.summary ~= nil -- 1807
+		local ____this_65 -- 1807
+		____this_65 = context -- 1808
+		local ____opt_64 = ____this_65.onOutput -- 1808
+		if ____opt_64 ~= nil then -- 1808
+			____opt_64( -- 1808
+				____this_65, -- 1808
+				"memory_compression_handoff", -- 1808
+				encodeCompressionDebugJSON(response.response), -- 1808
+				{success = success, protocol = "tool", error = parsed.error} -- 1808
+			) -- 1808
+		end -- 1808
+		if not success then -- 1808
+			return ____awaiter_resolve(nil, {success = false, memoryUpdate = currentMemory, compressedCount = 0, error = parsed.error or "Invalid handoff"}) -- 1808
+		end -- 1808
+		return ____awaiter_resolve( -- 1808
+			nil, -- 1808
+			{ -- 1810
+				success = true, -- 1810
+				handoff = true, -- 1810
+				memoryUpdate = currentMemory, -- 1810
+				compressedCount = 0, -- 1810
+				ts = os.date("%Y-%m-%d %H:%M"), -- 1810
+				summary = parsed.summary -- 1810
+			} -- 1810
+		) -- 1810
+	end) -- 1810
+end -- 1774
+function MemoryCompressor.prototype.findCompressionBoundary(self, boundaryMessages, compressionMessages, historyBudget, targetTokens) -- 1820
+	local historyTokens = 0 -- 1826
+	local removedTokens = 0 -- 1827
+	local carriedInstructionTokens = 0 -- 1828
+	local lastBoundary = 0 -- 1829
+	local pendingToolCalls = {} -- 1830
+	local pendingCount = 0 -- 1831
+	do -- 1831
+		local i = 0 -- 1832
+		while i < #compressionMessages do -- 1832
+			local message = compressionMessages[i + 1] -- 1833
+			historyTokens = historyTokens + self:estimateCompressionMessageTokens(message, i) -- 1834
+			if historyTokens > historyBudget then -- 1834
+				break -- 1835
 			end -- 1835
-			if message.role ~= "tool" and pendingCount > 0 then -- 1835
-				for id in pairs(pendingToolCalls) do -- 1837
-					pendingToolCalls[id] = false -- 1837
-				end -- 1837
-				pendingCount = 0 -- 1838
+			local decisionTokens = self:estimateCompressionMessageTokens(boundaryMessages[i + 1], i) -- 1836
+			removedTokens = removedTokens + decisionTokens -- 1837
+			if message.role == "user" and message.inputKind ~= "steer" then -- 1837
+				carriedInstructionTokens = decisionTokens -- 1838
 			end -- 1838
-			if message.role == "assistant" and message.tool_calls then -- 1838
-				for ____, call in ipairs(message.tool_calls) do -- 1841
-					if call.id and not pendingToolCalls[call.id] then -- 1841
-						pendingToolCalls[call.id] = true -- 1843
-						pendingCount = pendingCount + 1 -- 1844
-					end -- 1844
-				end -- 1844
-			end -- 1844
-			if message.role == "tool" and message.tool_call_id and pendingToolCalls[message.tool_call_id] then -- 1844
-				pendingToolCalls[message.tool_call_id] = false -- 1849
-				pendingCount = pendingCount - 1 -- 1850
-			end -- 1850
-			local next = compressionMessages[i + 1 + 1] -- 1852
-			local closed = pendingCount == 0 and (next == nil or next.role == "user" and next.inputKind ~= "steer" or message.role == "tool" or message.role == "assistant" and (not message.tool_calls or #message.tool_calls == 0)) -- 1853
-			if closed then -- 1853
-				lastBoundary = i + 1 -- 1859
-				local retainedTokens = (next ~= nil or message.role == "user") and carriedInstructionTokens or 0 -- 1862
-				if targetTokens ~= nil and removedTokens - retainedTokens >= targetTokens then -- 1862
-					break -- 1863
-				end -- 1863
-			end -- 1863
-			i = i + 1 -- 1829
-		end -- 1829
-	end -- 1829
-	if lastBoundary == #compressionMessages then -- 1829
-		return self:buildSafeBoundary(compressionMessages, lastBoundary) -- 1866
-	end -- 1866
-	return self:buildCarryBoundary(compressionMessages, lastBoundary) -- 1867
-end -- 1817
-function MemoryCompressor.prototype.buildCarryBoundary(self, messages, chunkEnd) -- 1870
-	local carryUserIndex = -1 -- 1871
-	do -- 1871
-		local i = 0 -- 1872
-		while i < chunkEnd do -- 1872
-			if messages[i + 1].role == "user" and messages[i + 1].inputKind ~= "steer" then -- 1872
-				carryUserIndex = i -- 1874
-			end -- 1874
-			i = i + 1 -- 1872
-		end -- 1872
-	end -- 1872
-	if carryUserIndex < 0 then -- 1872
-		return {chunkEnd = chunkEnd, compressedCount = chunkEnd} -- 1878
-	end -- 1878
-	return {chunkEnd = chunkEnd, compressedCount = chunkEnd, carryMessageIndex = carryUserIndex} -- 1880
-end -- 1870
-function MemoryCompressor.prototype.buildSafeBoundary(self, messages, chunkEnd) -- 1887
-	if chunkEnd > 0 and messages[chunkEnd].role == "user" then -- 1887
-		return self:buildCarryBoundary(messages, chunkEnd) -- 1893
-	end -- 1893
-	return {chunkEnd = chunkEnd, compressedCount = chunkEnd} -- 1895
-end -- 1887
-function MemoryCompressor.prototype.estimateCompressionMessageTokens(self, message, index) -- 1898
-	local lines = {} -- 1899
-	lines[#lines + 1] = (("Message " .. tostring(index + 1)) .. ": role=") .. message.role -- 1900
-	if message.name and message.name ~= "" then -- 1900
-		lines[#lines + 1] = "name=" .. message.name -- 1901
-	end -- 1901
-	if message.tool_call_id and message.tool_call_id ~= "" then -- 1901
-		lines[#lines + 1] = "tool_call_id=" .. message.tool_call_id -- 1902
-	end -- 1902
-	if message.reasoning_content and message.reasoning_content ~= "" then -- 1902
-		lines[#lines + 1] = "reasoning=" .. message.reasoning_content -- 1903
-	end -- 1903
-	if message.tool_calls and #message.tool_calls > 0 then -- 1903
-		local toolCallsText = safeJsonEncode(message.tool_calls) -- 1905
-		lines[#lines + 1] = "tool_calls=" .. (toolCallsText or "") -- 1906
+			if message.role ~= "tool" and pendingCount > 0 then -- 1838
+				for id in pairs(pendingToolCalls) do -- 1840
+					pendingToolCalls[id] = false -- 1840
+				end -- 1840
+				pendingCount = 0 -- 1841
+			end -- 1841
+			if message.role == "assistant" and message.tool_calls then -- 1841
+				for ____, call in ipairs(message.tool_calls) do -- 1844
+					if call.id and not pendingToolCalls[call.id] then -- 1844
+						pendingToolCalls[call.id] = true -- 1846
+						pendingCount = pendingCount + 1 -- 1847
+					end -- 1847
+				end -- 1847
+			end -- 1847
+			if message.role == "tool" and message.tool_call_id and pendingToolCalls[message.tool_call_id] then -- 1847
+				pendingToolCalls[message.tool_call_id] = false -- 1852
+				pendingCount = pendingCount - 1 -- 1853
+			end -- 1853
+			local next = compressionMessages[i + 1 + 1] -- 1855
+			local closed = pendingCount == 0 and (next == nil or next.role == "user" and next.inputKind ~= "steer" or message.role == "tool" or message.role == "assistant" and (not message.tool_calls or #message.tool_calls == 0)) -- 1856
+			if closed then -- 1856
+				lastBoundary = i + 1 -- 1862
+				local retainedTokens = (next ~= nil or message.role == "user") and carriedInstructionTokens or 0 -- 1865
+				if targetTokens ~= nil and removedTokens - retainedTokens >= targetTokens then -- 1865
+					break -- 1866
+				end -- 1866
+			end -- 1866
+			i = i + 1 -- 1832
+		end -- 1832
+	end -- 1832
+	if lastBoundary == #compressionMessages then -- 1832
+		return self:buildSafeBoundary(compressionMessages, lastBoundary) -- 1869
+	end -- 1869
+	return self:buildCarryBoundary(compressionMessages, lastBoundary) -- 1870
+end -- 1820
+function MemoryCompressor.prototype.buildCarryBoundary(self, messages, chunkEnd) -- 1873
+	local carryUserIndex = -1 -- 1874
+	do -- 1874
+		local i = 0 -- 1875
+		while i < chunkEnd do -- 1875
+			if messages[i + 1].role == "user" and messages[i + 1].inputKind ~= "steer" then -- 1875
+				carryUserIndex = i -- 1877
+			end -- 1877
+			i = i + 1 -- 1875
+		end -- 1875
+	end -- 1875
+	if carryUserIndex < 0 then -- 1875
+		return {chunkEnd = chunkEnd, compressedCount = chunkEnd} -- 1881
+	end -- 1881
+	return {chunkEnd = chunkEnd, compressedCount = chunkEnd, carryMessageIndex = carryUserIndex} -- 1883
+end -- 1873
+function MemoryCompressor.prototype.buildSafeBoundary(self, messages, chunkEnd) -- 1890
+	if chunkEnd > 0 and messages[chunkEnd].role == "user" then -- 1890
+		return self:buildCarryBoundary(messages, chunkEnd) -- 1896
+	end -- 1896
+	return {chunkEnd = chunkEnd, compressedCount = chunkEnd} -- 1898
+end -- 1890
+function MemoryCompressor.prototype.estimateCompressionMessageTokens(self, message, index) -- 1901
+	local lines = {} -- 1902
+	lines[#lines + 1] = (("Message " .. tostring(index + 1)) .. ": role=") .. message.role -- 1903
+	if message.name and message.name ~= "" then -- 1903
+		lines[#lines + 1] = "name=" .. message.name -- 1904
+	end -- 1904
+	if message.tool_call_id and message.tool_call_id ~= "" then -- 1904
+		lines[#lines + 1] = "tool_call_id=" .. message.tool_call_id -- 1905
+	end -- 1905
+	if message.reasoning_content and message.reasoning_content ~= "" then -- 1905
+		lines[#lines + 1] = "reasoning=" .. message.reasoning_content -- 1906
 	end -- 1906
-	if message.content and message.content ~= "" then -- 1906
-		lines[#lines + 1] = message.content -- 1908
-	end -- 1908
-	local prefix = index > 0 and "\n\n" or "" -- 1909
-	return ____exports.TokenEstimator:estimate(prefix .. table.concat(lines, "\n")) -- 1910
-end -- 1898
-function MemoryCompressor.prototype.formatMessagesForCompression(self, messages) -- 1913
-	local lines = {} -- 1914
-	do -- 1914
-		local i = 0 -- 1915
-		while i < #messages do -- 1915
-			local message = messages[i + 1] -- 1916
-			lines[#lines + 1] = (("Message " .. tostring(i + 1)) .. ": role=") .. message.role -- 1917
-			if message.name and message.name ~= "" then -- 1917
-				lines[#lines + 1] = "name=" .. message.name -- 1918
-			end -- 1918
-			if message.tool_call_id and message.tool_call_id ~= "" then -- 1918
-				lines[#lines + 1] = "tool_call_id=" .. message.tool_call_id -- 1919
-			end -- 1919
-			if message.reasoning_content and message.reasoning_content ~= "" then -- 1919
-				lines[#lines + 1] = "reasoning=" .. message.reasoning_content -- 1920
-			end -- 1920
-			if message.tool_calls and #message.tool_calls > 0 then -- 1920
-				local toolCallsText = safeJsonEncode(message.tool_calls) -- 1922
-				lines[#lines + 1] = "tool_calls=" .. (toolCallsText or "") -- 1923
+	if message.tool_calls and #message.tool_calls > 0 then -- 1906
+		local toolCallsText = safeJsonEncode(message.tool_calls) -- 1908
+		lines[#lines + 1] = "tool_calls=" .. (toolCallsText or "") -- 1909
+	end -- 1909
+	if message.content and message.content ~= "" then -- 1909
+		lines[#lines + 1] = message.content -- 1911
+	end -- 1911
+	local prefix = index > 0 and "\n\n" or "" -- 1912
+	return ____exports.TokenEstimator:estimate(prefix .. table.concat(lines, "\n")) -- 1913
+end -- 1901
+function MemoryCompressor.prototype.formatMessagesForCompression(self, messages) -- 1916
+	local lines = {} -- 1917
+	do -- 1917
+		local i = 0 -- 1918
+		while i < #messages do -- 1918
+			local message = messages[i + 1] -- 1919
+			lines[#lines + 1] = (("Message " .. tostring(i + 1)) .. ": role=") .. message.role -- 1920
+			if message.name and message.name ~= "" then -- 1920
+				lines[#lines + 1] = "name=" .. message.name -- 1921
+			end -- 1921
+			if message.tool_call_id and message.tool_call_id ~= "" then -- 1921
+				lines[#lines + 1] = "tool_call_id=" .. message.tool_call_id -- 1922
+			end -- 1922
+			if message.reasoning_content and message.reasoning_content ~= "" then -- 1922
+				lines[#lines + 1] = "reasoning=" .. message.reasoning_content -- 1923
 			end -- 1923
-			if message.content and message.content ~= "" then -- 1923
-				lines[#lines + 1] = message.content -- 1925
-			end -- 1925
-			if i < #messages - 1 then -- 1925
-				lines[#lines + 1] = "" -- 1926
+			if message.tool_calls and #message.tool_calls > 0 then -- 1923
+				local toolCallsText = safeJsonEncode(message.tool_calls) -- 1925
+				lines[#lines + 1] = "tool_calls=" .. (toolCallsText or "") -- 1926
 			end -- 1926
-			i = i + 1 -- 1915
-		end -- 1915
-	end -- 1915
-	return table.concat(lines, "\n") -- 1928
-end -- 1913
-function MemoryCompressor.prototype.callLLMForCompression(self, currentMemory, historyText, llmOptions, maxLLMTry, decisionMode, context) -- 1934
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 1934
-		if decisionMode == "xml" then -- 1934
-			return ____awaiter_resolve( -- 1934
-				nil, -- 1934
-				self:callLLMForCompressionByXML( -- 1944
-					currentMemory, -- 1945
-					historyText, -- 1946
-					llmOptions, -- 1947
-					maxLLMTry, -- 1948
-					context -- 1949
-				) -- 1949
-			) -- 1949
-		end -- 1949
-		return ____awaiter_resolve( -- 1949
-			nil, -- 1949
-			self:callLLMForCompressionByToolCalling( -- 1952
-				currentMemory, -- 1953
-				historyText, -- 1954
-				llmOptions, -- 1955
-				maxLLMTry, -- 1956
-				context -- 1957
-			) -- 1957
-		) -- 1957
-	end) -- 1957
-end -- 1934
-function MemoryCompressor.prototype.getContextWindow(self) -- 1961
-	local configured = math.floor(self.config.llmConfig.contextWindow) -- 1962
-	return configured > 0 and configured or MEMORY_DEFAULT_CONTEXT_WINDOW -- 1963
-end -- 1961
-function MemoryCompressor.prototype.getMemoryContextBudget(self) -- 1966
-	local contextWindow = self:getContextWindow() -- 1967
-	return math.max( -- 1968
-		AGENT_MEMORY_CONTEXT_MIN_TOKENS, -- 1969
-		math.floor(contextWindow * AGENT_MEMORY_CONTEXT_WINDOW_RATIO) -- 1970
-	) -- 1970
-end -- 1966
-function MemoryCompressor.prototype.buildBoundedCompressionSections(self, currentMemory, historyText, llmOptions) -- 1974
-	local dynamicBudget = self:getContextWindow() -- 1983
-	for ____, mode in ipairs({"tool_calling", "xml"}) do -- 1984
-		local options = mode == "tool_calling" and __TS__ObjectAssign({}, llmOptions, {tools = MEMORY_COMPRESSION_TOOLS}) or llmOptions -- 1985
-		local emptyMessages = {{role = "system", content = ""}, {role = "user", content = ""}} -- 1986
-		local available = getInputTokenBudget(emptyMessages, options, self.config.llmConfig) - ____exports.TokenEstimator:estimate(self:buildCompressionStaticPrompt(mode)) - 512 -- 1987
-		dynamicBudget = math.min(dynamicBudget, available) -- 1989
-	end -- 1989
-	if dynamicBudget <= 0 then -- 1989
-		error( -- 1991
-			__TS__New(MemoryCompressionBudgetError, "Memory compression has no input space after reserving the configured output limit and prompts. Reduce max_tokens/max_completion_tokens or increase contextWindow."), -- 1991
-			0 -- 1991
-		) -- 1991
-	end -- 1991
-	local boundedMemory = clipTextToTokenBudget( -- 1994
-		optStr(currentMemory, "(empty)"), -- 1994
-		math.floor(dynamicBudget * COMPRESSION_SECTION_MEMORY_RATIO) -- 1994
-	) -- 1994
-	local boundedProjectMemory = clipTextToTokenBudget( -- 1995
-		optStr( -- 1995
-			self.storage:readProjectMemory(), -- 1995
-			"(empty)" -- 1995
-		), -- 1995
-		math.floor(dynamicBudget * COMPRESSION_SECTION_MEMORY_RATIO) -- 1995
-	) -- 1995
-	local boundedSessionSummary = clipTextToTokenBudget( -- 1996
-		optStr( -- 1996
-			self.storage:readSessionSummary(), -- 1996
-			"(empty)" -- 1996
-		), -- 1996
-		math.floor(dynamicBudget * COMPRESSION_SECTION_SESSION_RATIO) -- 1996
-	) -- 1996
-	local historyBudget = math.max( -- 1998
-		0, -- 1998
-		math.floor((dynamicBudget - ____exports.TokenEstimator:estimate(boundedMemory) - ____exports.TokenEstimator:estimate(boundedProjectMemory) - ____exports.TokenEstimator:estimate(boundedSessionSummary)) * 0.9) -- 1998
+			if message.content and message.content ~= "" then -- 1926
+				lines[#lines + 1] = message.content -- 1928
+			end -- 1928
+			if i < #messages - 1 then -- 1928
+				lines[#lines + 1] = "" -- 1929
+			end -- 1929
+			i = i + 1 -- 1918
+		end -- 1918
+	end -- 1918
+	return table.concat(lines, "\n") -- 1931
+end -- 1916
+function MemoryCompressor.prototype.callLLMForCompression(self, currentMemory, historyText, llmOptions, maxLLMTry, decisionMode, context) -- 1937
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 1937
+		if decisionMode == "xml" then -- 1937
+			return ____awaiter_resolve( -- 1937
+				nil, -- 1937
+				self:callLLMForCompressionByXML( -- 1947
+					currentMemory, -- 1948
+					historyText, -- 1949
+					llmOptions, -- 1950
+					maxLLMTry, -- 1951
+					context -- 1952
+				) -- 1952
+			) -- 1952
+		end -- 1952
+		return ____awaiter_resolve( -- 1952
+			nil, -- 1952
+			self:callLLMForCompressionByToolCalling( -- 1955
+				currentMemory, -- 1956
+				historyText, -- 1957
+				llmOptions, -- 1958
+				maxLLMTry, -- 1959
+				context -- 1960
+			) -- 1960
+		) -- 1960
+	end) -- 1960
+end -- 1937
+function MemoryCompressor.prototype.getContextWindow(self) -- 1964
+	local configured = math.floor(self.config.llmConfig.contextWindow) -- 1965
+	return configured > 0 and configured or MEMORY_DEFAULT_CONTEXT_WINDOW -- 1966
+end -- 1964
+function MemoryCompressor.prototype.getMemoryContextBudget(self) -- 1969
+	local contextWindow = self:getContextWindow() -- 1970
+	return math.max( -- 1971
+		AGENT_MEMORY_CONTEXT_MIN_TOKENS, -- 1972
+		math.floor(contextWindow * AGENT_MEMORY_CONTEXT_WINDOW_RATIO) -- 1973
+	) -- 1973
+end -- 1969
+function MemoryCompressor.prototype.buildBoundedCompressionSections(self, currentMemory, historyText, llmOptions) -- 1977
+	local dynamicBudget = self:getContextWindow() -- 1986
+	for ____, mode in ipairs({"tool_calling", "xml"}) do -- 1987
+		local options = mode == "tool_calling" and __TS__ObjectAssign({}, llmOptions, {tools = MEMORY_COMPRESSION_TOOLS}) or llmOptions -- 1988
+		local emptyMessages = {{role = "system", content = ""}, {role = "user", content = ""}} -- 1989
+		local available = getInputTokenBudget(emptyMessages, options, self.config.llmConfig) - ____exports.TokenEstimator:estimate(self:buildCompressionStaticPrompt(mode)) - 512 -- 1990
+		dynamicBudget = math.min(dynamicBudget, available) -- 1992
+	end -- 1992
+	if dynamicBudget <= 0 then -- 1992
+		error( -- 1994
+			__TS__New(MemoryCompressionBudgetError, "Memory compression has no input space after reserving the configured output limit and prompts. Reduce max_tokens/max_completion_tokens or increase contextWindow."), -- 1994
+			0 -- 1994
+		) -- 1994
+	end -- 1994
+	local boundedMemory = clipTextToTokenBudget( -- 1997
+		optStr(currentMemory, "(empty)"), -- 1997
+		math.floor(dynamicBudget * COMPRESSION_SECTION_MEMORY_RATIO) -- 1997
+	) -- 1997
+	local boundedProjectMemory = clipTextToTokenBudget( -- 1998
+		optStr( -- 1998
+			self.storage:readProjectMemory(), -- 1998
+			"(empty)" -- 1998
+		), -- 1998
+		math.floor(dynamicBudget * COMPRESSION_SECTION_MEMORY_RATIO) -- 1998
 	) -- 1998
-	if ____exports.TokenEstimator:estimate(historyText) > historyBudget then -- 1998
-		error( -- 2002
-			__TS__New(MemoryCompressionBudgetError, "Selected history exceeds the memory compression input budget; history was preserved."), -- 2002
-			0 -- 2002
-		) -- 2002
-	end -- 2002
-	return { -- 2005
-		currentMemory = boundedMemory, -- 2005
-		currentProjectMemory = boundedProjectMemory, -- 2005
-		currentSessionSummary = boundedSessionSummary, -- 2006
-		historyText = historyText, -- 2006
-		historyBudget = historyBudget -- 2006
-	} -- 2006
-end -- 1974
-function MemoryCompressor.prototype.ensureCompressionRequestFits(self, messages, options) -- 2009
-	local fitted = fitMessagesToContext(messages, options, self.config.llmConfig) -- 2010
-	if fitted.trimmed or fitted.fittedTokens > fitted.budgetTokens then -- 2010
-		error( -- 2011
-			__TS__New(MemoryCompressionBudgetError, "Memory compression request exceeds the effective context budget; history was preserved."), -- 2011
-			0 -- 2011
-		) -- 2011
-	end -- 2011
-end -- 2009
-function MemoryCompressor.prototype.callLLMForCompressionByToolCalling(self, currentMemory, historyText, llmOptions, maxLLMTry, context) -- 2016
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 2016
-		local prompt = self:buildCompressionPromptBody(currentMemory, historyText, llmOptions) -- 2023
-		local lastError = "missing save_memory tool call" -- 2025
-		local outputBudgetExhausted = false -- 2026
-		do -- 2026
-			local i = 0 -- 2027
-			while i < maxLLMTry do -- 2027
-				do -- 2027
-					local ____opt_66 = context and context.stopToken -- 2027
-					if ____opt_66 and ____opt_66.stopped then -- 2027
-						error( -- 2028
-							__TS__New(Error, "Memory compression cancelled"), -- 2028
-							0 -- 2028
-						) -- 2028
-					end -- 2028
-					if outputBudgetExhausted then -- 2028
-						error( -- 2029
-							__TS__New(Error, "Memory compression truncated at configured output budget"), -- 2029
-							0 -- 2029
-						) -- 2029
-					end -- 2029
-					local feedback = i > 0 and ("\n\nPrevious response was invalid (" .. lastError) .. "). You must call the save_memory tool. Do not write prose. Required arguments: history_entry and memory_update. Optional arguments: project_memory_update and session_summary_update." or "" -- 2030
-					local messages = { -- 2033
-						{ -- 2034
-							role = "system", -- 2035
-							content = self:buildToolCallingCompressionSystemPrompt() -- 2036
-						}, -- 2036
-						{role = "user", content = prompt .. feedback} -- 2038
-					} -- 2038
-					local requestOptions = __TS__ObjectAssign({}, llmOptions, {tools = MEMORY_COMPRESSION_TOOLS}) -- 2043
-					__TS__Delete(requestOptions, "tool_choice") -- 2049
-					self:ensureCompressionRequestFits(messages, requestOptions) -- 2050
-					local ____opt_70 = context and context.onInput -- 2050
-					if ____opt_70 ~= nil then -- 2050
-						____opt_70(context, "memory_compression_tool_calling", messages, requestOptions) -- 2051
-					end -- 2051
-					local response = __TS__Await(callLLM( -- 2052
-						messages, -- 2053
-						requestOptions, -- 2054
-						context and context.stopToken, -- 2055
-						buildCompressionLLMConfig(self.config.llmConfig) -- 2056
-					)) -- 2056
-					local ____opt_76 = context and context.stopToken -- 2056
-					if ____opt_76 and ____opt_76.stopped then -- 2056
-						error( -- 2059
-							__TS__New(Error, "Memory compression cancelled"), -- 2059
-							0 -- 2059
-						) -- 2059
-					end -- 2059
-					if not response.success then -- 2059
-						lastError = response.message -- 2061
-						local ____opt_80 = context and context.onOutput -- 2061
-						if ____opt_80 ~= nil then -- 2061
-							____opt_80(context, "memory_compression_tool_calling", response.raw or response.message, {success = false, attempt = i + 1, error = lastError}) -- 2062
-						end -- 2062
-						Log( -- 2063
-							"Warn", -- 2063
-							(((("[Memory] compression tool-calling attempt " .. tostring(i + 1)) .. "/") .. tostring(maxLLMTry)) .. " failed: ") .. response.message -- 2063
-						) -- 2063
-						if getLLMFailureKind(response.message, response.raw) == "transport" then -- 2063
-							if i + 1 >= maxLLMTry then -- 2063
-								error( -- 2065
-									__TS__New(Error, response.message), -- 2065
-									0 -- 2065
-								) -- 2065
-							end -- 2065
-							__TS__Await(waitForLLMRetry(i + 1, context and context.stopToken)) -- 2066
-						end -- 2066
-						goto __continue404 -- 2068
-					end -- 2068
-					local tokenUsage = extractLLMTokenUsage(response.response) -- 2070
-					if tokenUsage then -- 2070
-						local ____opt_86 = context and context.onUsage -- 2070
-						if ____opt_86 ~= nil then -- 2070
-							____opt_86(context, "memory_compression_tool_calling", tokenUsage) -- 2071
-						end -- 2071
+	local boundedSessionSummary = clipTextToTokenBudget( -- 1999
+		optStr( -- 1999
+			self.storage:readSessionSummary(), -- 1999
+			"(empty)" -- 1999
+		), -- 1999
+		math.floor(dynamicBudget * COMPRESSION_SECTION_SESSION_RATIO) -- 1999
+	) -- 1999
+	local historyBudget = math.max( -- 2001
+		0, -- 2001
+		math.floor((dynamicBudget - ____exports.TokenEstimator:estimate(boundedMemory) - ____exports.TokenEstimator:estimate(boundedProjectMemory) - ____exports.TokenEstimator:estimate(boundedSessionSummary)) * 0.9) -- 2001
+	) -- 2001
+	if ____exports.TokenEstimator:estimate(historyText) > historyBudget then -- 2001
+		error( -- 2005
+			__TS__New(MemoryCompressionBudgetError, "Selected history exceeds the memory compression input budget; history was preserved."), -- 2005
+			0 -- 2005
+		) -- 2005
+	end -- 2005
+	return { -- 2008
+		currentMemory = boundedMemory, -- 2008
+		currentProjectMemory = boundedProjectMemory, -- 2008
+		currentSessionSummary = boundedSessionSummary, -- 2009
+		historyText = historyText, -- 2009
+		historyBudget = historyBudget -- 2009
+	} -- 2009
+end -- 1977
+function MemoryCompressor.prototype.ensureCompressionRequestFits(self, messages, options) -- 2012
+	local fitted = fitMessagesToContext(messages, options, self.config.llmConfig) -- 2013
+	if fitted.trimmed or fitted.fittedTokens > fitted.budgetTokens then -- 2013
+		error( -- 2014
+			__TS__New(MemoryCompressionBudgetError, "Memory compression request exceeds the effective context budget; history was preserved."), -- 2014
+			0 -- 2014
+		) -- 2014
+	end -- 2014
+end -- 2012
+function MemoryCompressor.prototype.callLLMForCompressionByToolCalling(self, currentMemory, historyText, llmOptions, maxLLMTry, context) -- 2019
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 2019
+		local prompt = self:buildCompressionPromptBody(currentMemory, historyText, llmOptions) -- 2026
+		local lastError = "missing save_memory tool call" -- 2028
+		local outputBudgetExhausted = false -- 2029
+		do -- 2029
+			local i = 0 -- 2030
+			while i < maxLLMTry do -- 2030
+				do -- 2030
+					local ____opt_66 = context and context.stopToken -- 2030
+					if ____opt_66 and ____opt_66.stopped then -- 2030
+						error( -- 2031
+							__TS__New(Error, "Memory compression cancelled"), -- 2031
+							0 -- 2031
+						) -- 2031
+					end -- 2031
+					if outputBudgetExhausted then -- 2031
+						error( -- 2032
+							__TS__New(Error, "Memory compression truncated at configured output budget"), -- 2032
+							0 -- 2032
+						) -- 2032
+					end -- 2032
+					local feedback = i > 0 and ("\n\nPrevious response was invalid (" .. lastError) .. "). You must call the save_memory tool. Do not write prose. Required arguments: history_entry and memory_update. Optional arguments: project_memory_update and session_summary_update." or "" -- 2033
+					local messages = { -- 2036
+						{ -- 2037
+							role = "system", -- 2038
+							content = self:buildToolCallingCompressionSystemPrompt() -- 2039
+						}, -- 2039
+						{role = "user", content = prompt .. feedback} -- 2041
+					} -- 2041
+					local requestOptions = __TS__ObjectAssign({}, llmOptions, {tools = MEMORY_COMPRESSION_TOOLS}) -- 2046
+					__TS__Delete(requestOptions, "tool_choice") -- 2052
+					self:ensureCompressionRequestFits(messages, requestOptions) -- 2053
+					local ____opt_70 = context and context.onInput -- 2053
+					if ____opt_70 ~= nil then -- 2053
+						____opt_70(context, "memory_compression_tool_calling", messages, requestOptions) -- 2054
+					end -- 2054
+					local response = __TS__Await(callLLM( -- 2055
+						messages, -- 2056
+						requestOptions, -- 2057
+						context and context.stopToken, -- 2058
+						buildCompressionLLMConfig(self.config.llmConfig) -- 2059
+					)) -- 2059
+					local ____opt_76 = context and context.stopToken -- 2059
+					if ____opt_76 and ____opt_76.stopped then -- 2059
+						error( -- 2062
+							__TS__New(Error, "Memory compression cancelled"), -- 2062
+							0 -- 2062
+						) -- 2062
+					end -- 2062
+					if not response.success then -- 2062
+						lastError = response.message -- 2064
+						local ____opt_80 = context and context.onOutput -- 2064
+						if ____opt_80 ~= nil then -- 2064
+							____opt_80(context, "memory_compression_tool_calling", response.raw or response.message, {success = false, attempt = i + 1, error = lastError}) -- 2065
+						end -- 2065
+						Log( -- 2066
+							"Warn", -- 2066
+							(((("[Memory] compression tool-calling attempt " .. tostring(i + 1)) .. "/") .. tostring(maxLLMTry)) .. " failed: ") .. response.message -- 2066
+						) -- 2066
+						if getLLMFailureKind(response.message, response.raw) == "transport" then -- 2066
+							if i + 1 >= maxLLMTry then -- 2066
+								error( -- 2068
+									__TS__New(Error, response.message), -- 2068
+									0 -- 2068
+								) -- 2068
+							end -- 2068
+							__TS__Await(waitForLLMRetry(i + 1, context and context.stopToken)) -- 2069
+						end -- 2069
+						goto __continue405 -- 2071
 					end -- 2071
-					local ____opt_90 = context and context.onOutput -- 2071
-					if ____opt_90 ~= nil then -- 2071
-						____opt_90( -- 2072
-							context, -- 2072
-							"memory_compression_tool_calling", -- 2072
-							encodeCompressionDebugJSON(response.response), -- 2072
-							{success = true, attempt = i + 1} -- 2072
-						) -- 2072
-					end -- 2072
-					local choice = response.response.choices and response.response.choices[1] -- 2074
-					local message = choice and choice.message -- 2075
-					local finishReason = choice and type(choice.finish_reason) == "string" and choice.finish_reason or "" -- 2076
-					if finishReason == "length" then -- 2076
-						outputBudgetExhausted = true -- 2081
-					end -- 2081
-					local toolCalls = message and message.tool_calls -- 2083
-					local toolCall = toolCalls and toolCalls[1] -- 2084
-					local fn = toolCall and toolCall["function"] -- 2085
-					local argsText = fn and type(fn.arguments) == "string" and fn.arguments or "" -- 2086
-					if not fn or fn.name ~= "save_memory" then -- 2086
-						local contentPreview = message and type(message.content) == "string" and __TS__StringTrim(message.content) ~= "" and "; content=" .. utf8TakeHead( -- 2088
-							__TS__StringTrim(message.content), -- 2089
-							240 -- 2089
-						) or "" -- 2089
-						lastError = "missing save_memory tool call" .. contentPreview -- 2091
-						Log( -- 2092
-							"Warn", -- 2092
-							(((("[Memory] compression tool-calling attempt " .. tostring(i + 1)) .. "/") .. tostring(maxLLMTry)) .. " invalid: ") .. lastError -- 2092
-						) -- 2092
-						goto __continue404 -- 2093
-					end -- 2093
-					if __TS__StringTrim(argsText) == "" then -- 2093
-						lastError = "empty save_memory tool arguments" -- 2096
-						Log( -- 2097
-							"Warn", -- 2097
-							(((("[Memory] compression tool-calling attempt " .. tostring(i + 1)) .. "/") .. tostring(maxLLMTry)) .. " invalid: ") .. lastError -- 2097
-						) -- 2097
-						goto __continue404 -- 2098
-					end -- 2098
-					local args, err = safeJsonDecode(argsText) -- 2101
-					if err ~= nil or not args or type(args) ~= "table" then -- 2101
-						if finishReason == "length" then -- 2101
-							local recovered = ____exports.recoverCompleteCompressionJSONFields(argsText) -- 2104
-							local partialResult = self:buildRecoveredCompressionResult(recovered.obj, recovered.recoveredFields, currentMemory) -- 2105
-							if partialResult then -- 2105
-								Log( -- 2111
-									"Warn", -- 2111
-									"[Memory] recovered truncated compression tool call fields=" .. table.concat(recovered.recoveredFields, ",") -- 2111
-								) -- 2111
-								return ____awaiter_resolve(nil, partialResult) -- 2111
-							end -- 2111
-							lastError = "truncated save_memory arguments had no safe recoverable fields: " .. tostring(err) -- 2114
-							Log( -- 2115
-								"Warn", -- 2115
-								(((("[Memory] compression tool-calling attempt " .. tostring(i + 1)) .. "/") .. tostring(maxLLMTry)) .. " invalid: ") .. lastError -- 2115
-							) -- 2115
-							goto __continue404 -- 2116
-						end -- 2116
-						lastError = "Failed to parse tool arguments JSON: " .. tostring(err) -- 2118
-						Log( -- 2119
-							"Warn", -- 2119
-							(((("[Memory] compression tool-calling attempt " .. tostring(i + 1)) .. "/") .. tostring(maxLLMTry)) .. " invalid: ") .. lastError -- 2119
-						) -- 2119
-						goto __continue404 -- 2120
-					end -- 2120
-					local ____hasReturned, ____returnValue -- 2120
-					local ____try = __TS__AsyncAwaiter(function() -- 2120
-						local result = self:buildCompressionResultFromObject(args, currentMemory) -- 2124
-						if result.success then -- 2124
-							____hasReturned = true -- 2128
-							____returnValue = result -- 2128
-							return -- 2128
-						end -- 2128
-						lastError = result.error or "invalid save_memory arguments" -- 2129
-						Log( -- 2130
-							"Warn", -- 2130
-							(((("[Memory] compression tool-calling attempt " .. tostring(i + 1)) .. "/") .. tostring(maxLLMTry)) .. " invalid: ") .. lastError -- 2130
-						) -- 2130
-					end) -- 2130
-					____try = ____try.catch( -- 2130
-						____try, -- 2130
-						function(____, ____error) -- 2130
-							return __TS__AsyncAwaiter(function() -- 2130
-								lastError = "Failed to process LLM response: " .. (__TS__InstanceOf(____error, Error) and ____error.message or tostring(____error)) -- 2132
-								Log( -- 2133
-									"Warn", -- 2133
-									(((("[Memory] compression tool-calling attempt " .. tostring(i + 1)) .. "/") .. tostring(maxLLMTry)) .. " invalid: ") .. lastError -- 2133
-								) -- 2133
-							end) -- 2133
-						end -- 2133
-					) -- 2133
-					__TS__Await(____try) -- 2123
-					if ____hasReturned then -- 2123
-						return ____awaiter_resolve(nil, ____returnValue) -- 2123
+					local tokenUsage = extractLLMTokenUsage(response.response) -- 2073
+					if tokenUsage then -- 2073
+						local ____opt_86 = context and context.onUsage -- 2073
+						if ____opt_86 ~= nil then -- 2073
+							____opt_86(context, "memory_compression_tool_calling", tokenUsage) -- 2074
+						end -- 2074
+					end -- 2074
+					local ____opt_90 = context and context.onOutput -- 2074
+					if ____opt_90 ~= nil then -- 2074
+						____opt_90( -- 2075
+							context, -- 2075
+							"memory_compression_tool_calling", -- 2075
+							encodeCompressionDebugJSON(response.response), -- 2075
+							{success = true, attempt = i + 1} -- 2075
+						) -- 2075
+					end -- 2075
+					local choice = response.response.choices and response.response.choices[1] -- 2077
+					local message = choice and choice.message -- 2078
+					local finishReason = choice and type(choice.finish_reason) == "string" and choice.finish_reason or "" -- 2079
+					if finishReason == "length" then -- 2079
+						outputBudgetExhausted = true -- 2084
+					end -- 2084
+					local toolCalls = message and message.tool_calls -- 2086
+					local toolCall = toolCalls and toolCalls[1] -- 2087
+					local fn = toolCall and toolCall["function"] -- 2088
+					local argsText = fn and type(fn.arguments) == "string" and fn.arguments or "" -- 2089
+					if not fn or fn.name ~= "save_memory" then -- 2089
+						local contentPreview = message and type(message.content) == "string" and __TS__StringTrim(message.content) ~= "" and "; content=" .. utf8TakeHead( -- 2091
+							__TS__StringTrim(message.content), -- 2092
+							240 -- 2092
+						) or "" -- 2092
+						lastError = "missing save_memory tool call" .. contentPreview -- 2094
+						Log( -- 2095
+							"Warn", -- 2095
+							(((("[Memory] compression tool-calling attempt " .. tostring(i + 1)) .. "/") .. tostring(maxLLMTry)) .. " invalid: ") .. lastError -- 2095
+						) -- 2095
+						goto __continue405 -- 2096
+					end -- 2096
+					if __TS__StringTrim(argsText) == "" then -- 2096
+						lastError = "empty save_memory tool arguments" -- 2099
+						Log( -- 2100
+							"Warn", -- 2100
+							(((("[Memory] compression tool-calling attempt " .. tostring(i + 1)) .. "/") .. tostring(maxLLMTry)) .. " invalid: ") .. lastError -- 2100
+						) -- 2100
+						goto __continue405 -- 2101
+					end -- 2101
+					local args, err = safeJsonDecode(argsText) -- 2104
+					if err ~= nil or not args or type(args) ~= "table" then -- 2104
+						if finishReason == "length" then -- 2104
+							local recovered = ____exports.recoverCompleteCompressionJSONFields(argsText) -- 2107
+							local partialResult = self:buildRecoveredCompressionResult(recovered.obj, recovered.recoveredFields, currentMemory) -- 2108
+							if partialResult then -- 2108
+								Log( -- 2114
+									"Warn", -- 2114
+									"[Memory] recovered truncated compression tool call fields=" .. table.concat(recovered.recoveredFields, ",") -- 2114
+								) -- 2114
+								return ____awaiter_resolve(nil, partialResult) -- 2114
+							end -- 2114
+							lastError = "truncated save_memory arguments had no safe recoverable fields: " .. tostring(err) -- 2117
+							Log( -- 2118
+								"Warn", -- 2118
+								(((("[Memory] compression tool-calling attempt " .. tostring(i + 1)) .. "/") .. tostring(maxLLMTry)) .. " invalid: ") .. lastError -- 2118
+							) -- 2118
+							goto __continue405 -- 2119
+						end -- 2119
+						lastError = "Failed to parse tool arguments JSON: " .. tostring(err) -- 2121
+						Log( -- 2122
+							"Warn", -- 2122
+							(((("[Memory] compression tool-calling attempt " .. tostring(i + 1)) .. "/") .. tostring(maxLLMTry)) .. " invalid: ") .. lastError -- 2122
+						) -- 2122
+						goto __continue405 -- 2123
 					end -- 2123
-				end -- 2123
-				::__continue404:: -- 2123
-				i = i + 1 -- 2027
-			end -- 2027
-		end -- 2027
-		if outputBudgetExhausted then -- 2027
-			error( -- 2137
-				__TS__New(Error, "Memory compression truncated at configured output budget"), -- 2137
-				0 -- 2137
-			) -- 2137
-		end -- 2137
-		Log( -- 2138
-			"Warn", -- 2138
-			(("[Memory] compression tool-calling exhausted " .. tostring(maxLLMTry)) .. " retries, falling back to XML: ") .. lastError -- 2138
-		) -- 2138
-		return ____awaiter_resolve( -- 2138
-			nil, -- 2138
-			self:callLLMForCompressionByXML( -- 2139
-				currentMemory, -- 2140
-				historyText, -- 2141
-				llmOptions, -- 2142
-				maxLLMTry, -- 2143
-				context -- 2144
-			) -- 2144
-		) -- 2144
-	end) -- 2144
-end -- 2016
-function MemoryCompressor.prototype.callLLMForCompressionByXML(self, currentMemory, historyText, llmOptions, maxLLMTry, context) -- 2148
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 2148
-		local prompt = self:buildCompressionPromptBody(currentMemory, historyText, llmOptions) -- 2155
-		local lastError = "invalid xml response" -- 2156
-		local outputBudgetExhausted = false -- 2157
-		do -- 2157
-			local i = 0 -- 2159
-			while i < maxLLMTry do -- 2159
-				do -- 2159
-					local ____opt_94 = context and context.stopToken -- 2159
-					if ____opt_94 and ____opt_94.stopped then -- 2159
-						error( -- 2160
-							__TS__New(Error, "Memory compression cancelled"), -- 2160
-							0 -- 2160
-						) -- 2160
-					end -- 2160
-					if outputBudgetExhausted then -- 2160
-						error( -- 2161
-							__TS__New(Error, "Memory compression truncated at configured output budget"), -- 2161
-							0 -- 2161
-						) -- 2161
-					end -- 2161
-					local feedback = i > 0 and "\n\n" .. replaceTemplateVars(self.config.promptPack.memoryCompressionXmlRetryPrompt, {LAST_ERROR = lastError}) or "" -- 2162
-					local requestMessages = { -- 2167
-						{ -- 2168
-							role = "system", -- 2168
-							content = self:buildXMLCompressionSystemPrompt() -- 2168
-						}, -- 2168
-						{role = "user", content = prompt .. feedback} -- 2169
-					} -- 2169
-					self:ensureCompressionRequestFits(requestMessages, llmOptions) -- 2171
-					local ____opt_98 = context and context.onInput -- 2171
-					if ____opt_98 ~= nil then -- 2171
-						____opt_98(context, "memory_compression_xml", requestMessages, llmOptions) -- 2172
-					end -- 2172
-					local response = __TS__Await(callLLM( -- 2173
-						requestMessages, -- 2174
-						llmOptions, -- 2175
-						context and context.stopToken, -- 2176
-						buildCompressionLLMConfig(self.config.llmConfig) -- 2177
-					)) -- 2177
-					local ____opt_104 = context and context.stopToken -- 2177
-					if ____opt_104 and ____opt_104.stopped then -- 2177
-						error( -- 2180
-							__TS__New(Error, "Memory compression cancelled"), -- 2180
-							0 -- 2180
-						) -- 2180
-					end -- 2180
-					if not response.success then -- 2180
-						local ____opt_108 = context and context.onOutput -- 2180
-						if ____opt_108 ~= nil then -- 2180
-							____opt_108(context, "memory_compression_xml", response.raw or response.message, {success = false}) -- 2182
-						end -- 2182
-						lastError = response.message -- 2183
-						if getLLMFailureKind(response.message, response.raw) == "transport" then -- 2183
-							if i + 1 >= maxLLMTry then -- 2183
-								error( -- 2185
-									__TS__New(Error, response.message), -- 2185
-									0 -- 2185
-								) -- 2185
-							end -- 2185
-							__TS__Await(waitForLLMRetry(i + 1, context and context.stopToken)) -- 2186
-						end -- 2186
-						goto __continue424 -- 2188
-					end -- 2188
-					local tokenUsage = extractLLMTokenUsage(response.response) -- 2190
-					if tokenUsage then -- 2190
-						local ____opt_114 = context and context.onUsage -- 2190
-						if ____opt_114 ~= nil then -- 2190
-							____opt_114(context, "memory_compression_xml", tokenUsage) -- 2191
-						end -- 2191
+					local ____hasReturned, ____returnValue -- 2123
+					local ____try = __TS__AsyncAwaiter(function() -- 2123
+						local result = self:buildCompressionResultFromObject(args, currentMemory) -- 2127
+						if result.success then -- 2127
+							____hasReturned = true -- 2131
+							____returnValue = result -- 2131
+							return -- 2131
+						end -- 2131
+						lastError = result.error or "invalid save_memory arguments" -- 2132
+						Log( -- 2133
+							"Warn", -- 2133
+							(((("[Memory] compression tool-calling attempt " .. tostring(i + 1)) .. "/") .. tostring(maxLLMTry)) .. " invalid: ") .. lastError -- 2133
+						) -- 2133
+					end) -- 2133
+					____try = ____try.catch( -- 2133
+						____try, -- 2133
+						function(____, ____error) -- 2133
+							return __TS__AsyncAwaiter(function() -- 2133
+								lastError = "Failed to process LLM response: " .. (__TS__InstanceOf(____error, Error) and ____error.message or tostring(____error)) -- 2135
+								Log( -- 2136
+									"Warn", -- 2136
+									(((("[Memory] compression tool-calling attempt " .. tostring(i + 1)) .. "/") .. tostring(maxLLMTry)) .. " invalid: ") .. lastError -- 2136
+								) -- 2136
+							end) -- 2136
+						end -- 2136
+					) -- 2136
+					__TS__Await(____try) -- 2126
+					if ____hasReturned then -- 2126
+						return ____awaiter_resolve(nil, ____returnValue) -- 2126
+					end -- 2126
+				end -- 2126
+				::__continue405:: -- 2126
+				i = i + 1 -- 2030
+			end -- 2030
+		end -- 2030
+		if outputBudgetExhausted then -- 2030
+			error( -- 2140
+				__TS__New(Error, "Memory compression truncated at configured output budget"), -- 2140
+				0 -- 2140
+			) -- 2140
+		end -- 2140
+		Log( -- 2141
+			"Warn", -- 2141
+			(("[Memory] compression tool-calling exhausted " .. tostring(maxLLMTry)) .. " retries, falling back to XML: ") .. lastError -- 2141
+		) -- 2141
+		return ____awaiter_resolve( -- 2141
+			nil, -- 2141
+			self:callLLMForCompressionByXML( -- 2142
+				currentMemory, -- 2143
+				historyText, -- 2144
+				llmOptions, -- 2145
+				maxLLMTry, -- 2146
+				context -- 2147
+			) -- 2147
+		) -- 2147
+	end) -- 2147
+end -- 2019
+function MemoryCompressor.prototype.callLLMForCompressionByXML(self, currentMemory, historyText, llmOptions, maxLLMTry, context) -- 2151
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 2151
+		local prompt = self:buildCompressionPromptBody(currentMemory, historyText, llmOptions) -- 2158
+		local lastError = "invalid xml response" -- 2159
+		local outputBudgetExhausted = false -- 2160
+		do -- 2160
+			local i = 0 -- 2162
+			while i < maxLLMTry do -- 2162
+				do -- 2162
+					local ____opt_94 = context and context.stopToken -- 2162
+					if ____opt_94 and ____opt_94.stopped then -- 2162
+						error( -- 2163
+							__TS__New(Error, "Memory compression cancelled"), -- 2163
+							0 -- 2163
+						) -- 2163
+					end -- 2163
+					if outputBudgetExhausted then -- 2163
+						error( -- 2164
+							__TS__New(Error, "Memory compression truncated at configured output budget"), -- 2164
+							0 -- 2164
+						) -- 2164
+					end -- 2164
+					local feedback = i > 0 and "\n\n" .. replaceTemplateVars(self.config.promptPack.memoryCompressionXmlRetryPrompt, {LAST_ERROR = lastError}) or "" -- 2165
+					local requestMessages = { -- 2170
+						{ -- 2171
+							role = "system", -- 2171
+							content = self:buildXMLCompressionSystemPrompt() -- 2171
+						}, -- 2171
+						{role = "user", content = prompt .. feedback} -- 2172
+					} -- 2172
+					self:ensureCompressionRequestFits(requestMessages, llmOptions) -- 2174
+					local ____opt_98 = context and context.onInput -- 2174
+					if ____opt_98 ~= nil then -- 2174
+						____opt_98(context, "memory_compression_xml", requestMessages, llmOptions) -- 2175
+					end -- 2175
+					local response = __TS__Await(callLLM( -- 2176
+						requestMessages, -- 2177
+						llmOptions, -- 2178
+						context and context.stopToken, -- 2179
+						buildCompressionLLMConfig(self.config.llmConfig) -- 2180
+					)) -- 2180
+					local ____opt_104 = context and context.stopToken -- 2180
+					if ____opt_104 and ____opt_104.stopped then -- 2180
+						error( -- 2183
+							__TS__New(Error, "Memory compression cancelled"), -- 2183
+							0 -- 2183
+						) -- 2183
+					end -- 2183
+					if not response.success then -- 2183
+						local ____opt_108 = context and context.onOutput -- 2183
+						if ____opt_108 ~= nil then -- 2183
+							____opt_108(context, "memory_compression_xml", response.raw or response.message, {success = false}) -- 2185
+						end -- 2185
+						lastError = response.message -- 2186
+						if getLLMFailureKind(response.message, response.raw) == "transport" then -- 2186
+							if i + 1 >= maxLLMTry then -- 2186
+								error( -- 2188
+									__TS__New(Error, response.message), -- 2188
+									0 -- 2188
+								) -- 2188
+							end -- 2188
+							__TS__Await(waitForLLMRetry(i + 1, context and context.stopToken)) -- 2189
+						end -- 2189
+						goto __continue425 -- 2191
 					end -- 2191
-					local choice = response.response.choices and response.response.choices[1] -- 2193
-					local message = choice and choice.message -- 2194
-					local finishReason = choice and type(choice.finish_reason) == "string" and choice.finish_reason or "" -- 2195
-					if finishReason == "length" then -- 2195
-						outputBudgetExhausted = true -- 2200
-					end -- 2200
-					local text = message and type(message.content) == "string" and message.content or "" -- 2202
-					local ____opt_118 = context and context.onOutput -- 2202
-					if ____opt_118 ~= nil then -- 2202
-						____opt_118( -- 2203
-							context, -- 2203
-							"memory_compression_xml", -- 2203
-							text ~= "" and text or encodeCompressionDebugJSON(response.response), -- 2203
-							{success = true} -- 2203
-						) -- 2203
+					local tokenUsage = extractLLMTokenUsage(response.response) -- 2193
+					if tokenUsage then -- 2193
+						local ____opt_114 = context and context.onUsage -- 2193
+						if ____opt_114 ~= nil then -- 2193
+							____opt_114(context, "memory_compression_xml", tokenUsage) -- 2194
+						end -- 2194
+					end -- 2194
+					local choice = response.response.choices and response.response.choices[1] -- 2196
+					local message = choice and choice.message -- 2197
+					local finishReason = choice and type(choice.finish_reason) == "string" and choice.finish_reason or "" -- 2198
+					if finishReason == "length" then -- 2198
+						outputBudgetExhausted = true -- 2203
 					end -- 2203
-					if __TS__StringTrim(text) == "" then -- 2203
-						lastError = "empty xml response" -- 2205
-						goto __continue424 -- 2206
+					local text = message and type(message.content) == "string" and message.content or "" -- 2205
+					local ____opt_118 = context and context.onOutput -- 2205
+					if ____opt_118 ~= nil then -- 2205
+						____opt_118( -- 2206
+							context, -- 2206
+							"memory_compression_xml", -- 2206
+							text ~= "" and text or encodeCompressionDebugJSON(response.response), -- 2206
+							{success = true} -- 2206
+						) -- 2206
 					end -- 2206
-					local parsed = self:parseCompressionXMLObject(text, currentMemory) -- 2209
-					if parsed.success then -- 2209
-						return ____awaiter_resolve(nil, parsed) -- 2209
+					if __TS__StringTrim(text) == "" then -- 2206
+						lastError = "empty xml response" -- 2208
+						goto __continue425 -- 2209
 					end -- 2209
-					if finishReason == "length" then -- 2209
-						local recovered = ____exports.recoverCompleteCompressionXMLFields(text) -- 2214
-						local partialResult = self:buildRecoveredCompressionResult(recovered.obj, recovered.recoveredFields, currentMemory) -- 2215
-						if partialResult then -- 2215
-							Log( -- 2221
-								"Warn", -- 2221
-								"[Memory] recovered truncated compression XML fields=" .. table.concat(recovered.recoveredFields, ",") -- 2221
-							) -- 2221
-							return ____awaiter_resolve(nil, partialResult) -- 2221
-						end -- 2221
-						lastError = "truncated compression XML had no safe recoverable fields: " .. (parsed.error or "invalid xml response") -- 2224
-						goto __continue424 -- 2225
-					end -- 2225
-					lastError = parsed.error or "invalid xml response" -- 2227
-				end -- 2227
-				::__continue424:: -- 2227
-				i = i + 1 -- 2159
-			end -- 2159
-		end -- 2159
-		return ____awaiter_resolve(nil, {success = false, memoryUpdate = currentMemory, compressedCount = 0, error = lastError}) -- 2159
-	end) -- 2159
-end -- 2148
-function MemoryCompressor.prototype.buildCompressionPromptBody(self, currentMemory, historyText, llmOptions) -- 2241
-	local bounded = self:buildBoundedCompressionSections(currentMemory, historyText, llmOptions) -- 2242
-	return replaceTemplateVars(self.config.promptPack.memoryCompressionBodyPrompt, {CURRENT_MEMORY = bounded.currentMemory, CURRENT_PROJECT_MEMORY = bounded.currentProjectMemory, CURRENT_SESSION_SUMMARY = bounded.currentSessionSummary, HISTORY_TEXT = bounded.historyText}) -- 2243
-end -- 2241
-function MemoryCompressor.prototype.buildCompressionStaticPrompt(self, mode) -- 2251
-	local formatPrompt = mode == "xml" and self.config.promptPack.memoryCompressionXmlPrompt or self.config.promptPack.memoryCompressionToolCallingPrompt -- 2252
-	local body = replaceTemplateVars(self.config.promptPack.memoryCompressionBodyPrompt, {CURRENT_MEMORY = "", CURRENT_PROJECT_MEMORY = "", CURRENT_SESSION_SUMMARY = "", HISTORY_TEXT = ""}) -- 2253
-	return (((self.config.promptPack.memoryCompressionSystemPrompt .. "\n\n") .. formatPrompt) .. "\n\n") .. body -- 2256
-end -- 2251
-function MemoryCompressor.prototype.buildToolCallingCompressionSystemPrompt(self) -- 2259
-	return (self.config.promptPack.memoryCompressionSystemPrompt .. "\n\n") .. self.config.promptPack.memoryCompressionToolCallingPrompt -- 2260
-end -- 2259
-function MemoryCompressor.prototype.buildXMLCompressionSystemPrompt(self) -- 2265
-	return (self.config.promptPack.memoryCompressionSystemPrompt .. "\n\n") .. self.config.promptPack.memoryCompressionXmlPrompt -- 2266
-end -- 2265
-function MemoryCompressor.prototype.parseCompressionXMLObject(self, text, currentMemory) -- 2271
-	local parsed = parseXMLObjectFromText(text, "memory_update_result") -- 2272
-	if not parsed.success then -- 2272
-		return {success = false, memoryUpdate = currentMemory, compressedCount = 0, error = parsed.message} -- 2274
-	end -- 2274
-	return self:buildCompressionResultFromObject(parsed.obj, currentMemory) -- 2281
-end -- 2271
-function MemoryCompressor.prototype.buildRecoveredCompressionResult(self, obj, recoveredFields, currentMemory) -- 2287
-	if #recoveredFields == 0 then -- 2287
-		return nil -- 2292
-	end -- 2292
-	local result = self:buildCompressionResultFromObject(obj, currentMemory) -- 2293
-	if not result.success then -- 2293
-		return nil -- 2294
-	end -- 2294
-	return __TS__ObjectAssign({}, result, {partialRecovered = true, recoveredFields = recoveredFields, finishReason = "length"}) -- 2295
-end -- 2287
-function MemoryCompressor.prototype.buildCompressionResultFromObject(self, obj, currentMemory) -- 2303
-	local historyEntry = type(obj.history_entry) == "string" and obj.history_entry or "" -- 2307
-	local memoryBody = type(obj.memory_update) == "string" and __TS__StringTrim(obj.memory_update) ~= "" and obj.memory_update or currentMemory -- 2308
-	local projectMemoryBody = type(obj.project_memory_update) == "string" and __TS__StringTrim(obj.project_memory_update) ~= "" and obj.project_memory_update or self.storage:readProjectMemory() -- 2311
-	local sessionSummaryBody = type(obj.session_summary_update) == "string" and __TS__StringTrim(obj.session_summary_update) ~= "" and obj.session_summary_update or self.storage:readSessionSummary() -- 2314
-	if __TS__StringTrim(historyEntry) == "" or __TS__StringTrim(memoryBody) == "" then -- 2314
-		return {success = false, memoryUpdate = currentMemory, compressedCount = 0, error = "missing history_entry or memory_update"} -- 2318
-	end -- 2318
-	local ts = os.date("%Y-%m-%d %H:%M") -- 2325
-	return { -- 2326
-		success = true, -- 2327
-		memoryUpdate = memoryBody, -- 2328
-		projectMemoryUpdate = projectMemoryBody, -- 2329
-		sessionSummaryUpdate = sessionSummaryBody, -- 2330
-		ts = ts, -- 2331
-		summary = historyEntry, -- 2332
-		compressedCount = 0 -- 2333
-	} -- 2333
-end -- 2303
-function MemoryCompressor.prototype.handleCompressionFailure(self, _chunk, ____error) -- 2340
-	self.consecutiveFailures = self.consecutiveFailures + 1 -- 2344
-	Log( -- 2345
-		"Warn", -- 2345
-		(("[Memory] compression failed; active history preserved (consecutive=" .. tostring(self.consecutiveFailures)) .. "): ") .. ____error -- 2345
-	) -- 2345
-	return { -- 2346
-		success = false, -- 2347
-		memoryUpdate = self.storage:readMemory(), -- 2348
-		compressedCount = 0, -- 2349
-		error = ____error -- 2350
-	} -- 2350
-end -- 2340
-function MemoryCompressor.prototype.getStorage(self) -- 2357
-	return self.storage -- 2358
-end -- 2357
-function MemoryCompressor.prototype.getMaxCompressionRounds(self) -- 2361
-	return math.max( -- 2362
-		1, -- 2362
-		math.floor(self.config.maxCompressionRounds) -- 2362
-	) -- 2362
-end -- 2361
-function ____exports.compactSessionMemoryScope(options) -- 2366
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 2366
-		local llmConfigRes = options.llmConfig and ({success = true, config = options.llmConfig}) or getActiveLLMConfig() -- 2376
-		if not llmConfigRes.success then -- 2376
-			return ____awaiter_resolve(nil, {success = false, message = llmConfigRes.message}) -- 2376
-		end -- 2376
-		local compressor = __TS__New(____exports.MemoryCompressor, { -- 2382
-			compressionTargetThreshold = 0.5, -- 2383
-			maxCompressionRounds = 3, -- 2384
-			projectDir = options.projectDir, -- 2385
-			llmConfig = llmConfigRes.config, -- 2386
-			promptPack = options.promptPack, -- 2387
-			scope = options.scope -- 2388
-		}) -- 2388
-		local storage = compressor:getStorage() -- 2390
-		local persistedSession = storage:readSessionState() -- 2391
-		local messages = persistedSession.messages -- 2392
-		local lastConsolidatedIndex = persistedSession.lastConsolidatedIndex -- 2393
-		local carryMessageIndex = persistedSession.carryMessageIndex -- 2394
-		local llmOptions = buildMemoryLLMOptions(llmConfigRes.config, options.llmOptions) -- 2395
-		while lastConsolidatedIndex < #messages do -- 2395
-			local activeMessages = {} -- 2397
-			if type(carryMessageIndex) == "number" and carryMessageIndex >= 0 and carryMessageIndex < lastConsolidatedIndex and carryMessageIndex < #messages then -- 2397
-				activeMessages[#activeMessages + 1] = __TS__ObjectAssign({}, messages[carryMessageIndex + 1]) -- 2404
-			end -- 2404
-			do -- 2404
-				local i = lastConsolidatedIndex -- 2408
-				while i < #messages do -- 2408
-					activeMessages[#activeMessages + 1] = messages[i + 1] -- 2409
-					i = i + 1 -- 2408
-				end -- 2408
-			end -- 2408
-			local result = __TS__Await(compressor:compress( -- 2411
-				activeMessages, -- 2412
-				llmOptions, -- 2413
-				math.max( -- 2414
-					1, -- 2414
-					math.floor(options.llmMaxTry or 5) -- 2414
-				), -- 2414
-				options.decisionMode or "tool_calling", -- 2415
-				{stopToken = options.stopToken}, -- 2416
-				"budget_max" -- 2417
-			)) -- 2417
-			if not (result and result.success and result.compressedCount > 0) then -- 2417
-				return ____awaiter_resolve(nil, {success = false, message = result and result.error or "memory compaction produced no progress"}) -- 2417
-			end -- 2417
-			local syntheticPrefixCount = #activeMessages > 0 and lastConsolidatedIndex < #messages and activeMessages[1] ~= messages[lastConsolidatedIndex + 1] and 1 or 0 -- 2425
-			local realCompressedCount = math.max(0, result.compressedCount - syntheticPrefixCount) -- 2430
-			if realCompressedCount <= 0 then -- 2430
-				return ____awaiter_resolve(nil, {success = false, message = "memory compaction covered only the carried prefix and made no persisted progress"}) -- 2430
-			end -- 2430
-			lastConsolidatedIndex = math.min(#messages, lastConsolidatedIndex + realCompressedCount) -- 2437
-			if type(result.carryMessageIndex) == "number" then -- 2437
-				if syntheticPrefixCount > 0 and result.carryMessageIndex == 0 then -- 2437
-				else -- 2437
-					local carryOffset = syntheticPrefixCount > 0 and result.carryMessageIndex - 1 or result.carryMessageIndex -- 2442
-					carryMessageIndex = carryOffset >= 0 and lastConsolidatedIndex - realCompressedCount + carryOffset or nil -- 2445
-				end -- 2445
-			else -- 2445
-				carryMessageIndex = nil -- 2450
-			end -- 2450
-			if type(carryMessageIndex) == "number" and (carryMessageIndex < 0 or carryMessageIndex >= lastConsolidatedIndex or carryMessageIndex >= #messages) then -- 2450
-				carryMessageIndex = nil -- 2456
-			end -- 2456
-			storage:writeSessionState(messages, lastConsolidatedIndex, carryMessageIndex) -- 2458
-		end -- 2458
-		return ____awaiter_resolve(nil, {success = true, remainingMessages = 0}) -- 2458
-	end) -- 2458
-end -- 2366
-return ____exports -- 2366
+					local parsed = self:parseCompressionXMLObject(text, currentMemory) -- 2212
+					if parsed.success then -- 2212
+						return ____awaiter_resolve(nil, parsed) -- 2212
+					end -- 2212
+					if finishReason == "length" then -- 2212
+						local recovered = ____exports.recoverCompleteCompressionXMLFields(text) -- 2217
+						local partialResult = self:buildRecoveredCompressionResult(recovered.obj, recovered.recoveredFields, currentMemory) -- 2218
+						if partialResult then -- 2218
+							Log( -- 2224
+								"Warn", -- 2224
+								"[Memory] recovered truncated compression XML fields=" .. table.concat(recovered.recoveredFields, ",") -- 2224
+							) -- 2224
+							return ____awaiter_resolve(nil, partialResult) -- 2224
+						end -- 2224
+						lastError = "truncated compression XML had no safe recoverable fields: " .. (parsed.error or "invalid xml response") -- 2227
+						goto __continue425 -- 2228
+					end -- 2228
+					lastError = parsed.error or "invalid xml response" -- 2230
+				end -- 2230
+				::__continue425:: -- 2230
+				i = i + 1 -- 2162
+			end -- 2162
+		end -- 2162
+		return ____awaiter_resolve(nil, {success = false, memoryUpdate = currentMemory, compressedCount = 0, error = lastError}) -- 2162
+	end) -- 2162
+end -- 2151
+function MemoryCompressor.prototype.buildCompressionPromptBody(self, currentMemory, historyText, llmOptions) -- 2244
+	local bounded = self:buildBoundedCompressionSections(currentMemory, historyText, llmOptions) -- 2245
+	return replaceTemplateVars(self.config.promptPack.memoryCompressionBodyPrompt, {CURRENT_MEMORY = bounded.currentMemory, CURRENT_PROJECT_MEMORY = bounded.currentProjectMemory, CURRENT_SESSION_SUMMARY = bounded.currentSessionSummary, HISTORY_TEXT = bounded.historyText}) -- 2246
+end -- 2244
+function MemoryCompressor.prototype.buildCompressionStaticPrompt(self, mode) -- 2254
+	local formatPrompt = mode == "xml" and self.config.promptPack.memoryCompressionXmlPrompt or self.config.promptPack.memoryCompressionToolCallingPrompt -- 2255
+	local body = replaceTemplateVars(self.config.promptPack.memoryCompressionBodyPrompt, {CURRENT_MEMORY = "", CURRENT_PROJECT_MEMORY = "", CURRENT_SESSION_SUMMARY = "", HISTORY_TEXT = ""}) -- 2256
+	return (((self.config.promptPack.memoryCompressionSystemPrompt .. "\n\n") .. formatPrompt) .. "\n\n") .. body -- 2259
+end -- 2254
+function MemoryCompressor.prototype.buildToolCallingCompressionSystemPrompt(self) -- 2262
+	return (self.config.promptPack.memoryCompressionSystemPrompt .. "\n\n") .. self.config.promptPack.memoryCompressionToolCallingPrompt -- 2263
+end -- 2262
+function MemoryCompressor.prototype.buildXMLCompressionSystemPrompt(self) -- 2268
+	return (self.config.promptPack.memoryCompressionSystemPrompt .. "\n\n") .. self.config.promptPack.memoryCompressionXmlPrompt -- 2269
+end -- 2268
+function MemoryCompressor.prototype.parseCompressionXMLObject(self, text, currentMemory) -- 2274
+	local parsed = parseXMLObjectFromText(text, "memory_update_result") -- 2275
+	if not parsed.success then -- 2275
+		return {success = false, memoryUpdate = currentMemory, compressedCount = 0, error = parsed.message} -- 2277
+	end -- 2277
+	return self:buildCompressionResultFromObject(parsed.obj, currentMemory) -- 2284
+end -- 2274
+function MemoryCompressor.prototype.buildRecoveredCompressionResult(self, obj, recoveredFields, currentMemory) -- 2290
+	if #recoveredFields == 0 then -- 2290
+		return nil -- 2295
+	end -- 2295
+	local result = self:buildCompressionResultFromObject(obj, currentMemory) -- 2296
+	if not result.success then -- 2296
+		return nil -- 2297
+	end -- 2297
+	return __TS__ObjectAssign({}, result, {partialRecovered = true, recoveredFields = recoveredFields, finishReason = "length"}) -- 2298
+end -- 2290
+function MemoryCompressor.prototype.buildCompressionResultFromObject(self, obj, currentMemory) -- 2306
+	local historyEntry = type(obj.history_entry) == "string" and obj.history_entry or "" -- 2310
+	local memoryBody = type(obj.memory_update) == "string" and __TS__StringTrim(obj.memory_update) ~= "" and obj.memory_update or currentMemory -- 2311
+	local projectMemoryBody = type(obj.project_memory_update) == "string" and __TS__StringTrim(obj.project_memory_update) ~= "" and obj.project_memory_update or self.storage:readProjectMemory() -- 2314
+	local sessionSummaryBody = type(obj.session_summary_update) == "string" and __TS__StringTrim(obj.session_summary_update) ~= "" and obj.session_summary_update or self.storage:readSessionSummary() -- 2317
+	if __TS__StringTrim(historyEntry) == "" or __TS__StringTrim(memoryBody) == "" then -- 2317
+		return {success = false, memoryUpdate = currentMemory, compressedCount = 0, error = "missing history_entry or memory_update"} -- 2321
+	end -- 2321
+	local ts = os.date("%Y-%m-%d %H:%M") -- 2328
+	return { -- 2329
+		success = true, -- 2330
+		memoryUpdate = memoryBody, -- 2331
+		projectMemoryUpdate = projectMemoryBody, -- 2332
+		sessionSummaryUpdate = sessionSummaryBody, -- 2333
+		ts = ts, -- 2334
+		summary = historyEntry, -- 2335
+		compressedCount = 0 -- 2336
+	} -- 2336
+end -- 2306
+function MemoryCompressor.prototype.handleCompressionFailure(self, _chunk, ____error) -- 2343
+	self.consecutiveFailures = self.consecutiveFailures + 1 -- 2347
+	Log( -- 2348
+		"Warn", -- 2348
+		(("[Memory] compression failed; active history preserved (consecutive=" .. tostring(self.consecutiveFailures)) .. "): ") .. ____error -- 2348
+	) -- 2348
+	return { -- 2349
+		success = false, -- 2350
+		memoryUpdate = self.storage:readMemory(), -- 2351
+		compressedCount = 0, -- 2352
+		error = ____error -- 2353
+	} -- 2353
+end -- 2343
+function MemoryCompressor.prototype.getStorage(self) -- 2360
+	return self.storage -- 2361
+end -- 2360
+function MemoryCompressor.prototype.getMaxCompressionRounds(self) -- 2364
+	return math.max( -- 2365
+		1, -- 2365
+		math.floor(self.config.maxCompressionRounds) -- 2365
+	) -- 2365
+end -- 2364
+function ____exports.compactSessionMemoryScope(options) -- 2369
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 2369
+		local llmConfigRes = options.llmConfig and ({success = true, config = options.llmConfig}) or getActiveLLMConfig() -- 2379
+		if not llmConfigRes.success then -- 2379
+			return ____awaiter_resolve(nil, {success = false, message = llmConfigRes.message}) -- 2379
+		end -- 2379
+		local compressor = __TS__New(____exports.MemoryCompressor, { -- 2385
+			compressionTargetThreshold = 0.5, -- 2386
+			maxCompressionRounds = 3, -- 2387
+			projectDir = options.projectDir, -- 2388
+			llmConfig = llmConfigRes.config, -- 2389
+			promptPack = options.promptPack, -- 2390
+			scope = options.scope -- 2391
+		}) -- 2391
+		local storage = compressor:getStorage() -- 2393
+		local persistedSession = storage:readSessionState() -- 2394
+		local messages = persistedSession.messages -- 2395
+		local lastConsolidatedIndex = persistedSession.lastConsolidatedIndex -- 2396
+		local carryMessageIndex = persistedSession.carryMessageIndex -- 2397
+		local llmOptions = buildMemoryLLMOptions(llmConfigRes.config, options.llmOptions) -- 2398
+		while lastConsolidatedIndex < #messages do -- 2398
+			local activeMessages = {} -- 2400
+			if type(carryMessageIndex) == "number" and carryMessageIndex >= 0 and carryMessageIndex < lastConsolidatedIndex and carryMessageIndex < #messages then -- 2400
+				activeMessages[#activeMessages + 1] = __TS__ObjectAssign({}, messages[carryMessageIndex + 1]) -- 2407
+			end -- 2407
+			do -- 2407
+				local i = lastConsolidatedIndex -- 2411
+				while i < #messages do -- 2411
+					activeMessages[#activeMessages + 1] = messages[i + 1] -- 2412
+					i = i + 1 -- 2411
+				end -- 2411
+			end -- 2411
+			local result = __TS__Await(compressor:compress( -- 2414
+				activeMessages, -- 2415
+				llmOptions, -- 2416
+				math.max( -- 2417
+					1, -- 2417
+					math.floor(options.llmMaxTry or 5) -- 2417
+				), -- 2417
+				options.decisionMode or "tool_calling", -- 2418
+				{stopToken = options.stopToken}, -- 2419
+				"budget_max" -- 2420
+			)) -- 2420
+			if not (result and result.success and result.compressedCount > 0) then -- 2420
+				return ____awaiter_resolve(nil, {success = false, message = result and result.error or "memory compaction produced no progress"}) -- 2420
+			end -- 2420
+			local syntheticPrefixCount = #activeMessages > 0 and lastConsolidatedIndex < #messages and activeMessages[1] ~= messages[lastConsolidatedIndex + 1] and 1 or 0 -- 2428
+			local realCompressedCount = math.max(0, result.compressedCount - syntheticPrefixCount) -- 2433
+			if realCompressedCount <= 0 then -- 2433
+				return ____awaiter_resolve(nil, {success = false, message = "memory compaction covered only the carried prefix and made no persisted progress"}) -- 2433
+			end -- 2433
+			lastConsolidatedIndex = math.min(#messages, lastConsolidatedIndex + realCompressedCount) -- 2440
+			if type(result.carryMessageIndex) == "number" then -- 2440
+				if syntheticPrefixCount > 0 and result.carryMessageIndex == 0 then -- 2440
+				else -- 2440
+					local carryOffset = syntheticPrefixCount > 0 and result.carryMessageIndex - 1 or result.carryMessageIndex -- 2445
+					carryMessageIndex = carryOffset >= 0 and lastConsolidatedIndex - realCompressedCount + carryOffset or nil -- 2448
+				end -- 2448
+			else -- 2448
+				carryMessageIndex = nil -- 2453
+			end -- 2453
+			if type(carryMessageIndex) == "number" and (carryMessageIndex < 0 or carryMessageIndex >= lastConsolidatedIndex or carryMessageIndex >= #messages) then -- 2453
+				carryMessageIndex = nil -- 2459
+			end -- 2459
+			storage:writeSessionState(messages, lastConsolidatedIndex, carryMessageIndex) -- 2461
+		end -- 2461
+		return ____awaiter_resolve(nil, {success = true, remainingMessages = 0}) -- 2461
+	end) -- 2461
+end -- 2369
+return ____exports -- 2369

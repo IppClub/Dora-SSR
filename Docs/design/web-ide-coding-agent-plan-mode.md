@@ -113,7 +113,7 @@ stateDiagram-v2
 | `ask_user` | 不暴露 | 允许 | 发布结构化调查问卷 |
 | `finish` | 允许 | 允许 | Code mode 完成开发；Plan mode提交方案供审阅 |
 | `build` | 允许 | 不暴露 | Plan mode 不执行构建 |
-| `execute_command` | 按用户开关 | 不暴露 | Plan mode 不运行 Lua、Git 或项目入口 |
+| `execute_command` | 默认可用 | 不暴露 | Plan mode 不运行 Lua、Git 或项目入口 |
 | `list_sub_agents` | 主 Agent 允许 | 不暴露 | Plan mode 首版不委派 |
 | `spawn_sub_agent` | 主 Agent 允许 | 不暴露 | Plan mode 首版不委派 |
 
@@ -161,7 +161,7 @@ AND 服务端运行环境具备该能力
 - 工具真正执行前的最终校验。
 - Skills 加载和工具依赖过滤。
 
-前端传入的 `disabledAgentTools` 只能进一步关闭工具，不能为 Plan mode 重新打开 `build`、`execute_command` 等能力。
+API 传入的 `disabledAgentTools` 只能进一步关闭工具，不能为 Plan mode 重新打开 `build`、`execute_command` 等能力。
 
 ### 6.3 Plan mode 写路径限制
 

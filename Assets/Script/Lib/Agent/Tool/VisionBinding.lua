@@ -6,7 +6,7 @@ local __TS__StringIncludes = ____lualib.__TS__StringIncludes -- 1
 local ____exports = {} -- 1
 --- Increment when a fixed vision route or its request profile changes.
 ____exports.VISION_PROFILE_VERSION = 8 -- 5
-____exports.VISION_UNAVAILABLE_MESSAGE = "当前大模型服务没有可用视觉通道。请检查 Agent 设置中的模型服务与 API 接口地址。" -- 7
+____exports.VISION_UNAVAILABLE_MESSAGE = "没有可用的视觉配置。请在 Agent 设置中填写当前配置的视觉模型，或保存受支持的官方 DeepSeek / GLM Coding Plan 配置。" -- 7
 --- Default routes stay fixed; an explicit model opts into the current configured endpoint.
 function ____exports.resolveVisionBinding(config) -- 19
 	if __TS__StringTrim(config.apiKey) == "" then -- 19
@@ -74,4 +74,19 @@ function ____exports.resolveVisionBinding(config) -- 19
 	end -- 41
 	return nil -- 43
 end -- 19
-return ____exports -- 19
+function ____exports.resolveTaskVisionBinding(config, getSavedConfigs) -- 46
+	local current = ____exports.resolveVisionBinding(config) -- 47
+	local ____opt_2 = config.customOptions -- 47
+	local customModel = ____opt_2 and ____opt_2.visionModel -- 48
+	if current or config.studioGateway or type(customModel) == "string" and __TS__StringTrim(customModel) ~= "" then -- 48
+		return current -- 50
+	end -- 50
+	for ____, candidate in ipairs(getSavedConfigs()) do -- 52
+		local binding = ____exports.resolveVisionBinding(candidate) -- 53
+		if binding and binding.provider ~= "custom" then -- 53
+			return binding -- 54
+		end -- 54
+	end -- 54
+	return nil -- 56
+end -- 46
+return ____exports -- 46

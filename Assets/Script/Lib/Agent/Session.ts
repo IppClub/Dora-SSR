@@ -800,7 +800,7 @@ function rowToSession(row: unknown[]): AgentSessionItem {
 		currentTaskFinalizing: typeof row[8] === "number" && row[8] > 0 && finalizingSubSessionTaskIds[row[8]] === true,
 		createdAt: row[10] as number,
 		updatedAt: row[11] as number,
-		metrics: decodeJsonObject(toStr(row[12])) as AgentMetricsItem | undefined,
+		metrics: decodeSessionMetrics(toStr(row[12])),
 		workMode: toStr(row[13]) === "plan" ? "plan" : "code",
 	};
 }
@@ -1608,6 +1608,26 @@ function setSessionState(sessionId: number, status: AgentSessionStatus, currentT
 			sessionId,
 		],
 	);
+}
+
+function decodeSessionMetrics(text: string): AgentMetricsItem | undefined {
+	const metrics = decodeJsonObject(text) as AgentMetricsItem | undefined;
+	const context = metrics?.context;
+	if (context?.source === "llm_input_estimate" && typeof context.maxTokens === "number" && context.maxTokens > 0
+		&& typeof context.messagesTokens === "number") {
+		const usedTokens = context.messagesTokens + (context.optionsTokens ?? 0)
+			+ (context.toolDefinitionsTokens ?? 0) + (context.structuralOverhead ?? 0);
+		return {
+			...metrics,
+			context: {
+				...context,
+				usedTokens,
+				ratio: math.max(0, math.min(1, usedTokens / context.maxTokens)),
+				source: "llm_input_only_estimate",
+			},
+		};
+	}
+	return metrics;
 }
 
 function mergeAgentMetrics(current: AgentMetricsItem | undefined, next: AgentMetricsItem): AgentMetricsItem {

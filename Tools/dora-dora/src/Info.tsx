@@ -13,6 +13,7 @@ interface BasicInfo {
 	locale: string;
 	platform: string;
 	engineDev: boolean;
+	debugging?: boolean;
 	webProfiler: boolean;
 	drawerWidth: number;
 	webIDETourCompleted: boolean;

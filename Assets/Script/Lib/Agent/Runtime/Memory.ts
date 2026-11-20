@@ -1686,6 +1686,9 @@ export class MemoryCompressor {
 			...applyCustomLLMOptions(llmOptions, this.config.llmConfig.customOptions),
 			reasoning_effort: "minimal",
 		}, getAuxiliaryLLMOptions(this.config.llmConfig));
+		if (typeof compressionLLMOptions.max_completion_tokens === "number") {
+			delete compressionLLMOptions.max_tokens;
+		}
 		let chunk: AgentConversationMessage[] = [];
 		let prefixFallbackReason: string | undefined;
 		try {

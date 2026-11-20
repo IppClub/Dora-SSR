@@ -1502,7 +1502,7 @@ HttpServer\post "/info", (req) ->
 	return
 		platform: App.platform
 		locale: App.locale
-		version: App.version
+		version: App.version, debugging: App.debugging
 		:engineDev
 		:webProfiler
 		:drawerWidth

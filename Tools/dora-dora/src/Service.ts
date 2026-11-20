@@ -717,6 +717,7 @@ export interface InfoResponse {
 	locale: string;
 	version: string;
 	engineDev: boolean;
+	debugging?: boolean;
 	webProfiler: boolean;
 	drawerWidth: number;
 	webIDETourCompleted: boolean;
