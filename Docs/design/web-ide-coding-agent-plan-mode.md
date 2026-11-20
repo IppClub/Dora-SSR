@@ -113,7 +113,6 @@ stateDiagram-v2
 | `ask_user` | 不暴露 | 允许 | 发布结构化调查问卷 |
 | `finish` | 允许 | 允许 | Code mode 完成开发；Plan mode提交方案供审阅 |
 | `build` | 允许 | 不暴露 | Plan mode 不执行构建 |
-| `fetch_url` | 按用户开关 | 不暴露 | Plan mode 首版不写入下载资源 |
 | `execute_command` | 按用户开关 | 不暴露 | Plan mode 不运行 Lua、Git 或项目入口 |
 | `list_sub_agents` | 主 Agent 允许 | 不暴露 | Plan mode 首版不委派 |
 | `spawn_sub_agent` | 主 Agent 允许 | 不暴露 | Plan mode 首版不委派 |

@@ -188,17 +188,6 @@ const build: AgentToolHandler = async (context, input) => {
 	return { output: output as unknown as Record<string, unknown> };
 };
 
-const fetchUrl: AgentToolHandler = async (context, input) => {
-	const output = await Tools.fetchUrl({
-		workDir: context.workingDir,
-		url: typeof input.url === "string" ? input.url : "",
-		target: typeof input.target === "string" ? input.target : "",
-		isCancelled: () => context.cancellation.isCancelled(),
-		onProgress: progress => context.emitProgress({ success: false, ...progress }),
-	});
-	return { output: output as unknown as Record<string, unknown> };
-};
-
 function updateDeterministicTestState(context: Parameters<AgentToolHandler>[0], output: string): void {
 	let deterministicFailure = false;
 	let deterministicPass = false;
@@ -626,7 +615,6 @@ export const AGENT_TOOL_HANDLERS: Partial<Record<AgentToolName, AgentToolHandler
 	grep_files: grepFiles,
 	search_dora_doc: searchDoraDoc,
 	build,
-	fetch_url: fetchUrl,
 	execute_command: executeCommand,
 	edit_file: editFile,
 	write_file: writeFile,

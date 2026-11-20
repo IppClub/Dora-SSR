@@ -220,15 +220,6 @@ export function validateAgentToolInput(tool: AgentToolName, input: Record<string
 		value.paths = paths;
 		return { success: true, value };
 	}
-	if (tool === "fetch_url") {
-		const url = typeof value.url === "string" ? value.url.trim() : "";
-		const target = typeof value.target === "string" ? value.target.trim() : "";
-		if (url === "") return { success: false, message: "fetch_url requires url" };
-		if (target === "") return { success: false, message: "fetch_url requires target" };
-		value.url = url;
-		value.target = target;
-		return { success: true, value };
-	}
 	if (tool === "analyze_image") {
 		if (!Array.isArray(value.paths)) {
 			return {success:false, message:'analyze_image paths must be a JSON array, e.g. ["preview.png"]; do not JSON-stringify the array'};
@@ -307,7 +298,6 @@ export const AGENT_TOOL_VALIDATORS: Partial<Record<AgentToolName, AgentToolInput
 	grep_files: value => validateAgentToolInput("grep_files", value),
 	search_dora_doc: value => validateAgentToolInput("search_dora_doc", value),
 	build: value => validateAgentToolInput("build", value),
-	fetch_url: value => validateAgentToolInput("fetch_url", value),
 	execute_command: value => validateAgentToolInput("execute_command", value),
 	spawn_agent: value => validateAgentToolInput("spawn_agent", value),
 	ask_user: value => validateAgentToolInput("ask_user", value),

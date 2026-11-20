@@ -95,7 +95,6 @@ function getFiniteNumber(value: unknown): number | undefined {
 export default function AgentPanel(props: AgentPanelProps) {
 	const HISTORY_VISIBLE_ROUNDS = 10;
 	const CURRENT_STEPS_VISIBLE_COUNT = 80;
-	const FETCH_URL_TOOL = "fetch_url";
 	const EXECUTE_COMMAND_TOOL = "execute_command";
 	const { t } = useTranslation();
 	const { active = true, compact = false, sessionId, projectRoot, title, height, showHeader = true, initialPrompt, addAlert, onInitialPromptConsumed, onRollbackComplete, onOpenFile, onOpenLLMConfig } = props;
@@ -147,7 +146,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 	// Engine-side Lua/Git commands are bounded by the Agent command sandbox and
 	// are required for real build/runtime validation. Keep network fetch opt-in,
 	// but make local validation available in every new main session.
-	const [disabledAgentTools, setDisabledAgentTools] = useState<string[]>([FETCH_URL_TOOL]);
+	const [disabledAgentTools, setDisabledAgentTools] = useState<string[]>([]);
 	const scrollRef = React.useRef<HTMLElement | null>(null);
 	const contentRef = React.useRef<HTMLDivElement | null>(null);
 	const isFollowingOutputRef = React.useRef(true);
@@ -213,16 +212,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 			return a.id - b.id;
 		});
 	}, [relatedSessions]);
-	const fetchUrlEnabled = disabledAgentTools.indexOf(FETCH_URL_TOOL) < 0;
 	const executeCommandEnabled = disabledAgentTools.indexOf(EXECUTE_COMMAND_TOOL) < 0;
-	const setFetchUrlEnabled = React.useCallback((enabled: boolean) => {
-		setDisabledAgentTools(prev => {
-			const disabled = prev.indexOf(FETCH_URL_TOOL) >= 0;
-			if (enabled && disabled) return prev.filter(tool => tool !== FETCH_URL_TOOL);
-			if (!enabled && !disabled) return [...prev, FETCH_URL_TOOL];
-			return prev;
-		});
-	}, []);
 	const setExecuteCommandEnabled = React.useCallback((enabled: boolean) => {
 		setDisabledAgentTools(prev => {
 			const disabled = prev.indexOf(EXECUTE_COMMAND_TOOL) >= 0;
@@ -1717,7 +1707,6 @@ export default function AgentPanel(props: AgentPanelProps) {
 					newSessionLabel={localBackendSelected ? t("agent.newSession") : undefined}
 					newSessionLoading={localBackendSelected && resettingLocalSession}
 					newSessionDisabled={localBackendSelected && (resettingLocalSession || session?.currentTaskStatus === "RUNNING")}
-					fetchUrlEnabled={!localBackendSelected && fetchUrlEnabled}
 					executeCommandEnabled={!localBackendSelected && executeCommandEnabled}
 					planMode={!localBackendSelected && workMode === "plan"}
 					llmConfigs={backendChoices}
@@ -1730,7 +1719,6 @@ export default function AgentPanel(props: AgentPanelProps) {
                     onSend={onSend}
 					onStop={() => void onStop()}
 					onNewSession={localBackendSelected ? () => void newLocalSession() : undefined}
-					onFetchUrlEnabledChange={session?.kind === "main" && !localBackendSelected ? setFetchUrlEnabled : undefined}
 					onExecuteCommandEnabledChange={session?.kind === "main" && !localBackendSelected ? setExecuteCommandEnabled : undefined}
 					onPlanModeChange={session?.kind === "main" && !localBackendSelected ? value => void changeWorkMode(value) : undefined}
 					onLLMConfigChange={selectLLMConfig}

@@ -1326,7 +1326,7 @@ export function applyCustomLLMOptions(
 	return merged;
 }
 
-function getLLMConfigRecords(): Record<string, unknown>[] {
+export function getLLMConfigRecords(): Record<string, unknown>[] {
 	upgradeLLMConfig();
 	const rows = DB.query("select * from LLMConfig", true);
 	const records: Record<string, unknown>[] = [];

@@ -4,7 +4,7 @@ export interface AgentPromptOptions {workMode:AgentWorkMode;disabledAgentTools:A
  submission?:{delivery?:'queue'|'steer';action?:'cancel'|'edit'|'steer'|'resume'|'hold'|'release';inputId?:number}}
 
 
-export const defaultAgentPromptOptions=():AgentPromptOptions=>({workMode:'code',disabledAgentTools:['fetch_url']});
+export const defaultAgentPromptOptions=():AgentPromptOptions=>({workMode:'code',disabledAgentTools:[]});
 
 export function isAgentPromptOptions(value:unknown):value is AgentPromptOptions {
   if(!value||typeof value!=='object'||Array.isArray(value))return false;

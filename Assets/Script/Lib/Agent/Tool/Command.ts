@@ -13,6 +13,8 @@ import { isValidWorkspacePath, type DoraDocLanguage } from 'Agent/Tool/Workspace
 import { createGodotRuntimeSceneInjection, type GodotRuntimeSceneResult } from 'Agent/Tool/GodotRuntimeScene';
 import { createGodotSceneInjection, type GodotSceneResult } from 'Agent/Tool/GodotScene';
 import { createGodotImportInjection, type GodotImportBatchResult } from 'Agent/Tool/GodotImport';
+import { fetchUrl } from 'Agent/Tool/Fetch';
+import { WEB_REQUEST_TIMEOUT_SECONDS, readWebPage, searchWeb } from 'Agent/Tool/DeepSeekWeb';
 import { createCommandContent } from 'Agent/Tool/CommandContent';
 
 import { acquireEntryLease, recordEntryLeaseRun, ownsEntryLease, releaseEntryLease, type DevEntryModule } from 'Agent/Tool/EntryLease';
@@ -49,7 +51,10 @@ function executeStudioLuaCommand(req: {
 	// injected previewGame function disappear.
 	const usesPreviewGame=string.match(req.code,"%f[%a_]previewGame%f[^%w_]%s*%(")[0]!==undefined;
 	const usesGodotImport=string.match(req.code,"%f[%a_]importGodotAssets%f[^%w_]")[0]!==undefined;
-	if (typeof _studio_agent_tool_begin !== "function" || usesPreviewGame || usesGodotImport || (string.match(req.code,"%f[%a_]inspectGodotScene%f[^%w_]")[0]!==undefined || string.match(req.code,"%f[%a_]inspectGodotRuntimeScene%f[^%w_]")[0]!==undefined)) return undefined;
+	const usesNetworkCommand = ["fetch", "web_search", "read_url"].some(name =>
+		string.match(req.code, `%f[%a_]${name}%f[^%w_]`)[0] !== undefined
+	);
+	if (typeof _studio_agent_tool_begin !== "function" || usesNetworkCommand || usesPreviewGame || usesGodotImport || (string.match(req.code,"%f[%a_]inspectGodotScene%f[^%w_]")[0]!==undefined || string.match(req.code,"%f[%a_]inspectGodotRuntimeScene%f[^%w_]")[0]!==undefined)) return undefined;
 	const onProgress=req.onProgress;
 	const isCancelled=req.isCancelled;
 	return new Promise(resolve => {
@@ -127,6 +132,31 @@ function executeLuaCommand(req: {
 	let capturedBatches = 0;
 	let capturedFrames = 0;
 	let commandClosed = false;
+	const startedAt = App.runningTime;
+	let deadline = startedAt + req.timeoutSeconds;
+	let waitingForDownload = false;
+	let downloadWaitSeconds = 0;
+	const isNetworkCancelled = () => commandClosed || req.isCancelled?.() === true;
+	const waitForNetwork = <T>(operation: Promise<T>, timeout?: number): T => {
+		const waitingSince = App.runningTime;
+		waitingForDownload = timeout === undefined;
+		if (timeout !== undefined) {
+			deadline = math.max(deadline, waitingSince + timeout + 5);
+		}
+		let result: { value: T } | undefined;
+		let failed = false;
+		operation.then(value => { result = { value }; }, () => { failed = true; });
+		while (result === undefined && !failed && !isNetworkCancelled()) sleep();
+		if (waitingForDownload) {
+			// Download waiting has its own inactivity timer and does not spend the Lua time budget.
+			waitingForDownload = false;
+			const waited = App.runningTime - waitingSince;
+			downloadWaitSeconds += waited;
+			deadline += waited;
+		}
+		if (result === undefined) error("Network command failed or was cancelled");
+		return result.value;
+	};
 	// Each command observes current compiled project dependencies, even when a
 	// previous command or another project used the same Lua module aliases.
 	const refreshedProjectModules: Record<string, boolean> = {};
@@ -232,6 +262,15 @@ function executeLuaCommand(req: {
 	const scopedContent = createCommandContent(req.workDir, req.docLanguage);
 	const env = setmetatable({
 		projectDir: req.workDir,
+		fetch: (url: unknown, target: unknown) => waitForNetwork(fetchUrl({
+			workDir: req.workDir,
+			url: typeof url === "string" ? url : "",
+			target: typeof target === "string" ? target : "",
+			isCancelled: isNetworkCancelled,
+			onProgress: progress => req.onProgress?.({ ...progress, mode: "lua", operationId: req.operationId, stage: "download" }),
+		})),
+		web_search: (query: unknown, count?: unknown) => waitForNetwork(searchWeb(query, count, isNetworkCancelled), WEB_REQUEST_TIMEOUT_SECONDS),
+		read_url: (url: unknown) => waitForNetwork(readWebPage(url, isNetworkCancelled), WEB_REQUEST_TIMEOUT_SECONDS),
 		inspectGodotRuntimeScene: createGodotRuntimeSceneInjection({
 			workDir: req.workDir,
 			isCancelled: () => commandClosed || req.isCancelled?.() === true,
@@ -391,7 +430,6 @@ function executeLuaCommand(req: {
 	return new Promise(resolve => {
 		let settled = false;
 		let commandRoutine: Dora.Job | undefined;
-		const startedAt = App.runningTime;
 		const onProgress = req.onProgress;
 		const isCancelled = req.isCancelled;
 		const finish = (result: ExecuteCommandResult) => {
@@ -561,12 +599,12 @@ function executeLuaCommand(req: {
 				});
 				return true;
 			}
-			if (App.runningTime - startedAt >= req.timeoutSeconds) {
+			if (!waitingForDownload && App.runningTime >= deadline) {
 				finish({
 					success: false,
 					mode: "lua",
 					output: truncateCommandOutput(output.join("\n")),
-					message: `Lua command timed out after ${tostring(req.timeoutSeconds)} seconds`,
+					message: `Lua command timed out after ${tostring(math.max(1, math.floor(deadline - startedAt - downloadWaitSeconds + 0.5)))} seconds`,
 					phase: "timeout",
 				});
 				return true;

@@ -15,7 +15,6 @@ export type AgentToolName =
 	| "grep_files"
 	| "search_dora_doc"
 	| "build"
-	| "fetch_url"
 	| "execute_command"
 	| "spawn_agent"
 	| "ask_user";

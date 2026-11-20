@@ -249,7 +249,6 @@ function applyCompressedSessionState(shared, compressedCount, carryMessageIndex,
 				"grep_files", -- 1395
 				"search_dora_doc", -- 1395
 				"build", -- 1396
-				"fetch_url", -- 1396
 				"execute_command", -- 1396
 				"spawn_agent" -- 1396
 			} -- 1396

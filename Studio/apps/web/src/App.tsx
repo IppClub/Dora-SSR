@@ -95,12 +95,12 @@ export function App({agent:providedAgent,agentHostOrigin,modelGrantId,accountId,
   const [idea,setIdea]=useState(''),[preparingIdea,setPreparingIdea]=useState(false);
   const [followupPrompt,setFollowupPrompt]=useState(''),[sendingFollowup,setSendingFollowup]=useState(false),[stoppingAgent,setStoppingAgent]=useState(false);
   const [agentWorkMode,setAgentWorkMode]=useState<AgentWorkMode>('code');
-  const [agentFetchUrlEnabled,setAgentFetchUrlEnabled]=useState(false),[agentExecuteCommandEnabled,setAgentExecuteCommandEnabled]=useState(true);
+  const [agentExecuteCommandEnabled,setAgentExecuteCommandEnabled]=useState(true);
   const [questionnaireSubmitting,setQuestionnaireSubmitting]=useState(false);
   const [grantChoices,setGrantChoices]=useState<ModelGrantChoice[]>([]),[chosenGrantId,setChosenGrantId]=useState(''),[grantLoading,setGrantLoading]=useState(false),[grantFailed,setGrantFailed]=useState(false),[grantRefresh,setGrantRefresh]=useState(0);
   const selectedGrantId=modelGrantId??chosenGrantId;
   const activeGrantId=modelGrantId??(chosenGrantId||project?.creation?.grantId);
-  const agentPromptOptions:AgentPromptOptions={workMode:agentWorkMode,disabledAgentTools:[...(agentFetchUrlEnabled?[]:['fetch_url'] as const),...(agentExecuteCommandEnabled?[]:['execute_command'] as const)]};
+  const agentPromptOptions:AgentPromptOptions={workMode:agentWorkMode,disabledAgentTools:[...(agentExecuteCommandEnabled?[]:['execute_command'] as const)]};
   const catalog=useProjectCatalog(ready?storage.current:null,accountId);
   const [openingProjectId,setOpeningProjectId]=useState('');
   const [projectOpenProgress,setProjectOpenProgress]=useState<ProjectOpenProgress>();
@@ -381,7 +381,7 @@ export function App({agent:providedAgent,agentHostOrigin,modelGrantId,accountId,
     setCheckpoints(null);setFollowupPrompt('');setFinishedIdea(undefined);setProjectInfoOpen(false);setProjectInfoAttention(false);
     setPreparationFailure(false);
     setChosenGrantId(next.creation?.grantId??'');
-    setAgentWorkMode('code');setAgentFetchUrlEnabled(false);setAgentExecuteCommandEnabled(true);
+    setAgentWorkMode('code');setAgentExecuteCommandEnabled(true);
     resetBuild(); setProject(next); setDraft(next.snapshot); setDirty(false); setSelected(next.snapshot.entry); setError('');setWorkspaceView(readViewPreference(next.snapshot.projectId));
   }
   function selectWorkspaceView(view:WorkspaceView){
@@ -805,10 +805,10 @@ export function App({agent:providedAgent,agentHostOrigin,modelGrantId,accountId,
     :!selectedGrantId?'请选择授权模型'
     :'描述与模型选择会保存到新项目';
   const agentComposerSettings={
-    planMode:agentWorkMode==='plan',fetchUrlEnabled:agentFetchUrlEnabled,executeCommandEnabled:agentExecuteCommandEnabled,
+    planMode:agentWorkMode==='plan',executeCommandEnabled:agentExecuteCommandEnabled,
     models:grantChoices.filter(item=>item.enabled).map(item=>({id:item.grantId,name:`${item.label} · ${item.model}`})),
     ...(activeGrantId?{modelId:activeGrantId}:{}),
-    onPlanModeChange:(enabled:boolean)=>setAgentWorkMode(enabled?'plan':'code'),onFetchUrlEnabledChange:setAgentFetchUrlEnabled,onExecuteCommandEnabledChange:setAgentExecuteCommandEnabled,
+    onPlanModeChange:(enabled:boolean)=>setAgentWorkMode(enabled?'plan':'code'),onExecuteCommandEnabledChange:setAgentExecuteCommandEnabled,
     ...(modelGrantId?{}:{onModelChange:setChosenGrantId}),
   };
   return <div className={`app-shell${!draft||!project?' home-shell':''}`}>

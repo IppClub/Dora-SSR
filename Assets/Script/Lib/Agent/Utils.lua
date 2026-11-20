@@ -1480,7 +1480,7 @@ local function normalizeLLMCustomOptions(value) -- 1301
 	local decoded = ____exports.safeJsonDecode(text) -- 1305
 	return isPlainRecord(decoded) and decoded or nil -- 1306
 end -- 1301
-local function getLLMConfigRecords() -- 1329
+function ____exports.getLLMConfigRecords() -- 1329
 	upgradeLLMConfig() -- 1330
 	local rows = DB:query("select * from LLMConfig", true) -- 1331
 	local records = {} -- 1332
@@ -1505,7 +1505,7 @@ local function getLLMConfigRecords() -- 1329
 end -- 1329
 function ____exports.getLLMConfigSummaries() -- 1352
 	return __TS__ArrayFlatMap( -- 1353
-		getLLMConfigRecords(), -- 1353
+		____exports.getLLMConfigRecords(), -- 1353
 		function(____, record) -- 1353
 			local id = record.id -- 1354
 			local name = record.name -- 1355
@@ -1550,12 +1550,12 @@ function ____exports.getLLMConfig(configId) -- 1386
 		return {success = false, message = "LLM config is not selected"} -- 1389
 	end -- 1389
 	return parseLLMConfig(__TS__ArrayFind( -- 1391
-		getLLMConfigRecords(), -- 1391
+		____exports.getLLMConfigRecords(), -- 1391
 		function(____, record) return record.id == normalizedId end -- 1391
 	)) -- 1391
 end -- 1386
 function ____exports.getActiveLLMConfig() -- 1394
-	local records = getLLMConfigRecords() -- 1395
+	local records = ____exports.getLLMConfigRecords() -- 1395
 	local config = __TS__ArrayFind( -- 1396
 		records, -- 1396
 		function(____, r) return r.active ~= 0 end -- 1396

@@ -1,5 +1,5 @@
 // @preview-file off clear
-import { Content, Path, Director, once, HttpClient } from 'Dora';
+import { App, Content, Path, Director, once, HttpClient } from 'Dora';
 import { Log } from 'Agent/Utils';
 import { isHttpUrl, isSafePublicHttpUrl } from 'Agent/Tool/NetworkSafety';
 import { createOperationId, getAgentDownloadTempRoot, cleanupPath } from 'Agent/Tool/Operation';
@@ -9,6 +9,8 @@ import {
 	ensureDirPath,
 	ensureDirForFile,
 } from 'Agent/Tool/Workspace';
+
+const DOWNLOAD_IDLE_TIMEOUT_SECONDS = 60;
 
 export type FetchUrlMode = "download";
 
@@ -47,7 +49,6 @@ export type FetchUrlResult = {
 function downloadFile(req: {
 	url: string;
 	tempPath: string;
-	timeout: number;
 	onProgress: (current: number, total: number) => void;
 	isCancelled?: () => boolean;
 }): Promise<{ success: boolean; interrupted?: boolean; message?: string; bytesWritten?: number }> {
@@ -55,6 +56,7 @@ function downloadFile(req: {
 		let requestId = 0;
 		let settled = false;
 		let bytesWritten = 0;
+		let lastProgressAt = App.runningTime;
 		const finish = (result: { success: boolean; interrupted?: boolean; message?: string; bytesWritten?: number }) => {
 			if (settled) return;
 			settled = true;
@@ -68,6 +70,11 @@ function downloadFile(req: {
 				finish({ success: false, interrupted: true, message: "download canceled" });
 				return true;
 			}
+			if (requestId !== 0 && App.runningTime - lastProgressAt >= DOWNLOAD_IDLE_TIMEOUT_SECONDS) {
+				HttpClient.cancel(requestId);
+				finish({ success: false, interrupted: true, message: `download timed out after ${DOWNLOAD_IDLE_TIMEOUT_SECONDS} seconds without receiving data` });
+				return true;
+			}
 			if (requestId !== 0 && !HttpClient.isRequestActive(requestId)) {
 				finish({ success: false, message: "download request ended without a completion callback" });
 				return true;
@@ -75,9 +82,12 @@ function downloadFile(req: {
 			return false;
 		});
 		Director.systemScheduler.schedule(once(() => {
-			requestId = HttpClient.download(req.url, req.tempPath, req.timeout, (interrupted, current, total) => {
+			lastProgressAt = App.runningTime;
+			// A zero transport timeout leaves the overall duration uncapped.
+			requestId = HttpClient.download(req.url, req.tempPath, 0, (interrupted, current, total) => {
 				if (typeof current === "number" && current > bytesWritten) {
 					bytesWritten = current;
+					lastProgressAt = App.runningTime;
 				}
 				if (interrupted) {
 					finish({ success: false, interrupted: true, message: "download failed" });
@@ -160,7 +170,6 @@ export async function fetchUrl(req: {
 	const downloadRes = await downloadFile({
 		url,
 		tempPath,
-		timeout: 600,
 		isCancelled: interrupted,
 		onProgress: (current, total) => {
 			const totalNumber = typeof total === "number" ? total : 0;
@@ -173,7 +182,7 @@ export async function fetchUrl(req: {
 			});
 		},
 	});
-	if (!downloadRes.success) {
+	if (!downloadRes.success || interrupted()) {
 		const cleanupError = cleanupPath(tempPath);
 		return {
 			success: false,
@@ -189,7 +198,7 @@ export async function fetchUrl(req: {
 		const cleanupError = cleanupPath(tempPath);
 		return { success: false, state: "failed", mode, target: targetRel, message: "failed to create target directory", cleanupError };
 	}
-	if (!Content.move(tempPath, target)) {
+	if (Content.exist(target) || !Content.move(tempPath, target)) {
 		const cleanupError = cleanupPath(tempPath);
 		return { success: false, state: "failed", mode, target: targetRel, message: "failed to move downloaded file into target path", cleanupError };
 	}

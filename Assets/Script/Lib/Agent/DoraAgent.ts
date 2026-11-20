@@ -1393,7 +1393,7 @@ function applyCompressedSessionState(
 			const nextToolLine = sessionSummary.slice(markerIndex, markerIndex + 120);
 			const toolNames: AgentToolName[] = [
 				"read_file", "edit_file", "write_file", "grep_files", "search_dora_doc",
-				"build", "fetch_url", "execute_command", "spawn_agent",
+				"build", "execute_command", "spawn_agent",
 			];
 			for (let i = 0; i < toolNames.length; i++) {
 				const tool = toolNames[i];
