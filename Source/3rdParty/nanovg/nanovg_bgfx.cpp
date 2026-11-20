@@ -797,6 +797,17 @@ namespace
 		gl->nuniforms = 0;
 	}
 
+	static void nvgRenderCancel(void* _userPtr)
+	{
+		struct GLNVGcontext* gl = (struct GLNVGcontext*)_userPtr;
+
+		// Discard the unflushed frame instead of submitting it.
+		gl->nverts    = 0;
+		gl->npaths    = 0;
+		gl->ncalls    = 0;
+		gl->nuniforms = 0;
+	}
+
 	static int glnvg__maxVertCount(const struct NVGpath* paths, int npaths)
 	{
 		int i, count = 0;
@@ -1108,6 +1119,7 @@ NVGcontext* nvgCreate(int32_t _edgeaa, bgfx::ViewId _viewId, bx::AllocatorI* _al
 	params.renderGetTextureSize = nvgRenderGetTextureSize;
 	params.renderViewport       = nvgRenderViewport;
 	params.renderFlush          = nvgRenderFlush;
+	params.renderCancel         = nvgRenderCancel;
 	params.renderFill           = nvgRenderFill;
 	params.renderStroke         = nvgRenderStroke;
 	params.renderTriangles      = nvgRenderTriangles;
