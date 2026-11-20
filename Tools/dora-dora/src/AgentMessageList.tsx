@@ -171,6 +171,7 @@ function AgentMessageList(props: AgentMessageListProps) {
 											<MacScrollbar skin="dark" style={{ width: "100%", maxHeight: 180 }}>
 												<textarea
 													ref={textareaRef}
+													data-dora-edit-shortcuts
 													value={editingPrompt}
 													onChange={event => setEditingPrompt(event.target.value)}
 													onCompositionStart={() => {
