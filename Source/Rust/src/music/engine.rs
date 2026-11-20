@@ -3797,11 +3797,13 @@ fn midi_bytes(song: &Song) -> Vec<u8> {
 		order: -3,
 		data: vec![0xff, 0x58, 4, song.beats_per_bar as u8, denominator, 24, 8],
 	});
-	for change in &song.tempo_changes {
+	let mut tempo_changes = song.tempo_changes.iter().collect::<Vec<_>>();
+	tempo_changes.sort_by(|a, b| a.beat.total_cmp(&b.beat));
+	for change in tempo_changes {
 		let value = tempo(change.bpm);
 		events.push(MidiEvent {
 			tick: (change.beat * ticks_per_beat as f64).round() as u64,
-			order: -5,
+			order: -4,
 			data: vec![
 				0xff,
 				0x51,
@@ -4710,6 +4712,38 @@ mod tests {
 		.unwrap();
 		let options = resolve_composition(&definition).unwrap();
 		assert_eq!(options.bars, 180);
+	}
+
+	#[test]
+	fn midi_tempo_changes_follow_the_initial_tempo_at_tick_zero() {
+		let definition: Definition = serde_json::from_str(
+			r#"{
+				"output": "music.ogg",
+				"synth": {},
+				"score": {
+					"bpm": 60,
+					"tempoChanges": [
+						{"beat": 0.0005, "bpm": 150},
+						{"beat": 0, "bpm": 120}
+					],
+					"tracks": [{
+						"instrument": "piano",
+						"notes": [{"pitch": "C4", "start": 0, "duration": 1}]
+					}]
+				}
+			}"#,
+		)
+		.unwrap();
+		let (song, _, _) = resolve_score(&definition).unwrap();
+		let midi = midi_bytes(&song);
+		assert_eq!(
+			&midi[22..43],
+			&[
+				0, 0xff, 0x51, 3, 0x0f, 0x42, 0x40,
+				0, 0xff, 0x51, 3, 0x07, 0xa1, 0x20,
+				0, 0xff, 0x51, 3, 0x06, 0x1a, 0x80,
+			]
+		);
 	}
 
 	#[test]
