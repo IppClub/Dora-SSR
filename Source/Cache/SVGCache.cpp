@@ -121,7 +121,7 @@ static int getLineCap(String value) {
 }
 
 struct FillStrokeData {
-	Color color = 0xff000000;
+	std::optional<Color> color = Color(0xff000000);
 	std::optional<std::string> definition;
 	std::optional<Color> strokeColor;
 	std::optional<int> lineCap, lineJoin;
@@ -133,24 +133,27 @@ static void attribFillStroke(FillStrokeData& data, String name, String value) {
 		case "fill"_hash: {
 			Slice v = value;
 			v.trimSpace();
-			if (v.size() > 5 && v.left(4) == "url("_slice && v.right(1) == ")"_slice) {
+			if (v == "none"_slice || v == "transparent"_slice) {
+				data.color.reset();
+			} else if (v.size() > 5 && v.left(4) == "url("_slice && v.right(1) == ")"_slice) {
 				v.skip(4);
 				v.skipRight(1);
 				v.trimSpace();
 				data.definition = v.toString();
 			} else {
-				get(value, data.color);
+				if (!data.color) data.color = Color(0xff000000);
+				get(value, *data.color);
 			}
 			break;
 		}
 		case "fill-opacity"_hash: {
 			float opacity = value.toFloat();
-			data.color.setOpacity(opacity * data.color.getOpacity());
+			if (data.color) data.color->setOpacity(opacity * data.color->getOpacity());
 			break;
 		}
 		case "opacity"_hash: {
 			float opacity = value.toFloat();
-			data.color.setOpacity(opacity * data.color.getOpacity());
+			if (data.color) data.color->setOpacity(opacity * data.color->getOpacity());
 			break;
 		}
 		case "stroke"_hash: {
@@ -191,8 +194,8 @@ static void drawFillStroke(SVGDef::Context* ctx, const FillStrokeData& data) {
 		if (it != gradients.end()) {
 			it->second(ctx);
 		}
-	} else {
-		nvgFillColor(ctx->nvg, nvgColor(data.color));
+	} else if (data.color) {
+		nvgFillColor(ctx->nvg, nvgColor(data.color.value()));
 		nvgFill(ctx->nvg);
 	}
 	if (data.strokeColor) {
