@@ -322,6 +322,15 @@ export default function AgentPanel(props: AgentPanelProps) {
 		...localAgentConfigs.map(item => ({id: `local:${item.id}`, name: `${item.name} · Local`})),
 	], [llmConfigs, localAgentConfigs]);
 
+	// Prefer the selected DeepSeek configuration, or use another official
+	// DeepSeek configuration when the composer is set to a different model.
+	const voiceConfigs = llmConfigs.filter(({url,key}) => key.trim() &&
+		/^https:\/\/api\.deepseek\.com\/(?:v1\/)?chat\/completions\/*$/.test(url.trim()));
+	const voiceKey = (voiceConfigs.find(item => `llm:${item.id}` === selectedBackendId) ?? voiceConfigs[0])?.key.trim();
+	const transcribeVoice = useMemo(() => voiceKey
+		? (wav: Blob, signal: AbortSignal) => Service.transcribeDeepSeekVoice(voiceKey, wav, signal)
+		: undefined, [voiceKey]);
+
 	const newLocalSession = React.useCallback(async () => {
 		if (resettingLocalSession || session?.currentTaskStatus === "RUNNING") return;
 		setResettingLocalSession(true);
@@ -1679,6 +1688,8 @@ export default function AgentPanel(props: AgentPanelProps) {
 					newSessionDisabled={localBackendSelected && (resettingLocalSession || session?.currentTaskStatus === "RUNNING")}
 					planMode={!localBackendSelected && workMode === "plan"}
 					llmConfigs={backendChoices}
+					transcribeVoice={transcribeVoice}
+					onVoiceAlert={addAlert}
 					llmConfigId={selectedBackendId || undefined}
 					onPromptChange={setPrompt}
                     pendingInputs={session?.pendingInputs??[]} canSteer={!localBackendSelected}

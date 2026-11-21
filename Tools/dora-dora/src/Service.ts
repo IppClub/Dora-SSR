@@ -757,6 +757,23 @@ export const listLLMConfigs = () => {
 	return post<LLMConfigListResponse>("/llm/list");
 };
 
+export async function transcribeDeepSeekVoice(key: string, wav: Blob, signal: AbortSignal): Promise<string> {
+	const body = new FormData();
+	body.append("file", wav, "speech.wav");
+	const response = await fetch("https://api.deepseek.com/v1/tools/asr", {
+		method: "POST",
+		headers: {Authorization: `Bearer ${key}`},
+		body,
+		signal,
+		credentials: "omit",
+		redirect: "error",
+	});
+	if (!response.ok) throw new Error("DeepSeek voice transcription failed");
+	const result = await response.json();
+	if (typeof result?.text !== "string") throw new Error("Invalid DeepSeek transcription response");
+	return result.text;
+}
+
 export const createLLMConfig = (item: Omit<LLMConfigItem, "id">) => {
 	return post<LLMConfigWriteResponse>("/llm/create", item);
 };

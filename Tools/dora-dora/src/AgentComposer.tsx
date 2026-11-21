@@ -18,6 +18,8 @@ import {Color} from './Theme';
 import '@dora-studio/agent-ui/style.css';
 
 interface AgentComposerProps extends AgentInputControls {
+	onVoiceAlert?:(message:string,type:"info"|"warning"|"error")=>void;
+	transcribeVoice?:(wav:Blob,signal:AbortSignal)=>Promise<string>;
 	compact?:boolean;prompt:string;loading:boolean;running:boolean;stopping?:boolean;canStop?:boolean;
 	contextRatio?:number;usedTokens?:number;maxTokens?:number;actualUsage?:AgentActualUsage;
 	hideContextUsage?:boolean;
@@ -47,6 +49,18 @@ export default function AgentComposer(props:AgentComposerProps){
 		{...(!hideContextUsage&&props.actualUsage?{actualUsage:props.actualUsage}:{})}
 		planMode={props.planMode??false}
 		models={props.llmConfigs??[]} {...(props.llmConfigId===undefined?{}:{modelId:props.llmConfigId})}
+		voice={props.transcribeVoice?{
+			transcribe:props.transcribeVoice,
+			onIssue:issue=>{
+				const severity=issue==='noSpeech'?'info':issue==='permission'||issue==='unsupported'?'warning':'error';
+				props.onVoiceAlert?.(t(`agent.voice.${issue}`),severity);
+			},
+			labels:{
+				start:t('agent.voice.start'),cancel:t('agent.voice.cancel'),finish:t('agent.voice.finish'),
+				opening:t('agent.voice.opening'),waiting:t('agent.voice.waiting'),recording:t('agent.voice.recording'),
+				transcribing:t('agent.voice.transcribing'),
+			},
+		}:undefined}
 		labels={{
             attachFiles:t('agent.attachFiles'),attachmentList:t('agent.attachmentList'),removeAttachment:name=>t('agent.removeAttachment',{name}),sendFailed:t('agent.attachmentSendFailed'),attachmentContext:t('agent.attachmentContext'),
 			promptPlaceholder:t('agent.promptPlaceholder'),planPromptPlaceholder:t('agent.planPromptPlaceholder'),send:t('agent.send'),stop:t('menu.stop'),stopping:t('agent.stopping'),

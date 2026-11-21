@@ -2,6 +2,7 @@ package org.ippclub.dorassr;
 
 import org.libsdl.app.SDLActivity;
 
+import android.Manifest;
 import android.app.DownloadManager;
 import android.animation.ValueAnimator;
 import android.content.ActivityNotFoundException;
@@ -10,6 +11,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Insets;
@@ -45,6 +47,7 @@ import android.view.WindowInsetsController;
 import android.webkit.ConsoleMessage;
 import android.webkit.CookieManager;
 import android.webkit.JavascriptInterface;
+import android.webkit.PermissionRequest;
 import android.webkit.WebChromeClient;
 import android.webkit.ValueCallback;
 import android.webkit.WebResourceError;
@@ -88,6 +91,7 @@ public class MainActivity extends SDLActivity {
 	private static final int REQUEST_FILE_CHOOSER = 2001;
 	private static final int REQUEST_GAME_FILE = 2002;
 	private static final int REQUEST_SAVE_GAME = 2003;
+	private static final int REQUEST_IDE_MICROPHONE = 2004;
 	private static final long MAX_GAME_BYTES = 256L * 1024 * 1024;
 	private static final ExecutorService gameFileWorker = Executors.newSingleThreadExecutor();
 	private static native void nativeReceiveFile(String path, boolean picked);
@@ -107,6 +111,8 @@ public class MainActivity extends SDLActivity {
 	private Button reloadButton;
 	private FrameLayout ideContainer;
 	private WebView ideWebView;
+	private PermissionRequest pendingIdeMicrophoneRequest;
+	private boolean requestingIdeMicrophone;
 	private WebView compilerWebView;
 	private String compilerWebViewPath;
 	private TextView ideStatusView;
@@ -496,6 +502,7 @@ public class MainActivity extends SDLActivity {
 
 	@Override
 	protected void onDestroy() {
+		finishIdeMicrophoneRequest(false);
 		if (vibrator != null) {
 			vibrator.cancel();
 		}
@@ -734,6 +741,32 @@ public class MainActivity extends SDLActivity {
 		WebView.setWebContentsDebuggingEnabled(false);
 		ideWebView.setWebChromeClient(new WebChromeClient() {
 			@Override
+			public void onPermissionRequest(PermissionRequest request) {
+				String[] resources = request.getResources();
+				if (!canGrantIdeMicrophone(request)
+					|| resources.length != 1 || !PermissionRequest.RESOURCE_AUDIO_CAPTURE.equals(resources[0])) {
+					request.deny();
+					return;
+				}
+				if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
+					request.grant(new String[] {PermissionRequest.RESOURCE_AUDIO_CAPTURE});
+					return;
+				}
+				if (requestingIdeMicrophone) {
+					request.deny();
+					return;
+				}
+				pendingIdeMicrophoneRequest = request;
+				requestingIdeMicrophone = true;
+				requestPermissions(new String[] {Manifest.permission.RECORD_AUDIO}, REQUEST_IDE_MICROPHONE);
+			}
+
+			@Override
+			public void onPermissionRequestCanceled(PermissionRequest request) {
+				if (pendingIdeMicrophoneRequest == request) pendingIdeMicrophoneRequest = null;
+			}
+
+			@Override
 			public boolean onCreateWindow(WebView view, boolean isDialog, boolean isUserGesture,
 				android.os.Message resultMsg) {
 				WebView.HitTestResult hitTestResult = view.getHitTestResult();
@@ -953,6 +986,35 @@ public class MainActivity extends SDLActivity {
 			new String[] { outputFile.getAbsolutePath() },
 			new String[] { mimeType },
 			null);
+	}
+
+	private boolean canGrantIdeMicrophone(PermissionRequest request) {
+		if (!ideEnabled || ideWebView == null || !ideVisible) return false;
+		Uri origin = request.getOrigin();
+		return "http".equals(origin.getScheme()) && "127.0.0.1".equals(origin.getHost())
+			&& origin.getPort() == 8866
+			&& (WEB_IDE_URL.equals(ideWebView.getUrl()) || (WEB_IDE_URL + "/").equals(ideWebView.getUrl()));
+	}
+
+	private void finishIdeMicrophoneRequest(boolean granted) {
+		PermissionRequest request = pendingIdeMicrophoneRequest;
+		pendingIdeMicrophoneRequest = null;
+		if (request == null) return;
+		if (granted && canGrantIdeMicrophone(request)) {
+			request.grant(new String[] {PermissionRequest.RESOURCE_AUDIO_CAPTURE});
+		} else {
+			request.deny();
+		}
+	}
+
+	@Override
+	public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+		if (requestCode == REQUEST_IDE_MICROPHONE) {
+			requestingIdeMicrophone = false;
+			finishIdeMicrophoneRequest(grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED);
+			return;
+		}
+		super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 	}
 
 	private boolean isInternalIdeUrl(Uri uri) {
@@ -1231,6 +1293,7 @@ public class MainActivity extends SDLActivity {
 		enqueueIdeInputAction(this::showEngineAfterCancel);
 	}
 	private void showEngineAfterCancel() {
+		finishIdeMicrophoneRequest(false);
 		if (ideVisible) nativeIDEInputFocus(false);
 		ideVisible = false;
 		if (ideContainer != null) {
