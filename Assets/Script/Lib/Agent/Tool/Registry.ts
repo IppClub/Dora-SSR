@@ -369,7 +369,7 @@ const AGENT_TOOL_DEFINITION_SOURCES: AgentToolDefinitionSource[] = [
 			{ name: "title", type: "string", description: "Spawn form: short tab title for the sub agent. Required when prompt is present; ignored otherwise." },
 			{ name: "expectedOutput", type: "string", description: "Spawn form: optional expected result summary." },
 			{ name: "filesHint", type: "array", items: { type: "string" }, description: "Spawn form: optional likely files or directories involved." },
-			{ name: "agentType", type: "string", enum: ["audio", "visual", "level", "test", "general"], description: "Spawn form: optional agent specialization type. Shows a type badge with icon in the step list and hints at which skill to load. Defaults to general." },
+			{ name: "agentType", type: "string", enum: ["audio", "visual", "level", "test", "general"], description: "Spawn form: optional persistent team type (audio/visual/level/test). The sub agent wakes with its team profile, the shared ASSETS.md asset state, and its team memory index from .agent/teams/<agentType>/; that memory persists across triggers. general is a plain sub agent with no team context." },
 			{ name: "status", type: "string", enum: ["active_or_recent", "running", "done", "failed", "all"], description: "List form: optional status filter. Defaults to active_or_recent." },
 			{ name: "limit", type: "number", description: "List form: maximum number of items to return. Defaults to 5." },
 			{ name: "offset", type: "number", description: "List form: offset for paging older items." },
@@ -378,6 +378,7 @@ const AGENT_TOOL_DEFINITION_SOURCES: AgentToolDefinitionSource[] = [
 		rules: [
 			"Two forms: prompt + title dispatches a new sub agent; prompt omitted lists sub-agent state. Never combine spawn fields with list filters.",
 			"Use the spawn form for large multi-file work, parallel exploration, long-running verification, or isolated execution tasks. For small focused edits, use edit_file/build directly in the current main-agent run.",
+			"Spawning a team agent is a trigger, not a creation: the team already exists in .agent/teams/<agentType>/ and its memory carries across triggers. The wake context tells the sub agent when it may write team memory; most triggers end with zero memory writes.",
 			"The spawned sub agent inherits the current session tool capabilities.",
 			"prompt should be self-contained and actionable, and should clearly describe the concrete work to execute, constraints, desired output, and any relevant files. title should be short and specific.",
 			"Spawn is asynchronous and nonblocking. You may dispatch multiple independent sub agents in one response, subject to the concurrency limit.",
