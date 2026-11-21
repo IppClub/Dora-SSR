@@ -19,6 +19,7 @@ local targets = {
 	["remix-mode-plan"] = true, ["remix-mode-code"] = true,
 	["remix-input"] = true, ["remix-question-input"] = true,
 	["remix-question-back"] = true, ["remix-question-submit"] = true,
+	["remix-voice"] = true, ["remix-voice-cancel"] = true, ["remix-voice-finish"] = true,
 	["remix-send"] = true, ["remix-stop"] = true, ["remix-play"] = true,
 	["remix-action-continue"] = true, ["remix-action-start-development"] = true,
 	["remix-latest"] = true,

@@ -36,7 +36,7 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Love2D projects can access the microphone when they start an audio RecordingDevice.</string>
+	<string>Dora uses the microphone when you dictate in Remix or when a Love2D project starts audio recording.</string>
 	<key>UILaunchStoryboardName</key>
 	<string>Launch Screen</string>
 	<key>UIStatusBarHidden</key>

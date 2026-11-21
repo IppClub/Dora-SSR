@@ -22,6 +22,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Lua/LuaFromXml.h"
 #include "Lua/LuaHandler.h"
 #include "Lua/LuaManual.h"
+#if !BX_PLATFORM_EMSCRIPTEN
+#include "Lua/LuaRemixVoice.h"
+#endif
 #include "Node/Node.h"
 #include "Render/View.h"
 #include "Shader/ShaderCompiler.h"
@@ -498,6 +501,8 @@ return bit32
 static int dora_register_builtin_modules(lua_State* L) {
 #if !BX_PLATFORM_EMSCRIPTEN
 	luaL_requiref(L, "socket.core", luaopen_socket_core, 0);
+	lua_pop(L, 1);
+	luaL_requiref(L, "dora.remix_voice", luaopen_dora_remix_voice, 0);
 	lua_pop(L, 1);
 #endif
 	luaL_requiref(L, "mime.core", luaopen_mime_core, 0);

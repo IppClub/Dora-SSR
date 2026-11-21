@@ -15,8 +15,62 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #if BX_PLATFORM_OSX || BX_PLATFORM_IOS
 
 #import <Foundation/Foundation.h>
+#include "Lua/LuaRemixVoice.h"
+#include <condition_variable>
+
+@interface DoraRemixVoiceSessionDelegate : NSObject <NSURLSessionTaskDelegate>
+@end
+
+@implementation DoraRemixVoiceSessionDelegate
+- (void)URLSession:(NSURLSession*)session task:(NSURLSessionTask*)task
+	willPerformHTTPRedirection:(NSHTTPURLResponse*)response newRequest:(NSURLRequest*)request
+	completionHandler:(void (^)(NSURLRequest* _Nullable))completionHandler {
+	completionHandler(nil);
+}
+@end
 
 NS_DORA_BEGIN
+std::string postAppleRemixVoice(const std::string& authorization, const std::string& contentType,
+	const std::string& body, const std::atomic_bool& cancelled) {
+	@autoreleasepool {
+		struct Response {
+			std::mutex mutex;
+			std::condition_variable signal;
+			bool ready = false;
+			std::string text;
+		};
+		auto result = std::make_shared<Response>();
+		auto config = [NSURLSessionConfiguration ephemeralSessionConfiguration];
+		config.HTTPShouldSetCookies = NO;
+		config.timeoutIntervalForRequest = config.timeoutIntervalForResource = 60;
+		static auto delegate = [[DoraRemixVoiceSessionDelegate alloc] init];
+		auto session = [NSURLSession sessionWithConfiguration:config delegate:delegate delegateQueue:nil];
+		auto request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:@"https://api.deepseek.com/v1/tools/asr"]];
+		request.HTTPMethod = @"POST";
+		[request setValue:[NSString stringWithUTF8String:authorization.c_str()] forHTTPHeaderField:@"Authorization"];
+		[request setValue:[NSString stringWithUTF8String:contentType.c_str()] forHTTPHeaderField:@"Content-Type"];
+		request.HTTPBody = [NSData dataWithBytes:body.data() length:body.size()];
+		auto task = [session dataTaskWithRequest:request completionHandler:^(NSData* data, NSURLResponse* response, NSError* error) {
+			auto http = [response isKindOfClass:[NSHTTPURLResponse class]] ? (NSHTTPURLResponse*)response : nil;
+			std::lock_guard lock(result->mutex);
+			if (!error && http.statusCode == 200 && data.length > 0 && data.length <= 256 * 1024) {
+				result->text.assign(static_cast<const char*>(data.bytes), data.length);
+			} else if (error.code != NSURLErrorCancelled) {
+				Info("DeepSeek Remix transcription failed: system status {}, HTTP status {}", error.code, http.statusCode);
+			}
+			result->ready = true;
+			result->signal.notify_one();
+		}];
+		[task resume];
+		std::unique_lock lock(result->mutex);
+		while (!result->ready && !cancelled) result->signal.wait_for(lock, std::chrono::milliseconds(50));
+		auto text = cancelled ? std::string{} : std::move(result->text);
+		lock.unlock();
+		[session invalidateAndCancel];
+		return text;
+	}
+}
+
 std::string Application::getExecutablePath() const {
 	@autoreleasepool {
 		NSString* path = [NSBundle mainBundle].executablePath;

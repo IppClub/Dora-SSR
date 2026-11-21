@@ -52,6 +52,7 @@ function main()
     "Source/Lua/LuaHandler.cpp",
     "Source/Lua/TealCompiler.cpp",
     "Source/Lua/LuaEngine.cpp",
+    "Source/Lua/LuaRemixVoice.cpp",
     "Source/Love/LoveRuntime.cpp",
     "Source/Love/LoveVideoSources.cpp",
     "Source/Love/LoveNode.cpp",

@@ -67,6 +67,7 @@ import android.widget.Toast;
 import androidx.core.content.FileProvider;
 import androidx.annotation.Keep;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.io.FileInputStream;
@@ -79,6 +80,9 @@ import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.net.URL;
+import javax.net.ssl.HttpsURLConnection;
 
 import org.json.JSONObject;
 
@@ -93,6 +97,58 @@ public class MainActivity extends SDLActivity {
 	private static final int REQUEST_SAVE_GAME = 2003;
 	private static final int REQUEST_IDE_MICROPHONE = 2004;
 	private static final long MAX_GAME_BYTES = 256L * 1024 * 1024;
+	private static final Map<Long, HttpsURLConnection> remixVoiceUploads = new ConcurrentHashMap<>();
+	@Keep
+	private static native boolean nativeRemixVoiceUploadCancelled(long requestId);
+
+	@Keep
+	private static byte[] postRemixVoice(long requestId, String authorization, String contentType, byte[] body) {
+		HttpsURLConnection connection = null;
+		try {
+			connection = (HttpsURLConnection) new URL("https://api.deepseek.com/v1/tools/asr").openConnection();
+			remixVoiceUploads.put(requestId, connection);
+			if (nativeRemixVoiceUploadCancelled(requestId)) return null;
+			connection.setInstanceFollowRedirects(false);
+			connection.setUseCaches(false);
+			connection.setConnectTimeout(15_000);
+			connection.setReadTimeout(45_000);
+			connection.setRequestMethod("POST");
+			connection.setRequestProperty("Authorization", authorization);
+			connection.setRequestProperty("Content-Type", contentType);
+			connection.setFixedLengthStreamingMode(body.length);
+			connection.setDoOutput(true);
+			try (OutputStream output = connection.getOutputStream()) { output.write(body); }
+			int status = connection.getResponseCode();
+			if (status != 200) {
+				Log.i(TAG, "DeepSeek Remix transcription failed: HTTP status " + status);
+				return null;
+			}
+			try (InputStream input = connection.getInputStream()) {
+				ByteArrayOutputStream response = new ByteArrayOutputStream();
+				byte[] buffer = new byte[4096];
+				for (int read; (read = input.read(buffer)) != -1;) {
+					if (response.size() + read > 256 * 1024 || nativeRemixVoiceUploadCancelled(requestId)) return null;
+					response.write(buffer, 0, read);
+				}
+				return response.toByteArray();
+			}
+		} catch (IOException error) {
+			if (!nativeRemixVoiceUploadCancelled(requestId)) {
+				Log.i(TAG, "DeepSeek Remix transcription failed: " + error.getClass().getSimpleName());
+			}
+			return null;
+		} finally {
+			remixVoiceUploads.remove(requestId);
+			if (connection != null) connection.disconnect();
+		}
+	}
+
+	@Keep
+	private static void cancelRemixVoiceUpload(long requestId) {
+		HttpsURLConnection connection = remixVoiceUploads.get(requestId);
+		if (connection != null) connection.disconnect();
+	}
+
 	private static final ExecutorService gameFileWorker = Executors.newSingleThreadExecutor();
 	private static native void nativeReceiveFile(String path, boolean picked);
 	private static native boolean nativeOpenProjectLink(String link);

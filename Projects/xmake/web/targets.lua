@@ -110,7 +110,7 @@ target("dora-web-engine")
         engine_flags(t, c)
         local sources = api.import("Projects.xmake.manifests.engine", {rootdir = c.root, anonymous = true})().sources
         local excluded = { ["Source/Lua/LuaFromXml.cpp"] = not c.studio_agent_host,
-            ["Source/Lua/LuaBinding.cpp"] = true, ["Source/Lua/LuaCode.cpp"] = true,
+            ["Source/Lua/LuaBinding.cpp"] = true, ["Source/Lua/LuaRemixVoice.cpp"] = true, ["Source/Lua/LuaCode.cpp"] = true,
             ["Source/Lua/TealCompiler.cpp"] = true, ["Source/Lua/LuaManual.cpp"] = true,
             ["Source/Wasm/WasmRuntime.cpp"] = true }
         for _, s in ipairs(sources) do

@@ -12,6 +12,7 @@ import { resolveFeedGesture } from "Dev/Mobile/FeedModel";
 import { createRemixTranscript, remixDisplayRevision, type RemixTranscriptAction } from "Dev/Mobile/RemixTranscript";
 import { REMIX_HISTORY_ROUNDS } from "Dev/Mobile/RemixHistory";
 import { createTextInput, inputLength, inputSlice } from "Dev/Mobile/TextInput";
+import { createRemixVoice, remixVoiceKey } from "Dev/Mobile/RemixVoice";
 import { startMobileLLMManager } from "Dev/Mobile/LLMSetup";
 import { startPackagePanel } from "Dev/Mobile/PackagePanel";
 import { RoundedSurface, VerticalGradient } from "Dev/Mobile/Visual";
@@ -126,6 +127,8 @@ export function startMobileRemix(options: RemixOptions) {
 		? services.getSession(sessionId)
 		: { success: false, message: created.success ? "session unavailable" : created.message };
 	let draft = "";
+	let voiceEnabled = false;
+	let voiceForeground = true;
 	let error = created.success ? "" : created.message;
 	let backNoticeUntil = 0;
 	let pollElapsed = 0;
@@ -154,7 +157,7 @@ export function startMobileRemix(options: RemixOptions) {
 			const question = currentQuestion();
 			return question?.placeholder ?? (question ? (zh ? "输入回答…" : "Type an answer…") : (zh ? "输入修改要求…" : "Describe a change…"));
 		},
-		isEnabled: () => !packagePanel && !disposed && host.parent !== undefined && host.visible && HttpServer.wsConnectionCount === 0,
+		isEnabled: () => voice.phase() === "idle" && !packagePanel && !disposed && host.parent !== undefined && host.visible && HttpServer.wsConnectionCount === 0,
 		onReturn: modified => { if (modified && !currentQuestion()) { send(); return true; } return false; },
 	});
 	const blurInput = promptInput.blur;
@@ -181,6 +184,8 @@ export function startMobileRemix(options: RemixOptions) {
 	let mascotAnimationStartedAt = App.runningTime;
 	let compactHeaderStatusActive = false;
 	let errorLabel: Label.Type | undefined;
+	let voiceMeter = reference<Node.Type>();
+	let displayedVoiceLevel = 0;
 	let layoutTranscriptBottom = transcriptBottom;
 	const getLayoutArea = () => App.safeArea;
 	const getTranscriptBottom = () => layoutTranscriptBottom + (errorLabel ? errorLabel.height + composerGap : 0);
@@ -229,8 +234,46 @@ export function startMobileRemix(options: RemixOptions) {
 		&& detail.session.currentTaskStatus !== "RUNNING" && detail.session.currentTaskStatus !== "WAITING_USER"
 		&& !detail.session.currentTaskFinalizing && !detail.pendingQuestionnaire;
 	const resolveLLMConfig = () => selectedLLMConfigId > 0 ? services.getLLMConfig(selectedLLMConfigId) : services.getActiveLLMConfig();
+	const getVoiceKey = () => {
+		const selected = resolveLLMConfig();
+		const preferred = selected.success ? remixVoiceKey(selected.config) : undefined;
+		if (preferred) return preferred;
+		for (const item of llmConfigs) {
+			if (selected.success && item.id === selected.id) continue;
+			const result = services.getLLMConfig(item.id);
+			const key = result.success ? remixVoiceKey(result.config) : undefined;
+			if (key) return key;
+		}
+		return undefined;
+	};
+	voiceEnabled = getVoiceKey() !== undefined;
+	const voice = createRemixVoice(
+		() => { if (!disposed && host.parent && host.visible) render(); },
+		text => {
+			if (disposed || !host.visible || !canSubmit()) return;
+			const separator = draft !== "" && string.match(draft, "%s$")[0] === undefined ? " " : "";
+			draft = inputSlice(draft + separator + text, 0, 12000);
+			promptInput.refresh();
+		},
+		issue => {
+			if (disposed || !host.visible) return;
+			error = issue === "silence" ? (zh ? "未检测到语音。" : "No speech detected.")
+				: issue === "capture" ? (zh ? "无法收音，请检查麦克风及其权限。" : "Could not capture audio. Check microphone access.")
+				: (zh ? "DeepSeek 转写失败，请检查密钥和网络。" : "DeepSeek transcription failed. Check the key and connection.");
+			render();
+		},
+	);
+	const startVoice = () => {
+		if (!host.visible || HttpServer.wsConnectionCount > 0 || !canSubmit() || voice.phase() !== "idle") return;
+		if (dismissedComposition || promptInput.isComposing()) { dismissedComposition = false; blurInput(); return; }
+		const key = getVoiceKey();
+		if (!key) { voiceEnabled = false; render(); return; }
+		blurInput();
+		error = "";
+		voice.start(key);
+	};
 	const configureLLM = () => {
-		if (!host.visible || HttpServer.wsConnectionCount > 0) return;
+		if (voice.phase() !== "idle" || !host.visible || HttpServer.wsConnectionCount > 0) return;
 		blurInput();
 		startMobileLLMManager({
 			coveredNode: host,
@@ -241,6 +284,7 @@ export function startMobileRemix(options: RemixOptions) {
 				if (disposed || !host.parent) return;
 				llmConfigs = services.getLLMConfigSummaries();
 				selectedLLMConfigId = id;
+				voiceEnabled = getVoiceKey() !== undefined;
 				needsLLMSetup = llmConfigs.length === 0;
 				error = "";
 				render();
@@ -259,7 +303,7 @@ export function startMobileRemix(options: RemixOptions) {
 		render();
 	};
 	const send = () => {
-		if (!host.visible || HttpServer.wsConnectionCount > 0) return;
+		if (voice.phase() !== "idle" || !host.visible || HttpServer.wsConnectionCount > 0) return;
 		refresh();
 		if (!canSubmit() || !detail.success || promptInput.isComposing()) return;
 		const workMode = resolveRemixWorkMode(detail.session);
@@ -390,6 +434,7 @@ export function startMobileRemix(options: RemixOptions) {
 		render();
 	};
 	const goBack = () => {
+		if (voice.phase() !== "idle") { voice.cancel(); return; }
 		if (packagePanel || swipeBackPending || !host.visible || HttpServer.wsConnectionCount > 0) return;
 		if (detail.success && !canLeaveRemix(detail.session.status)) {
 			error = "";
@@ -408,11 +453,12 @@ export function startMobileRemix(options: RemixOptions) {
 		const visibleError = error !== "" ? error : (backNoticeUntil > App.runningTime
 			? (zh ? "Agent 工作中，请先停止再返回" : "Stop the Agent before going back") : "");
 		errorLabel = undefined;
+		voiceMeter = reference<Node.Type>();
 		// Resizing/rebuilding cancels any old gesture and its delayed completion.
 		swipeRevision++;
 		swipeDragging = false;
 		swipeBackPending = false;
-		const layout = `${App.safeArea.width}:${App.safeArea.height}`;
+		const layout = `${App.safeArea.width}:${App.safeArea.height}:${voiceEnabled}`;
 		// Work/status updates must not detach the active IME node or discard composition.
 		const keptInput = layout === inputLayout && !(detail.success && detail.pendingQuestionnaire)
 			&& inputRef.current?.tag === "remix-input" ? inputRef.current : undefined;
@@ -443,7 +489,15 @@ export function startMobileRemix(options: RemixOptions) {
 		const layoutComposerTop = layoutModeBottom + 40;
 		layoutTranscriptBottom = layoutComposerTop + composerGap + (phase === "done" ? 48 : 0);
 		const contentWidth = safe.width - 32;
-		const inputWidth = contentWidth - composerActionWidth - composerGap;
+		const voicePhase = voice.phase();
+		const voiceActive = voicePhase !== "idle";
+		const meterWidth = math.max(24, contentWidth - 152);
+		const voiceWidth = voiceEnabled ? 60 + composerGap : 0;
+		const inputWidth = contentWidth - composerActionWidth - composerGap - voiceWidth;
+		const voiceLabel = voicePhase === "opening" ? (zh ? "正在打开麦克风…" : "Opening microphone…")
+			: voicePhase === "waiting" ? (zh ? "等待开口…" : "Waiting for speech…")
+			: voicePhase === "recording" ? (zh ? "正在收音…" : "Listening…")
+			: (zh ? "DeepSeek 正在转写…" : "Transcribing with DeepSeek…");
 		const modeWidth = math.floor((contentWidth - composerGap) / 2);
 		const modeStartX = left + 16;
 		const modeCodeWidth = contentWidth - modeWidth - composerGap;
@@ -650,23 +704,41 @@ export function startMobileRemix(options: RemixOptions) {
 					primary={true} onTapped={() => { if (!dismissedComposition) advanceQuestionnaire(); dismissedComposition = false; }} />
 			</node> : undefined}
 			{visibleError !== "" ? <label tag="remix-error" x={left + 20} y={bottom + (questionnaire ? 144 : layoutComposerTop + composerGap)} anchorX={0} anchorY={0} fontName={fontName} fontSize={13} text={visibleError} textWidth={contentWidth} alignment={TextAlign.Left} color3={0xff6b6b} onMount={label => { errorLabel = label; }} /> : undefined}
-			{questionnaire === undefined ? <node>
+			{questionnaire === undefined && voiceActive ? <node>
+				<ActionButton tag="remix-voice-cancel" x={left + 16} y={bottom + layoutModeBottom} width={64} height={40}
+					text={zh ? "取消" : "Cancel"} onTapped={voice.cancel} />
+				<label x={left + 16 + contentWidth / 2} y={bottom + layoutModeBottom + 26} fontName={fontName} fontSize={13}
+					text={ellipsizeSingleLine(voiceLabel, meterWidth, 13)} color3={0xa8afbd} />
+				<node x={left + 16 + (contentWidth - meterWidth) / 2} y={bottom + layoutModeBottom + 11}>
+					<draw-node><rect-shape centerX={meterWidth / 2} width={meterWidth} height={3} fillColor={colors.border} /></draw-node>
+					<node tag="remix-voice-level" ref={voiceMeter} scaleX={displayedVoiceLevel} visible={displayedVoiceLevel > 0}>
+						<draw-node><rect-shape centerX={meterWidth / 2} width={meterWidth} height={3} fillColor={colors.brand} /></draw-node>
+					</node>
+				</node>
+				{voicePhase === "waiting" || voicePhase === "recording" ? <ActionButton tag="remix-voice-finish"
+					x={left + 16 + contentWidth - 64} y={bottom + layoutModeBottom} width={64} height={40}
+					text={zh ? "完成" : "Done"} onTapped={voice.finish} /> : undefined}
+			</node> : undefined}
+			{questionnaire === undefined && !voiceActive ? <node>
 				<ChoiceButton tag="remix-mode-plan" x={modeStartX} y={bottom + layoutModeBottom} width={modeWidth} text={zh ? "计划" : "Plan"} selected={workMode === "plan"} disabled={!canSubmit()} onTapped={() => changeWorkMode("plan")} />
 				<ChoiceButton tag="remix-mode-code" x={modeStartX + modeWidth + composerGap} y={bottom + layoutModeBottom} width={modeCodeWidth} text={zh ? "执行" : "Code"} selected={workMode === "code"} disabled={!canSubmit()} onTapped={() => changeWorkMode("code")} />
 			</node> : undefined}
 			{questionnaire === undefined && !keptInput ? <node tag="remix-input" ref={inputRef} x={left + 16} y={bottom + layoutComposerBottom} width={inputWidth} height={layoutComposerHeight} anchorX={0} anchorY={0}
 				onMount={promptInput.mount} /> : undefined}
+			{voiceEnabled && questionnaire === undefined ? <ActionButton tag="remix-voice"
+				x={left + 16 + inputWidth + composerGap} y={bottom + layoutComposerBottom} width={60} height={layoutComposerHeight}
+				text={zh ? "语音" : "Voice"} disabled={voiceActive || !canSubmit()} onTapped={startVoice} /> : undefined}
 			{stopping || questionnaire === undefined ? <ActionButton tag={stopping ? "remix-stop" : "remix-send"}
-				x={left + 16 + inputWidth + composerGap} y={bottom + layoutComposerBottom} width={composerActionWidth} height={layoutComposerHeight}
+				x={left + 16 + inputWidth + composerGap + voiceWidth} y={bottom + layoutComposerBottom} width={composerActionWidth} height={layoutComposerHeight}
 				text={stopping ? (state?.currentTaskFinalizing ? (zh ? "收尾中" : "Finishing") : stopRequested ? (zh ? "停止中" : "Stopping") : (zh ? "停止" : "Stop")) : (zh ? "发送" : "Send")}
-				primary={!stopping} danger={stopping} disabled={stopping ? stopRequested || state?.currentTaskFinalizing === true : !canSubmit()}
+				primary={!stopping} danger={stopping} disabled={stopping ? stopRequested || state?.currentTaskFinalizing === true : voiceActive || !canSubmit()}
 				onTapped={() => { if (stopping) stop(); else if (!dismissedComposition) send(); dismissedComposition = false; }} /> : undefined}
-			{phase === "done" && canShare ? <ActionButton tag="remix-share" x={left + 16} y={bottom + layoutModeBottom + 48} width={playWidth} height={40} text={zh ? "分享作品" : "Share game"} onTapped={() => {
+			{phase === "done" && canShare && !voiceActive ? <ActionButton tag="remix-share" x={left + 16} y={bottom + layoutModeBottom + 48} width={playWidth} height={40} text={zh ? "分享作品" : "Share game"} onTapped={() => {
 				if (!host.visible || packagePanel || HttpServer.wsConnectionCount > 0) return;
 				blurInput(); notifyProjectChanged();
 				packagePanel = startPackagePanel({ mode: "share", entry: options.entry, onClosed: () => { packagePanel = undefined; } });
 			}} /> : undefined}
-			{phase === "done" ? <ActionButton tag="remix-play" x={playX} y={bottom + layoutModeBottom + 48} width={playWidth} height={40} text={zh ? "立即试玩" : "Play now"} primary={true} onTapped={() => { if (!host.visible || HttpServer.wsConnectionCount > 0) return; blurInput(); notifyProjectChanged(); host.visible = false; onPlay(options.entry); }} /> : undefined}
+			{phase === "done" && !voiceActive ? <ActionButton tag="remix-play" x={playX} y={bottom + layoutModeBottom + 48} width={playWidth} height={40} text={zh ? "立即试玩" : "Play now"} primary={true} onTapped={() => { if (!host.visible || HttpServer.wsConnectionCount > 0) return; blurInput(); notifyProjectChanged(); host.visible = false; onPlay(options.entry); }} /> : undefined}
 			</node>
 		</node>);
 		if (scene) {
@@ -704,6 +776,17 @@ export function startMobileRemix(options: RemixOptions) {
 		},
 	});
 	host.schedule(dt => {
+		if (voiceForeground && voice.phase() !== "idle") {
+			if (!host.visible || packagePanel || HttpServer.wsConnectionCount > 0 || !canSubmit()) voice.cancel();
+			else voice.tick();
+		}
+		const meter = voiceMeter.current;
+		if (meter) {
+			const target = voice.level();
+			displayedVoiceLevel += (target - displayedVoiceLevel) * math.min(1, dt / 0.08);
+			meter.scaleX = displayedVoiceLevel;
+			meter.visible = displayedVoiceLevel >= 0.002;
+		} else displayedVoiceLevel = 0;
 		pollElapsed += dt;
 		if (pollElapsed < 0.25) return false;
 		pollElapsed = 0;
@@ -725,15 +808,21 @@ export function startMobileRemix(options: RemixOptions) {
 	});
 	host.onAppEvent(event => {
 		if (event === "BackButton") { if (promptInput.isFocused()) blurInput(); else goBack(); }
-		else if (event === "WillEnterBackground" || event === "DidEnterBackground") blurInput();
+		else if (event === "WillEnterBackground" || event === "DidEnterBackground") {
+			voiceForeground = false;
+			// The system permission dialog can pause the app while a device opens.
+			// Capture starts only when the foreground UI polls the opened device.
+			if (voice.phase() !== "opening") voice.cancel();
+			blurInput();
+		} else if (event === "DidEnterForeground") voiceForeground = true;
 	});
 	host.onCleanup(() => {
 		packagePanel?.removeFromParent(true);
 		packagePanel = undefined;
-		disposed = true; blurInput();
+		disposed = true; voice.cancel(); blurInput();
 	});
-	host.slot("SuspendLocalUI", blurInput);
-	host.slot("ResumeLocalUI", () => { refresh(); render(); });
+	host.slot("SuspendLocalUI", () => { voice.cancel(); blurInput(); });
+	host.slot("ResumeLocalUI", () => { llmConfigs = services.getLLMConfigSummaries(); voiceEnabled = getVoiceKey() !== undefined; refresh(); render(); });
 	render();
 	if (needsLLMSetup) thread(() => { sleep(0); if (!disposed && host.parent) configureLLM(); });
 	return host;
