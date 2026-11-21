@@ -75,7 +75,7 @@ void activateGuiWindowMac(SDL_Window* window);
 #endif // BX_PLATFORM_OSX || BX_PLATFORM_ANDROID
 
 #define DORA_VERSION "1.10.2"_slice
-#define DORA_REVISION "6"_slice
+#define DORA_REVISION "7"_slice
 
 namespace {
 #if BX_PLATFORM_WINDOWS && !defined(DORA_AS_LIB)
