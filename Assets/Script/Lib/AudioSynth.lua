@@ -234,6 +234,8 @@ end
 
 -- Resample: factor > 1 = shorter & higher pitch, < 1 = longer & lower.
 function AudioSynth.speed(snd, factor)
+	assert(type(factor) == "number" and factor > 0 and factor < math.huge,
+		"speed factor must be a finite positive number")
 	local len = #snd
 	local n = math.max(1, math.floor(len / factor))
 	local out = {}
