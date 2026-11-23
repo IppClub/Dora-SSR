@@ -1,0 +1,74 @@
+# Load a Godot project with GodotNode
+
+`GodotNode` runs a Godot project inside Dora SSR and displays its output as a Dora `Sprite`. This tutorial uses the desktop [Dora Web IDE](../18.web-ide.mdx) and a Dora build that includes the Godot runtime for its graphics backend. Use a Godot 4 GDScript project. Godot 3, C#/Mono, and native GDExtension libraries are unsupported.
+
+## Run the built-in template
+
+1. In the Web IDE, create a project directory, choose **Create as Project**, and select **Godot 2D** or **Godot 3D**.
+2. Select the project directory and click **Run**. You should see the Godot scene in the Dora window. The templates draw their own graphics, so they can run before importing any assets.
+3. Open `init.ts` to see how Dora creates the node. Godot reads `project.godot`, loads `main.tscn`, and runs `main.gd` in its own scene tree. To edit the scene visually, open `project.godot` in the Godot editor.
+
+## Load an existing project
+
+In the Godot editor, open the project with a version compatible with the bundled runtime. Set its main scene, wait for assets to finish importing, and confirm that the project runs. If you copy the project to the Dora workspace, keep its directory structure and make sure the copy has a valid import cache for its assets. If imported resources are missing, open the copy in the Godot editor and let it reimport them.
+
+Create a Lua project in the Dora Web IDE and arrange the files like this. The Godot scene and script names will depend on your project.
+
+```text
+MyDoraGame/
+├── init.lua
+└── GodotGame/
+    ├── project.godot
+    ├── main.tscn
+    └── main.gd
+```
+
+Replace the contents of `init.lua` with the following and choose **Run**.
+
+```lua title="init.lua"
+local Dora = require("Dora")
+
+local reason = Dora.GodotNode.getUnsupportedReason()
+assert(reason == "", reason)
+
+local width, height = 640, 360
+local game = assert(
+    Dora.GodotNode("GodotGame", "", width, height, 3),
+    "Could not create GodotNode. See the Dora log."
+)
+game:addTo(Dora.Director.ui)
+
+local ready = false
+game:schedule(function()
+    local size = Dora.View.size
+    local scale = math.min(size.width / width, size.height / height)
+    game.scaleX, game.scaleY = scale, scale
+
+    if game.lastError ~= "" then
+        print("Godot error: " .. game.lastError)
+        game:removeFromParent()
+        return true
+    end
+    if game.running and not ready then
+        ready = true
+        print("Godot project ready")
+    end
+    return false
+end)
+```
+
+Dora resolves `"GodotGame"` through its resource search paths. You can also pass the absolute path to the directory containing `project.godot`. The second argument, `""`, uses the main scene from `project.godot`. Pass a path such as `"res://levels/demo.tscn"` to start from a specific scene inside the Godot project.
+
+The last three arguments set the output width, height, and texture buffer count. The example scales the Sprite to fit the Dora view while keeping the Godot output at 640 × 360. Startup is asynchronous. Wait for `game.running` before forwarding input programmatically.
+
+## Load an exported PCK
+
+In the Godot editor, open **Project → Export**, select a preset for the target platform, and use **Export PCK/ZIP** to save a `.pck` file. Include the resources for the scenes you want to run. Put `game.pck` next to `init.lua` and change the constructor call to `Dora.GodotNode("game.pck", "", width, height, 3)`. The same startup checks apply.
+
+## Troubleshoot startup and switch projects
+
+- If `getUnsupportedReason()` returns a message, check the graphics backend. An empty result confirms the backend check passed. The Dora build still needs the matching Godot runtime.
+- If the constructor returns `nil`, check the Dora log, the directory or PCK path, and the output settings. If the node is created but startup fails, inspect `lastError` and the `[Godot]` entries in **View Log**. Check the main scene path and resource imports first.
+- Use `game:restart()` to reload the current scene while keeping its Autoloads. To load another project in the same Dora process, wait for `game:unloadAsync(callback)` to report success before creating the next GodotNode. See the API reference for the backends that support unloading.
+
+See [GodotNode](/docs/api/Class/GodotNode) for input and lifecycle methods, and [GodotNode Class](/docs/api/Class%20Object/GodotNode) for constructor arguments.

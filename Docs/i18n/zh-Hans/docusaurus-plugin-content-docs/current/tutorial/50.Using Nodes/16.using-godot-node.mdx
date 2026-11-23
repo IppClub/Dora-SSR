@@ -1,0 +1,74 @@
+# 用 GodotNode 加载 Godot 游戏工程
+
+`GodotNode` 可以在 Dora SSR 内运行 Godot 工程，并把游戏画面显示为 Dora 的 `Sprite`。本教程使用桌面版 [Dora Web IDE](../18.web-ide.mdx)。Dora 构建包需要包含与其图形后端匹配的 Godot 运行库。请使用 Godot 4 的 GDScript 工程，目前不支持 Godot 3、C#/Mono 或原生 GDExtension 库。
+
+## 运行内置模板
+
+1. 在 Web IDE 中新建工程目录，选择**创建为项目**，再选择 **Godot 2D** 或 **Godot 3D**。
+2. 选中工程目录，点击**运行**。你应该能在 Dora 窗口中看到 Godot 场景。模板用代码绘制画面，可以直接运行，无需提前导入素材。
+3. 打开 `init.ts`，可以看到 Dora 如何创建节点。Godot 会读取 `project.godot`、加载 `main.tscn`，并在自己的场景树中执行 `main.gd`。如果要可视化编辑场景，可以在 Godot 编辑器中打开 `project.godot`。
+
+## 加载已有工程
+
+先用与内置运行库兼容的 Godot 编辑器打开工程，设置主场景，等素材导入完成后确认工程能运行。如果要把工程复制到 Dora 工作区，请保留目录结构，并确保副本中的素材有有效的导入缓存。如果缺少导入后的资源，用 Godot 编辑器打开副本重新导入。
+
+在 Dora Web IDE 中新建一个 Lua 项目，按下方结构放置文件。Godot 场景和脚本的文件名以你的工程为准。
+
+```text
+MyDoraGame/
+├── init.lua
+└── GodotGame/
+    ├── project.godot
+    ├── main.tscn
+    └── main.gd
+```
+
+把下面的代码写入 `init.lua`，然后点击**运行**。
+
+```lua title="init.lua"
+local Dora = require("Dora")
+
+local reason = Dora.GodotNode.getUnsupportedReason()
+assert(reason == "", reason)
+
+local width, height = 640, 360
+local game = assert(
+    Dora.GodotNode("GodotGame", "", width, height, 3),
+    "Could not create GodotNode. See the Dora log."
+)
+game:addTo(Dora.Director.ui)
+
+local ready = false
+game:schedule(function()
+    local size = Dora.View.size
+    local scale = math.min(size.width / width, size.height / height)
+    game.scaleX, game.scaleY = scale, scale
+
+    if game.lastError ~= "" then
+        print("Godot error: " .. game.lastError)
+        game:removeFromParent()
+        return true
+    end
+    if game.running and not ready then
+        ready = true
+        print("Godot project ready")
+    end
+    return false
+end)
+```
+
+Dora 通过资源搜索路径解析 `"GodotGame"`，也可以直接传入包含 `project.godot` 的目录的绝对路径。第二个参数 `""` 表示使用 `project.godot` 配置的主场景。如果要从指定场景启动，可以传入 Godot 工程内的路径，例如 `"res://levels/demo.tscn"`。
+
+最后三个参数分别设置输出宽度、高度和纹理缓冲数量。示例把 Sprite 等比缩放到 Dora 视图内，Godot 输出仍保持 640 × 360。启动是异步的，代码主动发送输入事件前，应等待 `game.running` 变为 `true`。
+
+## 加载导出的 PCK
+
+在 Godot 编辑器中打开**项目 → 导出**，选择目标平台的预设，再用 **导出 PCK/ZIP** 保存一个 `.pck` 文件。导出时包含要运行的场景及其依赖资源。把 `game.pck` 放在 `init.lua` 同级，然后把构造调用改成 `Dora.GodotNode("game.pck", "", width, height, 3)`。启动状态的检查方式相同。
+
+## 排查启动问题与切换工程
+
+- 如果 `getUnsupportedReason()` 返回提示，先检查图形后端。返回空字符串表示通过了后端检查，Dora 构建包仍需包含匹配的 Godot 运行库。
+- 如果构造函数返回 `nil`，检查 Dora 日志、工程目录或 PCK 路径以及输出参数。如果节点已经创建但启动失败，查看 `lastError` 和**查看日志**中的 `[Godot]` 消息，优先检查主场景路径和资源导入。
+- `game:restart()` 会重新加载当前场景并保留 Autoload。要在同一个 Dora 进程中加载另一个工程，先等待 `game:unloadAsync(callback)` 的回调报告成功，再创建下一个 GodotNode。支持卸载的后端见 API 参考。
+
+输入和生命周期方法见 [GodotNode](/docs/api/Class/GodotNode)，构造参数见 [GodotNode 类对象](/docs/api/Class%20Object/GodotNode)。
