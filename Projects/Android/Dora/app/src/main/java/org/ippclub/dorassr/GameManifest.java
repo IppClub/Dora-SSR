@@ -23,13 +23,14 @@ final class GameManifest {
 	private static final int START_ELEMENT = 0x0102;
 	private static final int END_ELEMENT = 0x0103;
 	private static final int UTF8_FLAG = 0x100;
+	private static final int TYPE_REFERENCE = 0x01;
 	private static final int TYPE_STRING = 0x03;
 	private static final int TYPE_INT_DEC = 0x10;
 
 	private GameManifest() {}
 
 	static byte[] rewrite(byte[] manifest, String originalId, String gameId, String title,
-			int versionCode, String versionName) throws IOException {
+			int versionCode, String versionName, int iconId) throws IOException {
 		ByteBuffer data = buffer(manifest);
 		if (u16(data, 0) != XML || u16(data, 2) != 8 || data.getInt(4) != manifest.length) {
 			throw new IOException("Invalid binary Android manifest");
@@ -41,6 +42,7 @@ final class GameManifest {
 		boolean foundVersionCode = false;
 		boolean foundVersionName = false;
 		boolean foundLabel = false;
+		boolean foundIcon = false;
 		int filterStart = -1;
 		boolean launcherFilter = false;
 		int omitPermission = -1;
@@ -105,6 +107,11 @@ final class GameManifest {
 					} else if ("application".equals(tag) && "label".equals(name)) {
 						setText(data, at, pool.add(title));
 						foundLabel = true;
+					} else if ("application".equals(tag) && ("icon".equals(name) || "roundIcon".equals(name))) {
+						data.putInt(at + 8, -1);
+						data.put(at + 15, (byte) TYPE_REFERENCE);
+						data.putInt(at + 16, iconId);
+						if ("icon".equals(name)) foundIcon = true;
 					} else if (("authorities".equals(name) || "permission".equals(name)
 							|| ("permission".equals(tag) && "name".equals(name))
 							|| ("uses-permission".equals(tag) && "name".equals(name)))
@@ -117,7 +124,7 @@ final class GameManifest {
 			}
 			chunk += chunkSize;
 		}
-		if (!foundPackage || !foundVersionCode || !foundVersionName || !foundLabel) {
+		if (!foundPackage || !foundVersionCode || !foundVersionName || !foundLabel || !foundIcon) {
 			throw new IOException("The Dora APK manifest is missing game export metadata");
 		}
 		byte[] newPool = pool.encode();

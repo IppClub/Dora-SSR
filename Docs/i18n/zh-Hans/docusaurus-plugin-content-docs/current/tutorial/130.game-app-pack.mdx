@@ -48,6 +48,8 @@ import TabItem from '@theme/TabItem';
 - **Android**。安装完整的 Dora APK，在 Dora Go 的作品卡选择 **管理 → 分享作品 → 导出 APK**。确认包名和版本，为签名密钥设置密码，或导入已有的 PKCS#12 密钥。导出后可保存或分享 APK。
 - TypeScript 或 TSX 作品需要先在 Dora 中编译。请从 Android 导出对话框备份签名密钥并保管密码。换设备时导入该密钥，使用原包名和更高的版本号，才能覆盖升级已安装的游戏。
 
+要自定义 Android 桌面图标，把 `icon.png` 放在项目根目录，与 `init` 入口文件同级。推荐使用 512 × 512 像素的方形 PNG。Dora 会保留透明区域，非方形图片会等比缩放并居中。没有该文件时，导出的 APK 使用 Android 系统的通用应用图标。
+
 ## 打包流程概览
 
 ```mermaid

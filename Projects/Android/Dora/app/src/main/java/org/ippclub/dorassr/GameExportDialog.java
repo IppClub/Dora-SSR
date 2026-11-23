@@ -196,7 +196,7 @@ final class GameExportDialog {
 				}
 				File unsigned = new File(request.stage, "unsigned.apk");
 				File signed = new File(request.stage, "signed.apk");
-				GameApk.export(new File(activity.getApplicationInfo().sourceDir), new File(request.stage, "assets"),
+				GameApk.export(new File(activity.getApplicationInfo().sourceDir), activity.getResources(), new File(request.stage, "assets"),
 						unsigned, signed, activity.getPackageName(), request.packageName, request.title,
 						versionCode, request.version, store, password);
 				if (!key.isFile()) {

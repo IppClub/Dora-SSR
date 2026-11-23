@@ -8,6 +8,14 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 package org.ippclub.dorassr;
 
+import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.RectF;
+import android.util.TypedValue;
+
 import com.android.apksig.ApkSigner;
 import com.android.apksig.ApkVerifier;
 
@@ -16,6 +24,7 @@ import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -44,6 +53,7 @@ final class GameApk {
 	private static final String KEY_ALIAS = "game";
 	private static final String MANIFEST = "AndroidManifest.xml";
 	private static final String STARTUP = "assets/Script/init.lua";
+	private static final int ICON_SIZE = 512;
 	private static final long DAY = 24L * 60 * 60 * 1000;
 
 	private GameApk() {}
@@ -105,7 +115,7 @@ final class GameApk {
 		return new ApkSigner.SignerConfig.Builder("GAME", key, certificates).build();
 	}
 
-	static void export(File source, File assets, File unsigned, File output, String originalId, String gameId,
+	static void export(File source, Resources resources, File assets, File unsigned, File output, String originalId, String gameId,
 			String title, int versionCode, String versionName, KeyStore store, char[] password) throws Exception {
 		if (!validPackageName(gameId, originalId) || versionCode < 1
 				|| title.trim().isEmpty() || versionName.trim().isEmpty()) {
@@ -115,10 +125,23 @@ final class GameApk {
 			throw new IOException("The game snapshot has no startup script or project files");
 		}
 		ApkSigner.SignerConfig signer = getSigner(store, password);
+		byte[] icon = readGameIcon(new File(assets, "Game/icon.png"));
+		int iconId = icon == null ? android.R.mipmap.sym_def_app_icon : R.drawable.game_export_icon;
+		String iconEntry = null;
+		if (icon != null) {
+			// Resolve the compiled path so it matches the installed APK's resource table.
+			TypedValue resource = new TypedValue();
+			resources.getValue(iconId, resource, true);
+			if (resource.string == null) throw new IOException("The Dora APK game icon resource is not a file");
+			iconEntry = resource.string.toString();
+		}
 		try (ZipFile template = new ZipFile(source);
 				ZipOutputStream zip = new ZipOutputStream(Files.newOutputStream(unsigned.toPath()))) {
 			if (template.getEntry(MANIFEST) == null || template.getEntry("classes.dex") == null) {
 				throw new IOException("A complete Dora APK is required");
+			}
+			if (iconEntry != null && template.getEntry(iconEntry) == null) {
+				throw new IOException("The Dora APK is missing the game icon resource");
 			}
 			boolean hasLibraries = false;
 			for (Enumeration<? extends ZipEntry> entries = template.entries(); entries.hasMoreElements();) {
@@ -130,8 +153,11 @@ final class GameApk {
 					try (InputStream input = template.getInputStream(item)) {
 						byte[] manifest = readManifest(input, item.getSize());
 						zip.putNextEntry(new ZipEntry(name));
-						zip.write(GameManifest.rewrite(manifest, originalId, gameId, title, versionCode, versionName));
+						zip.write(GameManifest.rewrite(manifest, originalId, gameId, title, versionCode, versionName, iconId));
 					}
+				} else if (name.equals(iconEntry)) {
+					zip.putNextEntry(new ZipEntry(name));
+					zip.write(icon);
 				} else {
 					ZipEntry entry = new ZipEntry(name);
 					if (item.getMethod() == ZipEntry.STORED || "resources.arsc".equals(name)) {
@@ -158,6 +184,46 @@ final class GameApk {
 				.build().sign();
 		if (!new ApkVerifier.Builder(output).build().verify().isVerified()) {
 			throw new IOException("The exported APK failed signature verification");
+		}
+	}
+
+	private static byte[] readGameIcon(File file) throws IOException {
+		if (!file.isFile()) return null;
+
+		BitmapFactory.Options options = new BitmapFactory.Options();
+		options.inJustDecodeBounds = true;
+		BitmapFactory.decodeFile(file.getPath(), options);
+		if (!"image/png".equals(options.outMimeType) || options.outWidth <= 0 || options.outHeight <= 0) {
+			throw new IOException("Project icon.png must be a readable PNG image");
+		}
+		// Keep the decoding bitmap small even for high-resolution artwork.
+		int longest = Math.max(options.outWidth, options.outHeight);
+		options.inSampleSize = 1;
+		while (longest / options.inSampleSize >= 2 * ICON_SIZE) options.inSampleSize *= 2;
+		options.inJustDecodeBounds = false;
+		options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+		Bitmap source = BitmapFactory.decodeFile(file.getPath(), options);
+		if (source == null) throw new IOException("Could not decode project icon.png");
+		try {
+			Bitmap icon = Bitmap.createBitmap(ICON_SIZE, ICON_SIZE, Bitmap.Config.ARGB_8888);
+			try {
+				float scale = (float) ICON_SIZE / Math.max(source.getWidth(), source.getHeight());
+				float width = source.getWidth() * scale;
+				float height = source.getHeight() * scale;
+				float left = (ICON_SIZE - width) / 2;
+				float top = (ICON_SIZE - height) / 2;
+				new Canvas(icon).drawBitmap(source, null, new RectF(left, top, left + width, top + height),
+						new Paint(Paint.FILTER_BITMAP_FLAG));
+				ByteArrayOutputStream encoded = new ByteArrayOutputStream();
+				if (!icon.compress(Bitmap.CompressFormat.PNG, 100, encoded)) {
+					throw new IOException("Could not encode project icon.png");
+				}
+				return encoded.toByteArray();
+			} finally {
+				icon.recycle();
+			}
+		} finally {
+			source.recycle();
 		}
 	}
 
