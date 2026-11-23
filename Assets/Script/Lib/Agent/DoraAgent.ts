@@ -1562,7 +1562,10 @@ function buildAgentSystemPrompt(shared: AgentShared): string {
 			].join("\n\n"));
 		}
 	}
-	if (AgentConfig.AGENT_DEFAULTS.memorySharedPrefixHandoff) sections.push('# Runtime validation ledger (authoritative last-observed state; saved changes are not passed tests)\n' + toJson(validationState(shared.workflow), false));
+	// The runtime validation ledger is sent in the per-request tail instead
+	// (buildDecisionMessages). It changes after every edit and build/test result,
+	// and any change to the system prompt invalidates the provider's cached
+	// prefix for the whole conversation.
 	sections.push(shared.promptPack.functionCallingPrompt);
 	const memoryBudget = shared.memory.compressor.getMemoryContextBudget();
 	const memoryContext = shared.memory.compressor.getStorage().getRelevantMemoryContext(shared.userQuery, memoryBudget);
@@ -1632,6 +1635,13 @@ function buildDecisionMessages(
 	if (consumeResumeCheckpoint) {
 		shared.resumeCheckpointPending = false;
 		shared.pendingTruncationRecovery = false;
+	}
+	if (AgentConfig.AGENT_DEFAULTS.memorySharedPrefixHandoff) {
+		// Sent on every turn, as it was in the system prompt, so the model always
+		// sees the current state. Riding in the tail means it follows the newly
+		// appended messages and is never part of the cached prefix: a change costs
+		// only this block's own tokens instead of the whole conversation.
+		tailSections.push('# Runtime validation ledger (authoritative last-observed state; saved changes are not passed tests)\n' + toJson(validationState(shared.workflow), false));
 	}
 	let messages: Message[] = [
 		{ role: "system", content: systemPrompt },
