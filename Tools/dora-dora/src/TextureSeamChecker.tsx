@@ -17,7 +17,7 @@ function compareEdges(first: Uint8ClampedArray, last: Uint8ClampedArray) {
 		);
 		if (delta > difference) {
 			difference = delta;
-			position = (i + 2) / first.length;
+			position = i / 4;
 		}
 	}
 	return { difference, position };
@@ -29,14 +29,33 @@ function drawPreview(canvas: HTMLCanvasElement, image: HTMLImageElement) {
 	const edgeContext = edge.getContext('2d', { willReadFrequently: true });
 	const preview = canvas.getContext('2d');
 	if (!width || !height || !edgeContext || !preview) throw new Error('Texture unavailable');
-	const readEdge = (x: number, y: number, w: number, h: number) => {
-		edge.width = Math.min(w, 4096);
-		edge.height = Math.min(h, 4096);
-		edgeContext.drawImage(image, x, y, w, h, 0, 0, edge.width, edge.height);
-		return edgeContext.getImageData(0, 0, edge.width, edge.height).data;
+	const compareOppositeEdges = (alongY: boolean) => {
+		const length = alongY ? height : width;
+		const opposite = alongY ? width - 1 : height - 1;
+		const chunkSize = 4096;
+		let difference = 0;
+		let position = 0;
+		for (let offset = 0; offset < length; offset += chunkSize) {
+			const count = Math.min(chunkSize, length - offset);
+			edge.width = alongY ? 1 : count;
+			edge.height = alongY ? count : 1;
+			const readEdge = (side: number) => {
+				edgeContext.clearRect(0, 0, edge.width, edge.height);
+				const x = alongY ? side : offset;
+				const y = alongY ? offset : side;
+				edgeContext.drawImage(image, x, y, edge.width, edge.height, 0, 0, edge.width, edge.height);
+				return edgeContext.getImageData(0, 0, edge.width, edge.height).data;
+			};
+			const chunk = compareEdges(readEdge(0), readEdge(opposite));
+			if (chunk.difference > difference) {
+				difference = chunk.difference;
+				position = (offset + chunk.position + 0.5) / length;
+			}
+		}
+		return { difference, position };
 	};
-	const horizontal = compareEdges(readEdge(0, 0, 1, height), readEdge(width - 1, 0, 1, height));
-	const vertical = compareEdges(readEdge(0, 0, width, 1), readEdge(0, height - 1, width, 1));
+	const horizontal = compareOppositeEdges(true);
+	const vertical = compareOppositeEdges(false);
 	const scale = Math.min(3, 320 / Math.max(width, height));
 	const tileWidth = Math.max(1, Math.round(width * scale));
 	const tileHeight = Math.max(1, Math.round(height * scale));
@@ -62,9 +81,13 @@ function drawPreview(canvas: HTMLCanvasElement, image: HTMLImageElement) {
 			if (vertical.difference > 0) mark((tile + vertical.position) * tileWidth, boundary * tileHeight);
 		}
 	}
+	const formatDifference = (difference: number) => {
+		const percent = difference * 100;
+		return percent > 0 && percent < 1 ? '<1' : String(Math.round(percent));
+	};
 	return {
-		horizontal: Math.round(horizontal.difference * 100),
-		vertical: Math.round(vertical.difference * 100),
+		horizontal: formatDifference(horizontal.difference),
+		vertical: formatDifference(vertical.difference),
 	};
 }
 
