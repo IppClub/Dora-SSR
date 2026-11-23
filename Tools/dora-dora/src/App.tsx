@@ -6438,17 +6438,13 @@ export default function PersistentDrawerLeft() {
 								</div> : null
 							}
 							{image ?
-								<MacScrollbar skin='dark' style={{ height: editorHeight }}>
-									<Container maxWidth="lg">
-										<DrawerHeader />
-										<TextureSeamChecker src={
-											appendCacheKey(
-												Service.addr("/" + toUrlPath(path.relative(parentPath, file.key), path)),
-												file.previewVersion,
-											)
-										} />
-									</Container>
-								</MacScrollbar> : null
+								<TextureSeamChecker
+									height={editorHeight}
+									src={appendCacheKey(
+										Service.addr("/" + toUrlPath(path.relative(parentPath, file.key), path)),
+										file.previewVersion,
+									)}
+								/> : null
 							}
 							{(() => {
 								if (spine && tabIndex === index) {

@@ -50,8 +50,9 @@ i18n
 					spine: {
 						load: "failed to load {{file}}",
 					},
+					imageTools: "Image tools",
 					textureSeams: {
-						open: "Check texture seams",
+						open: "3x3 texture seam check",
 						close: "Show original",
 						failed: "Could not analyze the texture.",
 						loading: "Analyzing texture…",
@@ -1382,8 +1383,9 @@ i18n
 					spine: {
 						load: "加载 {{file}} 失败",
 					},
+					imageTools: "图片工具",
 					textureSeams: {
-						open: "检查贴图接缝",
+						open: "3x3贴图接缝检查",
 						close: "显示原图",
 						failed: "无法分析这张贴图。",
 						loading: "正在分析贴图…",

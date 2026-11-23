@@ -1,7 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
-import { Box, Button, Stack, Typography } from '@mui/material';
+import { useEffect, useId, useRef, useState } from 'react';
+import { Box, Button, Container, Menu, MenuItem, Stack, Typography } from '@mui/material';
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import { Image } from 'antd';
+import { MacScrollbar } from 'mac-scrollbar';
 import { useTranslation } from 'react-i18next';
+import { DrawerHeader } from './Frame';
 
 function compareEdges(first: Uint8ClampedArray, last: Uint8ClampedArray) {
 	let difference = 0;
@@ -91,11 +94,15 @@ function drawPreview(canvas: HTMLCanvasElement, image: HTMLImageElement) {
 	};
 }
 
-export default function TextureSeamChecker({ src }: { src: string }) {
+export default function TextureSeamChecker({ src, height }: { src: string; height: number }) {
 	const { t } = useTranslation();
 	const canvas = useRef<HTMLCanvasElement>(null);
+	const buttonId = useId();
+	const menuId = useId();
+	const [menuAnchor, setMenuAnchor] = useState<HTMLButtonElement | null>(null);
 	const [open, setOpen] = useState(false);
 	const [result, setResult] = useState<ReturnType<typeof drawPreview> | 'error' | null>(null);
+	const menuOpen = menuAnchor !== null;
 
 	useEffect(() => {
 		if (!open) return;
@@ -119,25 +126,72 @@ export default function TextureSeamChecker({ src }: { src: string }) {
 	}, [open, src]);
 
 	return (
-		<Stack spacing={1} alignItems="flex-start">
-			<Button variant="outlined" size="small" onClick={() => setOpen(!open)} aria-pressed={open}>
-				{t(open ? 'textureSeams.close' : 'textureSeams.open')}
+		<Box sx={{ position: 'relative', height }}>
+			<MacScrollbar skin="dark" style={{ height: '100%' }}>
+				<Container maxWidth="lg" sx={{ pb: 8 }}>
+					<DrawerHeader />
+					<Stack spacing={1} alignItems="flex-start">
+						{open ? (
+							<>
+								<Typography variant="body2" color="text.primary" role="status">
+									{result === 'error' ? t('textureSeams.failed')
+										: result ? t('textureSeams.result', result) : t('textureSeams.loading')}
+								</Typography>
+								<Box
+									component="canvas"
+									ref={canvas}
+									role="img"
+									aria-label={t('textureSeams.preview')}
+									sx={{ display: result && result !== 'error' ? 'block' : 'none', maxWidth: '100%', height: 'auto' }}
+								/>
+							</>
+						) : <Image src={src} preview={false} />}
+					</Stack>
+				</Container>
+			</MacScrollbar>
+			<Button
+				id={buttonId}
+				variant="outlined"
+				size="small"
+				endIcon={<ArrowDropDownIcon />}
+				sx={{
+					position: 'absolute',
+					left: 16,
+					bottom: 16,
+					zIndex: 1,
+					bgcolor: 'background.paper',
+					boxShadow: 3,
+				}}
+				aria-haspopup="menu"
+				aria-expanded={menuOpen}
+				aria-controls={menuOpen ? menuId : undefined}
+				onClick={event => setMenuAnchor(event.currentTarget)}
+			>
+				{t('imageTools')}
 			</Button>
-			{open ? (
-				<>
-					<Typography variant="body2" role="status">
-						{result === 'error' ? t('textureSeams.failed')
-							: result ? t('textureSeams.result', result) : t('textureSeams.loading')}
-					</Typography>
-					<Box
-						component="canvas"
-						ref={canvas}
-						role="img"
-						aria-label={t('textureSeams.preview')}
-						sx={{ display: result && result !== 'error' ? 'block' : 'none', maxWidth: '100%', height: 'auto' }}
-					/>
-				</>
-			) : <Image src={src} preview={false} />}
-		</Stack>
+			<Menu
+				anchorEl={menuAnchor}
+				open={menuOpen}
+				onClose={() => setMenuAnchor(null)}
+				anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
+				transformOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+				slotProps={{ list: { id: menuId, 'aria-labelledby': buttonId } }}
+			>
+				<MenuItem selected={open} onClick={() => {
+					setOpen(true);
+					setMenuAnchor(null);
+				}}>
+					{t('textureSeams.open')}
+				</MenuItem>
+				{open && (
+					<MenuItem onClick={() => {
+						setOpen(false);
+						setMenuAnchor(null);
+					}}>
+						{t('textureSeams.close')}
+					</MenuItem>
+				)}
+			</Menu>
+		</Box>
 	);
 }
