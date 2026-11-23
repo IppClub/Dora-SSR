@@ -106,6 +106,7 @@ export interface AgentToolSpawnRequest {
 	prompt: string;
 	expectedOutput?: string;
 	filesHint?: string[];
+	agentType?: string;
 	disabledAgentTools?: AgentToolName[];
 }
 
