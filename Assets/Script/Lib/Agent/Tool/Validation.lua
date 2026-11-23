@@ -8,6 +8,7 @@ local __TS__ObjectAssign = ____lualib.__TS__ObjectAssign -- 1
 local __TS__ArrayMap = ____lualib.__TS__ArrayMap -- 1
 local __TS__ArraySome = ____lualib.__TS__ArraySome -- 1
 local __TS__ArrayFilter = ____lualib.__TS__ArrayFilter -- 1
+local __TS__ArrayIndexOf = ____lualib.__TS__ArrayIndexOf -- 1
 local ____exports = {} -- 1
 local ____Dora = require("Dora") -- 2
 local Path = ____Dora.Path -- 2
@@ -393,35 +394,50 @@ function ____exports.validateAgentToolInput(tool, input) -- 91
 					function(____, item) return AgentUtils.sanitizeUTF8(item) end -- 274
 				) -- 274
 			end -- 274
-		else -- 274
-			if value.title ~= nil or value.expectedOutput ~= nil or value.filesHint ~= nil then -- 274
-				return {success = false, message = "spawn_agent list form cannot carry spawn fields (title/expectedOutput/filesHint)"} -- 279
-			end -- 279
-			value.prompt = nil -- 281
-			value.title = nil -- 282
-			if type(value.status) == "string" and __TS__StringTrim(value.status) ~= "" then -- 282
-				value.status = __TS__StringTrim(value.status) -- 283
+			local agentType = type(value.agentType) == "string" and __TS__StringTrim(value.agentType) or "" -- 276
+			if agentType ~= "" then -- 276
+				if __TS__ArrayIndexOf({ -- 276
+					"audio", -- 278
+					"visual", -- 278
+					"level", -- 278
+					"test", -- 278
+					"general" -- 278
+				}, agentType) < 0 then -- 278
+					return {success = false, message = "spawn_agent agentType must be one of audio/visual/level/test/general"} -- 279
+				end -- 279
+				value.agentType = agentType -- 281
+			else -- 281
+				value.agentType = nil -- 283
 			end -- 283
-			value.limit = clampInteger(value.limit, 5, 1) -- 284
-			value.offset = clampInteger(value.offset, 0, 0) -- 285
-			if type(value.query) == "string" then -- 285
-				value.query = __TS__StringTrim(value.query) -- 286
-			end -- 286
-		end -- 286
-		return {success = true, value = value} -- 288
-	end -- 288
-	return {success = true, value = value} -- 290
+		else -- 283
+			if value.title ~= nil or value.expectedOutput ~= nil or value.filesHint ~= nil or value.agentType ~= nil then -- 283
+				return {success = false, message = "spawn_agent list form cannot carry spawn fields (title/expectedOutput/filesHint/agentType)"} -- 288
+			end -- 288
+			value.prompt = nil -- 290
+			value.title = nil -- 291
+			if type(value.status) == "string" and __TS__StringTrim(value.status) ~= "" then -- 291
+				value.status = __TS__StringTrim(value.status) -- 292
+			end -- 292
+			value.limit = clampInteger(value.limit, 5, 1) -- 293
+			value.offset = clampInteger(value.offset, 0, 0) -- 294
+			if type(value.query) == "string" then -- 294
+				value.query = __TS__StringTrim(value.query) -- 295
+			end -- 295
+		end -- 295
+		return {success = true, value = value} -- 297
+	end -- 297
+	return {success = true, value = value} -- 299
 end -- 91
-____exports.AGENT_TOOL_VALIDATORS = { -- 293
-	analyze_image = function(value) return ____exports.validateAgentToolInput("analyze_image", value) end, -- 294
-	read_file = function(value) return ____exports.validateAgentToolInput("read_file", value) end, -- 295
-	edit_file = function(value) return ____exports.validateAgentToolInput("edit_file", value) end, -- 296
-	write_file = function(value) return ____exports.validateAgentToolInput("write_file", value) end, -- 297
-	grep_files = function(value) return ____exports.validateAgentToolInput("grep_files", value) end, -- 298
-	search_dora_doc = function(value) return ____exports.validateAgentToolInput("search_dora_doc", value) end, -- 299
-	build = function(value) return ____exports.validateAgentToolInput("build", value) end, -- 300
-	execute_command = function(value) return ____exports.validateAgentToolInput("execute_command", value) end, -- 301
-	spawn_agent = function(value) return ____exports.validateAgentToolInput("spawn_agent", value) end, -- 302
-	ask_user = function(value) return ____exports.validateAgentToolInput("ask_user", value) end -- 303
-} -- 303
-return ____exports -- 303
+____exports.AGENT_TOOL_VALIDATORS = { -- 302
+	analyze_image = function(value) return ____exports.validateAgentToolInput("analyze_image", value) end, -- 303
+	read_file = function(value) return ____exports.validateAgentToolInput("read_file", value) end, -- 304
+	edit_file = function(value) return ____exports.validateAgentToolInput("edit_file", value) end, -- 305
+	write_file = function(value) return ____exports.validateAgentToolInput("write_file", value) end, -- 306
+	grep_files = function(value) return ____exports.validateAgentToolInput("grep_files", value) end, -- 307
+	search_dora_doc = function(value) return ____exports.validateAgentToolInput("search_dora_doc", value) end, -- 308
+	build = function(value) return ____exports.validateAgentToolInput("build", value) end, -- 309
+	execute_command = function(value) return ____exports.validateAgentToolInput("execute_command", value) end, -- 310
+	spawn_agent = function(value) return ____exports.validateAgentToolInput("spawn_agent", value) end, -- 311
+	ask_user = function(value) return ____exports.validateAgentToolInput("ask_user", value) end -- 312
+} -- 312
+return ____exports -- 312

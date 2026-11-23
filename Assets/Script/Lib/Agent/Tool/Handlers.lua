@@ -753,53 +753,54 @@ local function spawnAgent(context, input) -- 538
 			prompt = prompt, -- 575
 			expectedOutput = type(input.expectedOutput) == "string" and input.expectedOutput or nil, -- 576
 			filesHint = filesHint, -- 577
-			disabledAgentTools = context.disabledAgentTools -- 578
-		})) -- 578
-		if not result.success then -- 578
-			return ____awaiter_resolve(nil, {output = result}) -- 578
-		end -- 578
-		context.workflow.hasSpawnedSubAgentThisTask = true -- 581
-		return ____awaiter_resolve(nil, {output = { -- 581
-			success = true, -- 584
-			sessionId = result.sessionId, -- 585
-			taskId = result.taskId, -- 586
-			title = result.title, -- 587
-			hint = "Dispatch any other intended independent sub-agents, do only bounded foreground work that does not depend on them, then finish this turn. Do not use the listing form in this task; results arrive as asynchronous handoffs." -- 588
-		}, control = {spawnedSubAgent = true}}) -- 588
-	end) -- 588
+			agentType = type(input.agentType) == "string" and input.agentType ~= "" and input.agentType or nil, -- 578
+			disabledAgentTools = context.disabledAgentTools -- 579
+		})) -- 579
+		if not result.success then -- 579
+			return ____awaiter_resolve(nil, {output = result}) -- 579
+		end -- 579
+		context.workflow.hasSpawnedSubAgentThisTask = true -- 582
+		return ____awaiter_resolve(nil, {output = { -- 582
+			success = true, -- 585
+			sessionId = result.sessionId, -- 586
+			taskId = result.taskId, -- 587
+			title = result.title, -- 588
+			hint = "Dispatch any other intended independent sub-agents, do only bounded foreground work that does not depend on them, then finish this turn. Do not use the listing form in this task; results arrive as asynchronous handoffs." -- 589
+		}, control = {spawnedSubAgent = true}}) -- 589
+	end) -- 589
 end -- 538
-local function analyzeImageHandler(context, input) -- 594
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 594
-		local visionContext = context.visionTaskContext or "" -- 595
-		if type(input.context) == "string" and __TS__StringTrim(input.context) ~= "" then -- 595
-			visionContext = visionContext == "" and input.context or (visionContext .. "\n\n") .. input.context -- 597
-		end -- 597
-		return ____awaiter_resolve( -- 597
-			nil, -- 597
-			{output = __TS__Await(analyzeImage({ -- 599
-				workingDir = context.workingDir, -- 600
-				taskId = context.taskId, -- 601
-				sessionId = context.sessionId, -- 602
-				binding = context.visionBinding, -- 603
-				paths = input.paths, -- 604
-				question = input.question, -- 605
-				criteria = input.criteria, -- 606
-				context = visionContext, -- 607
-				isCancelled = function() return context.cancellation:isCancelled() end -- 608
-			}))} -- 608
-		) -- 608
-	end) -- 608
-end -- 594
-____exports.AGENT_TOOL_HANDLERS = { -- 612
-	read_file = readFile, -- 613
-	analyze_image = analyzeImageHandler, -- 614
-	grep_files = grepFiles, -- 615
-	search_dora_doc = searchDoraDoc, -- 616
-	build = build, -- 617
-	execute_command = executeCommand, -- 618
-	edit_file = editFile, -- 619
-	write_file = writeFile, -- 620
-	ask_user = askUser, -- 621
-	spawn_agent = spawnAgent -- 622
-} -- 622
-return ____exports -- 622
+local function analyzeImageHandler(context, input) -- 595
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 595
+		local visionContext = context.visionTaskContext or "" -- 596
+		if type(input.context) == "string" and __TS__StringTrim(input.context) ~= "" then -- 596
+			visionContext = visionContext == "" and input.context or (visionContext .. "\n\n") .. input.context -- 598
+		end -- 598
+		return ____awaiter_resolve( -- 598
+			nil, -- 598
+			{output = __TS__Await(analyzeImage({ -- 600
+				workingDir = context.workingDir, -- 601
+				taskId = context.taskId, -- 602
+				sessionId = context.sessionId, -- 603
+				binding = context.visionBinding, -- 604
+				paths = input.paths, -- 605
+				question = input.question, -- 606
+				criteria = input.criteria, -- 607
+				context = visionContext, -- 608
+				isCancelled = function() return context.cancellation:isCancelled() end -- 609
+			}))} -- 609
+		) -- 609
+	end) -- 609
+end -- 595
+____exports.AGENT_TOOL_HANDLERS = { -- 613
+	read_file = readFile, -- 614
+	analyze_image = analyzeImageHandler, -- 615
+	grep_files = grepFiles, -- 616
+	search_dora_doc = searchDoraDoc, -- 617
+	build = build, -- 618
+	execute_command = executeCommand, -- 619
+	edit_file = editFile, -- 620
+	write_file = writeFile, -- 621
+	ask_user = askUser, -- 622
+	spawn_agent = spawnAgent -- 623
+} -- 623
+return ____exports -- 623
