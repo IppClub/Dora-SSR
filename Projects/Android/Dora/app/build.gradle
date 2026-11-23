@@ -155,7 +155,7 @@ android {
             if (godotEnabled) keepDebugSymbols += ['**/libgodot_android.so']
 		}
 		resources {
-			excludes += ['classes.dex']
+			excludes += ['classes.dex', 'META-INF/versions/9/OSGI-INF/MANIFEST.MF']
 		}
 	}
 	compileOptions {
@@ -203,6 +203,8 @@ if (!waArtifact.isFile()) {
 }
 
 dependencies {
+	implementation 'com.android.tools.build:apksig:8.6.1'
+	implementation 'org.bouncycastle:bcpkix-jdk18on:1.79'
     if (godotEnabled) {
         implementation files(godotJava).builtBy(prepareProductionGodot)
         implementation 'org.jetbrains.kotlin:kotlin-stdlib:2.1.21'

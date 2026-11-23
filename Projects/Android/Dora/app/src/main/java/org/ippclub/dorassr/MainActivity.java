@@ -153,6 +153,7 @@ public class MainActivity extends SDLActivity {
 	private static native void nativeReceiveFile(String path, boolean picked);
 	private static native boolean nativeOpenProjectLink(String link);
 	private String pendingGameExport;
+	private GameExportDialog gameApkExport;
 
 	private static native void nativeSetPath(String path);
 	private static native void nativeSetScreenDensity(float density);
@@ -331,12 +332,26 @@ public class MainActivity extends SDLActivity {
 	}
 
 	@Keep
+	public void exportGameApk(String path, String id, String title) {
+		runOnUiThread(() -> {
+			if (gameApkExport == null) gameApkExport = new GameExportDialog(this, gameFileWorker);
+			gameApkExport.open(path, id, title);
+		});
+	}
+
+	private static String gameFileMimeType(String path) {
+		if (path.endsWith(".apk")) return "application/vnd.android.package-archive";
+		if (path.endsWith(".p12")) return "application/x-pkcs12";
+		return "application/zip";
+	}
+
+	@Keep
 	public void shareGameFile(String path) {
 		runOnUiThread(() -> {
 			try {
 				Uri uri = FileProvider.getUriForFile(this, getPackageName() + ".FileProvider", new File(path));
 				Intent intent = new Intent(Intent.ACTION_SEND);
-				intent.setType("application/zip");
+				intent.setType(gameFileMimeType(path));
 				intent.putExtra(Intent.EXTRA_STREAM, uri);
 				intent.setClipData(ClipData.newRawUri("Game package", uri));
 				intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
@@ -349,14 +364,18 @@ public class MainActivity extends SDLActivity {
 
 	@Keep
 	public void saveGameFile(String path) {
+		saveGameFile(path, new File(path).getName());
+	}
+
+	void saveGameFile(String path, String filename) {
 		runOnUiThread(() -> {
 			if (pendingGameExport != null) return;
 			try {
 				pendingGameExport = path;
 				Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
 				intent.addCategory(Intent.CATEGORY_OPENABLE);
-				intent.setType("application/zip");
-				intent.putExtra(Intent.EXTRA_TITLE, new File(path).getName());
+				intent.setType(gameFileMimeType(path));
+				intent.putExtra(Intent.EXTRA_TITLE, filename);
 				startActivityForResult(intent, REQUEST_SAVE_GAME);
 			} catch (ActivityNotFoundException error) {
 				pendingGameExport = null;
@@ -1107,7 +1126,7 @@ public class MainActivity extends SDLActivity {
 		}
 	}
 
-	private void showToast(String message) {
+	void showToast(String message) {
 		uiHandler.post(() -> Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT).show());
 	}
 
@@ -1430,6 +1449,11 @@ public class MainActivity extends SDLActivity {
 			else nativeReceiveFile("", true);
 			return;
 		}
+		if (requestCode == GameExportDialog.REQUEST_SIGNING_KEY) {
+			if (gameApkExport != null) gameApkExport.onSigningKeyPicked(
+					resultCode == RESULT_OK && data != null ? data.getData() : null);
+			return;
+		}
 		if (requestCode == REQUEST_SAVE_GAME) {
 			String source = pendingGameExport;
 			pendingGameExport = null;
@@ -1442,9 +1466,9 @@ public class MainActivity extends SDLActivity {
 						byte[] buffer = new byte[65536];
 						int count;
 						while ((count = input.read(buffer)) != -1) output.write(buffer, 0, count);
-						showToast(gameText("作品包已保存", "Game package saved"));
+						showToast(gameText("文件已保存", "File saved"));
 					} catch (Exception error) {
-						showToast(gameText("作品包保存失败", "Could not save game package"));
+						showToast(gameText("保存文件失败", "Could not save file"));
 					}
 				});
 			}

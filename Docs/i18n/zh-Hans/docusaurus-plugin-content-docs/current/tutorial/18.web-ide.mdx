@@ -58,8 +58,10 @@ Windows/macOS 运行成功后，应用窗口会显示游戏，点击左侧 **IDE
 | **导出混淆代码 ZIP 包** | 对支持的源码进行编译和混淆后打包。 |
 | **导出 HTML** | 包含 Web 游戏的 ZIP；完整解压后直接打开 `index.html`。 |
 | **导出 Server 版 HTML** | 包含 Web 游戏的 ZIP；解压后通过 HTTP 服务发布。 |
+| **导出 Windows ZIP** | Dora 运行在 Windows 时，下载包含游戏 EXE 和运行文件的 ZIP。 |
+| **导出 APK** | 在运行 Dora 的安卓设备上打开原生导出窗口，在设备上填写包名、签名并保存或分享 APK。 |
 
-识别到可运行项目时，才会显示 Web 导出选项。等待下载完成后，打开导出的游戏确认运行结果。更多交付说明见[项目打包](./130.game-app-pack.mdx)。
+识别到可运行项目时会显示 Web 导出选项。工作区项目的原生导出选项取决于运行 Dora 的平台。导出 APK 需要安装完整版本的 Dora APK。更多交付说明见[项目打包](./130.game-app-pack.mdx)。
 
 <DocScreenshot src={exportImage} width={1080} height={1120} alt="项目导出对话框：ZIP、混淆 ZIP、HTML 和服务器 HTML" />
 

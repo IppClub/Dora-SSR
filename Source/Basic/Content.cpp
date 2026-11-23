@@ -11,6 +11,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Basic/Content.h"
 
 #include "Basic/Application.h"
+#if BX_PLATFORM_WINDOWS && !defined(DORA_AS_LIB)
+#include "Basic/WindowsGame.h"
+#endif
 #include "Common/Async.h"
 #include "Event/Event.h"
 #include "Render/VGRender.h"
@@ -1617,7 +1620,13 @@ void Content::clearPathCache() {
 }
 
 static std::string getPrefPath() {
+	#if BX_PLATFORM_WINDOWS && !defined(DORA_AS_LIB)
+	const auto& gameId = windowsGameId();
+	const auto appName = gameId.empty() ? DORA_DEFAULT_APP_NAME : "DoraGame-" + gameId;
+	char* prefPath = SDL_GetPrefPath(DORA_DEFAULT_ORG_NAME, appName.c_str());
+#else
 	char* prefPath = SDL_GetPrefPath(DORA_DEFAULT_ORG_NAME, DORA_DEFAULT_APP_NAME);
+#endif
 	std::string appPath = prefPath;
 	trimTrailingSlashes(appPath);
 	SDL_free(prefPath);
@@ -1806,7 +1815,11 @@ Content::Content()
 		_writablePath = _appPath;
 	}
 #else
+#if BX_PLATFORM_WINDOWS && !defined(DORA_AS_LIB)
+	_assetPath = windowsGameId().empty() ? fs::current_path().string() : windowsGameRoot();
+#else
 	_assetPath = fs::current_path().string();
+#endif
 	trimTrailingSlashes(_assetPath);
 	_writablePath = _appPath;
 #endif // BX_PLATFORM_EMSCRIPTEN

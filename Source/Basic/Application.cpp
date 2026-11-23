@@ -33,6 +33,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #if (BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX || BX_PLATFORM_LINUX) && !defined(DORA_AS_LIB)
 #include "Basic/GuiInstance.h"
 #if BX_PLATFORM_WINDOWS
+#include "Basic/WindowsGame.h"
 #include "Basic/WindowsUpdate.h"
 #endif
 #if BX_PLATFORM_OSX
@@ -278,6 +279,41 @@ static bool androidFileAction(const char* name, const std::string& path) {
 	if (clazz) env->DeleteLocalRef(clazz);
 	env->DeleteLocalRef(activity);
 	return success;
+}
+
+// Internal editor integration. The Java activity owns the dialog and worker.
+int doraAndroidExportGame(lua_State* state) {
+	const char* values[] = {luaL_checkstring(state, 1), luaL_checkstring(state, 2), luaL_checkstring(state, 3)};
+	JNIEnv* env = Android_JNI_GetEnv();
+	if (!env) {
+		lua_pushboolean(state, false);
+		return 1;
+	}
+	auto activity = r_cast<jobject>(SDL_AndroidGetActivity());
+	bool dispatched = false;
+	if (activity) {
+		auto clazz = env->GetObjectClass(activity);
+		auto method = clazz ? env->GetMethodID(clazz, "exportGameApk",
+			"(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V") : nullptr;
+		if (method) {
+			jstring args[3]{};
+			for (size_t i = 0; i < 3; ++i) {
+				auto utf16 = CodeCvt::utf8to16(values[i]);
+				args[i] = env->NewString(r_cast<const jchar*>(utf16.data()), s_cast<jsize>(utf16.size()));
+				if (!args[i]) break;
+			}
+			if (args[2]) {
+				env->CallVoidMethod(activity, method, args[0], args[1], args[2]);
+				dispatched = !env->ExceptionCheck();
+			}
+			for (auto arg : args) if (arg) env->DeleteLocalRef(arg);
+		}
+		if (env->ExceptionCheck()) env->ExceptionClear();
+		if (clazz) env->DeleteLocalRef(clazz);
+		env->DeleteLocalRef(activity);
+	}
+	lua_pushboolean(state, dispatched);
+	return 1;
 }
 
 static void setAndroidAppWebView(const std::string& path, bool visible) {
@@ -1155,7 +1191,12 @@ bool Application::isDevMode() const noexcept {
 
 #if !BX_PLATFORM_OSX && !BX_PLATFORM_IOS
 std::string Application::getExecutablePath() const {
-#if BX_PLATFORM_ANDROID
+#if BX_PLATFORM_WINDOWS
+	std::wstring path(32768, L'\0');
+	const DWORD length = GetModuleFileNameW(nullptr, path.data(), static_cast<DWORD>(path.size()));
+	if (length == 0 || length >= path.size()) return {};
+	return CodeCvt::utf16to8(std::u16string(r_cast<const char16_t*>(path.data()), length));
+#elif BX_PLATFORM_ANDROID
 	char path[2048] = {};
 	const ssize_t length = readlink("/proc/self/exe", path, sizeof(path));
 	return length > 0 && length < s_cast<ssize_t>(sizeof(path))
@@ -2642,7 +2683,13 @@ int runGuiApplication(int argc, char* argv[]) {
 		if (!Dora::projectRepository(argv[i]).empty()) projectLink = argv[i];
 	}
 #if (BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX || BX_PLATFORM_LINUX) && !defined(DORA_AS_LIB)
+#if BX_PLATFORM_WINDOWS
+	const auto& gameId = Dora::windowsGameId();
+	if (!gameId.empty()) projectLink.clear();
+	Dora::GuiInstance instance(gameId.empty() ? "dora-ssr-gui" : "dora-game-" + gameId);
+#else
 	Dora::GuiInstance instance;
+#endif
 	const auto result = instance.acquire(projectLink);
 	if (result != Dora::GuiInstance::Result::Primary) {
 		const bool notified = result == Dora::GuiInstance::Result::Notified;

@@ -8,7 +8,7 @@ import TabItem from '@theme/TabItem';
 
 # How to Package Games as Standalone Applications
 
-This page starts with Web IDE export for playable Web games, then covers building native application packages from engine source.
+Export finished games from the Web IDE or Dora’s native launcher. The platform build guides below also cover packaging from engine source.
 
 ## Export a playable Web game from the IDE
 
@@ -40,6 +40,13 @@ For **Export server HTML**, extract the ZIP and deploy the entire output directo
 - After changing the project, export a fresh package and replace the complete deployed output.
 
 See [Web IDE common operations](./18.web-ide.mdx#export-a-project) for the format table. The overview and platform sections below cover packaging from engine source.
+
+## Export a native game from Dora
+
+- **Web IDE**. Right-click the project folder and select **Export**, or open a project file and use the toolbar's **Export** button. Choose **Export Windows ZIP** when the engine runs on Windows or **Export APK** when it runs on Android. Complete APK signing and saving on the Android device running Dora.
+- **Windows**. In the Classic UI project list, select **Export Windows ZIP** for a runnable project and choose a destination folder. Players extract the entire ZIP and open the game’s EXE. Keep the packaged DLLs and assets beside the EXE.
+- **Android**. Install the complete Dora APK. In Dora Go, choose **Manage → Share game → Export APK** on the game’s card. Confirm the package name and version, then set a signing password or import an existing PKCS#12 signing key. Save or share the APK when export finishes.
+- Build TypeScript or TSX games in Dora before exporting. Back up the Android signing key from the export dialog and keep its password. When moving to another device, import the key and use the same package name and a higher version code to update existing installations.
 
 ## Packaging Process Overview
 

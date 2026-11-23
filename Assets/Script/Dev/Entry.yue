@@ -384,6 +384,26 @@ export getProjectEntries = (path, noPreview = false) ->
 local gamesInDev
 local doraTools
 
+windowsExport = {busy: false}
+allEntries.exportWindowsGame = (game, title) ->
+	return if windowsExport.busy
+	windowsExport.busy = true
+	windowsExport.message = nil
+	App\openFileDialog true, (folder) ->
+		if folder == ""
+			windowsExport.busy = false
+			return
+		windowsExport.routine = thread ->
+			success, result = pcall ->
+				:exportWindows = oldRequire "Script.Dev.NativeGameExport"
+				exportWindows game.projectPath, game.fileName, title, folder
+			windowsExport.busy = false
+			windowsExport.routine = nil
+			windowsExport.message = if success
+				(useChinese and "已导出 " or "Exported ") .. result
+			else
+				(useChinese and "导出失败：" or "Export failed: ") .. tostring result
+
 isToolEntry = (entry): false ->
 	switch entry when repo: :categories
 		for category in *categories
@@ -753,7 +773,7 @@ export allClear = ->
 			false
 	for routine in *Routine
 		switch routine
-			when footerWindow, entryWindow, testingThread
+			when footerWindow, entryWindow, testingThread, windowsExport.routine
 				continue
 			else
 				Routine\remove routine
@@ -1636,6 +1656,9 @@ entryWindow = do
 				Dora.globals.webProjects.draw zh, themeColor
 				allEntries.anyEntryMatched = true
 			if #gamesInDev > 0
+				if App.platform == "Windows"
+					ImGui.TextDisabled zh and "正在导出 Windows 游戏…" or "Exporting Windows game…" if windowsExport.busy
+					TextWrapped windowsExport.message if windowsExport.message
 				columns = math.max math.floor(width / DemoViewWidth), 1
 				Columns columns, false
 				realViewWidth = GetColumnWidth! - 50
@@ -1695,6 +1718,9 @@ entryWindow = do
 								ImGui.TextDisabled zh and "请先在 IDE 中编译项目" or "Build in the IDE first"
 							elseif Button "#{zh and "开始测试" or "Game Test"}###{fileName}", Vec2 -1, 40
 								enterDemoEntry game
+						if App.platform == "Windows" and not windowsExport.busy and not game.needsBuild
+							if Button "#{zh and "导出 Windows ZIP" or "Export Windows ZIP"}###{fileName}", Vec2 -1, 30
+								allEntries.exportWindowsGame game, displayName
 						if #tests == 0 and #examples == 0
 							allEntries.thinSep!
 						NextColumn!

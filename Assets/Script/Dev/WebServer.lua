@@ -300,6 +300,7 @@ local invalidArguments = { -- 131
 	success = false, -- 131
 	message = "invalid arguments" -- 131
 } -- 131
+local nativeExportFormat -- 132
 HttpServer:post("/agent/project-root", function(req) -- 133
 	do -- 134
 		local _type_0 = type(req) -- 134
@@ -328,7 +329,8 @@ HttpServer:post("/agent/project-root", function(req) -- 133
 						success = true, -- 136
 						found = true, -- 136
 						projectRoot = projectRoot, -- 136
-						title = Path:getFilename(projectRoot) -- 136
+						title = Path:getFilename(projectRoot), -- 136
+						nativeExport = nativeExportFormat(projectRoot) -- 136
 					} -- 136
 				else -- 138
 					return { -- 138
@@ -5375,7 +5377,7 @@ visitAssets = function(path, workspace, builtin, recursive) -- 2156
 	for _index_0 = 1, #dirs do -- 2159
 		local dir = dirs[_index_0] -- 2159
 		if workspace then -- 2160
-			if (".upload" == dir or ".download" == dir or ".www" == dir or ".build" == dir or ".git" == dir or ".cache" == dir or ".godot" == dir or "node_modules" == dir) then -- 2161
+			if (".upload" == dir or ".download" == dir or ".www" == dir or ".build" == dir or ".git" == dir or ".cache" == dir or ".godot" == dir or ".native-export" == dir or "node_modules" == dir) then -- 2161
 				goto _continue_0 -- 2162
 			end -- 2161
 		elseif dir == ".git" or dir == ".godot" then -- 2163
@@ -7817,4 +7819,121 @@ Director.systemScheduler:schedule(once(function() -- 3171
 		return print("8866 Port not available!") -- 3222
 	end -- 3215
 end)) -- 3171
+nativeExportFormat = function(root) -- 3224
+	local relative = relativeToRoot(root, Content.writablePath) -- 3225
+	if not (relative and relative ~= "") then -- 3226
+		return nil -- 3226
+	end -- 3226
+	for part in relative:gmatch("[^/\\]+") do -- 3228
+		if part:sub(1, 1) == "." then -- 3229
+			return nil -- 3229
+		end -- 3229
+	end -- 3228
+	local _exp_0 = App.platform -- 3230
+	if "Windows" == _exp_0 then -- 3231
+		return "windows" -- 3231
+	elseif "Android" == _exp_0 then -- 3232
+		return "android" -- 3232
+	end -- 3230
+end -- 3224
+local nativeExporting = false -- 3234
+local _anon_func_14 = function(file) -- 3244
+	local _val_0 = Path:getExt(file) -- 3244
+	return "lua" == _val_0 or "yue" == _val_0 or "tl" == _val_0 or "xml" == _val_0 or "wasm" == _val_0 -- 3244
+end -- 3244
+HttpServer:postSchedule("/native-game/export", function(req) -- 3235
+	do -- 3236
+		local _type_0 = type(req) -- 3236
+		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 3236
+		if _tab_0 then -- 3236
+			local path -- 3236
+			do -- 3236
+				local _obj_0 = req.body -- 3236
+				local _type_1 = type(_obj_0) -- 3236
+				if "table" == _type_1 or "userdata" == _type_1 then -- 3236
+					path = _obj_0.path -- 3236
+				end -- 3236
+			end -- 3236
+			local format -- 3236
+			do -- 3236
+				local _obj_0 = req.body -- 3236
+				local _type_1 = type(_obj_0) -- 3236
+				if "table" == _type_1 or "userdata" == _type_1 then -- 3236
+					format = _obj_0.format -- 3236
+				end -- 3236
+			end -- 3236
+			if path ~= nil and format ~= nil then -- 3236
+				if not (type(path) == "string" and Content:isAbsolutePath(path)) then -- 3237
+					return invalidArguments -- 3237
+				end -- 3237
+				if not (nativeExportFormat(path) == format and isProjectRootDir(path)) then -- 3238
+					return invalidArguments -- 3238
+				end -- 3238
+				local zh = App.locale:match("^zh") -- 3239
+				if nativeExporting then -- 3240
+					return { -- 3241
+						success = false, -- 3241
+						message = zh and "正在导出游戏" or "A game export is in progress" -- 3241
+					} -- 3241
+				end -- 3240
+				local entry -- 3242
+				local _list_0 = Content:getFiles(path) -- 3243
+				for _index_0 = 1, #_list_0 do -- 3243
+					local file = _list_0[_index_0] -- 3243
+					if Path:getName(file):lower() == "init" and _anon_func_14(file) then -- 3244
+						entry = Path(path, Path:replaceExt(file, "")) -- 3245
+						break -- 3246
+					end -- 3244
+				end -- 3243
+				if not entry then -- 3247
+					return { -- 3248
+						success = false, -- 3248
+						message = zh and "请先在 IDE 中编译游戏" or "Build the game in the IDE first" -- 3248
+					} -- 3248
+				end -- 3247
+				nativeExporting = true -- 3249
+				local _ <close> = setmetatable({ }, { -- 3250
+					__close = function() -- 3250
+						nativeExporting = false -- 3250
+					end -- 3250
+				}) -- 3250
+				local title = Path:getFilename(path) -- 3251
+				local exporter = require("Script.Dev.NativeGameExport") -- 3252
+				if format == "android" then -- 3253
+					local ok, result = pcall(exporter.exportAndroid, path, entry, title) -- 3254
+					if ok then -- 3255
+						return { -- 3255
+							success = true -- 3255
+						} -- 3255
+					end -- 3255
+					return { -- 3256
+						success = false, -- 3256
+						message = tostring(result) -- 3256
+					} -- 3256
+				end -- 3253
+				local newId = require("dora.new_game_id") -- 3257
+				local destination = Path(Content.writablePath, ".download", "native-" .. tostring(newId())) -- 3258
+				if not Content:mkdir(destination) then -- 3259
+					return { -- 3260
+						success = false, -- 3260
+						message = zh and "无法创建导出目录" or "Could not create the export directory" -- 3260
+					} -- 3260
+				end -- 3259
+				local ok, result = pcall(exporter.exportWindows, path, entry, title, destination) -- 3261
+				if ok then -- 3262
+					return { -- 3262
+						success = true, -- 3262
+						archive = result -- 3262
+					} -- 3262
+				end -- 3262
+				Content:remove(destination) -- 3263
+				return { -- 3264
+					success = false, -- 3264
+					message = tostring(result) -- 3264
+				} -- 3264
+			end -- 3236
+		end -- 3236
+	end -- 3236
+	return invalidArguments -- 3235
+end) -- 3235
 return _module_0 -- 1

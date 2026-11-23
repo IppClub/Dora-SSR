@@ -67,6 +67,18 @@ export async function packageDirectory(directory: string, writablePath: string, 
   }
 }
 
+export async function packageNativeProject(directory: string, writablePath: string, format: Service.NativeGameFormat) {
+  const result = await Service.exportNativeGame(directory, format);
+  if (!result.success) throw new Error(result.message || 'export.failed');
+  if (format === 'android') return;
+  if (!result.archive) throw new Error('export.failed');
+  try {
+    await downloadWorkspaceFile(result.archive, writablePath, Info.path.basename(result.archive));
+  } finally {
+    await Service.deleteFile({path: Info.path.dirname(result.archive)}).catch(() => undefined);
+  }
+}
+
 async function loadRuntime(includeGodot: boolean): Promise<PackageFiles> {
   try {
     const base = new URL('web-player/', document.baseURI);

@@ -129,11 +129,11 @@ getProjectRootFromPath = (target, isDir = false) ->
 	return getProjectDirFromFile target, "current file does not belong to any project"
 
 invalidArguments = success: false, message: "invalid arguments"
-
+local nativeExportFormat
 HttpServer\post "/agent/project-root", (req): invalidArguments ->
 	switch req when {body: {:path, :isDir}}
 		if projectRoot, err := getProjectRootFromPath path, isDir
-			return success: true, found: true, projectRoot: projectRoot, title: Path\getFilename projectRoot
+			return success: true, found: true, :projectRoot, title: Path\getFilename(projectRoot), nativeExport: nativeExportFormat projectRoot
 		else
 			return success: true, found: false, message: err
 
@@ -2158,7 +2158,7 @@ visitAssets = (path, workspace, builtin, recursive = true) ->
 	dirs = Content\getDirs path
 	for dir in *dirs
 		if workspace
-			if dir in [".upload", ".download", ".www", ".build", ".git", ".cache", ".godot", "node_modules"]
+			if dir in [".upload", ".download", ".www", ".build", ".git", ".cache", ".godot", ".native-export", "node_modules"]
 				continue
 		elseif dir == ".git" or dir == ".godot"
 			continue
@@ -3220,3 +3220,45 @@ Director.systemScheduler\schedule once ->
 	else
 		status.url = nil
 		print "8866 Port not available!"
+
+nativeExportFormat = (root) ->
+	relative = relativeToRoot root, Content.writablePath
+	return nil unless relative and relative ~= ""
+	-- Reject paths that bypass the workspace via a hidden folder or traversal.
+	for part in relative\gmatch "[^/\\]+"
+		return nil if part\sub(1, 1) == "."
+	switch App.platform
+		when "Windows" then "windows"
+		when "Android" then "android"
+
+nativeExporting = false
+HttpServer\postSchedule "/native-game/export", (req): invalidArguments ->
+	switch req when {body: {:path, :format}}
+		return invalidArguments unless type(path) == "string" and Content\isAbsolutePath path
+		return invalidArguments unless nativeExportFormat(path) == format and isProjectRootDir path
+		zh = App.locale\match "^zh"
+		if nativeExporting
+			return success: false, message: zh and "正在导出游戏" or "A game export is in progress"
+		local entry
+		for file in *Content\getFiles path
+			if Path\getName(file)\lower! == "init" and Path\getExt(file) in ["lua", "yue", "tl", "xml", "wasm"]
+				entry = Path path, Path\replaceExt(file, "")
+				break
+		unless entry
+			return success: false, message: zh and "请先在 IDE 中编译游戏" or "Build the game in the IDE first"
+		nativeExporting = true
+		close _ = <close>: -> nativeExporting = false
+		title = Path\getFilename path
+		exporter = require "Script.Dev.NativeGameExport"
+		if format == "android"
+			ok, result = pcall exporter.exportAndroid, path, entry, title
+			return success: true if ok
+			return success: false, message: tostring result
+		import "dora.new_game_id" as newId
+		destination = Path Content.writablePath, ".download", "native-#{newId!}"
+		unless Content\mkdir destination
+			return success: false, message: zh and "无法创建导出目录" or "Could not create the export directory"
+		ok, result = pcall exporter.exportWindows, path, entry, title, destination
+		return success: true, archive: result if ok
+		Content\remove destination
+		return success: false, message: tostring result

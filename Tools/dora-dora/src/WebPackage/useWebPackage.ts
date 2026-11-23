@@ -5,7 +5,7 @@ import Info from '../Info';
 import type {TreeDataType} from '../FileTree';
 import type {WebPackageFormat} from './Archive';
 
-export type ExportFormat = 'zip' | 'obfuscated' | WebPackageFormat;
+export type ExportFormat = 'zip' | 'obfuscated' | WebPackageFormat | Service.NativeGameFormat;
 
 export interface ExportTarget {
   key: string;
@@ -16,6 +16,7 @@ export interface ExportTarget {
 export interface ExportDialogState {
   target: ExportTarget;
   web: boolean;
+  native?: Service.NativeGameFormat;
 }
 
 export interface ProjectExportAction {
@@ -54,13 +55,9 @@ export function useWebPackage(options: Options): ProjectExportAction {
     if (!canStart()) return;
     if (target !== undefined) {
       const root = await Service.projectRoot({path: target.key, isDir: true});
-      setDialog({
-        target,
-        web: root.success === true
-          && root.found === true
-          && root.projectRoot === target.key
-          && root.projectRoot !== options.writablePath,
-      });
+      const web = root.success === true && root.found === true
+        && root.projectRoot === target.key && root.projectRoot !== options.writablePath;
+      setDialog({target, web, native: web ? root.nativeExport : undefined});
       return;
     }
     if (!options.currentFile) {
@@ -78,6 +75,7 @@ export function useWebPackage(options: Options): ProjectExportAction {
     setDialog({
       target: {key: root.projectRoot, title: Info.path.basename(root.projectRoot), dir: true},
       web: true,
+      native: root.nativeExport,
     });
   }, [canStart, options, t]);
 
@@ -87,7 +85,7 @@ export function useWebPackage(options: Options): ProjectExportAction {
     setBusy(true);
     options.setBuilding(true);
     try {
-      const {downloadWebArchive, packageDirectory, packageWebProject} = await import('./Service');
+      const {downloadWebArchive, packageDirectory, packageNativeProject, packageWebProject} = await import('./Service');
       if (format === 'zip' || format === 'obfuscated') {
         options.notify(t('export.busy'), 'info');
         await packageDirectory(target.key, options.writablePath, target.title, format === 'obfuscated');
@@ -98,7 +96,15 @@ export function useWebPackage(options: Options): ProjectExportAction {
         options.notify(t('webPackage.busy'), 'info');
         if (!await options.save()) throw new Error('webPackage.saveFailed');
         if (!await options.build({key: target.key, title: target.title, dir: true})) throw new Error('webPackage.buildFailed');
-        downloadWebArchive(await packageWebProject(target.key, options.writablePath, format), target.title, format);
+        if (format === 'windows' || format === 'android') {
+          await packageNativeProject(target.key, options.writablePath, format);
+          if (format === 'android') {
+            options.notify(t('export.androidContinue'), 'info');
+            return;
+          }
+        } else {
+          downloadWebArchive(await packageWebProject(target.key, options.writablePath, format), target.title, format);
+        }
       }
       options.notify(t('export.done'), 'success');
     } catch (error) {

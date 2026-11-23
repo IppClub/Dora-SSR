@@ -14,6 +14,12 @@ export default function ExportDialog({action}: {action: ProjectExportAction}) {
       {format: 'http', primary: t('export.serverHtml'), secondary: t('export.serverHtmlHint')},
     );
   }
+  if (action.dialog?.native === 'windows') {
+    choices.push({format: 'windows', primary: t('export.windows'), secondary: t('export.windowsHint')});
+  }
+  if (action.dialog?.native === 'android') {
+    choices.push({format: 'android', primary: t('export.android'), secondary: t('export.androidHint')});
+  }
   return <Dialog open={action.dialog !== null} onClose={action.close} fullWidth maxWidth="xs">
     <DialogTitle>{t('export.dialogTitle', {title: action.dialog?.target.title ?? ''})}</DialogTitle>
     <DialogContent dividers sx={{p: 0}}>

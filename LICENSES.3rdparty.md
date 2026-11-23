@@ -10,6 +10,8 @@ THE OPEN SOURCE SOFTWARE IN THIS PRODUCT IS DISTRIBUTED IN THE HOPE THAT IT WILL
 
 ## Copyright Notice and License Texts
 
+- [Android apksig](https://android.googlesource.com/platform/tools/apksig): [Apache License 2.0](https://android.googlesource.com/platform/tools/apksig/+/refs/heads/main/LICENSE)
+- [Bouncy Castle Java](https://www.bouncycastle.org/java.html): [Bouncy Castle License](https://www.bouncycastle.org/licence.html)
 - [bgfx](https://github.com/bkaradzic/bgfx): [BSD-2 License](Source/3rdParty/bgfx/LICENSE)
 - [blip-buf](http://www.slack.net/~ant/): [LGPL License](Source/3rdParty/tic80/vendor/blip-buf/license.txt)
 - [colib](https://github.com/colinsusie/colib): [MIT License](Source/3rdParty/colib/LICENSE)

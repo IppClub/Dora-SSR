@@ -1463,7 +1463,12 @@ export interface AgentProjectRootResponse {
 	projectRoot?: string;
 	title?: string;
 	message?: string;
+	nativeExport?: NativeGameFormat;
 };
+
+export type NativeGameFormat = 'windows' | 'android';
+export const exportNativeGame = (path: string, format: NativeGameFormat) =>
+	post<{success: boolean; archive?: string; message?: string}>('/native-game/export', {path, format});
 
 export interface AgentPendingInput {id:number;content:string;delivery:"queue"|"steer";held:boolean;status:string}
 export interface AgentInputSubmission {delivery?:"queue"|"steer";requestId?:string;action?:"cancel"|"edit"|"steer"|"resume"|"hold"|"release";inputId?:number}

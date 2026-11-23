@@ -102,7 +102,9 @@ export function startPackagePanel(options: {
 		const contentBottom = message !== "" ? messageTop + textHeight(message, 14)
 			: detail !== "" ? detailTop + detailHeight : detailTop - 12;
 		const hasActions = options.mode === "share" || !busy;
-		const height = math.min(safe.height - 16, contentBottom + 20 + (hasActions ? 126 : 66));
+		const apk = options.mode === "share" && App.platform === "Android" && options.entry?.workDir !== undefined && options.entry.fileName !== undefined;
+		const actionY = apk ? 128 : 78;
+		const height = math.min(safe.height - 16, contentBottom + 20 + (hasActions ? (apk ? 176 : 126) : 66));
 		const actionWidth = (width - 52) / 2;
 		const node = toNode(<node x={-App.visualSize.width / 2} y={-App.visualSize.height / 2} anchorX={0} anchorY={0} width={App.visualSize.width} height={App.visualSize.height} touchEnabled={true} swallowTouches={true}>
 			<draw-node><rect-shape centerX={App.visualSize.width / 2} centerY={App.visualSize.height / 2} width={App.visualSize.width} height={App.visualSize.height} fillColor={0xaa000000} /></draw-node>
@@ -115,8 +117,27 @@ export function startPackagePanel(options: {
 					<PackageButton tag="mobile-package-import-play" x={20} y={78} width={actionWidth} text={zh ? "导入并试玩" : "Import & play"} fontSize={15} primary={true} onTapped={() => install(true)} />
 					<PackageButton tag="mobile-package-import" x={32 + actionWidth} y={78} width={actionWidth} text={zh ? "仅导入" : "Import"} fontSize={15} onTapped={() => install(false)} />
 				</node> : options.mode === "share" ? <node>
-					<PackageButton tag="mobile-package-share" x={20} y={78} width={actionWidth} text={zh ? "分享作品" : "Share game"} fontSize={15} primary={true} onTapped={() => { if (enabled() && exported && !App.shareFile(exported.path)) { failed = true; message = zh ? "无法打开分享面板" : "Could not open share sheet"; render(); } }} />
-					<PackageButton tag="mobile-package-save" x={32 + actionWidth} y={78} width={actionWidth} text={zh ? "保存作品包" : "Save package"} fontSize={15} onTapped={() => { if (enabled() && exported && !App.saveFileDialog(exported.path)) { failed = true; message = zh ? "无法打开保存面板" : "Could not open save dialog"; render(); } }} />
+					<PackageButton tag="mobile-package-share" x={20} y={actionY} width={actionWidth} text={zh ? "分享作品" : "Share game"} fontSize={15} primary={true} onTapped={() => { if (enabled() && exported && !App.shareFile(exported.path)) { failed = true; message = zh ? "无法打开分享面板" : "Could not open share sheet"; render(); } }} />
+					<PackageButton tag="mobile-package-save" x={32 + actionWidth} y={actionY} width={actionWidth} text={zh ? "保存作品包" : "Save package"} fontSize={15} onTapped={() => { if (enabled() && exported && !App.saveFileDialog(exported.path)) { failed = true; message = zh ? "无法打开保存面板" : "Could not open save dialog"; render(); } }} />
+					{apk ? <PackageButton tag="mobile-package-apk" x={20} y={78} width={width - 40} text={zh ? "导出 APK" : "Export APK"} fontSize={15} onTapped={() => {
+						const { workDir, fileName, title } = options.entry ?? {};
+						if (!enabled() || !workDir || !fileName || !title) return;
+						busy = true;
+						message = zh ? "正在准备游戏文件…" : "Preparing game files…";
+						render();
+						thread(() => {
+							const [ok, detail] = pcall(() => {
+								const module = "Script.Dev.NativeGameExport";
+								const exporter = require(module) as { exportAndroid: (this: void, root: string, file: string, title: string) => void };
+								exporter.exportAndroid(workDir, fileName, title);
+							});
+							if (!active) return;
+							busy = false;
+							failed = !ok;
+							message = ok ? (zh ? "接收者导入后可以试玩，也可以继续改编。" : "Recipients can import, play, and Remix this game.") : tostring(detail);
+							render();
+						});
+					}} /> : undefined}
 				</node> : !busy ? <node>
 					{options.onNew ? <PackageButton tag="mobile-package-new" x={20} y={78} width={actionWidth} text={zh ? "新建作品" : "New game"} fontSize={15} onTapped={() => { if (enabled()) { close(); options.onNew?.(); } }} /> : undefined}
 					<PackageButton tag="mobile-package-pick" x={options.onNew ? 32 + actionWidth : 20} y={78} width={options.onNew ? actionWidth : width - 40} text={zh ? "导入作品包" : "Import package"} fontSize={15} primary={true} onTapped={pick} />

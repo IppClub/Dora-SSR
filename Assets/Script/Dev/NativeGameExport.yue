@@ -1,0 +1,110 @@
+import "Dora" as :App, :Content, :Path
+import "Script.Dev.Mobile.Package" as :packageFileAllowed
+
+runtimeRoots = {"Audio", "Font", "Image", "Shader", "Script/Lib", "dora-wa", "LICENSES", "GodotRuntimeNotices", "gamecontrollerdb.txt"}
+entryExtensions = {"lua", "yue", "tl", "xml", "wasm"}
+
+fail = (zh, en) -> error App.locale\match("^zh") and zh or en, 0
+
+copyFile = (src, dst) ->
+	Content\mkdir Path\getPath dst
+	unless Content\copyAsync src, dst
+		fail "复制失败：#{src}", "Could not copy: #{src}"
+
+projectId = (root) ->
+	metadata = Path root, ".dora"
+	file = Path metadata, "native-export-id"
+	if Content\exist file
+		id = Content\load file
+		return id if id and #id == 32 and id\match "^[0-9a-f]+$"
+		fail "项目导出 ID 无效", "Invalid project export ID"
+	id = (require "dora.new_game_id")!
+	Content\mkdir metadata
+	unless Content\save file, id
+		fail "无法保存项目导出 ID", "Could not save the project export ID"
+	id
+
+bootstrap = (entry) -> [[
+local Dora = require("Dora")
+local Content, Path = Dora.Content, Dora.Path
+local root = Path(Content.assetPath, "Game")
+local paths = {root, Path(Content.assetPath, "Script", "Lib"), Content.assetPath}
+local scripts = Path(root, "Script")
+if Content:exist(scripts) then table.insert(paths, 1, scripts) end
+Content.searchPaths = paths
+local run = require(Path(root, ]] .. string.format("%q", entry) .. [[))
+if type(run) == "function" then run() end
+]]
+
+export prepareGame = (root, fileName, assets) ->
+	entry = Path\getRelative(fileName, root)\gsub "\\", "/"
+	unless packageFileAllowed entry
+		fail "游戏入口必须在项目内", "The game entry must be inside the project"
+	runnable = for ext in *entryExtensions
+		break true if Content\exist Path(root, "#{entry}.#{ext}")
+	unless runnable
+		fail "请先在 IDE 中编译游戏", "Build the game in the IDE first"
+	for file in *Content\getAllFiles root
+		if packageFileAllowed file
+			copyFile Path(root, file), Path(assets, "Game", file)
+	Content\mkdir Path assets, "Script"
+	unless Content\save Path(assets, "Script", "init.lua"), bootstrap(entry)
+		fail "无法写入游戏入口", "Could not write the game entry"
+
+export exportWindows = (root, fileName, title, destination) ->
+	name = title\gsub('[\\/:*?"<>|%c]', "_")\match "^%s*(.-)%s*$"
+	name = "Game" if not name or name == ""
+	name = "Game-#{name}"
+	if last := utf8.offset name, 61
+		name = name\sub 1, last - 1
+	archive = Path destination, "#{name}-Windows.zip"
+	suffix = 2
+	while Content\exist archive
+		archive = Path destination, "#{name}-Windows-#{suffix}.zip"
+		suffix += 1
+	assetRoot = Content.assetPath
+	cache = Path Content.appPath, ".native-export"
+	stage = Path cache, "stage-#{os.time!}-#{App.rand}"
+	assets = Path stage, "game"
+	tempZip = Path destination, ".dora-export-#{Path\getName stage}.tmp"
+	success, result = pcall ->
+		id = projectId root
+		unless Content\mkdir assets
+			fail "无法创建导出目录", "Could not create the export directory"
+		prepareGame root, fileName, assets
+		for item in *runtimeRoots
+			src = Path assetRoot, item
+			if Content\isdir src
+				for file in *Content\getAllFiles src
+					copyFile Path(src, file), Path(assets, item, file)
+			elseif Content\exist src
+				copyFile src, Path(assets, item)
+		exe = App.executablePath
+		copyFile exe, Path assets, "#{name}.exe"
+		for library in *{"wa.dll", "dora_godot.dll"}
+			src = Path Path\getPath(exe), library
+			copyFile src, Path(assets, library) if Content\exist src
+		unless Content\save Path(assets, "dora-game-id"), id
+			fail "无法写入游戏标识", "Could not write the game ID"
+		unless Content\zipAsync assets, tempZip
+			fail "无法创建游戏 ZIP", "Could not create the game ZIP"
+		if not Content\exist(archive) and Content\move(tempZip, archive)
+			return archive
+		fail "无法保存游戏 ZIP", "Could not save the game ZIP"
+	Content\remove stage if Content\exist stage
+	Content\remove tempZip if Content\exist tempZip
+	error result, 0 unless success
+	result
+
+export exportAndroid = (root, fileName, title) ->
+	dispatch = require "dora.android_game_export"
+	stage = Path Content.appPath, ".native-export", "android-#{os.time!}-#{App.rand}"
+	success, result = pcall ->
+		unless Content\mkdir stage
+			fail "无法创建导出目录", "Could not create the export directory"
+		prepareGame root, fileName, Path(stage, "assets")
+		unless dispatch stage, projectId(root), title
+			fail "无法打开 APK 导出", "Could not open APK export"
+	unless success
+		Content\remove stage if Content\exist stage
+		error result, 0
