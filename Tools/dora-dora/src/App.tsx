@@ -40,7 +40,8 @@ import FirstProjectTour, {
 	type FirstProjectTourStep as FirstProjectTourStepValue,
 } from './FirstProjectTour';
 import { useTranslation } from 'react-i18next';
-import { Image, Splitter } from 'antd';
+import { Splitter } from 'antd';
+import TextureSeamChecker from './TextureSeamChecker';
 import type { YarnEditorData } from './YarnEditor';
 import * as Yarn from './YarnConvert';
 import type { CodeWireData } from './CodeWire';
@@ -6440,12 +6441,12 @@ export default function PersistentDrawerLeft() {
 								<MacScrollbar skin='dark' style={{ height: editorHeight }}>
 									<Container maxWidth="lg">
 										<DrawerHeader />
-										<Image src={
+										<TextureSeamChecker src={
 											appendCacheKey(
 												Service.addr("/" + toUrlPath(path.relative(parentPath, file.key), path)),
 												file.previewVersion,
 											)
-										} preview={false} />
+										} />
 									</Container>
 								</MacScrollbar> : null
 							}

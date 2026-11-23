@@ -50,6 +50,14 @@ i18n
 					spine: {
 						load: "failed to load {{file}}",
 					},
+					textureSeams: {
+						open: "Check texture seams",
+						close: "Show original",
+						failed: "Could not analyze the texture.",
+						loading: "Analyzing texture…",
+						result: "Peak edge difference: left/right {{horizontal}}%, top/bottom {{vertical}}%. Markers highlight the strongest differences.",
+						preview: "3 × 3 tiled texture with seam markers",
+					},
 					audioPreview: {
 						title: "Audio preview",
 						play: "Play",
@@ -1373,6 +1381,14 @@ i18n
 					},
 					spine: {
 						load: "加载 {{file}} 失败",
+					},
+					textureSeams: {
+						open: "检查贴图接缝",
+						close: "显示原图",
+						failed: "无法分析这张贴图。",
+						loading: "正在分析贴图…",
+						result: "最大边缘差异：左右 {{horizontal}}%，上下 {{vertical}}%。标记指出差异最大的位置。",
+						preview: "带接缝标记的 3 × 3 贴图预览",
 					},
 					audioPreview: {
 						title: "音频试听",
