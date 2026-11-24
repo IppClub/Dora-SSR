@@ -500,6 +500,21 @@ with VideoNode "assets/background_video.ogv", true
 有关 VideoNode 的更多信息，请参阅 [VideoNode API 文档](/docs/api/Class/VideoNode)。
 
 
+### 视频播完后进入游戏
+
+将非循环视频加入场景前，用 `onVideoEnd` 注册回调。视频和内嵌音轨都自然播完后，才执行回调。
+
+```lua
+local video = assert(VideoNode("intro.ogv"))
+video:onVideoEnd(function()
+	video:removeFromParent()
+	startGame()
+end)
+video:addTo(Director.entry)
+```
+
+在 TypeScript 中可用 `video.onVideoEnd(startGame)`。在 DoraX 中可用 `<video-node file="intro.ogv" onVideoEnd={startGame} />`。
+
 ### 播放位置与重播
 
 VideoNode 加入运行中的场景后自动播放。`play()` 和 `resume()` 继续播放，

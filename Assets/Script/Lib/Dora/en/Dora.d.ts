@@ -2766,6 +2766,7 @@ const enum NodeEvent {
 	ButtonPressed = "ButtonPressed",
 	Axis = "Axis",
 	AnimationEnd = "AnimationEnd",
+	VideoEnd = "VideoEnd",
 	BodyEnter = "BodyEnter",
 	BodyLeave = "BodyLeave",
 	ContactStart = "ContactStart",
@@ -2950,6 +2951,9 @@ interface NodeEventHandlerMap {
 	 * @param target The Playable instance that the animation was played on.
 	*/
 	AnimationEnd(this: void, animationName: string, target: Playable): void;
+
+	/** Fires once when a non-looping VideoNode naturally finishes playback, including its embedded audio. */
+	VideoEnd(this: void): void;
 
 	/**
 	 * Triggers when a Body object collides with a sensor object.
@@ -8441,6 +8445,9 @@ export {audioSourceClass as AudioSource};
  */
 class VideoNode extends Sprite {
 	private constructor();
+
+	/** Registers a callback for the natural end of non-looping playback, including embedded audio. */
+	onVideoEnd(callback: (this: void) => void): void;
 
 	/** Pauses the video and embedded audio playback. */
 	pause(): void;

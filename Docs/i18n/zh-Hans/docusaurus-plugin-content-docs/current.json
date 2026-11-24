@@ -239,6 +239,10 @@
     "message": "Playable Event",
     "description": "The label for the doc item Playable Event in sidebar apiSidebar, linking to the doc api/Node Event/Playable"
   },
+  "sidebar.apiSidebar.doc.VideoNode Event": {
+    "message": "VideoNode 事件",
+    "description": "The label for the doc item VideoNode Event in sidebar apiSidebar, linking to the doc api/Node Event/VideoNode"
+  },
   "sidebar.apiSidebar.doc.Particle Event": {
     "message": "Particle Event",
     "description": "The label for the doc item Particle Event in sidebar apiSidebar, linking to the doc api/Node Event/Particle"

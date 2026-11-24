@@ -512,11 +512,18 @@ let getTIC80Node: (this: void, enode: React.Element) => Dora.TIC80Node.Type | un
 		}
 		return undefined;
 	};
+	function handleVideoAttribute(this: void, cnode: Dora.VideoNode.Type, enode: React.Element, k: unknown, v: unknown) {
+		if (k === 'onVideoEnd') {
+			cnode.onVideoEnd(v as (this: void) => void);
+			return true;
+		}
+		return handleSpriteAttribute(cnode, enode, k, v);
+	}
 	getVideoNode = (enode: React.Element) => {
 		const vn = enode.props as JSX.VideoNode;
 		const node = Dora.VideoNode(vn.file, vn.looped ?? false);
 		if (node !== undefined) {
-			const cnode = getNode(enode, node, handleSpriteAttribute as AttribHandler);
+			const cnode = getNode(enode, node, handleVideoAttribute as AttribHandler);
 			return cnode as Dora.VideoNode.Type;
 		}
 		return undefined
@@ -2065,6 +2072,7 @@ function getEventSlot(this: void, key: unknown): string | undefined {
 		case "onButtonUp": return Dora.Slot.ButtonUp;
 		case "onAxis": return Dora.Slot.Axis;
 		case "onAnimationEnd": return Dora.Slot.AnimationEnd;
+		case "onVideoEnd": return Dora.Slot.VideoEnd;
 		case "onFinished": return Dora.Slot.Finished;
 		case "onLayout": return Dora.Slot.AlignLayout;
 		case "onBodyEnter": return Dora.Slot.BodyEnter;

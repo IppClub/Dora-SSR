@@ -2094,6 +2094,15 @@ namespace Dora
         }
     }
 
+    public partial class VideoNode
+    {
+        /// <summary>Registers a callback for the natural end of non-looping video playback.</summary>
+        public void OnVideoEnd(System.Action callback)
+        {
+            this.Slot("VideoEnd", (stack) => callback());
+        }
+    }
+
     public partial class Body
     {
         public delegate void BodyEnterHandler(Body other, int sensorTag);

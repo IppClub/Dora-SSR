@@ -2761,6 +2761,7 @@ const enum NodeEvent {
 	ButtonPressed = "ButtonPressed",
 	Axis = "Axis",
 	AnimationEnd = "AnimationEnd",
+	VideoEnd = "VideoEnd",
 	BodyEnter = "BodyEnter",
 	BodyLeave = "BodyLeave",
 	ContactStart = "ContactStart",
@@ -2944,6 +2945,9 @@ interface NodeEventHandlerMap {
 	 * @param target 播放该动画的动画模型实例。
 	*/
 	AnimationEnd(this: void, animationName: string, target: Playable): void;
+
+	/** 非循环 VideoNode 自然播完视频及内嵌音轨后触发一次。 */
+	VideoEnd(this: void): void;
 
 	/**
 	 * 当物理体对象与传感器对象碰撞时触发。
@@ -8434,6 +8438,9 @@ export {audioSourceClass as AudioSource};
  */
 class VideoNode extends Sprite {
 	private constructor();
+
+	/** 注册非循环播放自然结束的回调，等待内嵌音轨一并播完。 */
+	onVideoEnd(callback: (this: void) => void): void;
 
 	/** 同时暂停视频和内嵌音轨。 */
 	pause(): void;

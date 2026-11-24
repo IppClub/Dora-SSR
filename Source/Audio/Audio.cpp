@@ -285,7 +285,15 @@ NS_DORA_BEGIN
 // An empty result leaves ordinary audio and unsupported input unchanged.
 std::vector<uint8_t> AudioDetail::extractOggVorbis(std::span<const uint8_t> data) {
 	if (data.size() < 4 || std::memcmp(data.data(), "OggS", 4) != 0) return {};
+	return extractOggVorbis([data](int64_t offset, char* buffer, size_t capacity) {
+		const auto position = static_cast<size_t>(offset);
+		const auto count = std::min(capacity, data.size() - position);
+		if (count > 0) std::memcpy(buffer, data.data() + position, count);
+		return count;
+	});
+}
 
+std::vector<uint8_t> AudioDetail::extractOggVorbis(const std::function<size_t(int64_t, char*, size_t)>& readAt) {
 	ogg_sync_state sync{};
 	if (ogg_sync_init(&sync) != 0) return {};
 	struct SyncGuard {
@@ -293,18 +301,18 @@ std::vector<uint8_t> AudioDetail::extractOggVorbis(std::span<const uint8_t> data
 		~SyncGuard() { ogg_sync_clear(state); }
 	} guard{&sync};
 
-	size_t position = 0;
+	int64_t position = 0;
 	ogg_page page{};
 	auto readPage = [&]() {
 		for (;;) {
 			const int result = ogg_sync_pageout(&sync, &page);
 			if (result == 1) return true;
 			if (result < 0) continue;
-			if (position == data.size()) return false;
-			const size_t count = std::min<size_t>(8192, data.size() - position);
-			char* buffer = ogg_sync_buffer(&sync, static_cast<long>(count));
+			constexpr size_t chunkSize = 8192;
+			char* buffer = ogg_sync_buffer(&sync, chunkSize);
 			if (!buffer) return false;
-			std::memcpy(buffer, data.data() + position, count);
+			const size_t count = readAt(position, buffer, chunkSize);
+			if (count == 0) return false;
 			position += count;
 			if (ogg_sync_wrote(&sync, static_cast<long>(count)) != 0) return false;
 		}

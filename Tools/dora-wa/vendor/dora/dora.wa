@@ -1966,6 +1966,12 @@ func Playable.OnAnimationEnd(callback: func(animation_name: string, target: Play
 	})
 }
 
+func VideoNode.OnVideoEnd(callback: func()) {
+	this.Slot("VideoEnd", func(stack: CallStack) {
+		callback()
+	})
+}
+
 func Body.OnBodyEnter(callback: func(other: Body, sensor_tag: i32)) {
 	this.Slot("BodyEnter", func(stack: CallStack) {
 		other := *ObjectCastToBody(*stack.PopObject())

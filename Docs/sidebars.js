@@ -412,6 +412,11 @@ const sidebars = {
 						},
 						{
 							type: 'doc',
+							label: 'VideoNode Event',
+							id: 'api/Node Event/VideoNode',
+						},
+						{
+							type: 'doc',
 							label: 'Particle Event',
 							id: 'api/Node Event/Particle',
 						},

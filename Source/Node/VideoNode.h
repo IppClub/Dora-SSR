@@ -51,6 +51,7 @@ private:
 		Wait,
 		Done,
 		Loop,
+		End,
 		Stop
 	};
 	UpdateFlag updateTexture();
@@ -67,8 +68,7 @@ private:
 	bool _ended = false;
 	uint64_t _cycle = 0;
 	bool _started = false;
-	bool _videoEnded = false;
-	bool _decoderEnded = false;
+	UpdateFlag _videoEnd = UpdateFlag::Wait;
 	bool _audioEnded = true;
 
 	std::string _filename;

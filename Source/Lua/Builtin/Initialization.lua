@@ -953,6 +953,9 @@ do
 	registerCommonEvent(Dora.Particle, "Finished")
 
 	registerCommonEvent(Dora.Playable, "AnimationEnd")
+	if Dora.VideoNode then
+		registerCommonEvent(Dora.VideoNode, "VideoEnd")
+	end
 
 	registerCommonEvent(Dora.Body, "BodyEnter")
 	registerCommonEvent(Dora.Body, "BodyLeave")

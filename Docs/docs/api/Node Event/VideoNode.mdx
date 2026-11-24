@@ -1,0 +1,13 @@
+# VideoNode Event
+
+## VideoEnd
+
+Fires once per natural completion of non-looping playback, after the video and any embedded Vorbis audio finish. At dispatch, `playing` is false and `currentTime` equals `duration`. Replaying the video can trigger the event again.
+
+Pausing, removing the node, seeking directly to `duration`, loop transitions, and video decoding failures do not trigger this event.
+
+```tl
+["VideoEnd"]: function()
+```
+
+Register with `video:slot("VideoEnd", callback)` or use [onVideoEnd](/docs/api/Class/VideoNode#onvideoend). In TypeScript, the event is available as `Slot.VideoEnd`.

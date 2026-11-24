@@ -2012,6 +2012,8 @@ impl Slot {
     /// }));
     /// ```
     pub const ANIMATION_END: &'static str = "AnimationEnd";
+    /// Fires when non-looping video playback, including embedded audio, ends naturally.
+    pub const VIDEO_END: &'static str = "VideoEnd";
     /// Triggers when a Body object collides with a sensor object.
     /// Triggers when `Body` was attached with sensors.
     ///
@@ -2705,6 +2707,13 @@ impl Slot {
                 callback(animation_name, playable);
             }),
         );
+    }
+    /// Registers a callback for the natural end of non-looping video playback.
+    pub fn on_video_end<F>(node: &mut VideoNode, mut callback: F)
+    where
+        F: FnMut() + 'static,
+    {
+        node.slot(Slot::VIDEO_END, Box::new(move |_| callback()));
     }
     /// Registers a callback for event triggered when a Body object collides with a sensor object.
     ///

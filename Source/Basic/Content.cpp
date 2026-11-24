@@ -164,6 +164,20 @@ std::string Content::loadStr(String filename) {
 	return loadInMainUnsafe(filename);
 }
 
+SDL_RWops* Content::openReadFile(String filename) {
+	if (filename.empty()) return nullptr;
+	SDL_RWops* io = nullptr;
+	_thread->runInMainSync([&]() {
+		auto resolved = getFullPathAndPackage(filename);
+		if (resolved.zipFile || resolved.fullPath.empty()) return;
+#if BX_PLATFORM_ANDROID
+		if (isAndroidAsset(resolved.fullPath)) return;
+#endif
+		io = SDL_RWFromFile(resolved.fullPath.c_str(), "rb");
+	});
+	return io;
+}
+
 std::string Content::read(String filename, int64_t offset, int64_t length) {
 	if (filename.empty() || offset < 0 || length <= 0) return {};
 	std::string result;

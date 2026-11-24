@@ -14,6 +14,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Audio/Audio.h"
 #include "Node/AudioSource.h"
 
+#include "SDL_rwops.h"
+
 extern "C" {
 #include "3rdParty/ogg/ogg.h"
 #include "3rdParty/theora/include/theora/theoradec.h"
@@ -41,10 +43,12 @@ size_t bufferedFrameLimit(size_t width, size_t height, double frameRate) {
 }
 
 struct VideoFrame {
+	enum class End { None, Loop, Natural, Failed };
+
 	std::vector<uint8_t> rgba;
 	double time = 0.0;
 	uint64_t cycle = 0;
-	bool final = false;
+	End end = End::None;
 };
 
 class VideoData : public VideoDataImpl {
@@ -54,13 +58,19 @@ public:
 	}
 
 	bool init(String filename) {
-		auto [data, size] = SharedContent.load(filename);
-		if (!data || size == 0) {
+		file.reset(SharedContent.openReadFile(filename));
+		if (file) {
+			fileSize = SDL_RWsize(file.get());
+		} else {
+			auto [data, size] = SharedContent.load(filename);
+			fileData = std::move(data);
+			fileSize = s_cast<int64_t>(size);
+		}
+		if (fileSize <= 0 || (!file && !fileData)) {
 			Error("VideoNode: failed to load Ogg/Theora video through Content: {}", filename.toString());
 			return false;
 		}
 
-		fileData.assign(data.get(), data.get() + size);
 		if (!openStream()) {
 			Error("VideoNode: invalid or unsupported Ogg/Theora video: {}", filename.toString());
 			return false;
@@ -69,8 +79,10 @@ public:
 		return true;
 	}
 
-	std::vector<uint8_t> extractAudio() const {
-		return AudioDetail::extractOggVorbis(fileData);
+	std::vector<uint8_t> extractAudio() {
+		return AudioDetail::extractOggVorbis([this](int64_t offset, char* buffer, size_t capacity) {
+			return readAt(offset, buffer, capacity);
+		});
 	}
 
 	// Requests and decoded frames share one lock. A serial invalidates in-flight
@@ -124,11 +136,14 @@ public:
 			if (requestSerial.load() != activeSerial) continue;
 
 			const double endTime = streamEndTime;
-			const bool repeat = !atEnd && looped && !stopped.load() && openStream();
+			const bool natural = !atEnd && reachedEnd && !decodeFailed && endTime + 1e-9 >= duration;
+			const bool repeat = natural && looped && !stopped.load() && openStream();
+			const auto end = repeat ? VideoFrame::End::Loop
+				: natural && !looped ? VideoFrame::End::Natural : VideoFrame::End::Failed;
 			{
 				std::scoped_lock lock(framesMutex);
 				if (requestSerial.load() != activeSerial) continue;
-				frames.push_back({{}, endTime, decodeCycle, !repeat});
+				frames.push_back({{}, endTime, decodeCycle, end});
 			}
 			framesChanged.notify_all();
 			atEnd = !repeat;
@@ -188,7 +203,7 @@ public:
 
 private:
 	struct PacketPosition {
-		size_t offset = 0;
+		int64_t offset = 0;
 		unsigned skip = 0;
 	};
 	struct SeekPoint {
@@ -214,13 +229,29 @@ private:
 		}
 	}
 
+	size_t readAt(int64_t offset, char* buffer, size_t capacity) {
+		if (offset < 0 || offset >= fileSize) return 0;
+		const auto count = s_cast<size_t>(std::min<int64_t>(capacity, fileSize - offset));
+		if (!file) {
+			std::memcpy(buffer, fileData.get() + offset, count);
+			return count;
+		}
+		if (filePosition != offset && SDL_RWseek(file.get(), offset, RW_SEEK_SET) != offset) {
+			filePosition = -1;
+			return 0;
+		}
+		const auto read = SDL_RWread(file.get(), buffer, 1, count);
+		filePosition = offset + s_cast<int64_t>(read);
+		return read;
+	}
+
 	bool readPage() {
 		while (ogg_sync_pageout(&sync, &page) != 1) {
-			if (readPosition >= fileData.size()) return false;
-			const size_t count = std::min<size_t>(8192, fileData.size() - readPosition);
-			char* buffer = ogg_sync_buffer(&sync, s_cast<long>(count));
+			constexpr size_t chunkSize = 8192;
+			char* buffer = ogg_sync_buffer(&sync, chunkSize);
 			if (!buffer) return false;
-			std::memcpy(buffer, fileData.data() + readPosition, count);
+			const size_t count = readAt(readPosition, buffer, chunkSize);
+			if (count == 0) return false;
 			readPosition += count;
 			if (ogg_sync_wrote(&sync, s_cast<long>(count)) != 0) return false;
 		}
@@ -265,7 +296,10 @@ private:
 				return true;
 			}
 			if (result < 0) return false;
-			if (pageValid && ogg_page_serialno(&page) == videoSerial && ogg_page_eos(&page)) return false;
+			if (pageValid && ogg_page_serialno(&page) == videoSerial && ogg_page_eos(&page)) {
+				reachedEnd = true;
+				return false;
+			}
 			do {
 				if (!readPage()) return false;
 				pageValid = true;
@@ -319,6 +353,8 @@ private:
 		readPosition = 0;
 		pageValid = false;
 		pendingPacket = false;
+		reachedEnd = false;
+		decodeFailed = false;
 		streamEndTime = 0.0;
 		discardBefore = 0.0;
 		positionPending = false;
@@ -378,7 +414,10 @@ private:
 			if (packet.granulepos >= 0)
 				th_decode_ctl(decoder, TH_DECCTL_SET_GRANPOS, &packet.granulepos, sizeof(packet.granulepos));
 			const int result = th_decode_packetin(decoder, &packet, &granulePosition);
-			if (result < 0) continue;
+			if (result < 0) {
+				decodeFailed = true;
+				continue;
+			}
 			// TH_DUPFRAME keeps the previous image for another frame interval.
 			// Queue it too, otherwise static sections shorten the video timeline.
 
@@ -387,7 +426,10 @@ private:
 			// the final image even when seeking into a longer audio-only tail.
 			if (streamEndTime <= discardBefore + 1e-9 && streamEndTime < duration - 1e-9) continue;
 			th_ycbcr_buffer planes{};
-			if (th_decode_ycbcr_out(decoder, planes) != 0) continue;
+			if (th_decode_ycbcr_out(decoder, planes) != 0) {
+				decodeFailed = true;
+				continue;
+			}
 
 			VideoFrame frame;
 			streamEndTime = th_granule_time(decoder, granulePosition);
@@ -461,8 +503,11 @@ private:
 		}
 	}
 
-	std::vector<uint8_t> fileData;
-	size_t readPosition = 0;
+	std::unique_ptr<SDL_RWops, decltype(&SDL_RWclose)> file{nullptr, SDL_RWclose};
+	OwnArray<uint8_t> fileData;
+	int64_t fileSize = 0;
+	int64_t filePosition = -1;
+	int64_t readPosition = 0;
 	ogg_sync_state sync{};
 	ogg_stream_state stream{};
 	ogg_page page{};
@@ -472,6 +517,8 @@ private:
 	bool streamInitialized = false;
 	bool pageValid = false;
 	bool pendingPacket = false;
+	bool reachedEnd = false;
+	bool decodeFailed = false;
 	th_info info{};
 	th_comment comment{};
 	th_setup_info* setup = nullptr;
@@ -485,7 +532,7 @@ private:
 	std::atomic<bool> stopped = false;
 	double streamEndTime = 0.0;
 	uint64_t decodeCycle = 0;
-	size_t pageOffset = 0;
+	int64_t pageOffset = 0;
 	PacketPosition packetPosition, pendingPosition;
 	bool positionPending = false;
 	std::deque<PacketPosition> packetPositions;
@@ -590,8 +637,7 @@ void VideoNode::seek(double seconds) {
 	_playbackTime = _seekTime = std::clamp(seconds, 0.0, _duration);
 	if (_audioSource) _audioSource->stop();
 	_started = false;
-	_videoEnded = false;
-	_decoderEnded = false;
+	_videoEnd = UpdateFlag::Wait;
 	_audioEnded = false;
 	_ended = _playbackTime >= _duration;
 	_seeking = true;
@@ -637,7 +683,12 @@ VideoNode::UpdateFlag VideoNode::updateTexture() {
 
 	auto frame = videoData->getFrame(_playbackTime, _cycle);
 	if (!frame) return UpdateFlag::Wait;
-	if (frame->rgba.empty()) return frame->final ? UpdateFlag::Stop : UpdateFlag::Loop;
+	switch (frame->end) {
+		case VideoFrame::End::Loop: return UpdateFlag::Loop;
+		case VideoFrame::End::Natural: return UpdateFlag::End;
+		case VideoFrame::End::Failed: return UpdateFlag::Stop;
+		case VideoFrame::End::None: break;
+	}
 
 	const uint32_t videoWidth = videoData->videoWidth;
 	const uint32_t videoHeight = videoData->videoHeight;
@@ -670,7 +721,7 @@ VideoNode::UpdateFlag VideoNode::updateTexture() {
 
 bool VideoNode::beginPlayback() {
 	auto videoData = s_cast<VideoData*>(_videoData.get());
-	if (!videoData || _seeking || (!videoData->hasFrame() && !_videoEnded)) return false;
+	if (!videoData || _seeking || (!videoData->hasFrame() && _videoEnd == UpdateFlag::Wait)) return false;
 	_started = true;
 	_audioEnded = !_audioSource || _playbackTime >= _audioDuration;
 	if (_audioSource && !_audioEnded) {
@@ -695,10 +746,7 @@ bool VideoNode::update(double deltaTime) {
 		const auto result = updateTexture();
 		if (result == UpdateFlag::Wait) return Sprite::update(deltaTime);
 		_seeking = false;
-		if (result == UpdateFlag::Stop || result == UpdateFlag::Loop) {
-			_videoEnded = true;
-			_decoderEnded = result == UpdateFlag::Stop;
-		}
+		if (result != UpdateFlag::Done) _videoEnd = result;
 	}
 	if (!_paused && !_ended) {
 		if (!_started) {
@@ -708,26 +756,27 @@ bool VideoNode::update(double deltaTime) {
 		} else {
 			_playbackTime = std::min(_duration, _playbackTime + deltaTime);
 		}
-		if (!_videoEnded) {
+		if (_videoEnd == UpdateFlag::Wait) {
 #ifdef DORA_EMSCRIPTEN
 			s_cast<VideoData*>(_videoData.get())->pump(_playbackTime, _cycle);
 #endif
 			const auto result = updateTexture();
-			if (result == UpdateFlag::Stop || result == UpdateFlag::Loop) {
-				_videoEnded = true;
-				_decoderEnded = result == UpdateFlag::Stop;
-			}
+			if (result != UpdateFlag::Done) _videoEnd = result;
 		}
-		if (_videoEnded && (!_audioSource || _audioEnded)) {
-			if (!_looped || _decoderEnded) {
+		if (_videoEnd != UpdateFlag::Wait && (!_audioSource || _audioEnded)) {
+			if (_videoEnd != UpdateFlag::Loop) {
 				_ended = true;
 				_playbackTime = _duration;
+				if (_videoEnd == UpdateFlag::End) emit("VideoEnd"_slice);
 			} else {
 				++_cycle;
 				_playbackTime = _seekTime = 0.0;
 				_started = false;
-				_videoEnded = false;
-				if (beginPlayback()) updateTexture();
+				_videoEnd = UpdateFlag::Wait;
+				if (beginPlayback()) {
+					const auto result = updateTexture();
+					if (result != UpdateFlag::Done) _videoEnd = result;
+				}
 			}
 		}
 	}

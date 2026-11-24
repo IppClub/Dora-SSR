@@ -1,10 +1,14 @@
 local Sprite = require("Sprite").Type
 
 -- 用于表示视频节点的类。
+-- 非循环播放自然播完视频及内嵌音轨后，触发一次 "VideoEnd" 事件。
 local record VideoNode
 
 	-- 继承自 `Sprite`。
 	embed Sprite
+
+	-- 注册非循环播放自然结束的回调，等待内嵌音轨一并播完。
+	onVideoEnd: function(self: VideoNode, callback: function())
 
 	-- 同时暂停视频和内嵌音轨。
 	pause: function(self: VideoNode)

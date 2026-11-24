@@ -500,6 +500,21 @@ Remember that VideoNode will automatically start playing when mounted to the sce
 For more information about VideoNode, refer to the [VideoNode API documentation](/docs/api/Class/VideoNode).
 
 
+### Continue after playback
+
+Register `onVideoEnd` before mounting the non-looping video. The callback runs after the video and any embedded audio finish naturally.
+
+```lua
+local video = assert(VideoNode("intro.ogv"))
+video:onVideoEnd(function()
+	video:removeFromParent()
+	startGame()
+end)
+video:addTo(Director.entry)
+```
+
+In TypeScript, use `video.onVideoEnd(startGame)`. In DoraX, use `<video-node file="intro.ogv" onVideoEnd={startGame} />`.
+
 ### Playback position and replay
 
 VideoNode starts automatically when added to the running scene. `play()` and

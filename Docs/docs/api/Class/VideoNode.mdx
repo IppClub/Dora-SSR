@@ -10,6 +10,22 @@
 
 The Web dora-preset supports Ogg/Theora video with embedded Vorbis audio. Enable VIDEO explicitly for core builds. Video decoding runs on the logic loop without requiring pthreads or SharedArrayBuffer. Audio playback follows browser user-gesture requirements.
 
+## onVideoEnd
+
+Registers a callback for the [VideoEnd event](/docs/api/Node%20Event/VideoNode). The callback takes no arguments and runs after the video and any embedded audio finish naturally.
+
+```tl
+onVideoEnd: function(self: VideoNode, callback: function())
+```
+
+```lua
+video:onVideoEnd(function()
+    startGame()
+end)
+```
+
+In TypeScript, call `video.onVideoEnd(startGame)`. In DoraX, set `onVideoEnd={startGame}` on a `<video-node>`.
+
 ## pause
 
 **Type:** Function.

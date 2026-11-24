@@ -1,10 +1,14 @@
 local Sprite = require("Sprite").Type
 
 -- A class that represents a video node.
+-- The "VideoEnd" slot fires once when non-looping playback naturally finishes, including any embedded audio.
 local record VideoNode
 
 	-- Inherits from `Sprite`.
 	embed Sprite
+
+	-- Registers a callback for the natural end of non-looping playback, including embedded audio.
+	onVideoEnd: function(self: VideoNode, callback: function())
 
 	-- Pauses the video and embedded audio playback.
 	pause: function(self: VideoNode)

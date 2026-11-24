@@ -9,6 +9,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #pragma once
 
 class ZipFile;
+struct SDL_RWops;
 
 NS_DORA_BEGIN
 
@@ -78,6 +79,9 @@ public:
 	std::string loadInMainUnsafe(String filename);
 	uint8_t* loadUnsafe(String filename, int64_t& size);
 	std::string loadUnsafe(String filename);
+	// Open an ordinary file resolved through Content. The caller owns the
+	// handle. ZIP and APK entries must use the packaged asset readers.
+	SDL_RWops* openReadFile(String filename);
 
 protected:
 	Content();

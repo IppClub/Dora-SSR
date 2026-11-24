@@ -1,0 +1,13 @@
+# VideoNode 的节点事件
+
+## VideoEnd
+
+非循环播放时，视频及内嵌 Vorbis 音轨自然播完后触发一次。派发事件时，`playing` 为 `false`，`currentTime` 等于 `duration`。重播后可以再次触发。
+
+暂停、移除节点、直接跳到 `duration`、循环换轮和视频解码失败均不触发该事件。
+
+```tl
+["VideoEnd"]: function()
+```
+
+可通过 `video:slot("VideoEnd", callback)` 或 [onVideoEnd](/docs/api/Class/VideoNode#onvideoend) 注册回调。TypeScript 中可用 `Slot.VideoEnd` 引用事件名。

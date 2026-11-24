@@ -821,6 +821,9 @@ class AudioSource extends Node {
 class VideoNode extends Sprite {
 	ref?: Ref<Dora.VideoNode.Type>;
 
+	/** Fires when non-looping playback, including embedded audio, ends naturally. */
+	onVideoEnd?(this: void): void;
+
 	/**
 	 * The path to an Ogg (`.ogv`) file containing a Theora video stream. VideoNode reads it through Dora Content, decodes Theora 4:2:0/4:2:2/4:4:4 in software, and automatically plays an embedded Vorbis track with synchronized pause, resume, and looping.
 	 */
