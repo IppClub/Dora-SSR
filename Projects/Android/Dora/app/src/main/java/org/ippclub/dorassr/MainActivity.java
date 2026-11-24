@@ -204,14 +204,51 @@ public class MainActivity extends SDLActivity {
 	private volatile float safeInsetTop;
 	private volatile float safeInsetRight;
 	private volatile float safeInsetBottom;
-	public static String waBuild(String path) { return Wa.waBuild(path); }
-	public static String waFormat(String path) { return Wa.waFormat(path); }
-	public static long waGitStartClone(String url, String path, String branch, String token, long depth) { return Wa.waGitStartClone(url, path, branch, token, depth); }
-	public static long waGitStartPull(String path, String branch, String token, boolean force) { return Wa.waGitStartPull(path, branch, token, force); }
-	public static long waGitRun(String repoPath, String command, String optionsJSON) { return Wa.waGitRun(repoPath, command, optionsJSON); }
-	public static String waGitPoll(long jobId) { return Wa.waGitPoll(jobId); }
-	public static boolean waGitCancel(long jobId) { return Wa.waGitCancel(jobId); }
-	public static boolean waGitDispose(long jobId) { return Wa.waGitDispose(jobId); }
+	private static final class WaSupport {
+		static final boolean AVAILABLE = load();
+
+		private static boolean load() {
+			try {
+				Wa.touch();
+				return true;
+			} catch (LinkageError error) {
+				// Standalone games can run Wasm without the developer tool library.
+				return false;
+			}
+		}
+	}
+
+	public static String waBuild(String path) {
+		return WaSupport.AVAILABLE ? Wa.waBuild(path) : "Wa compilation is unavailable. Build the project in Dora before exporting.";
+	}
+
+	public static String waFormat(String path) {
+		return WaSupport.AVAILABLE ? Wa.waFormat(path) : "";
+	}
+
+	public static long waGitStartClone(String url, String path, String branch, String token, long depth) {
+		return WaSupport.AVAILABLE ? Wa.waGitStartClone(url, path, branch, token, depth) : 0;
+	}
+
+	public static long waGitStartPull(String path, String branch, String token, boolean force) {
+		return WaSupport.AVAILABLE ? Wa.waGitStartPull(path, branch, token, force) : 0;
+	}
+
+	public static long waGitRun(String repoPath, String command, String optionsJSON) {
+		return WaSupport.AVAILABLE ? Wa.waGitRun(repoPath, command, optionsJSON) : 0;
+	}
+
+	public static String waGitPoll(long jobId) {
+		return WaSupport.AVAILABLE ? Wa.waGitPoll(jobId) : "{\"state\":\"error\",\"error\":\"Git is unavailable in this build\"}";
+	}
+
+	public static boolean waGitCancel(long jobId) {
+		return WaSupport.AVAILABLE && Wa.waGitCancel(jobId);
+	}
+
+	public static boolean waGitDispose(long jobId) {
+		return WaSupport.AVAILABLE && Wa.waGitDispose(jobId);
+	}
 	@Override
 	protected void onCreate(final Bundle savedInstanceState) {
 		Intent launchIntent = getIntent();

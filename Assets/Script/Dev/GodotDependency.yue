@@ -1,0 +1,81 @@
+import "Dora" as :Content, :Path
+
+resourceExtensions = {pck: true, gd: true, gdc: true, tscn: true, scn: true, tres: true, gdshader: true, gdshaderinc: true, gdextension: true}
+luaExtensions = {lua: true, yue: true, tl: true}
+jsExtensions = {ts: true, tsx: true, js: true, jsx: true}
+rawExtensions = {wasm: true, wa: true, rs: true, vs: true, bl: true, json: true}
+maxCommentScanBytes = 1024 * 1024
+maxScanBytes = 64 * 1024 * 1024
+
+containsApi = (text) ->
+	text\find("%f[%w_]GodotNode%f[^%w_]") or text\find("%f[%w_]GodotPlayer%f[^%w_]") or
+		text\find("%f[%w_]godotnode_[a-z_]+%f[^%w_]")
+
+blockEnd = (text, closing, offset) ->
+	_, last = text\find closing, offset, true
+	last and last + 1 or #text + 1
+
+quotedEnd = (text, quote, offset) ->
+	while marker := text\find("[\\#{quote}]", offset)
+		return marker + 1 if text\sub(marker, marker) == quote
+		offset = marker + 2
+	#text + 1
+
+-- Keep literals, including quoted API names, when skipping source comments.
+withoutComments = (text, ext) ->
+	luaStyle = luaExtensions[ext]
+	jsStyle = jsExtensions[ext]
+	markers = if luaStyle then [=[[-%["']]=] elseif jsStyle then [=[[/"'`]]=] else "<"
+	parts = {}
+	keepFrom = 1
+	offset = 1
+	while start := text\find markers, offset
+		marker = text\sub start, start
+		nextTwo = text\sub start, start + 1
+		commentEnd = nil
+		if luaStyle and nextTwo == "--"
+			equals, body = text\match "^%[(=*)%[()", start + 2
+			commentEnd = if body then blockEnd(text, "]#{equals}]", body) else text\find("[\r\n]", start + 2) or #text + 1
+		elseif jsStyle and nextTwo == "//"
+			commentEnd = text\find("[\r\n]", start + 2) or #text + 1
+		elseif jsStyle and nextTwo == "/*"
+			commentEnd = blockEnd text, "*/", start + 2
+		elseif ext == "xml" and text\sub(start, start + 3) == "<!--"
+			commentEnd = blockEnd text, "-->", start + 4
+		if commentEnd
+			parts[] = text\sub keepFrom, start - 1
+			parts[] = " "
+			keepFrom = commentEnd
+			offset = commentEnd
+		elseif marker == '"' or marker == "'" or marker == '`'
+			offset = quotedEnd text, marker, start + 1
+		elseif luaStyle and marker == "["
+			equals, body = text\match "^%[(=*)%[()", start
+			offset = if body then blockEnd(text, "]#{equals}]", body) else start + 1
+		elseif ext == "xml" and text\sub(start, start + 8) == "<![CDATA["
+			offset = blockEnd text, "]]>", start + 9
+		else
+			offset = start + 1
+	parts[] = text\sub keepFrom
+	table.concat parts
+
+export needsGodot = (project) ->
+	for file in *Content\getAllFiles project
+		ext = Path\getExt(file)\lower!
+		return true if Path\getFilename(file)\lower! == "project.godot" or resourceExtensions[ext]
+		if ext == "res" or luaExtensions[ext] or jsExtensions[ext] or ext == "xml" or rawExtensions[ext]
+			path = Path project, file
+			size = Content\getAttr path
+			-- The Lua content API reads the whole file. Keep the runtime when inspection is incomplete.
+			return true if size == nil or size > maxScanBytes
+			continue if size == 0
+			text = Content\loadAsync path
+			return true unless text
+			if ext == "res"
+				magic = text\sub 1, 4
+				return true if magic == "RSRC" or magic == "RSCC"
+			elseif containsApi text
+				if rawExtensions[ext] or size > maxCommentScanBytes
+					return true
+				return true if containsApi withoutComments(text, ext)
+	false

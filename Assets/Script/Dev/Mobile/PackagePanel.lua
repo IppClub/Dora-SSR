@@ -215,341 +215,354 @@ function ____exports.startPackagePanel(options) -- 9
 			____temp_15 = (____opt_13 and ____opt_13.workDir) ~= nil -- 105
 		end -- 105
 		local apk = ____temp_15 and options.entry.fileName ~= nil -- 105
-		local actionY = apk and 128 or 78 -- 106
-		local height = math.min(safe.height - 16, contentBottom + 20 + (hasActions and (apk and 176 or 126) or 66)) -- 107
-		local actionWidth = (width - 52) / 2 -- 108
-		local ____toNode_34 = toNode -- 109
-		local ____React_createElement_33 = React.createElement -- 109
-		local ____temp_31 = { -- 109
-			x = -App.visualSize.width / 2, -- 109
-			y = -App.visualSize.height / 2, -- 109
-			anchorX = 0, -- 109
-			anchorY = 0, -- 109
-			width = App.visualSize.width, -- 109
-			height = App.visualSize.height, -- 109
-			touchEnabled = true, -- 109
-			swallowTouches = true -- 109
-		} -- 109
-		local ____React_createElement_result_32 = React.createElement( -- 109
-			"draw-node", -- 109
-			nil, -- 109
-			React.createElement("rect-shape", { -- 109
-				centerX = App.visualSize.width / 2, -- 109
-				centerY = App.visualSize.height / 2, -- 109
-				width = App.visualSize.width, -- 109
-				height = App.visualSize.height, -- 109
-				fillColor = 2852126720 -- 109
-			}) -- 109
-		) -- 109
-		local ____React_createElement_30 = React.createElement -- 109
-		local ____array_29 = __TS__SparseArrayNew( -- 109
-			"node", -- 109
-			{ -- 109
-				tag = "mobile-package-sheet", -- 109
-				x = safe.left + (safe.width - width) / 2, -- 109
-				y = safe.bottom + 8, -- 109
-				width = width, -- 109
-				height = height, -- 109
-				anchorX = 0, -- 109
-				anchorY = 0 -- 109
-			}, -- 109
-			React.createElement(NativePanelSurface, {width = width, height = height}), -- 109
-			React.createElement("label", { -- 109
-				x = 20, -- 109
-				y = height - titleTop, -- 109
-				anchorX = 0, -- 109
-				anchorY = 1, -- 109
-				fontName = "sarasa-mono-sc-regular", -- 109
-				fontSize = 22, -- 109
-				text = title, -- 109
-				textWidth = width - 40, -- 109
-				alignment = "Left" -- 109
-			}) -- 109
-		) -- 109
-		local ____temp_16 -- 114
-		if detail == "" then -- 114
-			____temp_16 = nil -- 114
-		else -- 114
-			____temp_16 = React.createElement("label", { -- 114
-				tag = "mobile-package-detail", -- 114
-				ref = detailRef, -- 114
-				x = 20, -- 114
-				y = height - detailTop, -- 114
-				anchorX = 0, -- 114
-				anchorY = 1, -- 114
-				fontName = "sarasa-mono-sc-regular", -- 114
-				fontSize = 14, -- 114
-				text = detail, -- 114
-				color3 = 11055037, -- 114
-				textWidth = width - 40, -- 114
-				alignment = "Left" -- 114
+		local buttonHeight = 48 -- 106
+		local rowGap = 12 -- 107
+		local closeY = 18 -- 108
+		local actionY = closeY + buttonHeight + rowGap -- 109
+		local shareY = apk and actionY + buttonHeight + rowGap or actionY -- 110
+		local footerTop = (hasActions and shareY or closeY) + buttonHeight -- 111
+		local height = math.min(safe.height - 16, contentBottom + 20 + footerTop) -- 112
+		local actionWidth = (width - 52) / 2 -- 113
+		local ____toNode_34 = toNode -- 114
+		local ____React_createElement_33 = React.createElement -- 114
+		local ____temp_31 = { -- 114
+			x = -App.visualSize.width / 2, -- 114
+			y = -App.visualSize.height / 2, -- 114
+			anchorX = 0, -- 114
+			anchorY = 0, -- 114
+			width = App.visualSize.width, -- 114
+			height = App.visualSize.height, -- 114
+			touchEnabled = true, -- 114
+			swallowTouches = true -- 114
+		} -- 114
+		local ____React_createElement_result_32 = React.createElement( -- 114
+			"draw-node", -- 114
+			nil, -- 114
+			React.createElement("rect-shape", { -- 114
+				centerX = App.visualSize.width / 2, -- 114
+				centerY = App.visualSize.height / 2, -- 114
+				width = App.visualSize.width, -- 114
+				height = App.visualSize.height, -- 114
+				fillColor = 2852126720 -- 114
 			}) -- 114
-		end -- 114
-		__TS__SparseArrayPush( -- 114
-			____array_29, -- 114
-			____temp_16, -- 114
+		) -- 114
+		local ____React_createElement_30 = React.createElement -- 114
+		local ____array_29 = __TS__SparseArrayNew( -- 114
+			"node", -- 114
+			{ -- 114
+				tag = "mobile-package-sheet", -- 114
+				x = safe.left + (safe.width - width) / 2, -- 114
+				y = safe.bottom + 8, -- 114
+				width = width, -- 114
+				height = height, -- 114
+				anchorX = 0, -- 114
+				anchorY = 0 -- 114
+			}, -- 114
+			React.createElement(NativePanelSurface, {width = width, height = height}), -- 114
 			React.createElement("label", { -- 114
-				tag = "mobile-package-status", -- 114
 				x = 20, -- 114
-				y = height - messageTop, -- 114
+				y = height - titleTop, -- 114
 				anchorX = 0, -- 114
 				anchorY = 1, -- 114
 				fontName = "sarasa-mono-sc-regular", -- 114
-				fontSize = 14, -- 114
-				text = message, -- 114
-				color3 = failed and 16739179 or 11055037, -- 114
+				fontSize = 22, -- 114
+				text = title, -- 114
 				textWidth = width - 40, -- 114
 				alignment = "Left" -- 114
 			}) -- 114
 		) -- 114
-		local ____temp_28 -- 116
-		if not busy and preview then -- 116
-			____temp_28 = React.createElement( -- 116
-				"node", -- 116
-				nil, -- 116
-				React.createElement( -- 116
-					PackageButton, -- 117
-					{ -- 117
-						tag = "mobile-package-import-play", -- 117
-						x = 20, -- 117
-						y = 78, -- 117
-						width = actionWidth, -- 117
-						text = zh and "导入并试玩" or "Import & play", -- 117
-						fontSize = 15, -- 117
-						primary = true, -- 117
-						onTapped = function() return install(true) end -- 117
-					} -- 117
-				), -- 117
-				React.createElement( -- 117
-					PackageButton, -- 118
-					{ -- 118
-						tag = "mobile-package-import", -- 118
-						x = 32 + actionWidth, -- 118
-						y = 78, -- 118
-						width = actionWidth, -- 118
-						text = zh and "仅导入" or "Import", -- 118
-						fontSize = 15, -- 118
-						onTapped = function() return install(false) end -- 118
-					} -- 118
-				) -- 118
-			) -- 118
-		else -- 118
-			local ____temp_27 -- 119
-			if options.mode == "share" then -- 119
-				local ____React_createElement_21 = React.createElement -- 119
-				local ____React_createElement_result_19 = React.createElement( -- 119
-					PackageButton, -- 120
-					{ -- 120
-						tag = "mobile-package-share", -- 120
-						x = 20, -- 120
-						y = actionY, -- 120
-						width = actionWidth, -- 120
-						text = zh and "分享作品" or "Share game", -- 120
-						fontSize = 15, -- 120
-						primary = true, -- 120
-						onTapped = function() -- 120
-							if enabled() and exported and not App:shareFile(exported.path) then -- 120
-								failed = true -- 120
-								message = zh and "无法打开分享面板" or "Could not open share sheet" -- 120
-								render() -- 120
-							end -- 120
-						end -- 120
-					} -- 120
-				) -- 120
-				local ____React_createElement_result_20 = React.createElement( -- 120
-					PackageButton, -- 121
-					{ -- 121
-						tag = "mobile-package-save", -- 121
-						x = 32 + actionWidth, -- 121
-						y = actionY, -- 121
-						width = actionWidth, -- 121
-						text = zh and "保存作品包" or "Save package", -- 121
-						fontSize = 15, -- 121
-						onTapped = function() -- 121
-							if enabled() and exported and not App:saveFileDialog(exported.path) then -- 121
-								failed = true -- 121
-								message = zh and "无法打开保存面板" or "Could not open save dialog" -- 121
-								render() -- 121
-							end -- 121
-						end -- 121
-					} -- 121
-				) -- 121
-				local ____apk_18 -- 122
-				if apk then -- 122
-					____apk_18 = React.createElement( -- 122
-						PackageButton, -- 122
-						{ -- 122
-							tag = "mobile-package-apk", -- 122
-							x = 20, -- 122
-							y = 78, -- 122
-							width = width - 40, -- 122
-							text = zh and "导出 APK" or "Export APK", -- 122
-							fontSize = 15, -- 122
-							onTapped = function() -- 122
-								local ____temp_17 = options.entry or ({}) -- 123
-								local workDir = ____temp_17.workDir -- 123
-								local fileName = ____temp_17.fileName -- 123
-								local title = ____temp_17.title -- 123
-								if not enabled() or not workDir or not fileName or not title then -- 123
-									return -- 124
-								end -- 124
-								busy = true -- 125
-								message = zh and "正在准备游戏文件…" or "Preparing game files…" -- 126
-								render() -- 127
-								thread(function() -- 128
-									local ok, detail = pcall(function() -- 129
-										local module = "Script.Dev.NativeGameExport" -- 130
-										local exporter = require(module) -- 131
-										exporter.exportAndroid(workDir, fileName, title) -- 132
-									end) -- 129
-									if not active then -- 129
-										return -- 134
-									end -- 134
-									busy = false -- 135
-									failed = not ok -- 136
-									message = ok and (zh and "接收者导入后可以试玩，也可以继续改编。" or "Recipients can import, play, and Remix this game.") or tostring(detail) -- 137
-									render() -- 138
-								end) -- 128
-							end -- 122
-						} -- 122
-					) -- 122
-				else -- 122
-					____apk_18 = nil -- 140
-				end -- 140
-				____temp_27 = ____React_createElement_21( -- 140
-					"node", -- 140
-					nil, -- 140
-					____React_createElement_result_19, -- 140
-					____React_createElement_result_20, -- 140
-					____apk_18 -- 140
-				) -- 140
-			else -- 140
-				local ____temp_26 -- 141
-				if not busy then -- 141
-					local ____React_createElement_25 = React.createElement -- 141
-					local ____options_onNew_24 -- 142
-					if options.onNew then -- 142
-						____options_onNew_24 = React.createElement( -- 142
-							PackageButton, -- 142
-							{ -- 142
-								tag = "mobile-package-new", -- 142
-								x = 20, -- 142
-								y = 78, -- 142
-								width = actionWidth, -- 142
-								text = zh and "新建作品" or "New game", -- 142
-								fontSize = 15, -- 142
-								onTapped = function() -- 142
-									if enabled() then -- 142
-										close() -- 142
-										local ____opt_22 = options.onNew -- 142
-										if ____opt_22 ~= nil then -- 142
-											____opt_22() -- 142
-										end -- 142
-									end -- 142
-								end -- 142
-							} -- 142
-						) -- 142
-					else -- 142
-						____options_onNew_24 = nil -- 142
-					end -- 142
-					____temp_26 = ____React_createElement_25( -- 142
-						"node", -- 142
-						nil, -- 142
-						____options_onNew_24, -- 142
-						React.createElement(PackageButton, { -- 142
-							tag = "mobile-package-pick", -- 142
-							x = options.onNew and 32 + actionWidth or 20, -- 142
-							y = 78, -- 142
-							width = options.onNew and actionWidth or width - 40, -- 142
-							text = zh and "导入作品包" or "Import package", -- 142
-							fontSize = 15, -- 142
-							primary = true, -- 142
-							onTapped = pick -- 142
-						}) -- 142
-					) -- 142
-				else -- 142
-					____temp_26 = nil -- 144
-				end -- 144
-				____temp_27 = ____temp_26 -- 141
-			end -- 141
-			____temp_28 = ____temp_27 -- 119
+		local ____temp_16 -- 119
+		if detail == "" then -- 119
+			____temp_16 = nil -- 119
+		else -- 119
+			____temp_16 = React.createElement("label", { -- 119
+				tag = "mobile-package-detail", -- 119
+				ref = detailRef, -- 119
+				x = 20, -- 119
+				y = height - detailTop, -- 119
+				anchorX = 0, -- 119
+				anchorY = 1, -- 119
+				fontName = "sarasa-mono-sc-regular", -- 119
+				fontSize = 14, -- 119
+				text = detail, -- 119
+				color3 = 11055037, -- 119
+				textWidth = width - 40, -- 119
+				alignment = "Left" -- 119
+			}) -- 119
 		end -- 119
 		__TS__SparseArrayPush( -- 119
 			____array_29, -- 119
-			____temp_28, -- 119
-			React.createElement(PackageButton, { -- 119
-				tag = "mobile-package-close", -- 119
+			____temp_16, -- 119
+			React.createElement("label", { -- 119
+				tag = "mobile-package-status", -- 119
 				x = 20, -- 119
-				y = 18, -- 119
-				width = width - 40, -- 119
-				text = zh and "关闭" or "Close", -- 119
-				onTapped = close -- 119
+				y = height - messageTop, -- 119
+				anchorX = 0, -- 119
+				anchorY = 1, -- 119
+				fontName = "sarasa-mono-sc-regular", -- 119
+				fontSize = 14, -- 119
+				text = message, -- 119
+				color3 = failed and 16739179 or 11055037, -- 119
+				textWidth = width - 40, -- 119
+				alignment = "Left" -- 119
 			}) -- 119
 		) -- 119
-		local node = ____toNode_34(____React_createElement_33( -- 109
-			"node", -- 109
-			____temp_31, -- 109
-			____React_createElement_result_32, -- 109
-			____React_createElement_30(__TS__SparseArraySpread(____array_29)) -- 109
-		)) -- 109
-		if node then -- 109
-			host:addChild(node) -- 148
-		end -- 148
-	end -- 76
-	attachGamepad(host, {initialTag = "mobile-package-close", isEnabled = enabled, onBack = close}) -- 150
-	host:onAppChange(function(setting) -- 151
-		if setting == "Size" then -- 151
-			render() -- 151
-		end -- 151
-	end) -- 151
-	host:onAppEvent(function(event) -- 152
-		if event == "BackButton" and enabled() then -- 152
-			close() -- 152
-		end -- 152
-	end) -- 152
-	host:onCleanup(function() -- 153
-		active = false -- 153
-		if preview then -- 153
-			discardPackage(preview) -- 153
+		local ____temp_28 -- 121
+		if not busy and preview then -- 121
+			____temp_28 = React.createElement( -- 121
+				"node", -- 121
+				nil, -- 121
+				React.createElement( -- 121
+					PackageButton, -- 122
+					{ -- 122
+						tag = "mobile-package-import-play", -- 122
+						x = 20, -- 122
+						y = actionY, -- 122
+						width = actionWidth, -- 122
+						height = buttonHeight, -- 122
+						text = zh and "导入并试玩" or "Import & play", -- 122
+						fontSize = 15, -- 122
+						primary = true, -- 122
+						onTapped = function() return install(true) end -- 122
+					} -- 122
+				), -- 122
+				React.createElement( -- 122
+					PackageButton, -- 123
+					{ -- 123
+						tag = "mobile-package-import", -- 123
+						x = 32 + actionWidth, -- 123
+						y = actionY, -- 123
+						width = actionWidth, -- 123
+						height = buttonHeight, -- 123
+						text = zh and "仅导入" or "Import", -- 123
+						fontSize = 15, -- 123
+						onTapped = function() return install(false) end -- 123
+					} -- 123
+				) -- 123
+			) -- 123
+		else -- 123
+			local ____temp_27 -- 124
+			if options.mode == "share" then -- 124
+				local ____React_createElement_21 = React.createElement -- 124
+				local ____React_createElement_result_19 = React.createElement( -- 124
+					PackageButton, -- 125
+					{ -- 125
+						tag = "mobile-package-share", -- 125
+						x = 20, -- 125
+						y = shareY, -- 125
+						width = actionWidth, -- 125
+						height = buttonHeight, -- 125
+						text = zh and "分享作品" or "Share game", -- 125
+						fontSize = 15, -- 125
+						primary = true, -- 125
+						onTapped = function() -- 125
+							if enabled() and exported and not App:shareFile(exported.path) then -- 125
+								failed = true -- 125
+								message = zh and "无法打开分享面板" or "Could not open share sheet" -- 125
+								render() -- 125
+							end -- 125
+						end -- 125
+					} -- 125
+				) -- 125
+				local ____React_createElement_result_20 = React.createElement( -- 125
+					PackageButton, -- 126
+					{ -- 126
+						tag = "mobile-package-save", -- 126
+						x = 32 + actionWidth, -- 126
+						y = shareY, -- 126
+						width = actionWidth, -- 126
+						height = buttonHeight, -- 126
+						text = zh and "保存作品包" or "Save package", -- 126
+						fontSize = 15, -- 126
+						onTapped = function() -- 126
+							if enabled() and exported and not App:saveFileDialog(exported.path) then -- 126
+								failed = true -- 126
+								message = zh and "无法打开保存面板" or "Could not open save dialog" -- 126
+								render() -- 126
+							end -- 126
+						end -- 126
+					} -- 126
+				) -- 126
+				local ____apk_18 -- 127
+				if apk then -- 127
+					____apk_18 = React.createElement( -- 127
+						PackageButton, -- 127
+						{ -- 127
+							tag = "mobile-package-apk", -- 127
+							x = 20, -- 127
+							y = actionY, -- 127
+							width = width - 40, -- 127
+							height = buttonHeight, -- 127
+							text = zh and "导出 APK" or "Export APK", -- 127
+							fontSize = 15, -- 127
+							onTapped = function() -- 127
+								local ____temp_17 = options.entry or ({}) -- 128
+								local workDir = ____temp_17.workDir -- 128
+								local fileName = ____temp_17.fileName -- 128
+								local title = ____temp_17.title -- 128
+								if not enabled() or not workDir or not fileName or not title then -- 128
+									return -- 129
+								end -- 129
+								busy = true -- 130
+								message = zh and "正在准备游戏文件…" or "Preparing game files…" -- 131
+								render() -- 132
+								thread(function() -- 133
+									local ok, detail = pcall(function() -- 134
+										local module = "Script.Dev.NativeGameExport" -- 135
+										local exporter = require(module) -- 136
+										exporter.exportAndroid(workDir, fileName, title) -- 137
+									end) -- 134
+									if not active then -- 134
+										return -- 139
+									end -- 139
+									busy = false -- 140
+									failed = not ok -- 141
+									message = ok and (zh and "接收者导入后可以试玩，也可以继续改编。" or "Recipients can import, play, and Remix this game.") or tostring(detail) -- 142
+									render() -- 143
+								end) -- 133
+							end -- 127
+						} -- 127
+					) -- 127
+				else -- 127
+					____apk_18 = nil -- 145
+				end -- 145
+				____temp_27 = ____React_createElement_21( -- 145
+					"node", -- 145
+					nil, -- 145
+					____React_createElement_result_19, -- 145
+					____React_createElement_result_20, -- 145
+					____apk_18 -- 145
+				) -- 145
+			else -- 145
+				local ____temp_26 -- 146
+				if not busy then -- 146
+					local ____React_createElement_25 = React.createElement -- 146
+					local ____options_onNew_24 -- 147
+					if options.onNew then -- 147
+						____options_onNew_24 = React.createElement( -- 147
+							PackageButton, -- 147
+							{ -- 147
+								tag = "mobile-package-new", -- 147
+								x = 20, -- 147
+								y = actionY, -- 147
+								width = actionWidth, -- 147
+								height = buttonHeight, -- 147
+								text = zh and "新建作品" or "New game", -- 147
+								fontSize = 15, -- 147
+								onTapped = function() -- 147
+									if enabled() then -- 147
+										close() -- 147
+										local ____opt_22 = options.onNew -- 147
+										if ____opt_22 ~= nil then -- 147
+											____opt_22() -- 147
+										end -- 147
+									end -- 147
+								end -- 147
+							} -- 147
+						) -- 147
+					else -- 147
+						____options_onNew_24 = nil -- 147
+					end -- 147
+					____temp_26 = ____React_createElement_25( -- 147
+						"node", -- 147
+						nil, -- 147
+						____options_onNew_24, -- 147
+						React.createElement(PackageButton, { -- 147
+							tag = "mobile-package-pick", -- 147
+							x = options.onNew and 32 + actionWidth or 20, -- 147
+							y = actionY, -- 147
+							width = options.onNew and actionWidth or width - 40, -- 147
+							height = buttonHeight, -- 147
+							text = zh and "导入作品包" or "Import package", -- 147
+							fontSize = 15, -- 147
+							primary = true, -- 147
+							onTapped = pick -- 147
+						}) -- 147
+					) -- 147
+				else -- 147
+					____temp_26 = nil -- 149
+				end -- 149
+				____temp_27 = ____temp_26 -- 146
+			end -- 146
+			____temp_28 = ____temp_27 -- 124
+		end -- 124
+		__TS__SparseArrayPush( -- 124
+			____array_29, -- 124
+			____temp_28, -- 124
+			React.createElement(PackageButton, { -- 124
+				tag = "mobile-package-close", -- 124
+				x = 20, -- 124
+				y = closeY, -- 124
+				width = width - 40, -- 124
+				height = buttonHeight, -- 124
+				text = zh and "关闭" or "Close", -- 124
+				onTapped = close -- 124
+			}) -- 124
+		) -- 124
+		local node = ____toNode_34(____React_createElement_33( -- 114
+			"node", -- 114
+			____temp_31, -- 114
+			____React_createElement_result_32, -- 114
+			____React_createElement_30(__TS__SparseArraySpread(____array_29)) -- 114
+		)) -- 114
+		if node then -- 114
+			host:addChild(node) -- 153
 		end -- 153
-		preview = nil -- 153
-	end) -- 153
-	host:schedule(function() -- 154
-		host.visible = HttpServer.wsConnectionCount == 0 -- 154
-		return false -- 154
-	end) -- 154
-	render() -- 155
-	if options.mode == "add" and options.pickOnOpen then -- 155
-		pick() -- 156
-	end -- 156
-	if options.mode == "receive" and options.path then -- 156
-		receive(options.path) -- 157
-	end -- 157
-	if options.mode == "share" and options.entry then -- 157
-		thread(function() -- 159
-			do -- 159
-				local function ____catch(e) -- 159
-					failed = true -- 168
-					busy = false -- 168
-					message = (string.match( -- 169
-						tostring(e), -- 169
-						":%d+: (.*)$" -- 169
-					)) or tostring(e) -- 169
-					render() -- 170
+	end -- 76
+	attachGamepad(host, {initialTag = "mobile-package-close", isEnabled = enabled, onBack = close}) -- 155
+	host:onAppChange(function(setting) -- 156
+		if setting == "Size" then -- 156
+			render() -- 156
+		end -- 156
+	end) -- 156
+	host:onAppEvent(function(event) -- 157
+		if event == "BackButton" and enabled() then -- 157
+			close() -- 157
+		end -- 157
+	end) -- 157
+	host:onCleanup(function() -- 158
+		active = false -- 158
+		if preview then -- 158
+			discardPackage(preview) -- 158
+		end -- 158
+		preview = nil -- 158
+	end) -- 158
+	host:schedule(function() -- 159
+		host.visible = HttpServer.wsConnectionCount == 0 -- 159
+		return false -- 159
+	end) -- 159
+	render() -- 160
+	if options.mode == "add" and options.pickOnOpen then -- 160
+		pick() -- 161
+	end -- 161
+	if options.mode == "receive" and options.path then -- 161
+		receive(options.path) -- 162
+	end -- 162
+	if options.mode == "share" and options.entry then -- 162
+		thread(function() -- 164
+			do -- 164
+				local function ____catch(e) -- 164
+					failed = true -- 173
+					busy = false -- 173
+					message = (string.match( -- 174
+						tostring(e), -- 174
+						":%d+: (.*)$" -- 174
+					)) or tostring(e) -- 174
+					render() -- 175
+				end -- 175
+				local ____try, ____hasReturned = pcall(function() -- 175
+					exported = exportPackage(options.entry) -- 166
+					busy = false -- 167
+					if active and host.parent and detailRef.current then -- 167
+						detailRef.current.text = (options.entry.title .. " · ") .. string.format("%.1f MB", exported.bytes / 1048576) -- 170
+					end -- 170
+				end) -- 170
+				if not ____try then -- 170
+					____catch(____hasReturned) -- 170
 				end -- 170
-				local ____try, ____hasReturned = pcall(function() -- 170
-					exported = exportPackage(options.entry) -- 161
-					busy = false -- 162
-					if active and host.parent and detailRef.current then -- 162
-						detailRef.current.text = (options.entry.title .. " · ") .. string.format("%.1f MB", exported.bytes / 1048576) -- 165
-					end -- 165
-				end) -- 165
-				if not ____try then -- 165
-					____catch(____hasReturned) -- 165
-				end -- 165
-			end -- 165
-		end) -- 159
-	end -- 159
-	return host -- 174
+			end -- 170
+		end) -- 164
+	end -- 164
+	return host -- 179
 end -- 9
 return ____exports -- 9

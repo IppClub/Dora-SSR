@@ -50,6 +50,16 @@ See [Web IDE common operations](./18.web-ide.mdx#export-a-project) for the forma
 
 To customize the Android launcher icon, place `icon.png` in the project root next to the `init` script. A square 512 × 512 PNG works well. Dora preserves transparency and centers non-square images without cropping. If the file is absent, the exported APK uses the system’s generic Android app icon.
 
+Dora scans the project for Godot assets and API references when exporting an Android APK or Windows ZIP. When it detects either one, it includes the platform's Godot native library. If the library is missing, use a Dora installation with Godot for the export.
+
+Dora's built-in GeneralUserGS SoundFont is used for asset generation. Add the generated audio files to your project before exporting the game.
+
+Build Wa projects before exporting to Android or Windows. Game packages run the compiled Wasm files without bundling the Wa compiler, formatter, or Git tools.
+
+APK exports include all CPU architectures (ABIs) available in the installed Dora APK by default. Deselect architectures you do not need to make the APK smaller. Keep at least one ABI that your players' devices support.
+
+If you can no longer use the signing key and want to distribute a separate app, select **Clear key** next to **Back up key** at the bottom left of the APK export dialog. If the local key is missing, look next to **Import key**. After you confirm, Dora deletes the locally stored key and suggests a new package name. An APK signed with a newly generated key cannot update existing installations of the old app.
+
 ## Packaging Process Overview
 
 ```mermaid

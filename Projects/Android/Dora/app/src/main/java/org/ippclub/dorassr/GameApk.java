@@ -44,6 +44,8 @@ import java.util.Date;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
@@ -115,17 +117,37 @@ final class GameApk {
 		return new ApkSigner.SignerConfig.Builder("GAME", key, certificates).build();
 	}
 
+	static Set<String> availableAbis(File source) throws IOException {
+		try (ZipFile template = new ZipFile(source)) {
+			return availableAbis(template);
+		}
+	}
+
+	private static Set<String> availableAbis(ZipFile template) {
+		Set<String> abis = new TreeSet<>();
+		for (Enumeration<? extends ZipEntry> entries = template.entries(); entries.hasMoreElements();) {
+			String name = entries.nextElement().getName();
+			if (name.startsWith("lib/") && name.endsWith("/libmain.so")) {
+				int end = name.indexOf('/', 4);
+				if (end > 4 && end == name.lastIndexOf('/')) abis.add(name.substring(4, end));
+			}
+		}
+		return abis;
+	}
+
 	static void export(File source, Resources resources, File assets, File unsigned, File output, String originalId, String gameId,
-			String title, int versionCode, String versionName, KeyStore store, char[] password) throws Exception {
+			String title, int versionCode, String versionName, Set<String> abis, KeyStore store, char[] password) throws Exception {
 		if (!validPackageName(gameId, originalId) || versionCode < 1
 				|| title.trim().isEmpty() || versionName.trim().isEmpty()) {
 			throw new IOException("Invalid Android package name, title, or version");
 		}
-		if (!new File(assets, "Script/init.lua").isFile() || !new File(assets, "Game").isDirectory()) {
+		File project = new File(assets, "Game");
+		if (!new File(assets, "Script/init.lua").isFile() || !project.isDirectory()) {
 			throw new IOException("The game snapshot has no startup script or project files");
 		}
 		ApkSigner.SignerConfig signer = getSigner(store, password);
-		byte[] icon = readGameIcon(new File(assets, "Game/icon.png"));
+		boolean keepGodot = GameGodotDependency.isNeeded(project);
+		byte[] icon = readGameIcon(new File(project, "icon.png"));
 		int iconId = icon == null ? android.R.mipmap.sym_def_app_icon : R.drawable.game_export_icon;
 		String iconEntry = null;
 		if (icon != null) {
@@ -140,15 +162,30 @@ final class GameApk {
 			if (template.getEntry(MANIFEST) == null || template.getEntry("classes.dex") == null) {
 				throw new IOException("A complete Dora APK is required");
 			}
+			if (abis.isEmpty() || !availableAbis(template).containsAll(abis)) {
+				throw new IOException(Locale.getDefault().getLanguage().equals("zh")
+						? "请选择 Dora APK 支持的 Android 架构"
+						: "Select at least one Android ABI supported by this Dora APK.");
+			}
+			if (keepGodot && abis.stream().anyMatch(abi -> template.getEntry("lib/" + abi + "/libgodot_android.so") == null)) {
+				throw new IOException(Locale.getDefault().getLanguage().equals("zh")
+						? "此项目需要 Godot 运行库，请使用包含 Godot 的 Dora APK 导出"
+						: "Use a Dora APK with Godot to export this project.");
+			}
 			if (iconEntry != null && template.getEntry(iconEntry) == null) {
 				throw new IOException("The Dora APK is missing the game icon resource");
 			}
-			boolean hasLibraries = false;
 			for (Enumeration<? extends ZipEntry> entries = template.entries(); entries.hasMoreElements();) {
 				ZipEntry item = entries.nextElement();
 				String name = item.getName();
 				if (item.isDirectory() || skip(name)) continue;
-				if (name.startsWith("lib/") && name.endsWith(".so")) hasLibraries = true;
+				if (name.startsWith("lib/")) {
+					int end = name.indexOf('/', 4);
+					if (end <= 4 || !abis.contains(name.substring(4, end))) continue;
+					if (name.endsWith("/libgojni.so")) continue;
+					// Android resolves this optional runtime on demand via dlopen.
+					if (!keepGodot && name.endsWith("/libgodot_android.so")) continue;
+				}
 				if (MANIFEST.equals(name)) {
 					try (InputStream input = template.getInputStream(item)) {
 						byte[] manifest = readManifest(input, item.getSize());
@@ -172,7 +209,6 @@ final class GameApk {
 				}
 				zip.closeEntry();
 			}
-			if (!hasLibraries) throw new IOException("Dora's APK has no native libraries. Use the complete APK.");
 			appendAssets(zip, assets, "assets/");
 		}
 		new ApkSigner.Builder(Collections.singletonList(signer))
@@ -180,6 +216,8 @@ final class GameApk {
 				.setOutputApk(output)
 				.setAlignmentPreserved(false)
 				.setLibraryPageAlignmentBytes(16384)
+				// Dora targets Android 9 and newer, which support APK signing blocks.
+				.setV1SigningEnabled(false)
 				.setV4SigningEnabled(false)
 				.build().sign();
 		if (!new ApkVerifier.Builder(output).build().verify().isVerified()) {
@@ -230,6 +268,9 @@ final class GameApk {
 	private static boolean skip(String name) {
 		if (STARTUP.equals(name) || name.equals("assets/Script/init.yue") || name.startsWith("assets/Game/")
 				|| name.startsWith("assets/Script/Dev/") || name.startsWith("assets/Script/Test/")
+				|| name.startsWith("assets/Script/Tools/") || name.equals("assets/Image/Mobile/dora-remix-states.png")
+				|| name.equals("assets/Audio/GeneralUserGS.sf3")
+				|| name.startsWith("assets/dora-wa/")
 				|| name.startsWith("assets/Doc/") || name.startsWith("assets/www/") || name.equals("stamp-cert-sha256")) {
 			return true;
 		}

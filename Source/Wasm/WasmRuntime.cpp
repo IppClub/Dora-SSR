@@ -2468,9 +2468,9 @@ void WasmInstance::executeMainFileAsync(String filename, const std::function<voi
 	auto file = filename.toString();
 	SharedContent.loadAsyncData(filename, [file, handler, this](OwnArray<uint8_t>&& data, size_t size) {
 		if (!data) {
-			handler(false);
 			_loading = false;
 			Error("failed to load wasm file \"{}\".", file);
+			handler(false);
 			return;
 		}
 		_wasm = {std::move(data), size};
@@ -2501,12 +2501,10 @@ void WasmInstance::executeMainFileAsync(String filename, const std::function<voi
 				}
 			},
 			[file, handler, this](Own<Values> values) {
+				bool success = false;
 				try {
 					s_callFromWasm++;
-					DEFER({
-						s_callFromWasm--;
-						_loading = false;
-					});
+					DEFER({ s_callFromWasm--; });
 					PROFILE("Loader"_slice, file);
 					Own<wasm3::module3> mod;
 					Own<wasm3::function> mainFn;
@@ -2514,13 +2512,13 @@ void WasmInstance::executeMainFileAsync(String filename, const std::function<voi
 					if (mod) {
 						Scope scope(this);
 						mainFn->call_argv();
-						handler(true);
-					} else
-						handler(false);
+						success = true;
+					}
 				} catch (std::runtime_error& e) {
 					Error("failed to execute wasm module: {}, due to: {}{}", file, e.what(), _runtime->get_error_message() == Slice::Empty ? Slice::Empty : ": "s + _runtime->get_error_message());
-					handler(false);
 				}
+				_loading = false;
+				handler(success);
 			});
 		});
 }
@@ -2639,6 +2637,8 @@ uint32_t WasmRuntime::getMemorySize() const noexcept {
 }
 
 uint32_t WasmInstance::getMemorySize() const noexcept {
+	// The loader worker can create or reset the runtime until its completion callback.
+	if (_loading) return 0;
 	uint32_t totalSize = 0;
 	if (_wasm.first) {
 		totalSize += _wasm.second;

@@ -1,8 +1,11 @@
 import "Dora" as :App, :Content, :Path
 import "Script.Dev.Mobile.Package" as :packageFileAllowed
 
-runtimeRoots = {"Audio", "Font", "Image", "Shader", "Script/Lib", "dora-wa", "LICENSES", "GodotRuntimeNotices", "gamecontrollerdb.txt"}
+runtimeRoots = {"Audio", "Font", "Image", "Shader", "Script/Lib", "LICENSES", "GodotRuntimeNotices", "gamecontrollerdb.txt"}
 entryExtensions = {"lua", "yue", "tl", "xml", "wasm"}
+
+-- Remix metadata is only needed when sharing an editable project.
+nativeFileAllowed = (file) -> file\sub(1, 1) != "." and packageFileAllowed file
 
 fail = (zh, en) -> error App.locale\match("^zh") and zh or en, 0
 
@@ -38,14 +41,14 @@ if type(run) == "function" then run() end
 
 export prepareGame = (root, fileName, assets) ->
 	entry = Path\getRelative(fileName, root)\gsub "\\", "/"
-	unless packageFileAllowed entry
+	unless nativeFileAllowed entry
 		fail "游戏入口必须在项目内", "The game entry must be inside the project"
 	runnable = for ext in *entryExtensions
 		break true if Content\exist Path(root, "#{entry}.#{ext}")
 	unless runnable
 		fail "请先在 IDE 中编译游戏", "Build the game in the IDE first"
 	for file in *Content\getAllFiles root
-		if packageFileAllowed file
+		if nativeFileAllowed file
 			copyFile Path(root, file), Path(assets, "Game", file)
 	Content\mkdir Path assets, "Script"
 	unless Content\save Path(assets, "Script", "init.lua"), bootstrap(entry)
@@ -72,18 +75,23 @@ export exportWindows = (root, fileName, title, destination) ->
 		unless Content\mkdir assets
 			fail "无法创建导出目录", "Could not create the export directory"
 		prepareGame root, fileName, assets
+		exe = App.executablePath
+		import "Script.Dev.GodotDependency" as :needsGodot
+		if needsGodot Path(assets, "Game")
+			godot = Path Path\getPath(exe), "dora_godot.dll"
+			unless Content\exist(godot) and not Content\isdir(godot)
+				fail "此项目需要 Godot，请使用包含 Godot 运行库的 Windows 版 Dora 导出", "Use a Windows build of Dora with Godot to export this project."
+			copyFile godot, Path(assets, "dora_godot.dll")
 		for item in *runtimeRoots
 			src = Path assetRoot, item
 			if Content\isdir src
 				for file in *Content\getAllFiles src
+					continue if item == "Audio" and file == "GeneralUserGS.sf3"
+					continue if item == "Image" and file\gsub("\\", "/") == "Mobile/dora-remix-states.png"
 					copyFile Path(src, file), Path(assets, item, file)
 			elseif Content\exist src
 				copyFile src, Path(assets, item)
-		exe = App.executablePath
 		copyFile exe, Path assets, "#{name}.exe"
-		for library in *{"wa.dll", "dora_godot.dll"}
-			src = Path Path\getPath(exe), library
-			copyFile src, Path(assets, library) if Content\exist src
 		unless Content\save Path(assets, "dora-game-id"), id
 			fail "无法写入游戏标识", "Could not write the game ID"
 		unless Content\zipAsync assets, tempZip
