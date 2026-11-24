@@ -12,5 +12,6 @@ if(!engineBuild){
   }catch{/* RuntimePreview reports a concrete configuration error in the UI. */}
 }
 export default defineConfig({ publicDir: '.generated',
+  resolve: { dedupe: ['react', 'react-dom'] },
   define:{'import.meta.env.VITE_DORA_ENGINE_BUILD':JSON.stringify(engineBuild??'')},
   server: { port: 8898, strictPort: true, headers, https:tls, proxy }, preview: { headers, https:tls, proxy } });

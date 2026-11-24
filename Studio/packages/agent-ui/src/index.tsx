@@ -38,8 +38,6 @@ function AgentTypeBadge({value}:{value:unknown}){
     {type}
   </span>;
 }
-const stepToolNames:Record<string,string>={message:'消息',local_agent_message:'本地代理',read_file:'文件读取',edit_file:'编辑文件',write_file:'写入文件',spawn_agent:'子代理',delete_file:'删除文件',grep_files:'搜索文件',glob_files:'列出文件',search_dora_doc:'搜索引擎文档',context_handoff:'上下文交接',compress_memory:'记忆压缩',merge_memory:'合并记忆',spawn_sub_agent:'派出子代理',list_sub_agents:'列出子代理',sub_agent_handoff:'子代理交接',build:'构建',fetch_url:'网络获取',execute_command:'执行命令',analyze_image:'画面分析',ask_user:'询问用户',questionnaire_answer:'问卷答复',invalid_tool_call:'无效工具调用',finish:'收工'};
-const stepStatuses:Record<string,string>={PENDING:'等待中',RUNNING:'进行中',DONE:'已完成',FAILED:'失败',STOPPED:'已停止'};
 const stringValue=(value:unknown)=>typeof value==='string'?value:'';
 const numberValue=(value:unknown)=>typeof value==='number'&&Number.isFinite(value)?value:undefined;
 const stringList=(value:unknown)=>Array.isArray(value)?value.filter((item):item is string=>typeof item==='string'):[];
@@ -74,7 +72,7 @@ export function SharedAgentMarkdown({content,className=''}:{content:string;class
   }}>{content}</ReactMarkdown></div>;
 }
 function StepCodeBlock({title,content}:{title:string;content:string}){return <details className="dora-agent-step-block"><summary>{title}</summary><pre>{content||'无输出'}</pre></details>;}
-function AgentStepCards({steps,onOpenFile,running=false}:{steps:readonly AgentSessionStep[];running?:boolean;onOpenFile?:(path:string)=>void}){
+function AgentStepCards({steps,onOpenFile,running=false,labels}:{steps:readonly AgentSessionStep[];running?:boolean;onOpenFile?:(path:string)=>void;labels?:AgentStepLabels|undefined}){
   return <div className="dora-agent-step-list">{steps.map(step=>{
     if (!hasAgentStepCard(step)) return <AgentReasoning key={step.id} content={step.reasoningContent} active={running && step.status==='RUNNING' && step===steps[steps.length-1]}/>;
     const params=summarizeStepParams(step),buildItems=step.tool==='build'?buildResults(step):[],result=step.result??{},progress=step.status==='RUNNING'?numberValue(result.progress):undefined;
@@ -82,7 +80,7 @@ function AgentStepCards({steps,onOpenFile,running=false}:{steps:readonly AgentSe
     const answer=step.tool==='questionnaire_answer'?stringValue(result.displayText):'';
     const checkpoint=step.tool==='context_handoff'?stringValue(step.params?.summary):'';
     return <article key={step.id} className={`dora-agent-step ${step.status.toLowerCase()}`} data-agent-step-id={step.id}>
-      <header><span className="dora-agent-step-number">{step.step}</span><span className="dora-agent-step-tool">{stepToolNames[step.tool]??step.tool}</span>{step.tool==='spawn_agent'&&<AgentTypeBadge value={step.params?.agentType}/>}{step.status!=='DONE'&&<span className="dora-agent-step-status">{stepStatuses[step.status]??step.status}</span>}</header>
+      <header><span className="dora-agent-step-number">{step.step}</span><span className="dora-agent-step-tool">{labels?.toolName(step.tool)??step.tool}</span>{step.tool==='spawn_agent'&&<AgentTypeBadge value={step.params?.agentType}/>}{step.status!=='DONE'&&<span className="dora-agent-step-status">{labels?.statusName(step.status)??step.status}</span>}</header>
       {(step.reasoningContent??'').trim()&&<AgentReasoning content={step.reasoningContent}/>}
       {answer?<SharedAgentMarkdown className="dora-agent-step-answer" content={answer}/>:<>{step.reason&&<SharedAgentMarkdown className="dora-agent-step-reason" content={step.reason}/>}</>}
       {params.length>0&&<dl className="dora-agent-step-params">{params.map((item,index)=><React.Fragment key={`${item.label}:${item.value}:${index}`}><dt>{item.label}</dt><dd>{item.value}</dd></React.Fragment>)}</dl>}
@@ -122,16 +120,18 @@ export function SharedAgentQuestionnaire({questionnaire,submitting=false,labels,
 export {AgentFollowupQueue} from './AgentFollowup';
 export type {AgentInputDelivery,AgentInputCommand,AgentPendingInput,AgentInputControls} from './AgentFollowup';
 
-export function SharedAgentUserMessage({message}:{message:AgentSessionMessage}){
+export function SharedAgentUserMessage({message,youLabel="你"}:{message:AgentSessionMessage;youLabel?:string|undefined}){
  const parsed=parseAgentMessageAttachments(message.displayContent??message.content);
- return <article className="agent-message user" data-agent-message-id={message.id}><header>你</header><SharedAgentAttachmentGallery attachments={parsed.attachments}/><SharedAgentMarkdown content={parsed.text}/></article>;
+ return <article className="agent-message user" data-agent-message-id={message.id}><header>{youLabel}</header><SharedAgentAttachmentGallery attachments={parsed.attachments}/><SharedAgentMarkdown content={parsed.text}/></article>;
 }
 
-export function SharedAgentStepList(props:{steps:readonly AgentSessionStep[];steeringMessages?:readonly AgentSessionMessage[];running?:boolean;onOpenFile?:(path:string)=>void}){
+type AgentStepLabels = {toolName:(tool:string)=>string;statusName:(status:string)=>string;you:string};
+
+export function SharedAgentStepList(props:{steps:readonly AgentSessionStep[];steeringMessages?:readonly AgentSessionMessage[];running?:boolean;onOpenFile?:(path:string)=>void;labels?:AgentStepLabels}){
  const groups:React.ReactNode[]=[];let previous=-1;
  for(const message of props.steeringMessages??[]){
   const boundary=message.afterStep??0;
-  groups.push(<React.Fragment key={`guide-${message.id}`}><AgentStepCards {...props} steps={props.steps.filter(step=>(step.step??0)>previous&&(step.step??0)<=boundary)}/><SharedAgentUserMessage message={message}/></React.Fragment>);
+  groups.push(<React.Fragment key={`guide-${message.id}`}><AgentStepCards {...props} steps={props.steps.filter(step=>(step.step??0)>previous&&(step.step??0)<=boundary)}/><SharedAgentUserMessage message={message} youLabel={props.labels?.you}/></React.Fragment>);
   previous=boundary;
  }
  groups.push(<AgentStepCards key="tail" {...props} steps={props.steps.filter(step=>(step.step??0)>previous)}/>);

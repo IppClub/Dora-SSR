@@ -115,3 +115,5 @@ main{height:100dvh;min-height:0;overflow:hidden}
 .project-opening-spinner{display:inline-block;width:13px;height:13px;flex:none;border:2px solid #ffffff24;border-top-color:var(--accent);border-radius:50%;animation:project-agent-spin .75s linear infinite}.project-link>.project-opening-spinner{margin-left:1px}
 .project-link{position:relative;overflow:hidden}.project-link.opening{padding-bottom:13px}.project-link>span:nth-child(2){min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.project-link small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.project-link>.project-link-progress{position:absolute;left:10px;right:10px;bottom:5px;height:2px;overflow:hidden;border-radius:2px;background:#ffffff13}.project-link-progress>i{display:block;height:100%;border-radius:inherit;background:var(--accent);transition:width .22s ease}
 @media(prefers-reduced-motion:reduce){.project-opening-spinner{animation-duration:1.5s}.project-link-progress>i{transition:none}}
+
+.studio-language-select { flex-shrink: 0; color-scheme: dark; color: inherit; background: #242424; border: 1px solid #ffffff29; border-radius: 6px; padding: 6px 8px; font: inherit; }

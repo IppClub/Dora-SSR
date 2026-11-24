@@ -1,3 +1,4 @@
+import {useStudioI18n} from './i18n';
 import {useEffect,useRef,useState} from 'react';
 import './workspace-confirm.css';
 
@@ -5,6 +6,7 @@ type Confirmation={title:string;description:string;confirmLabel:string;cancelLab
 
 /** Keep one modal decision outstanding; closing the page resolves it as cancel. */
 export function useWorkspaceConfirm(){
+  const {t} = useStudioI18n();
  const [request,setRequest]=useState<Confirmation|null>(null);
  const pending=useRef<((accepted:boolean)=>void)|null>(null);
  const dialog=useRef<HTMLDialogElement>(null);
@@ -31,7 +33,7 @@ export function useWorkspaceConfirm(){
    onClose={()=>answer(false)}>
   <h2 id="workspace-confirm-title">{request.title}</h2>
   <p>{request.description}</p>
-  <div className="workspace-confirm-actions"><button onClick={()=>answer(false)}>{request.cancelLabel??'取消'}</button><button className="primary" onClick={()=>answer(true)}>{request.confirmLabel}</button></div>
+  <div className="workspace-confirm-actions"><button onClick={()=>answer(false)}>{request.cancelLabel??t('projects.cancel')}</button><button className="primary" onClick={()=>answer(true)}>{request.confirmLabel}</button></div>
  </dialog>;
  return {ask,node};
 }
