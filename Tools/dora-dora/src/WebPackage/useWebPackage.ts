@@ -7,6 +7,15 @@ import type {WebPackageFormat} from './Archive';
 
 export type ExportFormat = 'zip' | 'obfuscated' | WebPackageFormat | Service.NativeGameFormat;
 
+const exportFormatLabels = {
+  zip: 'export.format.zip',
+  obfuscated: 'export.format.obfuscated',
+  html: 'export.format.html',
+  http: 'export.format.serverHtml',
+  windows: 'export.format.windows',
+  android: 'export.format.android',
+} as const satisfies Record<ExportFormat, string>;
+
 export interface ExportTarget {
   key: string;
   title: string;
@@ -84,16 +93,17 @@ export function useWebPackage(options: Options): ProjectExportAction {
     locked.current = true;
     setBusy(true);
     options.setBuilding(true);
+    const formatLabel = t(exportFormatLabels[format]);
     try {
       const {downloadWebArchive, packageDirectory, packageNativeProject, packageWebProject} = await import('./Service');
       if (format === 'zip' || format === 'obfuscated') {
-        options.notify(t('export.busy'), 'info');
+        options.notify(t('export.formatBusy', {format: formatLabel}), 'info');
         await packageDirectory(target.key, options.writablePath, target.title, format === 'obfuscated');
       } else {
         const agent = await options.checkAgent(target.key);
-        if (!agent.success) throw new Error(agent.message || 'webPackage.failed');
+        if (!agent.success) throw new Error(agent.message || 'export.failed');
         if (agent.session) throw new Error('webPackage.agentBusy');
-        options.notify(t('webPackage.busy'), 'info');
+        options.notify(t('export.formatBusy', {format: formatLabel}), 'info');
         if (!await options.save()) throw new Error('webPackage.saveFailed');
         if (!await options.build({key: target.key, title: target.title, dir: true})) throw new Error('webPackage.buildFailed');
         if (format === 'windows' || format === 'android') {
@@ -106,11 +116,13 @@ export function useWebPackage(options: Options): ProjectExportAction {
           downloadWebArchive(await packageWebProject(target.key, options.writablePath, format), target.title, format);
         }
       }
-      options.notify(t('export.done'), 'success');
+      options.notify(t('export.formatDone', {format: formatLabel}), 'success');
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      const translated = message.startsWith('webPackage.') || message.startsWith('export.') ? t(message) : message;
-      options.notify(message === 'export.failed' ? translated : `${t('export.failed')}: ${translated}`, 'error');
+      const detail = message.startsWith('webPackage.') || message.startsWith('export.') ? t(message) : message;
+      options.notify(message === 'export.failed'
+        ? t('export.formatFailed', {format: formatLabel})
+        : t('export.formatFailedDetail', {format: formatLabel, detail}), 'error');
     } finally {
       locked.current = false;
       setBusy(false);
