@@ -206,6 +206,20 @@ const config = {
 		locales: ['en', 'zh-Hans'],
 	},
 
+	plugins: [
+		function waTutorialSources() {
+			return {
+				name: 'wa-tutorial-sources',
+				configureWebpack() {
+					return {
+						module: {
+							rules: [{test: /[\\/]wa-community[\\/]main[1-4]\.wa$/, type: 'asset/source'}],
+						},
+					};
+				},
+			};
+		},
+	],
 	presets: [
 		[
 			'classic',
@@ -383,7 +397,7 @@ const config = {
 		prism: {
 			theme: lightCodeTheme,
 			darkTheme: darkCodeTheme,
-			additionalLanguages: ['bash', 'yue', 'teal', 'lua',],
+			additionalLanguages: ['bash', 'yue', 'teal', 'lua', 'wa'],
 		},
 		docs: {
 			sidebar: {

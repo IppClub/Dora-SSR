@@ -1,0 +1,113 @@
+// 社区示例与美术素材 / Community examples and pixel art: serci_loser
+
+// ===================================================================
+// 第 2 步：方块、文字与点击
+// 学什么：画一个方块、在它上面放文字、点击它换颜色
+// ===================================================================
+//
+// 和 lua(LÖVE) 的对照：
+//   love.graphics.rectangle("fill", ...) → dora.NewDrawNode() + DrawRect()
+//   love.graphics.print(...)             → dora.NewLabel() + SetText()
+//   love.mousepressed(...)               → Node.OnTapped()（按下并松开算一次点击）
+//
+// 运行后：屏幕中间有一个蓝色方块，上面写着"点我"。
+// 点一下方块：它变橙色，文字变成"点到了!"；再点一下变回来。
+
+import "dora"
+
+// 全局变量：点击回调里要改它，放全局最简单。
+global squareClicked = false   // 方块是不是已经被点过(决定颜色)
+global countLabel: *dora.Label // 方块上的文字,点击后要改它
+
+// 入口:想运行哪一步,就在 init 里调用哪一步。
+func init {
+	Step2()
+}
+
+// 第 2 步:方块、文字、点击。
+func Step2() {
+
+	// ---- 1. 拿 2D 界面根节点 --------------------------------------
+
+	// 所有要显示的东西都要挂到它(或它的子节点)下面。
+	ui := dora.Director.GetUI()
+
+	// ---- 2. 画一个方块 --------------------------------------------
+
+	// 空节点本身看不见,它靠"子节点"来显示内容,也负责接收点击。
+	square := dora.NewNode()
+
+
+	// 给节点一个 180×180 的"命中区域"(同时也是它子节点的坐标系范围)。
+	square.SetSize(dora.NewSize(180, 180))
+
+	// 锚点决定节点"自己矩形"的哪个点落在 SetPosition 给的坐标上。
+	// (0.5,0.5) = 中心,这样 (0,0) 就是方块中心,好算。
+	square.SetAnchor(dora.NewVec2(0.5, 0.5))
+
+	// DoraSSR 原点在【屏幕中心】,所以 (0,0) 就是正中间。
+
+	square.SetPosition(dora.Vec2Zero)
+
+	// 打开触摸,这个方块才能收到点击事件。
+	square.SetTouchEnabled(true)
+
+	// 方块的外观:画一个白色矩形,颜色稍后用 SetColor 染。
+
+	draw := dora.NewDrawNode()
+
+	// 有尺寸的节点,子节点坐标原点是它的"左下角",不是中心!
+	// 所以从 (0,0) 画 180×180,正好铺满整个方块。
+	rect := dora.NewRect(dora.NewVec2(0, 0), dora.NewSize(180, 180))
+	// dora.DrawNode.DrawRect(rect, fill, borderWidth, borderColor) 位于 draw_node.wa:147
+
+	// 这里画白色,是因为下一步 SetColor 会把白色"染成"想要的颜色。
+	draw.DrawRect(rect, dora.NewColor(255, 255, 255, 255), 0, dora.ColorTransparent)
+
+	square.AddChild(draw.Node)
+
+	// 给节点染色,子节点(白色方块)会跟着变成这个颜色。
+	square.SetColor(dora.NewColor(80, 180, 255, 255)) // 先染成蓝色
+
+	// 把方块挂到界面上。
+	ui.AddChild(square)
+
+	// ---- 3. 放一行文字(盖在方块上) --------------------------------
+
+	countLabel = dora.NewLabel("sarasa-mono-sc-regular", 40, false)
+	if countLabel == nil {
+		panic("创建 Label 失败,可能是字体名不对")
+	}
+
+	countLabel.SetText("点我")
+	countLabel.SetPosition(dora.Vec2Zero) // 也放屏幕中心,盖在方块上面
+	ui.AddChild(countLabel.Node)
+
+	// 下面再来一行提示。
+	hint := dora.NewLabel("sarasa-mono-sc-regular", 28, false)
+	if hint != nil {
+		hint.SetText("点击方块")
+		hint.SetPosition(dora.NewVec2(0, -140))
+		ui.AddChild(hint.Node)
+	}
+
+	// ---- 4. 点击 ------------------------------------------------
+
+	// 参数是一个回调函数:完整点击(按下并松开)后触发。
+	square.OnTapped(func(touch: dora.Touch) {
+		_ = touch // 这一步用不到触点位置,先标记一下(凹语言要求变量被使用)
+
+		squareClicked = !squareClicked // 翻转状态
+		if squareClicked {
+			square.SetColor(dora.NewColor(255, 150, 70, 255)) // 橙色
+			countLabel.SetText("点到了!")
+		} else {
+			square.SetColor(dora.NewColor(80, 180, 255, 255)) // 蓝色
+			countLabel.SetText("点我")
+		}
+	})
+
+	// ---- 小结 ---------------------------------------------------
+	// 显示东西的三步:1 new 出来 → 2 设置 → 3 AddChild 挂到 ui。
+	// 点击:给节点 SetSize + SetTouchEnabled,再 OnTapped 挂回调。
+}

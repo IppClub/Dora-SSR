@@ -1,0 +1,287 @@
+// 社区示例与美术素材 / Community examples and pixel art: serci_loser
+
+// ===================================================================
+// 存档/读档按钮 + 长按按钮 + 键盘(W 上移)
+// 学什么：
+//   存档按钮 / 读档按钮(把颜色和位置写进文件、再读回来)
+//   长按按钮(按住持续向左移动)
+//   键盘检测(按住 W 持续向上移动)
+// ===================================================================
+//
+// 和 lua(LÖVE) 的对照：
+//   love.filesystem.write / read   → dora.Content.Save / Load
+//   love.touchpressed + touchreleased → Node.OnTapBegan / OnTapEnded
+//   love.keyboard.isDown("w")      → dora.Keyboard.IsKeyDown(dora.KeyW)
+//
+// 运行后：背景 + 僵尸 + 蓝色方块。
+//   点方块：换颜色。
+//   按 W：方块持续向上移动。
+//   按住"按住←左移"按钮：方块持续向左移动。
+//   点"向右一步"：方块往右走 40 个坐标单位。
+//   点"存档"：把颜色和位置存进文件；点"读档"：恢复；重启游戏会自动读档。
+
+import (
+	"dora"
+	"strconv"
+	"strings"
+)
+
+// 全局变量
+global squareFill: dora.DrawNode // 方块底色
+global square: dora.Node        // 方块节点
+global squareClicked = false    // 方块状态:false=没点过(蓝),true=点过(橙)
+global countLabel: *dora.Label  // 方块上的文字
+global statusLabel: *dora.Label // 底部状态/提示文字
+global longPressLeft = false    // "按住←左移"按钮是否正被按住
+
+// 同一份存档保存颜色和坐标。
+global saveFile = "wa-tutorial-3-square.txt"
+
+// 入口。调用顺序 = 绘制顺序:先挂的在下层。
+func init {
+	saveFile = writablePath(saveFile)
+	Step3() // 先画背景、僵尸
+	Step2() // 再画方块
+	Step4() // 最后放按钮、主循环、自动读档
+}
+
+// 第 2 步:方块、文字、点击(点一下换颜色)。
+func Step2() {
+	ui := dora.Director.GetUI() // 拿到 2D 界面根节点,之后所有东西都挂它下面
+
+	// dora.NewNode():创建一个空节点,本身看不见,用来当容器或点击区域。
+	square = dora.NewNode()
+	// SetSize(宽, 高):设置节点矩形大小,同时也当点击区域。
+	square.SetSize(dora.NewSize(180, 180))
+	// dora.NewVec2(x, y):创建一个坐标点。
+	// SetAnchor(x, y):锚点,即节点矩形上哪个点落在 SetPosition 的坐标上;(0.5,0.5)=中心。
+	square.SetAnchor(dora.NewVec2(0.5, 0.5))
+	// SetPosition(x, y):放到指定坐标。原点在【屏幕中心】,X 右正,Y 上正。
+	square.SetPosition(dora.Vec2Zero) // Vec2Zero = (0,0)
+	square.SetTouchEnabled(true)       // 打开触摸,才能收到点击
+	ui.AddChild(square)                // AddChild(子节点):挂到界面上才会显示
+
+	// dora.NewDrawNode():创建一个画板节点,用来画图形。
+	squareFill = dora.NewDrawNode()
+	// DrawRect(矩形, 填充色, 描边宽, 描边色):画矩形,描边宽 0 = 不要描边。
+	// NewRect(左下角坐标, 尺寸):定义矩形区域;NewSize(宽,高):定义尺寸。
+	// NewColor(红,绿,蓝,不透明):各是 0~255;ColorTransparent = 全透明。
+	// 有尺寸节点的子节点,坐标原点是它的【左下角】,所以从 (0,0) 画 180×180 正好铺满。
+	squareFill.DrawRect(
+		dora.NewRect(dora.NewVec2(0, 0), dora.NewSize(180, 180)),
+		dora.NewColor(255, 255, 255, 255),
+		0,
+		dora.ColorTransparent,
+	)
+	square.AddChild(squareFill.Node)
+	// SetColor(颜色):给绘制节点染色，白色矩形被染成蓝色。
+	squareFill.SetColor(dora.NewColor(80, 180, 255, 255))
+
+	// NewLabel(字体名, 字号, 是否SDF):创建文字,找不到字体会返回 nil。
+	countLabel = dora.NewLabel("sarasa-mono-sc-regular", 40, false)
+	if countLabel == nil {
+		panic("创建 Label 失败,可能是字体名不对")
+	}
+	countLabel.SetPosition(dora.NewVec2(90, 90)) // 方块本地坐标的中心
+	square.AddChild(countLabel.Node)
+
+	// OnTapped(func(touch){...}):完整点击(按下并松开)后执行。
+	square.OnTapped(func(touch: dora.Touch) {
+		_ = touch
+		squareClicked = !squareClicked
+		applySquareState()
+	})
+
+	applySquareState() // 先设好初始颜色/文字
+}
+
+// 第 3 步:绘制图片(背景 + 僵尸)。
+func Step3() {
+	ui := dora.Director.GetUI()
+	size := dora.App.GetVisualSize() // GetVisualSize():当前屏幕宽高
+
+	// NewSpriteWithFile(图片路径):用图片创建精灵,文件不存在返回 nil。
+	bg := dora.NewSpriteWithFile("Image/backgroundpng.png")
+	if bg == nil {
+		panic("找不到背景图 Image/backgroundpng.png")
+	}
+	bg.SetSize(size) // 把背景拉伸成和屏幕一样大
+	bg.SetAnchor(dora.NewVec2(0.5, 0.5))
+	bg.SetPosition(dora.Vec2Zero)
+	ui.AddChild(bg.Node)
+
+	zombie := dora.NewSpriteWithFile("Image/zombie.png")
+	if zombie == nil {
+		panic("找不到 Image/zombie.png")
+	}
+	zombie.SetAnchor(dora.NewVec2(0.5, 0.5))
+	zombie.SetPosition(dora.NewVec2(240, -60))
+	ui.AddChild(zombie.Node)
+}
+
+// 第 4 步:按钮 + 主循环 + 自动读档。
+func Step4() {
+	ui := dora.Director.GetUI()
+
+	statusLabel = dora.NewLabel("sarasa-mono-sc-regular", 24, false)
+	if statusLabel != nil {
+		statusLabel.SetText("W=上移 | 点方块换色 | 用下面的按钮存档/读档")
+		statusLabel.SetPosition(dora.NewVec2(0, -130))
+		ui.AddChild(statusLabel.Node)
+	}
+
+	// ---- 4 个按钮 -------------------------------------------------
+	// 1) 长按按钮:按住时持续向左移动。
+	leftBtn := makeButton("按住←左移", -270, -250)
+	ui.AddChild(leftBtn)
+	// OnTapBegan:手指按下瞬间触发;OnTapEnded:手指松开瞬间触发。
+	// 用它们记录"是否正被按住",真正移动放到下面的主循环里。
+	leftBtn.OnTapBegan(func(touch: dora.Touch) {
+		_ = touch
+		longPressLeft = true
+	})
+	leftBtn.OnTapEnded(func(touch: dora.Touch) {
+		_ = touch
+		longPressLeft = false
+	})
+
+	// 2) 向右一步按钮。
+	rightBtn := makeButton("向右一步", -90, -250)
+	ui.AddChild(rightBtn)
+	rightBtn.OnTapped(func(touch: dora.Touch) {
+		_ = touch
+		p := square.GetPosition() // GetPosition():读节点当前坐标
+		p.X = p.X + 40            // 往右走 40 个坐标单位
+		square.SetPosition(p)
+	})
+
+	// 3) 存档按钮。
+	saveBtn := makeButton("存档", 90, -250)
+	ui.AddChild(saveBtn)
+	saveBtn.OnTapped(func(touch: dora.Touch) {
+		_ = touch
+		saved := saveState()
+		if statusLabel != nil {
+			if saved {
+				statusLabel.SetText("已存档")
+			} else {
+				statusLabel.SetText("存档写入失败")
+			}
+		}
+	})
+
+	// 4) 读档按钮。
+	loadBtn := makeButton("读档", 270, -250)
+	ui.AddChild(loadBtn)
+	loadBtn.OnTapped(func(touch: dora.Touch) {
+		_ = touch
+		loaded := loadState()
+		if statusLabel != nil {
+			if loaded {
+				statusLabel.SetText("已读档")
+			} else {
+				statusLabel.SetText("没有可读的存档")
+			}
+		}
+	})
+
+	// ---- 主循环 + 自动读档 ----------------------------------------
+	loadState() // 启动时先自动读档,恢复上次保存的状态
+
+	// Schedule(func(dt){...}):每帧调用一次,dt=这一帧的秒数;返回 false 表示下一帧继续。
+	square.Schedule(func(dt: f64) => bool {
+		speed := f32(320) * f32(dt) // 每秒 320 个坐标单位
+		p := square.GetPosition()
+
+		// Keyboard.IsKeyDown(键名):按住时每帧为 true。
+		// KeyW 就是键盘上的 W 键。
+		if dora.Keyboard.IsKeyDown(dora.KeyW) {
+			p.Y = p.Y + speed // 向上
+		}
+		if longPressLeft { // 长按按钮被按住
+			p.X = p.X - speed // 向左
+		}
+
+		square.SetPosition(p)
+		return false
+	})
+}
+
+// 做一个按钮:矩形底 + 文字,返回这个节点。
+func makeButton(text: string, x: f32, y: f32) => dora.Node {
+	btn := dora.NewNode()
+	btn.SetSize(dora.NewSize(160, 60))
+	btn.SetAnchor(dora.NewVec2(0.5, 0.5))
+	btn.SetPosition(dora.NewVec2(x, y))
+	btn.SetTouchEnabled(true)
+
+	bg := dora.NewDrawNode()
+	bg.DrawRect(
+		dora.NewRect(dora.NewVec2(0, 0), dora.NewSize(160, 60)),
+		dora.NewColor(210, 210, 210, 255),
+		0,
+		dora.ColorTransparent,
+	)
+	btn.AddChild(bg.Node)
+
+	label := dora.NewLabel("sarasa-mono-sc-regular", 24, false)
+	if label != nil {
+		label.SetText(text)
+		label.SetPosition(dora.NewVec2(80, 30)) // 按钮中心(子节点左下角为原点)
+		btn.AddChild(label.Node)
+	}
+	return btn
+}
+
+// 按 squareClicked 更新方块颜色和文字。
+func applySquareState() {
+	if squareClicked {
+		squareFill.SetColor(dora.NewColor(255, 150, 70, 255)) // 橙色
+		countLabel.SetText("点到了!")
+	} else {
+		squareFill.SetColor(dora.NewColor(80, 180, 255, 255)) // 蓝色
+		countLabel.SetText("点我")
+	}
+}
+
+// 存档格式：颜色,X,Y。一次写入同一份方块状态。
+func saveState() => bool {
+	color := "0"
+	if squareClicked {
+		color = "1"
+	}
+	p := square.GetPosition()
+	x := strconv.FormatInt(int64(i32(p.X)), 10)
+	y := strconv.FormatInt(int64(i32(p.Y)), 10)
+	return dora.Content.Save(saveFile, color+","+x+","+y)
+}
+
+// 只有三个字段都有效时才恢复方块状态。
+func loadState() => bool {
+	if !dora.Content.Exist(saveFile) {
+		return false
+	}
+	loaded := dora.Content.Load(saveFile)
+	if loaded == nil {
+		return false
+	}
+	fields := strings.Split(*loaded, ",")
+	if len(fields) != 3 || (fields[0] != "0" && fields[0] != "1") {
+		return false
+	}
+	x, xErr := strconv.ParseInt(fields[1], 10, 32)
+	y, yErr := strconv.ParseInt(fields[2], 10, 32)
+	if xErr != nil || yErr != nil {
+		return false
+	}
+	squareClicked = fields[0] == "1"
+	square.SetPosition(dora.NewVec2(f32(x), f32(y)))
+	applySquareState()
+	return true
+}
+
+// 用绝对路径让读写指向同一个文件，不依赖资源搜索路径。
+func writablePath(filename: string) => string {
+	paths := []string{dora.Content.GetWritablePath(), filename}
+	return dora.Path.Concat(&paths)
+}

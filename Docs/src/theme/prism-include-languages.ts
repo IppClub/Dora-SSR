@@ -34,6 +34,10 @@ export default function prismIncludeLanguages(
 				// eslint-disable-next-line global-require
 				require('@site/src/languages/yuescript-prism.js');
 				break;
+			case 'wa':
+				// eslint-disable-next-line global-require
+				require('@site/src/languages/wa-prism.js');
+				break;
 			default:
 				// eslint-disable-next-line global-require, import/no-dynamic-require
 				require(`prismjs/components/prism-${lang}`);

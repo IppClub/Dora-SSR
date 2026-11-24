@@ -1,0 +1,406 @@
+---
+title: Build your first interactive scene with Wa
+sidebar_label: Wa game development
+---
+
+import useBaseUrl from '@docusaurus/useBaseUrl';
+import CodeBlock from '@theme/CodeBlock';
+import DocScreenshot from '@site/src/components/DocScreenshot';
+import main1 from '@site/src/examples/wa-community/main1.wa';
+import main2 from '@site/src/examples/wa-community/main2.wa';
+import main3 from '@site/src/examples/wa-community/main3.wa';
+import main4 from '@site/src/examples/wa-community/main4.wa';
+
+**Community examples and pixel art by `serci_loser`.**
+
+Start with a square that changes color when clicked. Then add pixel art, movement, and a save file. The last example uses the same scene-building techniques to make a text input box and demonstrate file operations.
+
+## Set up the project
+
+Open the [Web IDE](../web-ide) in desktop Dora SSR. Right-click **Workspace**, choose **New**, select **Wa**, and check **create as Wa project**. When you name the project, the IDE creates `wa.mod`, `src/main.wa`, and the `vendor/dora` bindings.
+
+<DocScreenshot src={useBaseUrl('/img/tutorial/wa-community/create-project.png')} width={286} height={266} maxWidth={320}
+  alt="The Web IDE New dialog with WaFirstScene entered and the Wa project checkbox checked"
+  caption="In the Web IDE, enter a name and check “create as Wa project” (shown in Chinese)."
+/>
+
+Each lesson uses a different example with its own `init` entry point. The snippets show the relevant parts of each file. To try a lesson, copy its [full source](#full-source) into `src/main.wa`, save, and select **Run**. Use a keyboard and an input method for the last lesson. You can also [run a Wa project from the terminal](../command-line-interface#5-wa-projects).
+
+## 1. Draw a square and respond to a click
+
+### 1.1 Add a square to the UI from the entry point
+
+`import "dora"` brings in the engine bindings. At startup, Dora runs `init`, which calls `Step2` to build the scene. Start by declaring the square's color state and its label at the top of the file.
+
+```wa title="main1.wa"
+import "dora"
+
+// 全局变量：点击回调里要改它，放全局最简单。
+global squareClicked = false   // 方块是不是已经被点过(决定颜色)
+global countLabel: *dora.Label // 方块上的文字,点击后要改它
+
+// 入口:想运行哪一步,就在 init 里调用哪一步。
+func init {
+	Step2()
+}
+```
+
+Inside `Step2`, get the UI root with `Director.GetUI()`. Give the square a 180 × 180 `Node` to receive clicks, then add a `DrawNode` child to draw its rectangle.
+
+```wa title="main1.wa"
+ui := dora.Director.GetUI()
+square := dora.NewNode()
+square.SetSize(dora.NewSize(180, 180))
+square.SetAnchor(dora.NewVec2(0.5, 0.5))
+square.SetPosition(dora.Vec2Zero)
+square.SetTouchEnabled(true)
+draw := dora.NewDrawNode()
+rect := dora.NewRect(dora.NewVec2(0, 0), dora.NewSize(180, 180))
+draw.DrawRect(rect, dora.NewColor(255, 255, 255, 255), 0, dora.ColorTransparent)
+square.AddChild(draw.Node)
+square.SetColor(dora.NewColor(80, 180, 255, 255)) // 先染成蓝色
+ui.AddChild(square)
+```
+
+The anchor `(0.5, 0.5)` aligns the square's center with the position passed to `SetPosition`. In this UI, `dora.Vec2Zero` is the center. The rectangle uses the square's local coordinates, so drawing from the bottom-left corner `(0, 0)` fills the hit area. The rectangle starts white, and `SetColor` tints it blue.
+
+### 1.2 Show a label and toggle the color
+
+Still in `Step2`, create the label and add it to `ui`. The file already declares `countLabel`, so this line assigns it with `=`. Use `:=` when declaring a local variable such as `draw` in the previous step.
+
+```wa title="main1.wa"
+countLabel = dora.NewLabel("sarasa-mono-sc-regular", 40, false)
+if countLabel == nil {
+	panic("创建 Label 失败,可能是字体名不对")
+}
+
+countLabel.SetText("点我")
+countLabel.SetPosition(dora.Vec2Zero) // 也放屏幕中心,盖在方块上面
+ui.AddChild(countLabel.Node)
+```
+
+Register a callback with `OnTapped`. It runs after a full press and release, flips `squareClicked`, and updates the square and label. The callback does not need the touch position, so `_ = touch` explicitly discards the parameter.
+
+```wa title="main1.wa"
+square.OnTapped(func(touch: dora.Touch) {
+	_ = touch // 这一步用不到触点位置,先标记一下(凹语言要求变量被使用)
+
+	squareClicked = !squareClicked // 翻转状态
+	if squareClicked {
+		square.SetColor(dora.NewColor(255, 150, 70, 255)) // 橙色
+		countLabel.SetText("点到了!")
+	} else {
+		square.SetColor(dora.NewColor(80, 180, 255, 255)) // 蓝色
+		countLabel.SetText("点我")
+	}
+})
+```
+
+**Try it.** Run `main1.wa`. A blue square should appear in the center. Click it once to turn it orange and change the label to `点到了!`. Click it again to restore the blue square.
+
+<DocScreenshot src={useBaseUrl('/img/tutorial/wa-community/tap-color.webp')} width={760} height={340} maxWidth={760}
+  alt="Two Dora frames showing the square blue before and orange after clicking"
+  caption="Before clicking on the left, after clicking on the right."
+/>
+
+## 2. Load pixel art and save the color
+
+### 2.1 Add the grid and zombie to the scene
+
+Create an `Image` folder at the project root, next to `wa.mod`. Save the grid background and the zombie sprite in that folder using the filenames below.
+
+- <a href={useBaseUrl('/examples/wa-community/Image/backgroundpng.png')} download>backgroundpng.png</a>
+- <a href={useBaseUrl('/examples/wa-community/Image/zombie.png')} download>zombie.png</a>
+
+![Zombie sprite drawn by serci_loser](@site/static/examples/wa-community/Image/zombie.png)
+
+In `Step3` of `main2.wa`, use `NewSpriteWithFile` to create each sprite from its PNG. Size the grid to the current viewport. Leave the zombie at its original size and position it to the right and below center. If a sprite fails to load, the error identifies the path to check.
+
+```wa title="main2.wa"
+func Step3() {
+	ui := dora.Director.GetUI()
+	// dora.App.GetVisualSize():返回当前屏幕的宽高(Size)。
+	size := dora.App.GetVisualSize()
+
+	// dora.NewSpriteWithFile(图片路径):用图片文件创建一个精灵(能显示图片)。
+	//   文件不存在时返回 nil,所以一定要判断。
+	// 注意:文件名是 backgroundpng.png(如果改成了 background.png,这里也要改)。
+	bg := dora.NewSpriteWithFile("Image/backgroundpng.png")
+	if bg == nil {
+		panic("找不到背景图 Image/backgroundpng.png")
+	}
+	bg.SetSize(size) // 把背景图拉伸成和屏幕一样大
+	bg.SetAnchor(dora.NewVec2(0.5, 0.5))
+	bg.SetPosition(dora.Vec2Zero)
+	ui.AddChild(bg.Node)
+
+	zombie := dora.NewSpriteWithFile("Image/zombie.png")
+	if zombie == nil {
+		panic("找不到 Image/zombie.png")
+	}
+	zombie.SetAnchor(dora.NewVec2(0.5, 0.5))
+	zombie.SetPosition(dora.NewVec2(240, -60)) // 放在场景右边
+	ui.AddChild(zombie.Node)
+}
+```
+
+`init` calls `Step3` before `Step2`, so the square and button appear above the background. This version attaches the label to the square, so it follows when the move button changes the square's X coordinate. Color changes tint the draw node alone.
+
+### 2.2 Write the color state to a file
+
+The click handler now calls `saveState()` after updating the UI. Save `"1"` for orange or `"0"` for blue. The example's `writablePath` helper joins the name with Dora's writable directory so both operations address the same file.
+
+```wa title="main2.wa"
+func saveState() {
+	// dora.Content.Save(文件名, 文字内容):把文字写进文件,返回是否成功。
+	if squareClicked {
+		dora.Content.Save(saveFile, "1")
+	} else {
+		dora.Content.Save(saveFile, "0")
+	}
+}
+
+// 读档:如果文件存在就恢复状态。
+func loadState() {
+	// dora.Content.Exist(文件名):判断文件/目录是否存在。
+	// 先判断一下,避免 Load 一个不存在的文件(会报错)。
+	if dora.Content.Exist(saveFile) {
+		// dora.Content.Load(文件名):读文件里的文字,文件不存在返回 nil。
+		loaded := dora.Content.Load(saveFile)
+		if loaded != nil && *loaded == "1" {
+			squareClicked = true
+		} else {
+			squareClicked = false
+		}
+	} else {
+		squareClicked = false
+	}
+	applySquareState()
+}
+```
+
+At startup, check whether the save file exists, read it, and call `applySquareState` to update the square and label. `Content.Load` returns a pointer to a string, so check it for `nil` before reading `*loaded`.
+
+**Try it.** Run `main2.wa`. Click **Move right** to move the square and label 40 units to the right. Click the square to change its color, then stop and run the example again. It restores the last saved color. This lesson saves only the color.
+
+<DocScreenshot src={useBaseUrl('/img/tutorial/wa-community/sprites-move.webp')} width={860} height={560} maxWidth={860}
+  alt="Orange square to the right of center with the grid background, small zombie sprite, and the Move right button"
+  caption="After changing the color and pressing the move button twice. The 16 × 16 zombie is farther to the right."
+/>
+
+## 3. Add movement and save the position
+
+### 3.1 Handle held inputs every frame
+
+Keep the two PNGs from the previous lesson. In `Step4` of `main3.wa`, one button moves the square right by changing its X coordinate on each click. The other sets a flag when pressed and clears it on release.
+
+```wa title="main3.wa"
+leftBtn := makeButton("按住←左移", -270, -250)
+ui.AddChild(leftBtn)
+// OnTapBegan:手指按下瞬间触发;OnTapEnded:手指松开瞬间触发。
+// 用它们记录"是否正被按住",真正移动放到下面的主循环里。
+leftBtn.OnTapBegan(func(touch: dora.Touch) {
+	_ = touch
+	longPressLeft = true
+})
+leftBtn.OnTapEnded(func(touch: dora.Touch) {
+	_ = touch
+	longPressLeft = false
+})
+```
+
+Use `Schedule` to update continuous movement. Multiply speed in units per second by the elapsed seconds `dt` to get this frame's distance. Holding **W** increases Y, and holding the left button decreases X. Returning `false` keeps the callback scheduled for the next frame.
+
+```wa title="main3.wa"
+square.Schedule(func(dt: f64) => bool {
+	speed := f32(320) * f32(dt) // 每秒 320 个坐标单位
+	p := square.GetPosition()
+
+	// Keyboard.IsKeyDown(键名):按住时每帧为 true。
+	// KeyW 就是键盘上的 W 键。
+	if dora.Keyboard.IsKeyDown(dora.KeyW) {
+		p.Y = p.Y + speed // 向上
+	}
+	if longPressLeft { // 长按按钮被按住
+		p.X = p.X - speed // 向左
+	}
+
+	square.SetPosition(p)
+	return false
+})
+```
+
+### 3.2 Save the color and position together
+
+When the player selects **Save**, write the color and integer X and Y coordinates to one line, such as `1,40,0`. **Load** splits the line on commas and checks all three fields before changing the square. Startup calls the same load function.
+
+```wa title="main3.wa"
+func saveState() => bool {
+	color := "0"
+	if squareClicked {
+		color = "1"
+	}
+	p := square.GetPosition()
+	x := strconv.FormatInt(int64(i32(p.X)), 10)
+	y := strconv.FormatInt(int64(i32(p.Y)), 10)
+	return dora.Content.Save(saveFile, color+","+x+","+y)
+}
+
+// 只有三个字段都有效时才恢复方块状态。
+func loadState() => bool {
+	if !dora.Content.Exist(saveFile) {
+		return false
+	}
+	loaded := dora.Content.Load(saveFile)
+	if loaded == nil {
+		return false
+	}
+	fields := strings.Split(*loaded, ",")
+	if len(fields) != 3 || (fields[0] != "0" && fields[0] != "1") {
+		return false
+	}
+	x, xErr := strconv.ParseInt(fields[1], 10, 32)
+	y, yErr := strconv.ParseInt(fields[2], 10, 32)
+	if xErr != nil || yErr != nil {
+		return false
+	}
+	squareClicked = fields[0] == "1"
+	square.SetPosition(dora.NewVec2(f32(x), f32(y)))
+	applySquareState()
+	return true
+}
+```
+
+**Try it.** Run `main3.wa` and try **Move right one step** (`向右一步`), **Hold to move left** (`按住←左移`), and **W**. Move the square and change its color, then select **Save** (`存档`). Change both again, select **Load** (`读档`), and check that both values are restored.
+
+<DocScreenshot src={useBaseUrl('/img/tutorial/wa-community/load-position.webp')} width={860} height={560} maxWidth={860}
+  alt="The square is orange after loading, with the four controls below and the status 已读档"
+  caption="The “Loaded” status appears after restoring the saved position and color."
+/>
+
+## 4. Read and write files, then accept text input
+
+The entry point in `main4.wa` calls `Step5` and `Step6` to show the file operation results and the input box in one scene.
+
+### 4.1 Create, read, and remove the demo file
+
+In `Step5`, put `data.txt` in a dedicated `wa-tutorial-file-demo` folder inside Dora's writable directory. If the file already exists, skip the demonstration. After writing successfully, read the text, show it on the screen, and call `Remove` to delete the file this run created.
+
+```wa title="main4.wa"
+dir := writablePath("wa-tutorial-file-demo")
+file := writablePath("wa-tutorial-file-demo/data.txt")
+if !dora.Content.Isdir(dir) && !dora.Content.Mkdir(dir) {
+	addLabel(ui, "创建目录失败", 24, 0, 220)
+	return
+}
+if dora.Content.Exist(file) {
+	addLabel(ui, "文件已存在，跳过演示", 24, 0, 220)
+	return
+}
+if !dora.Content.Save(file, "你好，凹语言！") {
+	addLabel(ui, "写入失败", 24, 0, 220)
+	return
+}
+
+loaded := dora.Content.Load(file)
+if loaded != nil {
+	addLabel(ui, "读到了: "+*loaded, 24, 0, 220)
+}
+if dora.Content.Remove(file) && !dora.Content.Exist(file) {
+	addLabel(ui, "已删除演示文件", 24, 0, 185)
+} else {
+	addLabel(ui, "删除演示文件失败", 24, 0, 185)
+}
+```
+
+### 4.2 Update the label with input method events
+
+`Step6` builds the input box from a node, a rectangle, and a label. On a click, `AttachIme` lets the node receive text input. `OnTextInput` delivers committed text, which may contain several characters at once. Append it to `inputText`, then call `updateInputLabel` to display the result.
+
+```wa title="main4.wa"
+box.OnTapped(func(touch: dora.Touch) {
+	_ = touch
+	box.AttachIme() // AttachIme():让这个节点能收到 TextInput 事件
+})
+
+// OnTextInput(func(text)):每敲出一个字,就把这个字(字符串)送进来,我们追加到末尾。
+box.OnTextInput(func(text: string) {
+	inputText = inputText + text
+	updateInputLabel()
+})
+```
+
+### 4.3 Handle Backspace and Enter
+
+Use `IsKeyPressed` to handle a key only on the frame it is pressed. Backspace removes the final Unicode code point. Enter clears the input.
+
+```wa title="main4.wa"
+box.Schedule(func(dt: f64) => bool {
+	// IsKeyPressed:按下瞬间只触发一次(适合"按一下删一个字")。
+	if dora.Keyboard.IsKeyPressed(dora.KeyBackSpace) {
+		inputText = removeLastChar(inputText) // 删除最后一个字
+		updateInputLabel()
+	}
+	if dora.Keyboard.IsKeyPressed(dora.KeyReturn) {
+		inputText = "" // 回车 = 清空
+		updateInputLabel()
+	}
+	return false
+})
+```
+
+Wa strings store UTF-8 bytes. To remove a multibyte character such as `好`, walk backward over its continuation bytes until you reach the first byte of the code point, then truncate the string at that position.
+
+```wa title="main4.wa"
+func removeLastChar(s: string) => string {
+	n := len(s)
+	if n == 0 {
+		return s
+	}
+	i := n - 1
+	// UTF-8 里,连续字节是 10xxxxxx(0x80~0xBF)。往前跳过连续字节,找到最后一个字符的开头。
+	for i > 0 && (s[i]&0xC0) == 0x80 {
+		i--
+	}
+	return s[:i]
+}
+```
+
+**Try it.** Run `main4.wa` and check the text read from the file and the deletion status. Click the box, enter `Wa你好`, and press **Backspace** once. The label should show `Wa你`. Press **Enter** to clear it.
+
+<DocScreenshot src={useBaseUrl('/img/tutorial/wa-community/file-and-input.webp')} width={760} height={420} maxWidth={760}
+  alt="The file demo reports the text it read and that it deleted the file, with Wa你好 in the input box below"
+  caption="The file operation results appear above the input box, which shows committed text."
+/>
+
+## Full source
+
+Expand an example to copy it with all its comments. Each example can be used on its own as `src/main.wa`.
+
+<details>
+<summary>Full source <code>main1.wa</code></summary>
+
+<CodeBlock language="wa">{main1}</CodeBlock>
+
+</details>
+
+<details>
+<summary>Full source <code>main2.wa</code></summary>
+
+<CodeBlock language="wa">{main2}</CodeBlock>
+
+</details>
+
+<details>
+<summary>Full source <code>main3.wa</code></summary>
+
+<CodeBlock language="wa">{main3}</CodeBlock>
+
+</details>
+
+<details>
+<summary>Full source <code>main4.wa</code></summary>
+
+<CodeBlock language="wa">{main4}</CodeBlock>
+
+</details>

@@ -1,0 +1,406 @@
+---
+title: 用凹语言做第一个交互场景
+sidebar_label: 凹语言游戏开发
+---
+
+import useBaseUrl from '@docusaurus/useBaseUrl';
+import CodeBlock from '@theme/CodeBlock';
+import DocScreenshot from '@site/src/components/DocScreenshot';
+import main1 from '@site/src/examples/wa-community/main1.wa';
+import main2 from '@site/src/examples/wa-community/main2.wa';
+import main3 from '@site/src/examples/wa-community/main3.wa';
+import main4 from '@site/src/examples/wa-community/main4.wa';
+
+**社区示例与像素美术作者：`serci_loser`。**
+
+先做一个点击就会变色的方块，再加上像素背景、移动控制和存档。最后用同样的节点搭建方法做一个文本输入框，练习创建、读取和删除文件。
+
+## 准备项目
+
+打开桌面版 Dora SSR 的 [Web IDE](../web-ide)。右键点击 **工作区**，选择 **新建**，再选 **Wa**，勾选 **创建为 Wa 项目**并命名。IDE 会生成 `wa.mod`、`src/main.wa` 和 `vendor/dora` 绑定。
+
+<DocScreenshot src={useBaseUrl('/img/tutorial/wa-community/create-project.png')} width={286} height={266} maxWidth={320}
+  alt="Web IDE 的新建内容对话框已填写 WaFirstScene，并勾选创建为 Wa 项目"
+  caption="填写项目名后，勾选「创建为 Wa 项目」。"
+/>
+
+下面按主题讲解四个示例。每个示例都有自己的 `init` 入口，正文片段标出了它们在源码中的位置。每学完一节，可以从[文末的完整源码](#完整源码)复制对应示例，替换项目的 `src/main.wa`，保存后点击 **运行**。第四节会用到键盘和输入法。也可以通过[命令行运行 Wa 项目](../command-line-interface#5-wa-项目)。
+
+## 1. 绘制方块并响应点击
+
+### 1.1 从入口挂载方块
+
+`import "dora"` 引入引擎绑定。Dora 启动这个示例时会执行 `init`，入口再调用 `Step2` 构建场景。先在文件顶部声明方块的颜色状态和文字标签。
+
+```wa title="main1.wa"
+import "dora"
+
+// 全局变量：点击回调里要改它，放全局最简单。
+global squareClicked = false   // 方块是不是已经被点过(决定颜色)
+global countLabel: *dora.Label // 方块上的文字,点击后要改它
+
+// 入口:想运行哪一步,就在 init 里调用哪一步。
+func init {
+	Step2()
+}
+```
+
+在 `Step2` 内，从 `Director.GetUI()` 取得界面根节点。创建一个大小为 180 × 180 的 `Node` 作为方块的点击区域，再把画矩形的 `DrawNode` 挂在它下面。
+
+```wa title="main1.wa"
+ui := dora.Director.GetUI()
+square := dora.NewNode()
+square.SetSize(dora.NewSize(180, 180))
+square.SetAnchor(dora.NewVec2(0.5, 0.5))
+square.SetPosition(dora.Vec2Zero)
+square.SetTouchEnabled(true)
+draw := dora.NewDrawNode()
+rect := dora.NewRect(dora.NewVec2(0, 0), dora.NewSize(180, 180))
+draw.DrawRect(rect, dora.NewColor(255, 255, 255, 255), 0, dora.ColorTransparent)
+square.AddChild(draw.Node)
+square.SetColor(dora.NewColor(80, 180, 255, 255)) // 先染成蓝色
+ui.AddChild(square)
+```
+
+锚点 `(0.5, 0.5)` 把方块的中心对准 `SetPosition` 指定的位置。`dora.Vec2Zero` 在这个界面的中心。画矩形时使用的是方块的局部坐标，从左下角 `(0, 0)` 画起，刚好覆盖整个点击区域。矩形先画成白色，再通过 `SetColor` 染成蓝色。
+
+### 1.2 显示文字并切换颜色
+
+继续在 `Step2` 内创建标签并挂到 `ui`。这里给文件顶部已声明的 `countLabel` 赋值，所以用 `=`。创建局部变量时用 `:=`，例如上一步的 `draw`。
+
+```wa title="main1.wa"
+countLabel = dora.NewLabel("sarasa-mono-sc-regular", 40, false)
+if countLabel == nil {
+	panic("创建 Label 失败,可能是字体名不对")
+}
+
+countLabel.SetText("点我")
+countLabel.SetPosition(dora.Vec2Zero) // 也放屏幕中心,盖在方块上面
+ui.AddChild(countLabel.Node)
+```
+
+用 `OnTapped` 注册点击回调。按下并松开后，回调会翻转 `squareClicked`，然后按新的状态更新方块颜色和标签。这个回调用不到触点位置，因此用 `_ = touch` 显式忽略参数。
+
+```wa title="main1.wa"
+square.OnTapped(func(touch: dora.Touch) {
+	_ = touch // 这一步用不到触点位置,先标记一下(凹语言要求变量被使用)
+
+	squareClicked = !squareClicked // 翻转状态
+	if squareClicked {
+		square.SetColor(dora.NewColor(255, 150, 70, 255)) // 橙色
+		countLabel.SetText("点到了!")
+	} else {
+		square.SetColor(dora.NewColor(80, 180, 255, 255)) // 蓝色
+		countLabel.SetText("点我")
+	}
+})
+```
+
+**运行看看。** 用 `main1.wa` 启动，屏幕中央会出现蓝色方块。点一下会变成橙色，文字变成「点到了!」。再点一下会恢复蓝色。
+
+<DocScreenshot src={useBaseUrl('/img/tutorial/wa-community/tap-color.webp')} width={760} height={340} maxWidth={760}
+  alt="Dora 运行画面中，点击前的方块是蓝色，点击后变成橙色"
+  caption="左侧是点击前，右侧是点击后。"
+/>
+
+## 2. 加载像素素材并保存颜色
+
+### 2.1 把背景和僵尸加到场景
+
+在项目根目录，也就是 `wa.mod` 同级，创建 `Image` 文件夹。把网格背景和僵尸原图保存进去，文件名和大小写按照下方链接。
+
+- <a href={useBaseUrl('/examples/wa-community/Image/backgroundpng.png')} download>backgroundpng.png</a>
+- <a href={useBaseUrl('/examples/wa-community/Image/zombie.png')} download>zombie.png</a>
+
+![serci_loser 绘制的僵尸精灵](@site/static/examples/wa-community/Image/zombie.png)
+
+在 `main2.wa` 的 `Step3` 中，用 `NewSpriteWithFile` 直接从 PNG 创建精灵。背景的尺寸取自当前视口。僵尸保留图片尺寸，放在中心偏右下的位置。遇到加载失败时，错误信息会指出对应的路径。
+
+```wa title="main2.wa"
+func Step3() {
+	ui := dora.Director.GetUI()
+	// dora.App.GetVisualSize():返回当前屏幕的宽高(Size)。
+	size := dora.App.GetVisualSize()
+
+	// dora.NewSpriteWithFile(图片路径):用图片文件创建一个精灵(能显示图片)。
+	//   文件不存在时返回 nil,所以一定要判断。
+	// 注意:文件名是 backgroundpng.png(如果改成了 background.png,这里也要改)。
+	bg := dora.NewSpriteWithFile("Image/backgroundpng.png")
+	if bg == nil {
+		panic("找不到背景图 Image/backgroundpng.png")
+	}
+	bg.SetSize(size) // 把背景图拉伸成和屏幕一样大
+	bg.SetAnchor(dora.NewVec2(0.5, 0.5))
+	bg.SetPosition(dora.Vec2Zero)
+	ui.AddChild(bg.Node)
+
+	zombie := dora.NewSpriteWithFile("Image/zombie.png")
+	if zombie == nil {
+		panic("找不到 Image/zombie.png")
+	}
+	zombie.SetAnchor(dora.NewVec2(0.5, 0.5))
+	zombie.SetPosition(dora.NewVec2(240, -60)) // 放在场景右边
+	ui.AddChild(zombie.Node)
+}
+```
+
+`init` 先调用 `Step3`，再调用 `Step2`，这样后加入的方块和按钮会显示在背景上方。这个版本把文字挂在方块节点下面，所以右移按钮改变方块的 X 坐标时，标签也会一起移动。方块变色时只给绘制节点染色。
+
+### 2.2 把布尔状态写进文件
+
+点击回调现在会在刷新界面后调用 `saveState()`。用 `"1"` 表示橙色，`"0"` 表示蓝色。示例的 `writablePath` 把文件名拼到 Dora 的可写目录下，让读写指向同一个路径。
+
+```wa title="main2.wa"
+func saveState() {
+	// dora.Content.Save(文件名, 文字内容):把文字写进文件,返回是否成功。
+	if squareClicked {
+		dora.Content.Save(saveFile, "1")
+	} else {
+		dora.Content.Save(saveFile, "0")
+	}
+}
+
+// 读档:如果文件存在就恢复状态。
+func loadState() {
+	// dora.Content.Exist(文件名):判断文件/目录是否存在。
+	// 先判断一下,避免 Load 一个不存在的文件(会报错)。
+	if dora.Content.Exist(saveFile) {
+		// dora.Content.Load(文件名):读文件里的文字,文件不存在返回 nil。
+		loaded := dora.Content.Load(saveFile)
+		if loaded != nil && *loaded == "1" {
+			squareClicked = true
+		} else {
+			squareClicked = false
+		}
+	} else {
+		squareClicked = false
+	}
+	applySquareState()
+}
+```
+
+启动时先检查存档是否存在，读出字符串，再交给 `applySquareState` 刷新颜色和标签。`Content.Load` 返回字符串指针，读取 `*loaded` 前要检查它是否为 `nil`。
+
+**运行看看。** 用 `main2.wa` 启动，点击 **向右移动**，方块和文字会一起向右移动 40 个坐标单位。点方块换色，停止并重新运行，颜色应当恢复到上一次保存的状态。这一节只保存颜色。
+
+<DocScreenshot src={useBaseUrl('/img/tutorial/wa-community/sprites-move.webp')} width={860} height={560} maxWidth={860}
+  alt="网格背景上，橙色方块已向右移动，小僵尸精灵在它右边，下方有向右移动按钮"
+  caption="换色后点击两次「向右移动」。方块右侧是 16 × 16 的僵尸精灵。"
+/>
+
+## 3. 加入移动控制并保存位置
+
+### 3.1 在每帧处理持续输入
+
+继续使用上一节的两张 PNG。`main3.wa` 的 `Step4` 把向右一步和按住左移做成两个按钮。向右按钮沿用一次点击改变 X 坐标的写法。左移按钮在按下时设置标志，松开时清除标志。
+
+```wa title="main3.wa"
+leftBtn := makeButton("按住←左移", -270, -250)
+ui.AddChild(leftBtn)
+// OnTapBegan:手指按下瞬间触发;OnTapEnded:手指松开瞬间触发。
+// 用它们记录"是否正被按住",真正移动放到下面的主循环里。
+leftBtn.OnTapBegan(func(touch: dora.Touch) {
+	_ = touch
+	longPressLeft = true
+})
+leftBtn.OnTapEnded(func(touch: dora.Touch) {
+	_ = touch
+	longPressLeft = false
+})
+```
+
+实际的持续移动在 `Schedule` 的回调里计算。每帧把每秒速度乘以经过的秒数 `dt`，得到这一帧该走的距离。按住 **W** 时增加 Y，按住左移按钮时减少 X。返回 `false` 让回调在下一帧继续。
+
+```wa title="main3.wa"
+square.Schedule(func(dt: f64) => bool {
+	speed := f32(320) * f32(dt) // 每秒 320 个坐标单位
+	p := square.GetPosition()
+
+	// Keyboard.IsKeyDown(键名):按住时每帧为 true。
+	// KeyW 就是键盘上的 W 键。
+	if dora.Keyboard.IsKeyDown(dora.KeyW) {
+		p.Y = p.Y + speed // 向上
+	}
+	if longPressLeft { // 长按按钮被按住
+		p.X = p.X - speed // 向左
+	}
+
+	square.SetPosition(p)
+	return false
+})
+```
+
+### 3.2 在同一份存档里保存颜色和坐标
+
+按下 **存档** 时，把颜色和整数 X、Y 坐标拼成一行，例如 `1,40,0`。按下 **读档** 时，用逗号拆开内容。三个字段都通过检查后，才更新方块的位置和颜色。同一个读档函数也会在启动时调用。
+
+```wa title="main3.wa"
+func saveState() => bool {
+	color := "0"
+	if squareClicked {
+		color = "1"
+	}
+	p := square.GetPosition()
+	x := strconv.FormatInt(int64(i32(p.X)), 10)
+	y := strconv.FormatInt(int64(i32(p.Y)), 10)
+	return dora.Content.Save(saveFile, color+","+x+","+y)
+}
+
+// 只有三个字段都有效时才恢复方块状态。
+func loadState() => bool {
+	if !dora.Content.Exist(saveFile) {
+		return false
+	}
+	loaded := dora.Content.Load(saveFile)
+	if loaded == nil {
+		return false
+	}
+	fields := strings.Split(*loaded, ",")
+	if len(fields) != 3 || (fields[0] != "0" && fields[0] != "1") {
+		return false
+	}
+	x, xErr := strconv.ParseInt(fields[1], 10, 32)
+	y, yErr := strconv.ParseInt(fields[2], 10, 32)
+	if xErr != nil || yErr != nil {
+		return false
+	}
+	squareClicked = fields[0] == "1"
+	square.SetPosition(dora.NewVec2(f32(x), f32(y)))
+	applySquareState()
+	return true
+}
+```
+
+**运行看看。** 用 `main3.wa` 启动，分别试试 **向右一步**、**按住←左移** 和 **W**。把方块移动并换色后点 **存档**，再改变位置和颜色，最后点 **读档**，检查两者是否一起恢复。
+
+<DocScreenshot src={useBaseUrl('/img/tutorial/wa-community/load-position.webp')} width={860} height={560} maxWidth={860}
+  alt="读档后的橙色方块和四个操作按钮，方块下方显示已读档"
+  caption="读档后，方块恢复到存档时的位置和颜色，界面显示「已读档」。"
+/>
+
+## 4. 读写文件并接收文字输入
+
+`main4.wa` 的入口调用 `Step5` 和 `Step6`，同一个画面会显示文件操作结果和输入框。
+
+### 4.1 创建、读取和删除演示文件
+
+在 `Step5` 中，把 `data.txt` 放到可写目录下的 `wa-tutorial-file-demo` 文件夹。如果目标文件已存在，就跳过演示。写入成功后读回文字，把它显示在界面上，再用 `Remove` 删除本次创建的文件。
+
+```wa title="main4.wa"
+dir := writablePath("wa-tutorial-file-demo")
+file := writablePath("wa-tutorial-file-demo/data.txt")
+if !dora.Content.Isdir(dir) && !dora.Content.Mkdir(dir) {
+	addLabel(ui, "创建目录失败", 24, 0, 220)
+	return
+}
+if dora.Content.Exist(file) {
+	addLabel(ui, "文件已存在，跳过演示", 24, 0, 220)
+	return
+}
+if !dora.Content.Save(file, "你好，凹语言！") {
+	addLabel(ui, "写入失败", 24, 0, 220)
+	return
+}
+
+loaded := dora.Content.Load(file)
+if loaded != nil {
+	addLabel(ui, "读到了: "+*loaded, 24, 0, 220)
+}
+if dora.Content.Remove(file) && !dora.Content.Exist(file) {
+	addLabel(ui, "已删除演示文件", 24, 0, 185)
+} else {
+	addLabel(ui, "删除演示文件失败", 24, 0, 185)
+}
+```
+
+### 4.2 用输入法事件更新标签
+
+`Step6` 用节点、矩形和标签搭出文本框。点击输入框时，`AttachIme` 让节点接收输入法事件。`OnTextInput` 收到的是已经确认的文本，可以一次追加一个或多个字符，再调用 `updateInputLabel` 显示当前内容。
+
+```wa title="main4.wa"
+box.OnTapped(func(touch: dora.Touch) {
+	_ = touch
+	box.AttachIme() // AttachIme():让这个节点能收到 TextInput 事件
+})
+
+// OnTextInput(func(text)):每敲出一个字,就把这个字(字符串)送进来,我们追加到末尾。
+box.OnTextInput(func(text: string) {
+	inputText = inputText + text
+	updateInputLabel()
+})
+```
+
+### 4.3 处理退格和回车
+
+退格和回车用 `IsKeyPressed` 检查，只在按下的那一帧处理。退格删掉末尾的一个 Unicode 码点，回车清空内容。
+
+```wa title="main4.wa"
+box.Schedule(func(dt: f64) => bool {
+	// IsKeyPressed:按下瞬间只触发一次(适合"按一下删一个字")。
+	if dora.Keyboard.IsKeyPressed(dora.KeyBackSpace) {
+		inputText = removeLastChar(inputText) // 删除最后一个字
+		updateInputLabel()
+	}
+	if dora.Keyboard.IsKeyPressed(dora.KeyReturn) {
+		inputText = "" // 回车 = 清空
+		updateInputLabel()
+	}
+	return false
+})
+```
+
+Wa 字符串按 UTF-8 字节存储。遇到「好」这样的多字节字符，先从末尾向前跳过续字节，直到找到码点的起始字节，再截断字符串。
+
+```wa title="main4.wa"
+func removeLastChar(s: string) => string {
+	n := len(s)
+	if n == 0 {
+		return s
+	}
+	i := n - 1
+	// UTF-8 里,连续字节是 10xxxxxx(0x80~0xBF)。往前跳过连续字节,找到最后一个字符的开头。
+	for i > 0 && (s[i]&0xC0) == 0x80 {
+		i--
+	}
+	return s[:i]
+}
+```
+
+**运行看看。** 用 `main4.wa` 启动，先看界面上的读回结果和删除状态，再点击文本框输入 `Wa你好`。按一次 **退格** 应当剩下 `Wa你`，按 **回车** 应当清空文本框。
+
+<DocScreenshot src={useBaseUrl('/img/tutorial/wa-community/file-and-input.webp')} width={760} height={420} maxWidth={760}
+  alt="文件演示显示读回文字和删除结果，下方文本框显示 Wa你好"
+  caption="上方显示文件操作结果，下方的输入框显示已确认的文字。"
+/>
+
+## 完整源码
+
+点开对应的示例即可复制。每份都带有完整注释，可单独用于 `src/main.wa`。
+
+<details>
+<summary>完整源码 <code>main1.wa</code></summary>
+
+<CodeBlock language="wa">{main1}</CodeBlock>
+
+</details>
+
+<details>
+<summary>完整源码 <code>main2.wa</code></summary>
+
+<CodeBlock language="wa">{main2}</CodeBlock>
+
+</details>
+
+<details>
+<summary>完整源码 <code>main3.wa</code></summary>
+
+<CodeBlock language="wa">{main3}</CodeBlock>
+
+</details>
+
+<details>
+<summary>完整源码 <code>main4.wa</code></summary>
+
+<CodeBlock language="wa">{main4}</CodeBlock>
+
+</details>
