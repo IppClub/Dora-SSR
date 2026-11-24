@@ -912,21 +912,6 @@ async function maybeCompressHistory(
 	// One recovery journal spans all fallback rounds of this compaction operation.
 	const recoveryChain = `prefix-${shared.taskId}-${shared.step + 1}`;
 	while (true) {
-		const systemPrompt = buildAgentSystemPrompt(shared);
-		const normalizedActiveMessages = sanitizeMessagesForLLMInput(getActiveConversationMessages(shared));
-		const decisionActiveMessages = projectMessagesForLLMContext(normalizedActiveMessages);
-		const activeMessages = projectMessagesForCompression(normalizedActiveMessages);
-		// Keep the projected uncovered count for diagnostics. The trigger itself is
-		// based on the exact next decision request below, including any carried prompt.
-		const uncoveredMessages = projectMessagesForCompression(
-			AgentRuntimePolicy.getUncoveredConversationMessages(
-				shared.messages,
-				shared.lastConsolidatedIndex
-			)
-		);
-		// Tool descriptions come from the tools API schema. Pass the schema text
-		// only for token accounting.
-		const toolDefinitions = getDecisionToolSchemaText(shared);
 		const triggerMessages = buildDecisionMessages(
 			shared,
 			undefined,
@@ -940,6 +925,16 @@ async function maybeCompressHistory(
 		if (getActiveRealMessageCount(shared) <= 0 || budget.inputBudget <= 0) {
 			throw new Error("The current instructions and configured output limit leave insufficient context space. Reduce the output limit or shorten the instructions; history was preserved.");
 		}
+		const normalizedActiveMessages = sanitizeMessagesForLLMInput(getActiveConversationMessages(shared));
+		const decisionActiveMessages = projectMessagesForLLMContext(normalizedActiveMessages);
+		const activeMessages = projectMessagesForCompression(normalizedActiveMessages);
+		const uncoveredCount = AgentRuntimePolicy.getUncoveredConversationMessages(
+			shared.messages,
+			shared.lastConsolidatedIndex
+		).length;
+		const systemPrompt = buildAgentSystemPrompt(shared);
+		// Tool descriptions come from the tools API schema, for token accounting only.
+		const toolDefinitions = getDecisionToolSchemaText(shared);
 		compressionRound += 1;
 		AgentUtils.Log("Info", `[Memory] Effective input budget reached tokens=${budget.messagesTokens} budget=${budget.inputBudget} round=${compressionRound}`);
 		shared.step += 1;
@@ -957,7 +952,7 @@ async function maybeCompressHistory(
 				maxRounds: 0,
 				pendingMessages,
 				coveredThroughIndex: shared.lastConsolidatedIndex,
-				uncoveredMessages: uncoveredMessages.length,
+				uncoveredMessages: uncoveredCount,
 				inputTokens: budget.messagesTokens,
 				inputBudgetTokens: budget.inputBudget,
 			},
