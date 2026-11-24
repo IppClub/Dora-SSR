@@ -509,13 +509,58 @@ ${message.content ?? ""}`;
 }
 
 export function projectMessagesForCompression(messages: Message[]): Message[] {
-	const projected = projectMessagesForLLMContext(messages).map((message,index)=>{
-  const source = messages[index] as Message & {inputId?:number;inputKind?:"prompt"|"steer";taskId?:number};
-  return {...message,inputId:source.inputId,inputKind:source.inputKind,taskId:source.taskId};
- });
+	// Keep task metadata for the compressor's boundary selection, not for normal requests.
+	const projected = projectMessagesForLLMContext(messages).map((message, index) => {
+		const source = messages[index] as Message & { inputId?: number; inputKind?: "prompt" | "steer"; taskId?: number };
+		return { ...message, inputId: source.inputId, inputKind: source.inputKind, taskId: source.taskId };
+	});
+	const seenReads = new Set<string>();
+	const completedWrites = new Set<string>();
+	for (const message of messages) {
+		if (message.role !== "tool" || message.name !== "write_file" || !message.tool_call_id || typeof message.content !== "string") continue;
+		const [result] = AgentUtils.safeJsonDecode(message.content);
+		if (isRecord(result) && result.success === true && result.actualSaved !== false && result.partial !== true) {
+			completedWrites.add(message.tool_call_id);
+		}
+	}
+	let recentAssistantStart = 0;
+	let assistantCount = 0;
+	for (let i = projected.length - 1; i >= 0; i--) {
+		if (projected[i].role === "assistant" && ++assistantCount === 2) {
+			recentAssistantStart = i;
+			break;
+		}
+	}
 	const visionCallIds: Record<string, boolean> = {};
 	for (let i = 0; i < projected.length; i++) {
 		const message = projected[i];
+		const original = messages[i].content;
+		if (message.role === "tool" && typeof original === "string") {
+			if (message.name === "read_file" && original.length > 200) {
+				const [result] = AgentUtils.safeJsonDecode(original);
+				if (isRecord(result) && result.success === true && result.partial !== true) {
+					// A compression round may only take a prefix. Keep the first copy so
+					// every deduplicated read refers to evidence earlier in that prefix.
+					if (seenReads.has(original)) {
+						message.content = toJson({ duplicateRead: true }, false);
+					} else {
+						seenReads.add(original);
+					}
+				}
+			} else if (message.name === "edit_file") {
+				const [result] = AgentUtils.safeJsonDecode(original);
+				if (isRecord(result) && result.success === true && (result.partial === true
+					|| (typeof result.failedOperationCount === "number" && result.failedOperationCount > 0))) {
+					message.content = toJson({
+						...projectEditResultForLLM(result),
+						partial: true,
+						failedOperationCount: result.failedOperationCount,
+						results: result.results,
+					}, false);
+				}
+			}
+		}
+		if (message.role === "assistant" && i < recentAssistantStart) message.reasoning_content = undefined;
 		if (message.role === "tool" && typeof message.content === "string" && (
 			message.name === "analyze_image"
 			|| (typeof message.tool_call_id === "string" && visionCallIds[message.tool_call_id] === true)
@@ -534,7 +579,9 @@ export function projectMessagesForCompression(messages: Message[]): Message[] {
 			if (fn?.name === "analyze_image" && typeof toolCall.id === "string" && toolCall.id !== "") {
 				visionCallIds[toolCall.id] = true;
 			}
-			if ((fn?.name !== "edit_file" && fn?.name !== "analyze_image") || typeof fn.arguments !== "string") return toolCall;
+			if (!fn || typeof fn.arguments !== "string") return toolCall;
+			const completedWrite = fn.name === "write_file" && !!toolCall.id && completedWrites.has(toolCall.id);
+			if (fn.name !== "edit_file" && fn.name !== "analyze_image" && !completedWrite) return toolCall;
 			const [decoded] = AgentUtils.safeJsonDecode(fn.arguments);
 			if (!isRecord(decoded) || isArray(decoded)) return toolCall;
 			changed = true;
