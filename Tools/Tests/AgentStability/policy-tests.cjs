@@ -38,6 +38,22 @@ const test = async (name, run) => { await run(); passed++; console.log('PASS ' +
     assert.equal(u.exports.useFastGlmToolDecision('glm-5.2',{}),true);assert.equal(u.exports.useFastGlmToolDecision('glm-5.3',{}),true);
     assert.equal(u.exports.useFastGlmToolDecision('glm-5.3',{reasoning_effort:'high'}),false);assert.equal(u.exports.useFastGlmToolDecision('other',{}),false);
   });
+  await test('model request serialization keeps nested tool keys stable', () => {
+    const encoder = utilsAst.statements.find(n => ts.isFunctionDeclaration(n) && n.name?.text === 'encodeStableJSONValue');
+    const context = vm.createContext({
+      type: value => value !== null && typeof value === 'object' ? 'table' : typeof value,
+      safeJsonEncode: value => [JSON.stringify(value)],
+    });
+    vm.runInContext(ts.transpile(encoder.getText(utilsAst)), context);
+    const toolA = { function: { name: 'example', parameters: { properties: { z: { type: 'string' }, a: { type: 'array' } } } }, type: 'function' };
+    const toolB = { type: 'function', function: { parameters: { properties: { a: { type: 'array' }, z: { type: 'string' } } }, name: 'example' } };
+    const messages = [{ role: 'tool', content: '{"z":2,"a":1}' }];
+    const requestA = { tools: [toolA], messages, stream: true };
+    const requestB = { stream: true, messages, tools: [toolB] };
+    const first = context.encodeStableJSONValue(requestA, true, 0);
+    assert.equal(first, context.encodeStableJSONValue(requestB, true, 0));
+    assert.deepEqual(JSON.parse(first), requestA);
+  });
   await test('failed memory compression retains history and opens breaker',()=>{
     const text=fs.readFileSync(path.join(root,'Assets/Script/Lib/Agent/Runtime/Memory.ts'),'utf8');const a=ts.createSourceFile('Memory.ts',text,ts.ScriptTarget.Latest,true);
     const c=a.statements.find(n=>ts.isClassDeclaration(n)&&n.name?.text==='MemoryCompressor');
@@ -56,19 +72,22 @@ const test = async (name, run) => { await run(); passed++; console.log('PASS ' +
     fail=false;c.commitCompressedSessionState(shared,result);
     assert.equal(shared.messages.length,2);assert.equal(shared.lastConsolidatedIndex,2);
   });
-  for(const [name,tokens,breaker,success,expected] of [
-    ['below trigger',89,false,false,'skip'],['instructions fit without history',95,false,false,'skip'],['breaker below hard tier',95,true,false,'skip'],
-    ['hard tier bypasses breaker',98,true,false,'try'],['failed proactive compression preserves request',95,false,false,'try'],
+  for(const [name,tokens,canFit,success,expected] of [
+    ['below checkpoint range',80,true,false,'skip'],
+    ['instructions fit without history',95,true,false,'skip'],
+    ['checkpoint needs room for its directive and output',95,false,false,'skip'],
+    ['failed proactive checkpoint keeps history and does not retry',95,true,false,'try'],
     ['over-budget failure stops without clipping',101,false,false,'throw'],
-    ['successful proactive compression returns to decision',95,false,true,'try'],
-    ['nonshrinking proactive checkpoint cannot loop',95,false,'nonshrinking','try'],
-    ['carried instruction alone is not compression progress',95,false,'carried','try'],
+    ['successful proactive checkpoint returns to decision',95,true,true,'try'],
+    ['nonshrinking proactive checkpoint cannot loop',95,true,'nonshrinking','try'],
+    ['carried instruction alone is not compression progress',95,true,'carried','try'],
   ]) await test(name,async()=>{
     let calls=0,committed=0;
-    const fit=()=>({originalTokens:committed && success!=='nonshrinking'?50:tokens,budgetTokens:100});
+    const fit=()=>({messagesTokens:committed && success!=='nonshrinking'?50:tokens,inputBudget:100,contextWindow:100,options:{tools:[{}]}});
     const c=setup({buildAgentSystemPrompt:()=>'',sanitizeMessagesForLLMInput:x=>x,getActiveConversationMessages:s=>s.messages,
       projectMessagesForLLMContext:x=>x,projectMessagesForCompression:x=>x,AgentRuntimePolicy:{getUncoveredConversationMessages:()=>[]},
       getDecisionToolSchemaText:()=>'',buildDecisionMessages:()=>[],getDecisionDisabledAgentTools:()=>[],
+      canUsePrefixHandoff:()=>true,planDecisionRequest:fit,
       AgentToolRegistry:{buildDecisionToolSchema:()=>[]},AgentConfig:{AGENT_LIMITS:{}},
       AgentUtils:{fitMessagesToContext:fit,useFastGlmToolDecision:()=>false,Log:()=>{}},getActiveRealMessageCount:s=>s.messages.length,emitAgentEvent:()=>{},
       getMemoryCompressionStartReason:()=>'',getMemoryCompressionFailureReason:()=>'',getMemoryCompressionSuccessReason:()=>'',
@@ -76,10 +95,14 @@ const test = async (name, run) => { await run(); passed++; console.log('PASS ' +
       persistHistoryState:()=>{},getCancelledReason:()=> 'cancelled',saveStepLLMDebugInput:()=>{},saveStepLLMDebugOutput:()=>{},recordLLMTokenUsage:()=>{}});
     // Install after evaluation so this test isolates the loop from the separately tested commit helper.
     c.commitCompressedSessionState=()=>{committed++;};
-    const shared={messages:name==='instructions fit without history'?[]:[{},{}],carryMessageIndex:success==='carried'?0:undefined,lastConsolidatedIndex:0,step:0,agentStepCount:1,llmOptions:{},llmMaxTry:2,
-      llmConfig:{model:'fixture'},memory:{compressor:{isCompressionBreakerOpen:()=>breaker,compress:async()=>{
-        calls++;assert.ok(calls<=1,'proactive loop must stop');return success?{success:true,compressedCount:success==='carried'?1:2}:{success:false,compressedCount:0,error:'provider down'};}}},stopToken:{stopped:false}};
+    const shared={messages:name==='instructions fit without history'?[]:Array.from({length:12},()=>({})),carryMessageIndex:success==='carried'?0:undefined,lastConsolidatedIndex:0,step:0,agentStepCount:1,llmOptions:{},llmMaxTry:2,
+      llmConfig:{model:'fixture'},memory:{compressor:{canFitSharedPrefixCheckpoint:()=>canFit,compress:async(...args)=>{
+        calls++;
+        assert.ok(calls<=1,'proactive loop must stop');
+        assert.equal(args[4].sharedPrefixOnly,tokens<=100);
+        return success?{success:true,compressedCount:success==='carried'?1:2}:{success:false,compressedCount:0,error:'provider down'};}}},stopToken:{stopped:false}};
     if(expected==='throw') await assert.rejects(c.maybeCompressHistory(shared),/provider down/);else await c.maybeCompressHistory(shared);
+    if (name==='failed proactive checkpoint keeps history and does not retry') await c.maybeCompressHistory(shared);
     assert.equal(calls,expected==='skip'?0:1);
     if(!success) assert.equal(shared.lastConsolidatedIndex,0);
   });

@@ -17,7 +17,7 @@ import { fetchUrl } from 'Agent/Tool/Fetch';
 import { WEB_REQUEST_TIMEOUT_SECONDS, readWebPage, searchWeb } from 'Agent/Tool/DeepSeekWeb';
 import { createCommandContent } from 'Agent/Tool/CommandContent';
 
-import { acquireEntryLease, recordEntryLeaseRun, ownsEntryLease, releaseEntryLease, type DevEntryModule } from 'Agent/Tool/EntryLease';
+import { acquireEntryLease, canClearEntryAfterCommand, recordEntryLeaseRun, ownsEntryLease, releaseEntryLease, type DevEntryModule } from 'Agent/Tool/EntryLease';
 import { createPreviewGameInjection, type CommandPreviewGameResult } from 'Agent/Tool/CommandPreview';
 import {
 	getVisionBudgetState,
@@ -105,6 +105,30 @@ function executeStudioLuaCommand(req: {
 }
 
 
+type CommandPrint = (this: void, ...values: unknown[]) => void;
+
+const entryPrintSinks: Array<{ print: CommandPrint; ownsRun: () => boolean }> = [];
+let currentCommandPrint: CommandPrint | undefined;
+let defaultPrint: CommandPrint | undefined;
+const routeCommandPrint: CommandPrint = (...values) => {
+	const sink = currentCommandPrint ?? entryPrintSinks.find(item => item.ownsRun())?.print ?? defaultPrint;
+	sink?.(...values);
+};
+
+function captureRuntimePrint(print: CommandPrint, ownsRun: () => boolean): () => void {
+	if (entryPrintSinks.length === 0) {
+		defaultPrint = _G["print"] as CommandPrint;
+		_G["print"] = routeCommandPrint;
+	}
+	const sink = { print, ownsRun };
+	entryPrintSinks.push(sink);
+	return () => {
+		const index = entryPrintSinks.indexOf(sink);
+		if (index >= 0) entryPrintSinks.splice(index, 1);
+		if (entryPrintSinks.length === 0 && _G["print"] === routeCommandPrint && defaultPrint !== undefined) _G["print"] = defaultPrint;
+	};
+}
+
 function executeLuaCommand(req: {
 	workDir: string;
 	docLanguage?: DoraDocLanguage;
@@ -188,7 +212,7 @@ function executeLuaCommand(req: {
 		return {success: true, budget: getVisionBudgetState(currentVisionUsage())};
 	};
 	const acquireEntryRuntime = () => {
-		acquireEntryLease(req.operationId, entry);
+		acquireEntryLease(req.operationId, entry, isNetworkCancelled);
 		ownsEntryRuntime = true;
 	};
 	const stopOwnedEntry = (): string | undefined => {
@@ -296,7 +320,7 @@ function executeLuaCommand(req: {
 		previewGame: createPreviewGameInjection({
 			workDir: req.workDir,
 			operationId: req.operationId,
-			isCancelled: req.isCancelled,
+			isCancelled: isNetworkCancelled,
 			print: line => capturePrint(line),
 			reserveCapture,
 			registerCleanup: cleanup => { previewCleanup = cleanup; },
@@ -444,7 +468,7 @@ function executeLuaCommand(req: {
 			restorePrint?.();
 			restorePrint = undefined;
 			if (!result.success && (result.interrupted === true || result.phase === "timeout")
-				&& (!entry.getCurrentEntryStatus().running || ownsEntryLease(req.operationId, entry))) {
+				&& canClearEntryAfterCommand(req.operationId, entry)) {
 				try {
 					entry.allClear();
 				} catch (e) {
@@ -537,11 +561,9 @@ function executeLuaCommand(req: {
 					message: "Lua command running",
 				});
 			}
-			const previousGlobalPrint = _G["print"];
-			restorePrint = () => { if (_G["print"] === capturePrint) _G["print"] = previousGlobalPrint; };
+			restorePrint = captureRuntimePrint(capturePrint, () => ownsEntryLease(req.operationId, entry));
 			const [previousHook, previousHookMask, previousHookCount] = debug.gethook();
 			let frameTimedOut = false, watchdogMessage: string | undefined;
-			_G["print"] = capturePrint;
 			debug.sethook(() => {
 				watchdogMessage ??= checkEntryWatchdog();
 				if (watchdogMessage !== undefined) error(watchdogMessage);
@@ -560,7 +582,6 @@ function executeLuaCommand(req: {
 			} else {
 				debug.sethook();
 			}
-			_G["print"] = previousGlobalPrint;
 			if (!ok) {
 				finish({
 					success: false,
@@ -619,7 +640,10 @@ function executeLuaCommand(req: {
 				});
 				return true;
 			}
+			const previousCommandPrint = currentCommandPrint;
+			currentCommandPrint = capturePrint;
 			const [resumeSuccess, resumeResult] = coroutine.resume(commandRoutine);
+			currentCommandPrint = previousCommandPrint;
 			if (!resumeSuccess) {
 				finish({
 					success: false,

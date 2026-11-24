@@ -451,7 +451,20 @@ function projectVisionResultForCompression(content: string): string {
 	return toJson(projected, false);
 }
 
+// Tool content is a string in the provider request. Lua table iteration order
+// changes across processes, so re-encoding projected objects must sort keys.
+function encodeProjectedResult(value: unknown): string {
+	const [encoded] = AgentUtils.safeStableJsonEncode(value, false);
+	return encoded ?? toJson(value, false);
+}
+
 function projectToolResultContentForLLM(tool: string, content: string): string {
+	// read_file is normalized before persistence. Its saved bytes are already
+	// bounded and need no further projection.
+	if (tool === "read_file") return content;
+	const isEdit = tool === "edit_file" || tool === "write_file" || tool === "delete_file";
+	const needsProjection = isEdit || tool === "build" || tool === "execute_command";
+	if (!needsProjection && content.length <= AgentConfig.AGENT_LIMITS.llmHistoryToolResultMaxChars) return content;
 	const [decoded] = AgentUtils.safeJsonDecode(content);
 	if (!isRecord(decoded) || isArray(decoded)) {
 		return truncateHistoryText(
@@ -461,17 +474,14 @@ function projectToolResultContentForLLM(tool: string, content: string): string {
 		);
 	}
 	let projected = decoded;
-	if (tool === "edit_file" || tool === "write_file" || tool === "delete_file") {
+	if (isEdit) {
 		projected = projectEditResultForLLM(decoded);
 	} else if (tool === "build") {
 		projected = projectBuildResultForLLM(decoded);
 	} else if (tool === "execute_command") {
 		projected = projectCommandResultForLLM(decoded);
 	}
-	const encoded = toJson(projected, false);
-	// read_file is already normalized once, before it enters session history.
-	// Keep that representation stable across later requests for prompt caching.
-	if (tool === "read_file") return encoded;
+	const encoded = needsProjection ? encodeProjectedResult(projected) : content;
 	if (encoded.length <= AgentConfig.AGENT_LIMITS.llmHistoryToolResultMaxChars) return encoded;
 	const fallback: Record<string, unknown> = {
 		success: projected.success,
@@ -483,7 +493,7 @@ function projectToolResultContentForLLM(tool: string, content: string): string {
 			`${tool} result`
 		),
 	};
-	return toJson(fallback, false);
+	return encodeProjectedResult(fallback);
 }
 export function projectMessagesForLLMContext(messages: Message[]): Message[] {
 	// Session history remains the source of truth for persistence and UI events.
@@ -511,8 +521,8 @@ ${message.content ?? ""}`;
 export function projectMessagesForCompression(messages: Message[]): Message[] {
 	// Keep task metadata for the compressor's boundary selection, not for normal requests.
 	const projected = projectMessagesForLLMContext(messages).map((message, index) => {
-		const source = messages[index] as Message & { inputId?: number; inputKind?: "prompt" | "steer"; taskId?: number };
-		return { ...message, inputId: source.inputId, inputKind: source.inputKind, taskId: source.taskId };
+		const source = messages[index] as Message & { inputId?: number; inputKind?: "prompt" | "steer"; taskId?: number; handoffId?: string };
+		return { ...message, inputId: source.inputId, inputKind: source.inputKind, taskId: source.taskId, handoffId: source.handoffId };
 	});
 	const seenReads = new Set<string>();
 	const completedWrites = new Set<string>();

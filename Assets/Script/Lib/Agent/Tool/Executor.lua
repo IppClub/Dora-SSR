@@ -157,7 +157,7 @@ function ____exports.executeAgentToolDefinition(definition, input, context, sche
 		end -- 113
 		return ____awaiter_resolve( -- 113
 			nil, -- 113
-			__TS__ObjectAssign({}, result, {execution = {status = "DONE"}}) -- 115
+			__TS__ObjectAssign({}, result, {execution = {status = result.output.success == false and "FAILED" or "DONE"}}) -- 115
 		) -- 115
 	end) -- 115
 end -- 40

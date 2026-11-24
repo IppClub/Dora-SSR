@@ -55,23 +55,23 @@ function createFunctionToolSchemaFromDefinition(tool, context) -- 104
 		} -- 112
 	} -- 112
 end -- 112
-function ____exports.getToolDefinition(name) -- 475
-	for ____, tool in ipairs(____exports.AGENT_TOOL_DEFINITIONS) do -- 476
-		if tool.name == name then -- 476
-			return tool -- 477
-		end -- 477
-	end -- 477
-	return nil -- 479
-end -- 475
-function ____exports.isKnownToolName(name) -- 513
-	return ____exports.getToolDefinition(name) ~= nil -- 514
-end -- 513
-function ____exports.buildDecisionToolSchemaForTools(tools, context) -- 600
-	return __TS__ArrayMap( -- 601
-		tools, -- 601
-		function(____, tool) return createFunctionToolSchemaFromDefinition(tool, context) end -- 602
-	) -- 602
-end -- 600
+function ____exports.getToolDefinition(name) -- 476
+	for ____, tool in ipairs(____exports.AGENT_TOOL_DEFINITIONS) do -- 477
+		if tool.name == name then -- 477
+			return tool -- 478
+		end -- 478
+	end -- 478
+	return nil -- 480
+end -- 476
+function ____exports.isKnownToolName(name) -- 514
+	return ____exports.getToolDefinition(name) ~= nil -- 515
+end -- 514
+function ____exports.buildDecisionToolSchemaForTools(tools, context) -- 601
+	return __TS__ArrayMap( -- 602
+		tools, -- 602
+		function(____, tool) return createFunctionToolSchemaFromDefinition(tool, context) end -- 603
+	) -- 603
+end -- 601
 local DEFAULT_SCHEMA_CONTEXT = {searchDoraDocLimitMax = 20} -- 43
 local DEFAULT_TOOL_OUTPUT_SCHEMA = {type = "object", properties = {success = {type = "boolean"}}, required = {"success"}} -- 47
 local function getParameterDescription(parameter, context) -- 67
@@ -360,246 +360,247 @@ local AGENT_TOOL_DEFINITION_SOURCES = { -- 138
 			"inspectGodotScene({path = \"main.tscn\", nodePath = \"Player\", maxNodes = 128, maxProperties = 64}) reads saved authored scene metadata directly through the bundled Godot runtime, without loading resources, instantiating nodes or executing scripts. project is optional and defaults to the nearest enclosing Godot project; omit nodePath to query the whole scene. Paths are workspace-relative. Returns/prints nodes, typed properties, script/resource references, sub-resources and signal connections, with counts, warnings and explicit truncation. Inherited/instanced scenes remain references; script exports and runtime defaults are not evaluated. nodePath selects a scene-relative subtree (root is .); maxNodes is 1-512, maxProperties is 0-128. Source limit is 2 MiB, report limit 256 KiB; narrow queries when truncated. Results also appear in execute_command.godotScenes; failed inspections fail the command. Binary .scn and Dora Studio are unsupported. This read-only operation does not require build afterward.", -- 349
 			"enterEntryAsync runs a built project-relative Lua entry as an isolated Agent test. The tool automatically stops an entry it started when the command succeeds, fails, is canceled, or times out.", -- 350
 			"An Entry watchdog checks live Dora object and Lua-reference growth every frame and from the Lua instruction hook. Growth of 50,000 C++ objects or 10,000 Lua references stops the test, runs Entry cleanup, and returns the measured growth; replace such tests with bounded entities and fixed simulation steps.", -- 351
-			"After a Lua command finishes, the Web IDE resource tree is refreshed automatically whenever the command accessed Content and did not call refreshTree itself, including commands that later fail, are canceled, or time out. Pure computation commands do not refresh the tree. refreshTree(\"relative/file\") or refreshTree() remains available for explicit updates.", -- 352
-			"Lua mode returns only text printed with print(...). It does not return arbitrary Lua return values.", -- 353
-			"Only one Agent command may own the Dora entry runtime at a time. If it is busy, retry later instead of waiting inside the command.", -- 354
-			"Git mode uses the engine Git client, not a system shell. Supported commands follow Dora Git API support.", -- 355
-			"Git mode accepts cwd for non-clone commands. cwd must be a project-relative existing directory. Do not use git -C.", -- 356
-			"Git clone uses a temporary directory first, then moves into the project only after clone succeeds; existing targets are not overwritten.", -- 357
-			"Git clone rejects local, private, metadata, and literal-IP destinations and discards repositories larger than 128 MiB.", -- 358
-			"The Web IDE resource tree is refreshed automatically after every successful Git command." -- 359
-		} -- 359
-	}, -- 359
-	{ -- 362
-		name = "spawn_agent", -- 363
-		roles = {"main"}, -- 364
-		workModes = {"code"}, -- 365
-		description = "Dispatch a sub agent for delegated work, or list sub-agent state when prompt is omitted.", -- 366
-		parameters = { -- 367
-			{name = "prompt", type = "string", description = "Spawn form: detailed, self-contained task prompt sent to the sub agent. Provide it with title to spawn; omit it to list sub-agent state instead."}, -- 368
-			{name = "title", type = "string", description = "Spawn form: short tab title for the sub agent. Required when prompt is present; ignored otherwise."}, -- 369
-			{name = "expectedOutput", type = "string", description = "Spawn form: optional expected result summary."}, -- 370
-			{name = "filesHint", type = "array", items = {type = "string"}, description = "Spawn form: optional likely files or directories involved."}, -- 371
-			{name = "agentType", type = "string", enum = { -- 372
-				"audio", -- 372
-				"visual", -- 372
-				"level", -- 372
-				"test", -- 372
-				"general" -- 372
-			}, description = "Spawn form: optional persistent team type (audio/visual/level/test). The sub agent wakes with its team profile, the shared ASSETS.md asset state, and its team memory index from .agent/teams/<agentType>/; that memory persists across triggers. general is a plain sub agent with no team context."}, -- 372
-			{name = "status", type = "string", enum = { -- 373
-				"active_or_recent", -- 373
-				"running", -- 373
-				"done", -- 373
-				"failed", -- 373
-				"all" -- 373
-			}, description = "List form: optional status filter. Defaults to active_or_recent."}, -- 373
-			{name = "limit", type = "number", description = "List form: maximum number of items to return. Defaults to 5."}, -- 374
-			{name = "offset", type = "number", description = "List form: offset for paging older items."}, -- 375
-			{name = "query", type = "string", description = "List form: optional text filter matched against title, goal, or summary."} -- 376
-		}, -- 376
-		rules = { -- 378
-			"Two forms: prompt + title dispatches a new sub agent; prompt omitted lists sub-agent state. Never combine spawn fields with list filters.", -- 379
-			"Use the spawn form for large multi-file work, parallel exploration, long-running verification, or isolated execution tasks. For small focused edits, use edit_file/build directly in the current main-agent run.", -- 380
-			"Spawning a team agent is a trigger, not a creation: the team already exists in .agent/teams/<agentType>/ and its memory carries across triggers. The wake context tells the sub agent when it may write team memory; most triggers end with zero memory writes.", -- 381
-			"The spawned sub agent inherits the current session tool capabilities.", -- 382
-			"prompt should be self-contained and actionable, and should clearly describe the concrete work to execute, constraints, desired output, and any relevant files. title should be short and specific.", -- 383
-			"Spawn is asynchronous and nonblocking. You may dispatch multiple independent sub agents in one response, subject to the concurrency limit.", -- 384
-			"After dispatching all intended independent sub agents, complete at most three bounded foreground tool batches that do not depend on their results. Then finish this turn and return control to the user while the sub agents keep running.", -- 385
-			"After any successful spawn in the current task, the list form is rejected for the rest of that task. Do not wait, join, or poll; completion arrives asynchronously as a later handoff.", -- 386
-			"Use the list form only when you do not already know the current sub-agent status and need to inspect delegated work before deciding whether to dispatch more sub agents or read a result file.", -- 387
-			"Avoid assigning overlapping files or dependent steps to concurrent sub agents unless the coordination boundary is explicit." -- 388
-		} -- 388
-	}, -- 388
-	{ -- 391
-		name = "ask_user", -- 392
-		roles = {"main"}, -- 393
-		workModes = {"plan"}, -- 394
-		description = "Present a structured questionnaire and pause the Plan task until the user submits every required answer.", -- 395
-		parameters = {{name = "title", type = "string", required = true, description = "Short questionnaire title."}, {name = "description", type = "string", description = "Optional context shown above the questions."}, { -- 396
-			name = "questions", -- 400
-			type = "array", -- 401
-			required = true, -- 402
-			description = "One to eight questions. Use single_choice, multiple_choice, or text. A single-choice question may recommend at most one option.", -- 403
-			items = {type = "object", properties = { -- 404
-				id = {type = "string"}, -- 407
-				prompt = {type = "string"}, -- 408
-				description = {type = "string"}, -- 409
-				type = {type = "string", enum = {"single_choice", "multiple_choice", "text"}}, -- 410
-				required = {type = "boolean"}, -- 411
-				options = {type = "array", items = {type = "object", properties = {id = {type = "string"}, label = {type = "string"}, description = {type = "string"}, recommended = {type = "boolean", description = "Mark an option as recommended. Use at most one for single_choice; multiple_choice may mark any recommended set."}}, required = {"id", "label"}}}, -- 412
-				placeholder = {type = "string"} -- 425
-			}, required = {"id", "prompt", "type"}} -- 425
-		}}, -- 425
-		rules = { -- 431
-			"Inspect the project before asking; do not ask for facts available through read_file, grep_files, or search_dora_doc.", -- 432
-			"ask_user has no document-update prerequisite. Incorporate the answers into .agent/plan/PLAN.md and .agent/plan/PROGRESS.md before finish.", -- 433
-			"For single_choice, mark at most one option recommended. For multiple_choice, recommended options form a suggested set.", -- 434
-			"ask_user must be the only tool call in the response.", -- 435
-			"The task pauses after the questionnaire is published and continues after the user submits answers or dismisses it.", -- 436
-			"An answered or dismissed ask_user tool result contains authoritative user feedback. Apply answers when present; when dismissed, continue with reasonable assumptions and do not mechanically repeat the same questionnaire." -- 437
-		} -- 437
-	} -- 437
-} -- 437
-local function formatSchemaErrors(errors) -- 442
-	return table.concat( -- 443
-		__TS__ArrayMap( -- 443
-			errors, -- 443
-			function(____, item) return ((item.schemaPath ~= "" and item.schemaPath or "/") .. ": ") .. item.message end -- 443
-		), -- 443
-		"; " -- 443
-	) -- 443
-end -- 442
-local function createToolDefinition(source) -- 446
-	local definition = __TS__ObjectAssign( -- 447
-		{}, -- 447
-		source, -- 448
-		{ -- 447
-			inputSchema = source.inputSchema or (function(____, context) return createInputSchemaFromParameters(source.parameters, context) end), -- 449
-			outputSchema = DEFAULT_TOOL_OUTPUT_SCHEMA, -- 450
-			handler = AGENT_TOOL_HANDLERS[source.name], -- 451
-			validateInput = AGENT_TOOL_VALIDATORS[source.name] -- 452
-		} -- 452
-	) -- 452
-	local inputResult = compileJsonSchema(definition:inputSchema(DEFAULT_SCHEMA_CONTEXT)) -- 454
-	if not inputResult.success then -- 454
-		error( -- 456
-			__TS__New( -- 456
-				Error, -- 456
-				(("Invalid input schema for " .. definition.name) .. ": ") .. formatSchemaErrors(inputResult.errors) -- 456
-			), -- 456
-			0 -- 456
-		) -- 456
-	end -- 456
-	local outputResult = compileJsonSchema(definition.outputSchema) -- 458
-	if not outputResult.success then -- 458
-		error( -- 460
-			__TS__New( -- 460
-				Error, -- 460
-				(("Invalid output schema for " .. definition.name) .. ": ") .. formatSchemaErrors(outputResult.errors) -- 460
-			), -- 460
-			0 -- 460
-		) -- 460
-	end -- 460
-	return definition -- 462
-end -- 446
-____exports.AGENT_TOOL_DEFINITIONS = __TS__ArrayMap( -- 465
-	AGENT_TOOL_DEFINITION_SOURCES, -- 465
-	function(____, source) return createToolDefinition(source) end -- 465
-) -- 465
-local function hasRole(tool, role) -- 467
-	return __TS__ArrayIndexOf(tool.roles, role) >= 0 -- 468
-end -- 467
-local function hasWorkMode(tool, workMode) -- 471
-	return __TS__ArrayIndexOf(tool.workModes, workMode) >= 0 -- 472
-end -- 471
-local function isToolCapabilityEnabled(tool, options) -- 482
-	if not ____exports.isKnownToolName(tool.name) then -- 482
-		return false -- 483
-	end -- 483
-	if tool.name == "context_handoff" and not AGENT_DEFAULTS.memorySharedPrefixHandoff then -- 483
+			"When running a Lua test, use assert or error when an acceptance check fails. In the desktop engine, stop any game you started playing before requesting an Agent preview or runtime test.", -- 352
+			"After a Lua command finishes, the Web IDE resource tree is refreshed automatically whenever the command accessed Content and did not call refreshTree itself, including commands that later fail, are canceled, or time out. Pure computation commands do not refresh the tree. refreshTree(\"relative/file\") or refreshTree() remains available for explicit updates.", -- 353
+			"Lua mode returns only text printed with print(...). It does not return arbitrary Lua return values.", -- 354
+			"Only one Agent command may own the Dora entry runtime at a time. If it is busy, retry later instead of waiting inside the command.", -- 355
+			"Git mode uses the engine Git client, not a system shell. Supported commands follow Dora Git API support.", -- 356
+			"Git mode accepts cwd for non-clone commands. cwd must be a project-relative existing directory. Do not use git -C.", -- 357
+			"Git clone uses a temporary directory first, then moves into the project only after clone succeeds; existing targets are not overwritten.", -- 358
+			"Git clone rejects local, private, metadata, and literal-IP destinations and discards repositories larger than 128 MiB.", -- 359
+			"The Web IDE resource tree is refreshed automatically after every successful Git command." -- 360
+		} -- 360
+	}, -- 360
+	{ -- 363
+		name = "spawn_agent", -- 364
+		roles = {"main"}, -- 365
+		workModes = {"code"}, -- 366
+		description = "Dispatch a sub agent for delegated work, or list sub-agent state when prompt is omitted.", -- 367
+		parameters = { -- 368
+			{name = "prompt", type = "string", description = "Spawn form: detailed, self-contained task prompt sent to the sub agent. Provide it with title to spawn; omit it to list sub-agent state instead."}, -- 369
+			{name = "title", type = "string", description = "Spawn form: short tab title for the sub agent. Required when prompt is present; ignored otherwise."}, -- 370
+			{name = "expectedOutput", type = "string", description = "Spawn form: optional expected result summary."}, -- 371
+			{name = "filesHint", type = "array", items = {type = "string"}, description = "Spawn form: optional likely files or directories involved."}, -- 372
+			{name = "agentType", type = "string", enum = { -- 373
+				"audio", -- 373
+				"visual", -- 373
+				"level", -- 373
+				"test", -- 373
+				"general" -- 373
+			}, description = "Spawn form: optional persistent team type (audio/visual/level/test). The sub agent wakes with its team profile, the shared ASSETS.md asset state, and its team memory index from .agent/teams/<agentType>/; that memory persists across triggers. general is a plain sub agent with no team context."}, -- 373
+			{name = "status", type = "string", enum = { -- 374
+				"active_or_recent", -- 374
+				"running", -- 374
+				"done", -- 374
+				"failed", -- 374
+				"all" -- 374
+			}, description = "List form: optional status filter. Defaults to active_or_recent."}, -- 374
+			{name = "limit", type = "number", description = "List form: maximum number of items to return. Defaults to 5."}, -- 375
+			{name = "offset", type = "number", description = "List form: offset for paging older items."}, -- 376
+			{name = "query", type = "string", description = "List form: optional text filter matched against title, goal, or summary."} -- 377
+		}, -- 377
+		rules = { -- 379
+			"Two forms: prompt + title dispatches a new sub agent; prompt omitted lists sub-agent state. Never combine spawn fields with list filters.", -- 380
+			"Use the spawn form for large multi-file work, parallel exploration, long-running verification, or isolated execution tasks. For small focused edits, use edit_file/build directly in the current main-agent run.", -- 381
+			"Spawning a team agent is a trigger, not a creation: the team already exists in .agent/teams/<agentType>/ and its memory carries across triggers. The wake context tells the sub agent when it may write team memory; most triggers end with zero memory writes.", -- 382
+			"The spawned sub agent inherits the current session tool capabilities.", -- 383
+			"prompt should be self-contained and actionable, and should clearly describe the concrete work to execute, constraints, desired output, and any relevant files. title should be short and specific.", -- 384
+			"Spawn is asynchronous and nonblocking. You may dispatch multiple independent sub agents in one response, subject to the concurrency limit.", -- 385
+			"After dispatching all intended independent sub agents, complete at most three bounded foreground tool batches that do not depend on their results. Then finish this turn and return control to the user while the sub agents keep running.", -- 386
+			"After any successful spawn in the current task, the list form is rejected for the rest of that task. Do not wait, join, or poll; completion arrives asynchronously as a later handoff.", -- 387
+			"Use the list form only when you do not already know the current sub-agent status and need to inspect delegated work before deciding whether to dispatch more sub agents or read a result file.", -- 388
+			"Avoid assigning overlapping files or dependent steps to concurrent sub agents unless the coordination boundary is explicit." -- 389
+		} -- 389
+	}, -- 389
+	{ -- 392
+		name = "ask_user", -- 393
+		roles = {"main"}, -- 394
+		workModes = {"plan"}, -- 395
+		description = "Present a structured questionnaire and pause the Plan task until the user submits every required answer.", -- 396
+		parameters = {{name = "title", type = "string", description = "Short questionnaire title. Put it at the top level next to questions."}, {name = "description", type = "string", description = "Optional context shown above the questions."}, { -- 397
+			name = "questions", -- 401
+			type = "array", -- 402
+			required = true, -- 403
+			description = "One to eight questions. Use single_choice, multiple_choice, or text. A single-choice question may recommend at most one option.", -- 404
+			items = {type = "object", properties = { -- 405
+				id = {type = "string"}, -- 408
+				prompt = {type = "string"}, -- 409
+				description = {type = "string"}, -- 410
+				type = {type = "string", enum = {"single_choice", "multiple_choice", "text"}}, -- 411
+				required = {type = "boolean"}, -- 412
+				options = {type = "array", items = {type = "object", properties = {id = {type = "string"}, label = {type = "string"}, description = {type = "string"}, recommended = {type = "boolean", description = "Mark an option as recommended. Use at most one for single_choice; multiple_choice may mark any recommended set."}}, required = {"id", "label"}}}, -- 413
+				placeholder = {type = "string"} -- 426
+			}, required = {"id", "prompt", "type"}} -- 426
+		}}, -- 426
+		rules = { -- 432
+			"Inspect the project before asking; do not ask for facts available through read_file, grep_files, or search_dora_doc.", -- 433
+			"ask_user has no document-update prerequisite. Incorporate the answers into .agent/plan/PLAN.md and .agent/plan/PROGRESS.md before finish.", -- 434
+			"For single_choice, mark at most one option recommended. For multiple_choice, recommended options form a suggested set.", -- 435
+			"ask_user must be the only tool call in the response.", -- 436
+			"The task pauses after the questionnaire is published and continues after the user submits answers or dismisses it.", -- 437
+			"An answered or dismissed ask_user tool result contains authoritative user feedback. Apply answers when present; when dismissed, continue with reasonable assumptions and do not mechanically repeat the same questionnaire." -- 438
+		} -- 438
+	} -- 438
+} -- 438
+local function formatSchemaErrors(errors) -- 443
+	return table.concat( -- 444
+		__TS__ArrayMap( -- 444
+			errors, -- 444
+			function(____, item) return ((item.schemaPath ~= "" and item.schemaPath or "/") .. ": ") .. item.message end -- 444
+		), -- 444
+		"; " -- 444
+	) -- 444
+end -- 443
+local function createToolDefinition(source) -- 447
+	local definition = __TS__ObjectAssign( -- 448
+		{}, -- 448
+		source, -- 449
+		{ -- 448
+			inputSchema = source.inputSchema or (function(____, context) return createInputSchemaFromParameters(source.parameters, context) end), -- 450
+			outputSchema = DEFAULT_TOOL_OUTPUT_SCHEMA, -- 451
+			handler = AGENT_TOOL_HANDLERS[source.name], -- 452
+			validateInput = AGENT_TOOL_VALIDATORS[source.name] -- 453
+		} -- 453
+	) -- 453
+	local inputResult = compileJsonSchema(definition:inputSchema(DEFAULT_SCHEMA_CONTEXT)) -- 455
+	if not inputResult.success then -- 455
+		error( -- 457
+			__TS__New( -- 457
+				Error, -- 457
+				(("Invalid input schema for " .. definition.name) .. ": ") .. formatSchemaErrors(inputResult.errors) -- 457
+			), -- 457
+			0 -- 457
+		) -- 457
+	end -- 457
+	local outputResult = compileJsonSchema(definition.outputSchema) -- 459
+	if not outputResult.success then -- 459
+		error( -- 461
+			__TS__New( -- 461
+				Error, -- 461
+				(("Invalid output schema for " .. definition.name) .. ": ") .. formatSchemaErrors(outputResult.errors) -- 461
+			), -- 461
+			0 -- 461
+		) -- 461
+	end -- 461
+	return definition -- 463
+end -- 447
+____exports.AGENT_TOOL_DEFINITIONS = __TS__ArrayMap( -- 466
+	AGENT_TOOL_DEFINITION_SOURCES, -- 466
+	function(____, source) return createToolDefinition(source) end -- 466
+) -- 466
+local function hasRole(tool, role) -- 468
+	return __TS__ArrayIndexOf(tool.roles, role) >= 0 -- 469
+end -- 468
+local function hasWorkMode(tool, workMode) -- 472
+	return __TS__ArrayIndexOf(tool.workModes, workMode) >= 0 -- 473
+end -- 472
+local function isToolCapabilityEnabled(tool, options) -- 483
+	if not ____exports.isKnownToolName(tool.name) then -- 483
 		return false -- 484
 	end -- 484
-	return hasWorkMode(tool, options and options.workMode or "code") and __TS__ArrayIndexOf(options and options.disabledAgentTools or ({}), tool.name) < 0 -- 485
-end -- 482
-local function formatParameterList(tool) -- 489
-	local parameters = tool.parameters or ({}) -- 490
-	if #parameters == 0 then -- 490
-		return "" -- 491
-	end -- 491
-	return table.concat( -- 492
-		__TS__ArrayMap( -- 492
-			parameters, -- 492
-			function(____, parameter) return parameter.required == true and parameter.name or parameter.name .. "(optional)" end -- 493
-		), -- 493
-		", " -- 494
-	) -- 494
-end -- 489
-local function formatToolPrompt(tool, index, context) -- 497
-	local lines = {(((tostring(index + 1) .. ". ") .. tool.name) .. ": ") .. getToolDescription(tool, context)} -- 498
-	local parameterList = formatParameterList(tool) -- 499
-	if parameterList ~= "" then -- 499
-		lines[#lines + 1] = "\t- Parameters: " .. parameterList -- 501
-	end -- 501
-	for ____, parameter in ipairs(tool.parameters or ({})) do -- 503
-		local label = parameter.required == true and parameter.name or parameter.name .. "(optional)" -- 504
-		lines[#lines + 1] = (("\t- " .. label) .. ": ") .. getParameterDescription(parameter, context) -- 505
-	end -- 505
-	for ____, rule in ipairs(getToolRules(tool, context)) do -- 507
-		lines[#lines + 1] = "\t- " .. rule -- 508
-	end -- 508
-	return table.concat(lines, "\n") -- 510
-end -- 497
-function ____exports.getAllowedToolsForRole(role, options) -- 517
-	return __TS__ArrayMap( -- 518
-		__TS__ArrayFilter( -- 518
-			____exports.AGENT_TOOL_DEFINITIONS, -- 518
-			function(____, tool) return hasRole(tool, role) and ____exports.isKnownToolName(tool.name) and isToolCapabilityEnabled(tool, options) end -- 519
-		), -- 519
-		function(____, tool) return tool.name end -- 520
-	) -- 520
-end -- 517
-function ____exports.buildCurrentToolAvailabilityGuidance() -- 523
-	return table.concat({"Current tool availability:", "- every tool defined in the current system prompt or exposed in the current tool schema is executable", "- capabilities disabled for this task are omitted from both the definitions and schema"}, "\n") -- 524
-end -- 523
-function ____exports.getToolDefinitionsForRole(role, options) -- 531
-	return __TS__ArrayFilter( -- 534
-		____exports.AGENT_TOOL_DEFINITIONS, -- 534
-		function(____, tool) return hasRole(tool, role) and isToolCapabilityEnabled(tool, options) end -- 534
-	) -- 534
-end -- 531
-local function getDecisionToolDefinitionsForRole(role, options) -- 540
-	return ____exports.getToolDefinitionsForRole(role, options) -- 543
-end -- 540
-function ____exports.buildToolDefinitionsDetailed(tools, options) -- 546
-	local title = (options and options.title) ~= nil and options.title or "Available tools:" -- 550
-	local context = options and options.context or DEFAULT_SCHEMA_CONTEXT -- 551
-	local sections = __TS__ArrayMap( -- 552
-		tools, -- 552
-		function(____, tool, index) return formatToolPrompt(tool, index, context) end -- 552
-	) -- 552
-	local body = table.concat(sections, "\n\n") -- 553
-	return title ~= "" and (title .. "\n") .. body or body -- 554
-end -- 546
-function ____exports.buildRoleToolDefinitionsDetailed(role, options) -- 557
-	return ____exports.buildToolDefinitionsDetailed( -- 562
-		getDecisionToolDefinitionsForRole(role, options), -- 563
-		{title = options and options.title, context = options and options.context} -- 564
-	) -- 564
-end -- 557
-____exports.AGENT_TOOL_DEFINITIONS_DETAILED = ____exports.buildToolDefinitionsDetailed( -- 571
-	____exports.getToolDefinitionsForRole("sub"), -- 572
-	{title = "Available tools:"} -- 573
-) -- 573
-____exports.MAIN_AGENT_TOOL_DEFINITIONS_DETAILED = "\n" .. ____exports.buildToolDefinitionsDetailed( -- 576
-	__TS__ArrayFilter( -- 577
-		____exports.getToolDefinitionsForRole("main"), -- 577
-		function(____, tool) return __TS__ArrayIndexOf( -- 578
-			__TS__ArrayMap( -- 578
-				____exports.getToolDefinitionsForRole("sub"), -- 578
-				function(____, subTool) return subTool.name end -- 578
-			), -- 578
-			tool.name -- 578
-		) < 0 end -- 578
-	), -- 578
-	{title = ""} -- 579
-) -- 579
-function ____exports.canPreExecuteTool(tool) -- 582
-	local definition = ____exports.getToolDefinition(tool) -- 583
-	return (definition and definition.preExecutable) == true -- 584
-end -- 582
-function ____exports.canRunToolInParallel(tool) -- 587
-	local definition = ____exports.getToolDefinition(tool) -- 588
-	return (definition and definition.parallelSafe) == true -- 589
-end -- 587
-function ____exports.buildDecisionToolSchema(role, searchDoraDocLimitMax, options) -- 592
-	local context = {searchDoraDocLimitMax = searchDoraDocLimitMax} -- 593
-	return ____exports.buildDecisionToolSchemaForTools( -- 594
-		getDecisionToolDefinitionsForRole( -- 594
-			role, -- 594
-			__TS__ObjectAssign({}, options, {includeFinish = true}) -- 594
-		), -- 594
-		context -- 597
-	) -- 597
-end -- 592
-return ____exports -- 592
+	if tool.name == "context_handoff" and not AGENT_DEFAULTS.memorySharedPrefixHandoff then -- 484
+		return false -- 485
+	end -- 485
+	return hasWorkMode(tool, options and options.workMode or "code") and __TS__ArrayIndexOf(options and options.disabledAgentTools or ({}), tool.name) < 0 -- 486
+end -- 483
+local function formatParameterList(tool) -- 490
+	local parameters = tool.parameters or ({}) -- 491
+	if #parameters == 0 then -- 491
+		return "" -- 492
+	end -- 492
+	return table.concat( -- 493
+		__TS__ArrayMap( -- 493
+			parameters, -- 493
+			function(____, parameter) return parameter.required == true and parameter.name or parameter.name .. "(optional)" end -- 494
+		), -- 494
+		", " -- 495
+	) -- 495
+end -- 490
+local function formatToolPrompt(tool, index, context) -- 498
+	local lines = {(((tostring(index + 1) .. ". ") .. tool.name) .. ": ") .. getToolDescription(tool, context)} -- 499
+	local parameterList = formatParameterList(tool) -- 500
+	if parameterList ~= "" then -- 500
+		lines[#lines + 1] = "\t- Parameters: " .. parameterList -- 502
+	end -- 502
+	for ____, parameter in ipairs(tool.parameters or ({})) do -- 504
+		local label = parameter.required == true and parameter.name or parameter.name .. "(optional)" -- 505
+		lines[#lines + 1] = (("\t- " .. label) .. ": ") .. getParameterDescription(parameter, context) -- 506
+	end -- 506
+	for ____, rule in ipairs(getToolRules(tool, context)) do -- 508
+		lines[#lines + 1] = "\t- " .. rule -- 509
+	end -- 509
+	return table.concat(lines, "\n") -- 511
+end -- 498
+function ____exports.getAllowedToolsForRole(role, options) -- 518
+	return __TS__ArrayMap( -- 519
+		__TS__ArrayFilter( -- 519
+			____exports.AGENT_TOOL_DEFINITIONS, -- 519
+			function(____, tool) return hasRole(tool, role) and ____exports.isKnownToolName(tool.name) and isToolCapabilityEnabled(tool, options) end -- 520
+		), -- 520
+		function(____, tool) return tool.name end -- 521
+	) -- 521
+end -- 518
+function ____exports.buildCurrentToolAvailabilityGuidance() -- 524
+	return table.concat({"Current tool availability:", "- every tool defined in the current system prompt or exposed in the current tool schema is executable", "- capabilities disabled for this task are omitted from both the definitions and schema"}, "\n") -- 525
+end -- 524
+function ____exports.getToolDefinitionsForRole(role, options) -- 532
+	return __TS__ArrayFilter( -- 535
+		____exports.AGENT_TOOL_DEFINITIONS, -- 535
+		function(____, tool) return hasRole(tool, role) and isToolCapabilityEnabled(tool, options) end -- 535
+	) -- 535
+end -- 532
+local function getDecisionToolDefinitionsForRole(role, options) -- 541
+	return ____exports.getToolDefinitionsForRole(role, options) -- 544
+end -- 541
+function ____exports.buildToolDefinitionsDetailed(tools, options) -- 547
+	local title = (options and options.title) ~= nil and options.title or "Available tools:" -- 551
+	local context = options and options.context or DEFAULT_SCHEMA_CONTEXT -- 552
+	local sections = __TS__ArrayMap( -- 553
+		tools, -- 553
+		function(____, tool, index) return formatToolPrompt(tool, index, context) end -- 553
+	) -- 553
+	local body = table.concat(sections, "\n\n") -- 554
+	return title ~= "" and (title .. "\n") .. body or body -- 555
+end -- 547
+function ____exports.buildRoleToolDefinitionsDetailed(role, options) -- 558
+	return ____exports.buildToolDefinitionsDetailed( -- 563
+		getDecisionToolDefinitionsForRole(role, options), -- 564
+		{title = options and options.title, context = options and options.context} -- 565
+	) -- 565
+end -- 558
+____exports.AGENT_TOOL_DEFINITIONS_DETAILED = ____exports.buildToolDefinitionsDetailed( -- 572
+	____exports.getToolDefinitionsForRole("sub"), -- 573
+	{title = "Available tools:"} -- 574
+) -- 574
+____exports.MAIN_AGENT_TOOL_DEFINITIONS_DETAILED = "\n" .. ____exports.buildToolDefinitionsDetailed( -- 577
+	__TS__ArrayFilter( -- 578
+		____exports.getToolDefinitionsForRole("main"), -- 578
+		function(____, tool) return __TS__ArrayIndexOf( -- 579
+			__TS__ArrayMap( -- 579
+				____exports.getToolDefinitionsForRole("sub"), -- 579
+				function(____, subTool) return subTool.name end -- 579
+			), -- 579
+			tool.name -- 579
+		) < 0 end -- 579
+	), -- 579
+	{title = ""} -- 580
+) -- 580
+function ____exports.canPreExecuteTool(tool) -- 583
+	local definition = ____exports.getToolDefinition(tool) -- 584
+	return (definition and definition.preExecutable) == true -- 585
+end -- 583
+function ____exports.canRunToolInParallel(tool) -- 588
+	local definition = ____exports.getToolDefinition(tool) -- 589
+	return (definition and definition.parallelSafe) == true -- 590
+end -- 588
+function ____exports.buildDecisionToolSchema(role, searchDoraDocLimitMax, options) -- 593
+	local context = {searchDoraDocLimitMax = searchDoraDocLimitMax} -- 594
+	return ____exports.buildDecisionToolSchemaForTools( -- 595
+		getDecisionToolDefinitionsForRole( -- 595
+			role, -- 595
+			__TS__ObjectAssign({}, options, {includeFinish = true}) -- 595
+		), -- 595
+		context -- 598
+	) -- 598
+end -- 593
+return ____exports -- 593

@@ -1,4 +1,6 @@
 // @preview-file off clear
+import { sleep } from 'Dora';
+
 export interface EntryStatus {
 	success: boolean;
 	running: boolean;
@@ -17,23 +19,15 @@ export interface DevEntryModule {
 }
 let owner = "";
 let runId: number | undefined;
-/**
- * Acquires the Agent-owned Entry runtime. A running game without an Agent
- * owner belongs to the user and is stopped so Agent work takes priority.
- * Agent-owned runs remain mutually exclusive and are never preempted.
- * Returns true when a user game was interrupted.
- */
-export function acquireEntryLease(id: string, entry: DevEntryModule): boolean {
-	if (owner !== "" && owner !== id) error("Dora entry runtime is busy with another Agent tool");
+/** Wait for the prior Agent test to clean up while the calling command is live. */
+export function acquireEntryLease(id: string, entry: DevEntryModule, isCancelled: () => boolean): void {
+	while (owner !== "" && owner !== id && !isCancelled()) sleep();
+	if (isCancelled()) error("Agent entry request cancelled");
 	const status = entry.getCurrentEntryStatus();
-	let interruptedUserRun = false;
 	if (status.running && (owner !== id || status.runId !== runId)) {
-		if (owner !== "") error("Dora entry runtime is busy with another Agent tool");
-		if (!entry.stop()) error("Dora could not interrupt the running user game for Agent work");
-		interruptedUserRun = true;
+		error("A user game is running. Stop the game before running an Agent preview or test.");
 	}
 	owner = id;
-	return interruptedUserRun;
 }
 // The lease predicts Entry's next run id as (current + 1). This relies on an
 // invariant in Script.Dev.Entry: enterEntryAsync increments its run counter
@@ -44,6 +38,9 @@ export function recordEntryLeaseRun(id: string, entry: DevEntryModule): void {
 export function ownsEntryLease(id: string, entry: DevEntryModule): boolean {
 	const status = entry.getCurrentEntryStatus();
 	return owner === id && status.running && runId !== undefined && status.runId === runId;
+}
+export function canClearEntryAfterCommand(id: string, entry: DevEntryModule): boolean {
+	return ownsEntryLease(id, entry) || (owner === "" && !entry.getCurrentEntryStatus().running);
 }
 export function releaseEntryLease(id: string, entry: DevEntryModule): string | undefined {
 	if (owner !== id) return undefined;

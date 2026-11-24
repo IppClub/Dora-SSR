@@ -459,6 +459,36 @@ export function safeJsonEncode(value: unknown, format: boolean = false, emptyAsA
 	);
 }
 
+function encodeStableJSONValue(value: unknown, emptyAsArray: boolean, depth: number): string {
+	if (depth > 128) error("Too many nested JSON values");
+	if (Array.isArray(value)) {
+		return `[${value.map(item => encodeStableJSONValue(item, emptyAsArray, depth + 1)).join(",")}]`;
+	}
+	if (type(value) === "table") {
+		const record = value as Record<string, unknown>;
+		const keys = Object.keys(record);
+		if (keys.length === 0) return emptyAsArray ? "[]" : "{}";
+		const fields: string[] = [];
+		keys.sort();
+		for (const key of keys) {
+			if (typeof key !== "string") error("JSON object keys must be strings");
+			const name = encodeStableJSONValue(key, emptyAsArray, depth + 1);
+			fields.push(`${name}:${encodeStableJSONValue(record[key], emptyAsArray, depth + 1)}`);
+		}
+		return `{${fields.join(",")}}`;
+	}
+	const [encoded, err] = safeJsonEncode(value, false, emptyAsArray);
+	if (encoded === undefined) error(err ?? "JSON value could not be encoded");
+	return encoded;
+}
+
+/** Keep nested schema and message fields stable when Lua's hash seed changes. */
+export function safeStableJsonEncode(value: unknown, emptyAsArray = true): LuaMultiReturn<[string | undefined, string | undefined]> {
+	const [ok, result] = pcall(() => encodeStableJSONValue(value, emptyAsArray, 0));
+	if (ok) return $multi(result as string, undefined);
+	return $multi(undefined, tostring(result));
+}
+
 export function safeJsonDecode(text: string) {
 	const [value, err] = json.decode(sanitizeUTF8(text));
 	if (value === undefined) {
@@ -507,14 +537,14 @@ function estimateMessagesTokens(messages: Message[]): number {
 		total += estimateTextTokens(message.name ?? "");
 		total += estimateTextTokens(message.tool_call_id ?? "");
 		total += estimateTextTokens(message.reasoning_content ?? "");
-		const [toolCallsText] = safeJsonEncode((message.tool_calls ?? []) as object);
+		const [toolCallsText] = safeStableJsonEncode(message.tool_calls ?? []);
 		total += estimateTextTokens(toolCallsText ?? "");
 	}
 	return total;
 }
 
 function estimateOptionsTokens(options: Record<string, unknown>): number {
-	const [text] = safeJsonEncode(options as object);
+	const [text] = safeStableJsonEncode(options);
 	return text ? estimateTextTokens(text) : 0;
 }
 
@@ -930,7 +960,7 @@ const postLLM = (
 		});
 		Director.systemScheduler.schedule(once(() => {
 			emit("LLM_IN", messages.map((m, i) => i.toString() + ": " + m.content).join('\n'));
-			const [jsonStr, err] = safeJsonEncode(data);
+			const [jsonStr, err] = safeStableJsonEncode(data);
 			if (jsonStr !== undefined) {
 				const headers = [
 					`Authorization: Bearer ${apiKey}`,

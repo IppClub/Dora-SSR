@@ -14,6 +14,7 @@ const AGENT_MEMORY_CONTEXT_MIN_TOKENS = 1200;
 const AGENT_MEMORY_CONTEXT_WINDOW_RATIO = 0.08;
 const COMPRESSION_SECTION_MEMORY_RATIO = 0.2;
 const COMPRESSION_SECTION_SESSION_RATIO = 0.15;
+const SHARED_CHECKPOINT_MAX_OUTPUT_TOKENS = 4096;
 
 const MEMORY_COMPRESSION_TOOLS = [{
 	type: "function" as const,
@@ -97,10 +98,15 @@ const optStr = (str: string, def: string) => str === '' ? def : str;
 
 export interface AgentConversationMessage extends Message {
 	inputId?: number;
+	handoffId?: string;
 	afterStep?: number;
 	inputKind?: "prompt" | "steer";
 	taskId?: number;
 	timestamp?: string;
+}
+
+export function isTaskInstruction(message: AgentConversationMessage): boolean {
+	return message.role === "user" && message.inputKind !== "steer" && message.handoffId === undefined;
 }
 
 export interface PersistedSessionState {
@@ -115,17 +121,6 @@ interface HistoryRecord {
 	rawArchive?: string;
 }
 
-interface SubAgentLearningEntry {
-	sourceSessionId: number;
-	sourceTaskId: number;
-	content: string;
-	evidence: string[];
-	verification: "runtime" | "build" | "manual" | "legacy";
-	createdAt: string;
-	sortTs: number;
-	score?: number;
-}
-
 function clampSessionIndex(messages: AgentConversationMessage[], index?: number): number {
 	if (typeof index !== "number") return 0;
 	if (index <= 0) return 0;
@@ -138,11 +133,6 @@ const NO_PROMPT_PACK_SECTIONS_ERROR = "no prompt pack sections found";
 const HISTORY_JSONL_FILE = "HISTORY.jsonl";
 const HISTORY_MAX_RECORDS = 1000;
 const SESSION_MAX_RECORDS = 1000;
-const SUB_AGENT_SPAWN_INFO_FILE = "SPAWN.json";
-const SUB_AGENT_LEARNINGS_MAX_ITEMS = 10;
-const SUB_AGENT_LEARNINGS_MAX_CHARS = 5000;
-const SUB_AGENT_MEMORY_ENTRY_MAX_CHARS = 1200;
-const SUB_AGENT_MEMORY_EVIDENCE_MAX_ITEMS = 5;
 const DEFAULT_CORE_MEMORY_TEMPLATE = `## Core Memory
 
 ### User Preferences
@@ -730,6 +720,8 @@ class MemoryCompressionBudgetError extends Error {}
 export interface MemoryCompressionContext {
 	/** Exact next decision payload, available only for in-task compaction. */
 	sharedPrefix?: { messages: Message[]; options: Record<string, unknown> };
+	/** An opportunistic checkpoint must not fall back to a separate request. */
+	sharedPrefixOnly?: boolean;
 	onDevelopmentCalls?: (message: Message) => Promise<void>;
 	/** Tokens to remove from the effective decision request, including pending input. */
 	targetTokens?: number;
@@ -1129,7 +1121,6 @@ export class DualLayerStorage {
 	private sessionSummaryPath: string;
 	private historyPath: string;
 	private sessionPath: string;
-	private subAgentLearningCache?: { signature: string; entries: SubAgentLearningEntry[] };
 
 	constructor(projectDir: string, scope = "") {
 		this.projectDir = projectDir;
@@ -1198,6 +1189,7 @@ export class DualLayerStorage {
 		if (role === "") return undefined;
 		const message: AgentConversationMessage = { role };
 		if (typeof row.inputId === "number") message.inputId = row.inputId;
+		if (typeof row.handoffId === "string") message.handoffId = row.handoffId;
 		if (typeof row.afterStep === "number") message.afterStep = row.afterStep;
 		if (typeof row.taskId === "number") message.taskId = row.taskId;
 		if (row.inputKind === "steer" || row.inputKind === "prompt") message.inputKind = row.inputKind;
@@ -1231,174 +1223,6 @@ export class DualLayerStorage {
 			rawArchive,
 		};
 		return record;
-	}
-
-	private readSpawnInfo(path: string): Record<string, unknown> | undefined {
-		if (!Content.exist(path)) return undefined;
-		const text = Content.load(path) as string;
-		if (typeof text !== "string" || text.trim() === "") return undefined;
-		const [value] = safeJsonDecode(text);
-		if (value && !isArray(value) && isRecord(value)) {
-			return value;
-		}
-		return undefined;
-	}
-
-	private normalizeEvidence(value: unknown): string[] {
-		const evidence: string[] = [];
-		if (!isArray(value)) return evidence;
-		for (let i = 0; i < value.length && evidence.length < SUB_AGENT_MEMORY_EVIDENCE_MAX_ITEMS; i++) {
-			const item = typeof value[i] === "string" ? sanitizeUTF8(value[i] as string).trim() : "";
-			if (item !== "" && evidence.indexOf(item) < 0) {
-				evidence.push(item);
-			}
-		}
-		return evidence;
-	}
-
-	private decodeSubAgentLearning(value: unknown, fallbackSortTs: number): SubAgentLearningEntry | undefined {
-		if (!value || isArray(value) || !isRecord(value)) return undefined;
-		const sourceSessionId = typeof value.sourceSessionId === "number" ? math.floor(value.sourceSessionId) : 0;
-		const sourceTaskId = typeof value.sourceTaskId === "number" ? math.floor(value.sourceTaskId) : 0;
-		const content = typeof value.content === "string"
-			? utf8TakeHead(sanitizeUTF8(value.content).trim(), SUB_AGENT_MEMORY_ENTRY_MAX_CHARS)
-			: "";
-		if (sourceSessionId <= 0 || sourceTaskId <= 0 || content === "") return undefined;
-		return {
-			sourceSessionId,
-			sourceTaskId,
-			content,
-			evidence: this.normalizeEvidence(value.evidence),
-			verification: "legacy",
-			createdAt: typeof value.createdAt === "string" ? sanitizeUTF8(value.createdAt).trim() : "",
-			sortTs: fallbackSortTs,
-		};
-	}
-
-	private decodeStructuredSubAgentLearnings(info: Record<string, unknown>, fallbackSortTs: number): SubAgentLearningEntry[] {
-		const completion = info.completion;
-		if (!completion || isArray(completion) || !isRecord(completion)) return [];
-		let verification: "runtime" | "build" | "manual" | undefined;
-		if (isArray(completion.validation)) {
-			for (let i = 0; i < completion.validation.length; i++) {
-				const item = completion.validation[i];
-				if (!item || isArray(item) || !isRecord(item)) continue;
-				// Scan every validation before accepting learnings. A later failed build
-				// or runtime result must not be hidden by an earlier manual/runtime pass.
-				if (item.result === "failed") return [];
-				if (item.result !== "passed") continue;
-				if (item.kind === "runtime") {
-					verification = "runtime";
-					continue;
-				}
-				if (item.kind === "build" && verification !== "runtime") verification = "build";
-				if (item.kind === "manual" && verification === undefined) verification = "manual";
-			}
-		}
-		if (verification === undefined || !isArray(completion.learningCandidates)) return [];
-		const sourceSessionId = typeof info.sessionId === "number" ? math.floor(info.sessionId) : 0;
-		const sourceTaskId = typeof info.sourceTaskId === "number" ? math.floor(info.sourceTaskId) : 0;
-		if (sourceSessionId <= 0 || sourceTaskId <= 0) return [];
-		const entries: SubAgentLearningEntry[] = [];
-		for (let i = 0; i < completion.learningCandidates.length; i++) {
-			const candidate = completion.learningCandidates[i];
-			if (!candidate || isArray(candidate) || !isRecord(candidate) || candidate.confidence !== "observed") continue;
-			const content = typeof candidate.claim === "string"
-				? utf8TakeHead(sanitizeUTF8(candidate.claim).trim(), SUB_AGENT_MEMORY_ENTRY_MAX_CHARS)
-				: "";
-			const evidence = this.normalizeEvidence(candidate.evidence);
-			if (content === "" || evidence.length === 0) continue;
-			entries.push({
-				sourceSessionId,
-				sourceTaskId,
-				content,
-				evidence,
-				verification,
-				createdAt: typeof info.finishedAt === "string" ? sanitizeUTF8(info.finishedAt).trim() : "",
-				sortTs: fallbackSortTs,
-			});
-		}
-		return entries;
-	}
-
-	private readSubAgentLearningEntries(): SubAgentLearningEntry[] {
-		const subAgentsDir = Path(this.agentRootDir, "subagents");
-		if (!Content.exist(subAgentsDir) || !Content.isdir(subAgentsDir)) return [];
-		const directories = Content.getDirs(subAgentsDir).slice().sort();
-		const signatureParts: string[] = [];
-		for (const rawPath of directories) {
-			const dir = Content.isAbsolutePath(rawPath) ? rawPath : Path(subAgentsDir, rawPath);
-			const spawnPath = Path(dir, SUB_AGENT_SPAWN_INFO_FILE);
-			const [size] = Content.getAttr(spawnPath);
-			signatureParts.push(`${dir}:${tostring(size ?? -1)}`);
-		}
-		const signature = signatureParts.join("|");
-		if (this.subAgentLearningCache?.signature === signature) {
-			return this.subAgentLearningCache.entries.map(entry => ({ ...entry, evidence: entry.evidence.slice() }));
-		}
-		const entries: SubAgentLearningEntry[] = [];
-		const seen: Record<string, boolean> = {};
-		for (const rawPath of directories) {
-			const dir = Content.isAbsolutePath(rawPath) ? rawPath : Path(subAgentsDir, rawPath);
-			if (!Content.exist(dir) || !Content.isdir(dir)) continue;
-			const info = this.readSpawnInfo(Path(dir, SUB_AGENT_SPAWN_INFO_FILE));
-			if (info === undefined || info.success !== true) continue;
-			const fallbackSortTs = typeof info.finishedAtTs === "number" ? info.finishedAtTs : 0;
-			const hasStructuredCompletion = info.completion && !isArray(info.completion) && isRecord(info.completion);
-			const structured = this.decodeStructuredSubAgentLearnings(info, fallbackSortTs);
-			if (hasStructuredCompletion) {
-				for (let i = 0; i < structured.length; i++) {
-					const entry = structured[i];
-					const key = `${entry.sourceSessionId}:${entry.sourceTaskId}:${entry.content}`;
-					if (seen[key]) continue;
-					seen[key] = true;
-					entries.push(entry);
-				}
-				continue;
-			}
-			const entry = this.decodeSubAgentLearning(info.memoryEntry, fallbackSortTs);
-			if (entry === undefined) continue;
-			const key = `${entry.sourceSessionId}:${entry.sourceTaskId}:${entry.content}`;
-			if (seen[key]) continue;
-			seen[key] = true;
-			entries.push(entry);
-		}
-		entries.sort((a, b) => b.sortTs - a.sortTs);
-		this.subAgentLearningCache = {
-			signature,
-			entries: entries.map(entry => ({ ...entry, evidence: entry.evidence.slice() })),
-		};
-		return entries;
-	}
-
-	private buildSubAgentLearningsContext(query = ""): string {
-		const entries = this.readSubAgentLearningEntries();
-		if (entries.length === 0) return "";
-		const terms = collectQueryTerms(query);
-		for (let i = 0; i < entries.length; i++) {
-			const text = `${entries[i].content}\n${entries[i].evidence.join(" ")}`.toLowerCase();
-			let score = 0;
-			for (let j = 0; j < terms.length; j++) score += countOccurrences(text, terms[j]);
-			entries[i].score = score;
-		}
-		entries.sort((a, b) => {
-			if ((a.score ?? 0) !== (b.score ?? 0)) return (b.score ?? 0) - (a.score ?? 0);
-			return b.sortTs - a.sortTs;
-		});
-		const lines: string[] = ["## Sub-Agent Learnings", ""];
-		let totalChars = 0;
-		let count = 0;
-		for (let i = 0; i < entries.length && count < SUB_AGENT_LEARNINGS_MAX_ITEMS; i++) {
-			const entry = entries[i];
-			if (terms.length > 0 && (entry.score ?? 0) <= 0) continue;
-			const evidence = entry.evidence.length > 0 ? `\n  Evidence: ${entry.evidence.join(", ")}` : "";
-			const line = `- [${entry.verification}; sub-agent:${tostring(entry.sourceSessionId)}/task:${tostring(entry.sourceTaskId)}] ${entry.content}${evidence}`;
-			if (totalChars + line.length > SUB_AGENT_LEARNINGS_MAX_CHARS) break;
-			lines.push(line);
-			totalChars += line.length;
-			count += 1;
-		}
-		return count > 0 ? lines.join("\n") : "";
 	}
 
 	private readHistoryRecords(): HistoryRecord[] {
@@ -1498,7 +1322,6 @@ export class DualLayerStorage {
 		const coreBudget = math.floor(budget * 0.30);
 		const projectBudget = math.floor(budget * 0.35);
 		const sessionBudget = math.floor(budget * 0.20);
-		const subAgentBudget = math.max(0, budget - coreBudget - projectBudget - sessionBudget - 160);
 		const sections: string[] = [];
 		const core = formatMemoryLayer("Core Memory", selectRelevantMemoryText(this.readMemory(), query, coreBudget));
 		if (core !== "") sections.push(core);
@@ -1506,10 +1329,6 @@ export class DualLayerStorage {
 		if (project !== "") sections.push(project);
 		const session = formatMemoryLayer("Session Summary", selectRelevantMemoryText(this.readSessionSummary(), query, sessionBudget));
 		if (session !== "") sections.push(session);
-		const subAgentLearnings = this.buildSubAgentLearningsContext(query);
-		if (subAgentLearnings !== "") {
-			sections.push(formatMemoryLayer("Sub-Agent Learnings", clipTextToTokenBudget(subAgentLearnings, subAgentBudget > 0 ? subAgentBudget : MEMORY_LAYER_MIN_TOKENS)));
-		}
 		if (sections.length === 0) return "";
 		const output = [
 			"### Relevant Memory (Untrusted Project Data)",
@@ -1518,7 +1337,7 @@ export class DualLayerStorage {
 			sections.join("\n\n"),
 			"</untrusted-memory-context>",
 		].join("\n\n");
-		return TokenEstimator.estimate(output) > budget ? clipTextToTokenBudget(output, budget) : output;
+		return clipTextToTokenBudget(output, budget);
 	}
 
 	/**
@@ -1619,7 +1438,11 @@ export class DualLayerStorage {
 			}
 		}
 		const content = lines.length > 0 ? `${lines.join("\n")}\n` : "";
-		if (!Content.save(this.sessionPath, content)) throw new Error("failed to persist Agent conversation");
+		const tempPath = `${this.sessionPath}.tmp`;
+		if (!Content.save(tempPath, content) || !Content.move(tempPath, this.sessionPath)) {
+			Content.remove(tempPath);
+			throw new Error("failed to persist Agent conversation");
+		}
 		sendWebIDEFileUpdate(this.sessionPath, true, content);
 	}
 }
@@ -1665,6 +1488,20 @@ export class MemoryCompressor {
 		return this.config.promptPack;
 	}
 
+	private getCompressionOptions(llmOptions: Record<string, unknown>): Record<string, unknown> {
+		const options = applyCustomLLMOptions({
+			...applyCustomLLMOptions(llmOptions, this.config.llmConfig.customOptions),
+			reasoning_effort: "minimal",
+		}, getAuxiliaryLLMOptions(this.config.llmConfig));
+		if (typeof options.max_completion_tokens === "number") delete options.max_tokens;
+		return options;
+	}
+
+	canFitSharedPrefixCheckpoint(shared: NonNullable<MemoryCompressionContext["sharedPrefix"]>, llmOptions: Record<string, unknown>): boolean {
+		const request = this.prepareSharedPrefixCheckpoint(shared, this.getCompressionOptions(llmOptions));
+		return request !== undefined && request.fits;
+	}
+
 	/**
 	 * 执行压缩
 	 */
@@ -1682,13 +1519,7 @@ export class MemoryCompressor {
 		const toCompress = messages;
 		if (toCompress.length === 0) return undefined;
 		const currentMemory = this.storage.readMemory();
-		const compressionLLMOptions = applyCustomLLMOptions({
-			...applyCustomLLMOptions(llmOptions, this.config.llmConfig.customOptions),
-			reasoning_effort: "minimal",
-		}, getAuxiliaryLLMOptions(this.config.llmConfig));
-		if (typeof compressionLLMOptions.max_completion_tokens === "number") {
-			delete compressionLLMOptions.max_tokens;
-		}
+		const compressionLLMOptions = this.getCompressionOptions(llmOptions);
 		let chunk: AgentConversationMessage[] = [];
 		let prefixFallbackReason: string | undefined;
 		try {
@@ -1701,7 +1532,7 @@ export class MemoryCompressor {
 			if (handoff) {
 				if (!handoff.success) {
 					prefixFallbackReason = handoff.error ?? 'Invalid checkpoint';
-					Log("Warn", `[Memory] prefix checkpoint failed; falling back to structured compression: ${handoff.error}`);
+					if (!context?.sharedPrefixOnly) Log("Warn", `[Memory] prefix checkpoint failed; falling back to structured compression: ${handoff.error}`);
 				} else {
 					const boundary = this.buildSafeBoundary(toCompress, toCompress.length);
 					this.storage.appendHistoryRecord({ ts: handoff.ts!, summary: handoff.summary });
@@ -1709,6 +1540,7 @@ export class MemoryCompressor {
 					return { ...handoff, compressedCount: boundary.compressedCount, carryMessageIndex: boundary.carryMessageIndex };
 				}
 			}
+			if (context?.sharedPrefixOnly) return handoff;
 			if (context?.stopToken?.stopped) throw new Error("Memory compression cancelled");
 			const historyBudget = this.buildBoundedCompressionSections(currentMemory, "", compressionLLMOptions).historyBudget;
 			const boundary = this.findCompressionBoundary(
@@ -1766,9 +1598,28 @@ export class MemoryCompressor {
 			// Cancellation must not be treated as a summarization failure: no
 			// fallback archive or memory mutation after the user stops the task.
 			if (context?.stopToken?.stopped) return { success: false, memoryUpdate: currentMemory, compressedCount: 0, error: context.stopToken.reason ?? "Memory compression cancelled" };
+			if (context?.sharedPrefixOnly) return { success: false, memoryUpdate: currentMemory, compressedCount: 0, error: tostring(error) };
 			if (error instanceof MemoryCompressionBudgetError) return { success: false, memoryUpdate: currentMemory, compressedCount: 0, error: error.message };
 			return this.handleCompressionFailure(chunk, error instanceof Error ? error.message : "Unknown error");
 		}
+	}
+
+	private prepareSharedPrefixCheckpoint(shared: MemoryCompressionContext["sharedPrefix"], llmOptions: Record<string, unknown>) {
+		if (!shared || shared.messages.length === 0 || !shared.options.tools) return undefined;
+		// A different auxiliary model cannot share the decision model's cache.
+		const mainModel = shared.options.model ?? this.config.llmConfig.customOptions?.model ?? this.config.llmConfig.model;
+		if ((llmOptions.model ?? mainModel) !== mainModel) return undefined;
+		const directive = 'Create a checkpoint for the next model continuing this task. Preserve current scope and corrections, latest values, necessary paths, actual validation state and first open next action. Separate observed facts from hypotheses. Saved source changes do not prove build/runtime success. Do not redo completed work. Current user instructions and later tool results outrank the checkpoint. Call context_handoff with three nonempty fields. Other development calls will run normally and their results remain active.';
+		const messages: Message[] = [...shared.messages, { role: 'user', content: directive }];
+		const options: Record<string, unknown> = { ...llmOptions, tools: shared.options.tools };
+		delete options.tool_choice;
+		const field = typeof options.max_completion_tokens === "number" ? "max_completion_tokens" : "max_tokens";
+		const configuredLimit = options[field];
+		options[field] = typeof configuredLimit === "number" && configuredLimit > 0
+			? math.min(configuredLimit, SHARED_CHECKPOINT_MAX_OUTPUT_TOKENS)
+			: SHARED_CHECKPOINT_MAX_OUTPUT_TOKENS;
+		const fitted = fitMessagesToContext(messages, options, this.config.llmConfig);
+		return { messages, options, fits: fitted.originalTokens <= fitted.budgetTokens };
 	}
 
 	private async trySharedPrefixHandoff(
@@ -1776,17 +1627,10 @@ export class MemoryCompressor {
 		llmOptions: Record<string, unknown>,
 		context: MemoryCompressionContext
 	): Promise<CompressionResult | undefined> {
-		const shared = context.sharedPrefix;
-		if (!shared || shared.messages.length === 0 || !shared.options.tools) return undefined;
-		// A different auxiliary model cannot share the decision model's cache.
-		const mainModel = shared.options.model ?? this.config.llmConfig.customOptions?.model ?? this.config.llmConfig.model;
-		if ((llmOptions.model ?? mainModel) !== mainModel) return undefined;
-		const directive = 'Create a checkpoint for the next model continuing this task. Preserve current scope and corrections, latest values, necessary paths, actual validation state and first open next action. Separate observed facts from hypotheses. Saved source changes do not prove build/runtime success. Do not redo completed work. Current user instructions and later tool results outrank the checkpoint. Call context_handoff with three nonempty fields. Other development calls will run normally and their results remain active.';
-		const messages: Message[] = [...shared.messages, { role: 'user', content: directive }];
-		const options = { ...llmOptions, tools: shared.options.tools };
-		delete (options as Record<string, unknown>).tool_choice;
-		const fitted = fitMessagesToContext(messages, options, this.config.llmConfig);
-		if (fitted.originalTokens > fitted.budgetTokens) return { success: false, memoryUpdate: currentMemory, compressedCount: 0, error: 'Shared prefix plus checkpoint directive exceeds the input budget' };
+		const request = this.prepareSharedPrefixCheckpoint(context.sharedPrefix, llmOptions);
+		if (!request) return undefined;
+		const { messages, options, fits } = request;
+		if (!fits) return { success: false, memoryUpdate: currentMemory, compressedCount: 0, error: 'Shared prefix plus checkpoint directive exceeds the input budget' };
 		context.onInput?.('memory_compression_handoff', messages, options);
 		const response = await callLLM(messages, options, context.stopToken, buildCompressionLLMConfig(this.config.llmConfig));
 		if (context.stopToken?.stopped) throw new Error('Memory compression cancelled');
@@ -1835,7 +1679,7 @@ export class MemoryCompressor {
 			if (historyTokens > historyBudget) break;
 			const decisionTokens = this.estimateCompressionMessageTokens(boundaryMessages[i], i);
 			removedTokens += decisionTokens;
-			if (message.role === "user" && message.inputKind !== "steer") carriedInstructionTokens = decisionTokens;
+			if (isTaskInstruction(message)) carriedInstructionTokens = decisionTokens;
 			if (message.role !== "tool" && pendingCount > 0) {
 				for (const id in pendingToolCalls) pendingToolCalls[id] = false;
 				pendingCount = 0;
@@ -1854,7 +1698,7 @@ export class MemoryCompressor {
 			}
 			const next = compressionMessages[i + 1];
 			const closed = pendingCount === 0 && (
-				next === undefined || (next.role === "user" && next.inputKind !== "steer")
+				next === undefined || isTaskInstruction(next)
 				|| message.role === "tool"
 				|| (message.role === "assistant" && (!message.tool_calls || message.tool_calls.length === 0))
 			);
@@ -1873,7 +1717,7 @@ export class MemoryCompressor {
 	private buildCarryBoundary(messages: AgentConversationMessage[], chunkEnd: number): CompressionBoundarySelection {
 		let carryUserIndex = -1;
 		for (let i = 0; i < chunkEnd; i++) {
-			if (messages[i].role === "user" && messages[i].inputKind !== "steer") {
+			if (isTaskInstruction(messages[i])) {
 				carryUserIndex = i;
 			}
 		}
@@ -1892,7 +1736,7 @@ export class MemoryCompressor {
 		// Keep it verbatim outside the summary so an older Active Checkpoint (for
 		// example `Next tool: finish`) cannot bind a newly submitted task after
 		// compression.
-		if (chunkEnd > 0 && messages[chunkEnd - 1].role === "user") {
+		if (chunkEnd > 0 && messages[chunkEnd - 1].role === "user" && messages[chunkEnd - 1].handoffId === undefined) {
 			return this.buildCarryBoundary(messages, chunkEnd);
 		}
 		return { chunkEnd, compressedCount: chunkEnd };
@@ -1900,7 +1744,7 @@ export class MemoryCompressor {
 
 	private estimateCompressionMessageTokens(message: AgentConversationMessage, index: number): number {
 		const lines: string[] = [];
-		lines.push(`Message ${index + 1}: role=${message.role}`);
+		lines.push(`Message ${index + 1}: role=${message.role}${message.handoffId === undefined ? "" : " source=sub_agent_handoff"}`);
 		if (message.name && message.name !== "") lines.push(`name=${message.name}`);
 		if (message.tool_call_id && message.tool_call_id !== "") lines.push(`tool_call_id=${message.tool_call_id}`);
 		if (message.reasoning_content && message.reasoning_content !== "") lines.push(`reasoning=${message.reasoning_content}`);
@@ -1917,7 +1761,7 @@ export class MemoryCompressor {
 		const lines: string[] = [];
 		for (let i = 0; i < messages.length; i++) {
 			const message = messages[i];
-			lines.push(`Message ${i + 1}: role=${message.role}`);
+			lines.push(`Message ${i + 1}: role=${message.role}${message.handoffId === undefined ? "" : " source=sub_agent_handoff"}`);
 			if (message.name && message.name !== "") lines.push(`name=${message.name}`);
 			if (message.tool_call_id && message.tool_call_id !== "") lines.push(`tool_call_id=${message.tool_call_id}`);
 			if (message.reasoning_content && message.reasoning_content !== "") lines.push(`reasoning=${message.reasoning_content}`);

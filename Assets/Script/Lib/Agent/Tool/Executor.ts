@@ -112,7 +112,7 @@ export async function executeAgentToolDefinition(
 	if (!outputResult.valid) {
 		return failure("INVALID_TOOL_OUTPUT", formatValidationErrors(outputResult.errors));
 	}
-	return { ...result, execution: { status: "DONE" } };
+	return { ...result, execution: { status: result.output.success === false ? "FAILED" : "DONE" } };
 }
 
 export async function executeRegisteredAgentTool(request: AgentToolExecutionRequest): Promise<AgentToolExecutionResult> {

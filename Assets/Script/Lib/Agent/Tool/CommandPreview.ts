@@ -21,7 +21,6 @@ export interface CommandPreviewGameResult {
 	files?: string[];
 	frames?: CommandPreviewFrame[];
 	message?: string;
-	interruptedUserRun?: boolean;
 	visionBudget?: VisionBudgetState;
 }
 
@@ -150,15 +149,11 @@ export function createPreviewGameInjection(req: {
 		// Read the callback first so TypeScript-to-Lua does not emit a method call
 		// that passes req as an unexpected first argument.
 		const reserveCapture = req.reserveCapture;
-		const reservation = reserveCapture ? reserveCapture(times.length) : undefined;
-		if (reservation && !reservation.success) {
-			return complete({success: false, message: reservation.message ?? "Vision capture budget exhausted", visionBudget: reservation.budget});
-		}
 		const cancelled = () => req.isCancelled?.() === true;
-		const start = App.runningTime;
+		let start = 0;
 		let scope = false;
 		let leased = false;
-		let interruptedUserRun = false;
+		let reservation: ReturnType<NonNullable<typeof reserveCapture>> | undefined;
 		req.registerCleanup?.(() => {
 			if (scope) { scope = false; Director.endGameCapture(); }
 			if (leased) {
@@ -173,7 +168,7 @@ export function createPreviewGameInjection(req: {
 		let result: CommandPreviewGameResult = {success: false, message: "previewGame did not complete"};
 		const check = () => {
 			if (cancelled()) error("previewGame cancelled");
-			if (!ownsEntryLease(req.operationId, entry)) error("previewGame lost ownership of the running game");
+			if (!ownsEntryLease(req.operationId, entry)) error("The preview entry was stopped or replaced before capture completed");
 			if (App.runningTime - start > PREVIEW_GAME_TIMEOUT_SECONDS) error("previewGame timed out");
 			if (monitor !== undefined) {
 				const [ok, message] = monitor();
@@ -181,8 +176,11 @@ export function createPreviewGameInjection(req: {
 			}
 		};
 		try {
-			interruptedUserRun = acquireEntryLease(req.operationId, entry);
+			acquireEntryLease(req.operationId, entry, cancelled);
 			leased = true;
+			reservation = reserveCapture?.(times.length);
+			if (reservation && !reservation.success) error(reservation.message ?? "Vision capture budget exhausted");
+			start = App.runningTime;
 			entry.allClear();
 			scope = Director.beginGameCapture();
 			if (!scope) error("Game capture is unavailable or busy");
@@ -260,9 +258,9 @@ export function createPreviewGameInjection(req: {
 			const cleanupError = releaseEntryLease(req.operationId, entry);
 			leased = false;
 			if (cleanupError) error(cleanupError);
-			result = {success: true, files, frames, interruptedUserRun, visionBudget: reservation?.budget};
+			result = {success: true, files, frames, visionBudget: reservation?.budget};
 		} catch (e) {
-			result = {success: false, files, frames, message: tostring(e), interruptedUserRun, visionBudget: reservation?.budget};
+			result = {success: false, files, frames, message: tostring(e), visionBudget: reservation?.budget};
 		} finally {
 			if (scope) Director.endGameCapture();
 			if (leased) {

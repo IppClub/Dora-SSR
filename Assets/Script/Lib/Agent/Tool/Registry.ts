@@ -349,6 +349,7 @@ const AGENT_TOOL_DEFINITION_SOURCES: AgentToolDefinitionSource[] = [
 			"inspectGodotScene({path = \"main.tscn\", nodePath = \"Player\", maxNodes = 128, maxProperties = 64}) reads saved authored scene metadata directly through the bundled Godot runtime, without loading resources, instantiating nodes or executing scripts. project is optional and defaults to the nearest enclosing Godot project; omit nodePath to query the whole scene. Paths are workspace-relative. Returns/prints nodes, typed properties, script/resource references, sub-resources and signal connections, with counts, warnings and explicit truncation. Inherited/instanced scenes remain references; script exports and runtime defaults are not evaluated. nodePath selects a scene-relative subtree (root is .); maxNodes is 1-512, maxProperties is 0-128. Source limit is 2 MiB, report limit 256 KiB; narrow queries when truncated. Results also appear in execute_command.godotScenes; failed inspections fail the command. Binary .scn and Dora Studio are unsupported. This read-only operation does not require build afterward.",
 			"enterEntryAsync runs a built project-relative Lua entry as an isolated Agent test. The tool automatically stops an entry it started when the command succeeds, fails, is canceled, or times out.",
 			"An Entry watchdog checks live Dora object and Lua-reference growth every frame and from the Lua instruction hook. Growth of 50,000 C++ objects or 10,000 Lua references stops the test, runs Entry cleanup, and returns the measured growth; replace such tests with bounded entities and fixed simulation steps.",
+			"When running a Lua test, use assert or error when an acceptance check fails. In the desktop engine, stop any game you started playing before requesting an Agent preview or runtime test.",
 			"After a Lua command finishes, the Web IDE resource tree is refreshed automatically whenever the command accessed Content and did not call refreshTree itself, including commands that later fail, are canceled, or time out. Pure computation commands do not refresh the tree. refreshTree(\"relative/file\") or refreshTree() remains available for explicit updates.",
 			"Lua mode returns only text printed with print(...). It does not return arbitrary Lua return values.",
 			"Only one Agent command may own the Dora entry runtime at a time. If it is busy, retry later instead of waiting inside the command.",
@@ -394,7 +395,7 @@ const AGENT_TOOL_DEFINITION_SOURCES: AgentToolDefinitionSource[] = [
 		workModes: ["plan"],
 		description: "Present a structured questionnaire and pause the Plan task until the user submits every required answer.",
 		parameters: [
-			{ name: "title", type: "string", required: true, description: "Short questionnaire title." },
+			{ name: "title", type: "string", description: "Short questionnaire title. Put it at the top level next to questions." },
 			{ name: "description", type: "string", description: "Optional context shown above the questions." },
 			{
 				name: "questions",

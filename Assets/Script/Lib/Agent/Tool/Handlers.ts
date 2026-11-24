@@ -188,14 +188,14 @@ const build: AgentToolHandler = async (context, input) => {
 	return { output: output as unknown as Record<string, unknown> };
 };
 
-function updateDeterministicTestState(context: Parameters<AgentToolHandler>[0], output: string): void {
+function updateDeterministicTestState(context: Parameters<AgentToolHandler>[0], output: string): boolean {
 	let deterministicFailure = false;
 	let deterministicPass = false;
 	const outputLines = output.split("\n");
 	for (let i = 0; i < outputLines.length && !deterministicFailure; i++) {
 		const line = outputLines[i].trim().toLowerCase();
-		if (line === "passed") deterministicPass = true;
-		if (line === "failed") {
+		if (line === "passed" || line === "overall: passed") deterministicPass = true;
+		if (line === "failed" || line === "overall: failed" || line.startsWith("[selfcheck] fail ")) {
 			deterministicFailure = true;
 			break;
 		}
@@ -247,6 +247,7 @@ function updateDeterministicTestState(context: Parameters<AgentToolHandler>[0], 
 		context.workflow.failedTestNeedsBuild = false;
 		context.workflow.failedTestHasSourceEdit = false;
 	}
+	return deterministicFailure;
 }
 
 const executeCommand: AgentToolHandler = async (context, input) => {
@@ -267,8 +268,8 @@ const executeCommand: AgentToolHandler = async (context, input) => {
 		context.workflow.unbuiltEdits = true;
 		context.workflow.editsSinceBuild = (context.workflow.editsSinceBuild ?? 0) + 1;
 	}
-	if (output.success && mode === "lua") {
-		updateDeterministicTestState(context, output.output);
+	if (output.success && mode === "lua" && updateDeterministicTestState(context, output.output)) {
+		return { output: { ...output, success: false, code: "TEST_FAILED", message: "The Lua test reported a failure. See its output for details." } };
 	}
 	return { output: output as unknown as Record<string, unknown> };
 };
@@ -396,7 +397,7 @@ const editFile: AgentToolHandler = async (context, input) => {
 			if (occurrences === 0) {
 				const indentTolerant = AgentUtils.findIndentTolerantReplacement(normalizedContent, normalizedOldStr, normalizedNewStr);
 				if (!indentTolerant.success) {
-					failOperation(i, path, "TEXT_NOT_FOUND", indentTolerant.message);
+					failOperation(i, path, "TEXT_NOT_FOUND", `${indentTolerant.message}. Read the current ${path} around the target before retrying with exact text.`);
 					continue;
 				}
 				target.content = indentTolerant.content;

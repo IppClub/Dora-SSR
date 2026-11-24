@@ -75,8 +75,6 @@ export function normalizeQuestionnaire(value: unknown):
 	| { success: true; schema: AgentQuestionnaireSchema }
 	| { success: false; message: string } {
 	if (!isRecord(value)) return { success: false, message: "ask_user requires an object" };
-	const title = cleanString(value.title, 120);
-	if (title === "") return { success: false, message: "ask_user requires title" };
 	if (!Array.isArray(value.questions) || value.questions.length < 1 || value.questions.length > 8) {
 		return { success: false, message: "ask_user requires 1 to 8 questions" };
 	}
@@ -137,6 +135,11 @@ export function normalizeQuestionnaire(value: unknown):
 		}
 		questions.push(question);
 	}
+	// Some providers emit the questionnaire title inside the first question.
+	const firstQuestion = value.questions[0] as Record<string, unknown>;
+	let title = cleanString(value.title, 120);
+	if (title === "") title = cleanString(firstQuestion.title, 120);
+	if (title === "") title = cleanString(questions[0].prompt, 120);
 	const schema: AgentQuestionnaireSchema = { title, questions };
 	const description = cleanString(value.description, 2000);
 	if (description !== "") schema.description = description;

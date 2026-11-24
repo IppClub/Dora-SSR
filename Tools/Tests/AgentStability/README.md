@@ -2,8 +2,8 @@
 
 This suite covers the stable subset extracted from the context evaluation branch:
 
-- Proactive compression at 90% of effective input capacity, breaker backoff below
-  the 97% hard tier, preserved history on failure, and no nonshrinking loops.
+- Proactive shared-prefix checkpoints only when they fit, one attempt per task,
+  preserved history on failure, and no nonshrinking loops.
 - Persisting a compression boundary before publishing live history/workflow state.
 - Bounded transport retries, cancellation, and retained recovery instructions.
 - JSON/SSE provider error classification, GLM reasoning overrides, and a

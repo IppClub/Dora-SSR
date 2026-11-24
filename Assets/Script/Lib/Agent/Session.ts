@@ -26,8 +26,8 @@ import {
 } from 'Agent/Storage/Database';
 import * as InputInbox from 'Agent/Runtime/InputInbox';
 import type { InputSubmission } from 'Agent/Runtime/InputInbox';
-import { DualLayerStorage } from 'Agent/Runtime/Memory';
-import { Log, getLLMConfig, normalizeAgentCompletionReport, safeJsonDecode, safeJsonEncode, sanitizeUTF8, validateAgentLLMConfig } from 'Agent/Utils';
+import { DualLayerStorage, isTaskInstruction } from 'Agent/Runtime/Memory';
+import { Log, clipTextToTokenBudget, getLLMConfig, normalizeAgentCompletionReport, safeJsonDecode, safeJsonEncode, sanitizeUTF8, validateAgentLLMConfig } from 'Agent/Utils';
 import type { LLMConfig, StopToken } from 'Agent/Utils';
 import type { AgentToolName } from 'Agent/Tool/Registry';
 import type { AgentWorkMode } from 'Agent/Tool/Registry';
@@ -284,7 +284,6 @@ export type AgentRunningSubAgentListResult = {
 const QUESTIONNAIRE_DIR = ".agent/questionnaire";
 const PENDING_QUESTIONNAIRE_FILE = "pending.json";
 const SPAWN_INFO_FILE = "SPAWN.json";
-const RESULT_FILE = "RESULT.md";
 const PENDING_HANDOFF_DIR = "pending-handoffs";
 const MAX_CONCURRENT_SUB_AGENTS = 4;
 const SUB_AGENT_MEMORY_ENTRY_MAX_CHARS = 1200;
@@ -328,6 +327,7 @@ interface PendingSubAgentHandoffItem {
 	expectedOutput?: string;
 	filesHint?: string[];
 	success?: boolean;
+	status?: "DONE" | "FAILED" | "STOPPED";
 	resultFilePath?: string;
 	artifactDir?: string;
 	finishedAt?: string;
@@ -336,6 +336,7 @@ interface PendingSubAgentHandoffItem {
 	memoryEntry?: AgentSubAgentMemoryEntryItem;
 	completion?: AgentCompletionReport;
 	createdAt: string;
+	sequence?: number;
 }
 
 const activeStopTokens: Record<number, StopToken> = {};
@@ -1254,14 +1255,6 @@ function getArtifactDir(projectRoot: string, memoryScope: string): string {
 	return Path(projectRoot, getArtifactRelativeDir(memoryScope));
 }
 
-function getResultRelativePath(memoryScope: string): string {
-	return Path(getArtifactRelativeDir(memoryScope), RESULT_FILE);
-}
-
-function getResultPath(projectRoot: string, memoryScope: string): string {
-	return Path(projectRoot, getResultRelativePath(memoryScope));
-}
-
 function readSubAgentResultSummary(projectRoot: string, resultFilePath: string): string {
 	if (resultFilePath === "") return "";
 	const path = Path(projectRoot, resultFilePath);
@@ -1373,7 +1366,7 @@ function writeSubAgentResultFile(session: AgentSessionItem, record: SubAgentResu
 		"## Summary",
 		resultText !== "" ? resultText : "(empty)",
 	];
-	const path = getResultPath(session.projectRoot, session.memoryScope);
+	const path = Path(session.projectRoot, record.resultFilePath);
 	const content = `${lines.join("\n")}\n`;
 	if (!Content.save(path, content)) {
 		return false;
@@ -1430,84 +1423,166 @@ function listSubAgentResultRecords(projectRoot: string, rootSessionId: number): 
 	return items;
 }
 
-function getPendingHandoffDir(projectRoot: string, memoryScope: string): string {
-	return Path(projectRoot, ".agent", memoryScope, PENDING_HANDOFF_DIR);
-}
-
-function writePendingHandoff(projectRoot: string, memoryScope: string, value: PendingSubAgentHandoffItem): boolean {
-	const dir = getPendingHandoffDir(projectRoot, memoryScope);
-	if (!Content.exist(dir)) {
-		ensureDirRecursive(dir);
-	}
-	const path = Path(dir, `${value.id}.json`);
-	const [text] = safeJsonEncode(value as unknown as object);
-	if (!text) return false;
-	const content = `${text}\n`;
-	if (!Content.save(path, content)) return false;
-	Tools.sendWebIDEFileUpdate(path, true, content);
-	return true;
-}
-
-function listPendingHandoffs(projectRoot: string, memoryScope: string): PendingSubAgentHandoffItem[] {
-	const dir = getPendingHandoffDir(projectRoot, memoryScope);
-	if (!Content.exist(dir) || !Content.isdir(dir)) return [];
-	const items: PendingSubAgentHandoffItem[] = [];
-	for (const rawPath of Content.getFiles(dir)) {
-		const path = Content.isAbsolutePath(rawPath) ? rawPath : Path(dir, rawPath);
-		if (!path.endsWith(".json") || !Content.exist(path)) continue;
-		const text = Content.load(path);
-		if (typeof text !== "string" || text.trim() === "") continue;
-		const [obj] = safeJsonDecode(text);
-		if (!obj || Array.isArray(obj) || type(obj) !== "table") continue;
-		const value = obj as AnyTable;
-		const sourceTaskId = tonumber(value.sourceTaskId);
-		const sourceSessionId = tonumber(value.sourceSessionId);
-		const id = sanitizeUTF8(toStr(value.id));
-		const sourceTitle = sanitizeUTF8(toStr(value.sourceTitle));
-		const message = sanitizeUTF8(toStr(value.message));
-		const prompt = sanitizeUTF8(toStr(value.prompt));
-		const goal = sanitizeUTF8(toStr(value.goal));
-		const createdAt = sanitizeUTF8(toStr(value.createdAt));
-		if (!(sourceTaskId && sourceTaskId > 0) || !(sourceSessionId && sourceSessionId > 0) || id === "" || createdAt === "") {
-			continue;
+// Separate receipts let the UI and model consume the same queued report independently.
+const handoffs = {
+	dir(projectRoot: string, memoryScope: string): string {
+		return Path(projectRoot, ".agent", memoryScope, PENDING_HANDOFF_DIR);
+	},
+	write(projectRoot: string, memoryScope: string, value: PendingSubAgentHandoffItem): boolean {
+		const dir = handoffs.dir(projectRoot, memoryScope);
+		if (!Content.exist(dir)) {
+			ensureDirRecursive(dir);
 		}
-		items.push({
-			id,
-			sourceSessionId,
-			sourceTitle,
-			sourceTaskId,
-			message,
-			prompt,
-			goal,
-			expectedOutput: sanitizeUTF8(toStr(value.expectedOutput)),
-			filesHint: Array.isArray(value.filesHint)
-				? value.filesHint.filter(item => typeof item === "string").map(item => sanitizeUTF8(item as string))
-				: [],
-			success: value.success === true,
-			resultFilePath: sanitizeUTF8(toStr(value.resultFilePath)),
-			artifactDir: sanitizeUTF8(toStr(value.artifactDir)),
-			finishedAt: sanitizeUTF8(toStr(value.finishedAt)),
-			changeSet: decodeChangeSetSummary(value.changeSet),
-			handoffEvidence: decodeHandoffEvidence(value.handoffEvidence),
-			memoryEntry: decodeSubAgentMemoryEntry(value.memoryEntry),
-			completion: value.completion && !Array.isArray(value.completion) && type(value.completion) === "table"
-				? normalizeAgentCompletionReport(value.completion)
-				: undefined,
-			createdAt,
+		const path = Path(dir, `${value.id}.json`);
+		if (Content.exist(path)) return true;
+		let sequence = 1;
+		for (const pending of handoffs.list(projectRoot, memoryScope)) {
+			sequence = math.max(sequence, (pending.sequence ?? 0) + 1);
+		}
+		const [text] = safeJsonEncode({ ...value, sequence });
+		if (!text) return false;
+		const content = `${text}\n`;
+		const tempPath = `${path}.tmp`;
+		if (!Content.save(tempPath, content) || !Content.move(tempPath, path)) {
+			Content.remove(tempPath);
+			return false;
+		}
+		Tools.sendWebIDEFileUpdate(path, true, content);
+		return true;
+	},
+	list(projectRoot: string, memoryScope: string): PendingSubAgentHandoffItem[] {
+		const dir = handoffs.dir(projectRoot, memoryScope);
+		if (!Content.exist(dir) || !Content.isdir(dir)) return [];
+		const items: PendingSubAgentHandoffItem[] = [];
+		for (const rawPath of Content.getFiles(dir)) {
+			const path = Content.isAbsolutePath(rawPath) ? rawPath : Path(dir, rawPath);
+			if (!path.endsWith(".json") || !Content.exist(path)) continue;
+			const text = Content.load(path);
+			if (typeof text !== "string" || text.trim() === "") continue;
+			const [obj] = safeJsonDecode(text);
+			if (!obj || Array.isArray(obj) || type(obj) !== "table") continue;
+			const value = obj as AnyTable;
+			const sourceTaskId = tonumber(value.sourceTaskId);
+			const sourceSessionId = tonumber(value.sourceSessionId);
+			const id = sanitizeUTF8(toStr(value.id));
+			const sourceTitle = sanitizeUTF8(toStr(value.sourceTitle));
+			const message = sanitizeUTF8(toStr(value.message));
+			const prompt = sanitizeUTF8(toStr(value.prompt));
+			const goal = sanitizeUTF8(toStr(value.goal));
+			const createdAt = sanitizeUTF8(toStr(value.createdAt));
+			if (!(sourceTaskId && sourceTaskId > 0) || !(sourceSessionId && sourceSessionId > 0) || id === ""
+				|| Path.getFilename(path) !== `${id}.json` || createdAt === "") {
+				continue;
+			}
+			items.push({
+				id,
+				sourceSessionId,
+				sourceTitle,
+				sourceTaskId,
+				message,
+				prompt,
+				goal,
+				expectedOutput: sanitizeUTF8(toStr(value.expectedOutput)),
+				filesHint: Array.isArray(value.filesHint)
+					? value.filesHint.filter(item => typeof item === "string").map(item => sanitizeUTF8(item as string))
+					: [],
+				success: value.success === true,
+				status: value.status === "DONE" || value.status === "STOPPED" || value.status === "FAILED" ? value.status : undefined,
+				resultFilePath: sanitizeUTF8(toStr(value.resultFilePath)),
+				artifactDir: sanitizeUTF8(toStr(value.artifactDir)),
+				finishedAt: sanitizeUTF8(toStr(value.finishedAt)),
+				changeSet: decodeChangeSetSummary(value.changeSet),
+				handoffEvidence: decodeHandoffEvidence(value.handoffEvidence),
+				memoryEntry: decodeSubAgentMemoryEntry(value.memoryEntry),
+				completion: value.completion && !Array.isArray(value.completion) && type(value.completion) === "table"
+					? normalizeAgentCompletionReport(value.completion)
+					: undefined,
+				createdAt,
+				sequence: typeof value.sequence === "number" ? value.sequence : undefined,
+			});
+		}
+		items.sort((a, b) => {
+			const bySequence = (a.sequence ?? 0) - (b.sequence ?? 0);
+			if (bySequence !== 0) return bySequence;
+			const left = `${a.createdAt}:${a.id}`;
+			const right = `${b.createdAt}:${b.id}`;
+			return left < right ? -1 : (left > right ? 1 : 0);
 		});
-	}
-	items.sort((a, b) => a.id < b.id ? -1 : (a.id > b.id ? 1 : 0));
-	return items;
-}
-
-function deletePendingHandoff(projectRoot: string, memoryScope: string, id: string): void {
-	const path = Path(getPendingHandoffDir(projectRoot, memoryScope), `${id}.json`);
-	if (Content.exist(path)) {
-		if (Content.remove(path)) {
-			Tools.sendWebIDEFileUpdate(path, false, "");
+		return items;
+	},
+	remove(projectRoot: string, memoryScope: string, id: string): void {
+		const path = Path(handoffs.dir(projectRoot, memoryScope), `${id}.json`);
+		if (Content.exist(path)) {
+			if (Content.remove(path)) {
+				Tools.sendWebIDEFileUpdate(path, false, "");
+			}
 		}
-	}
-}
+	},
+	receipt(session: AgentSessionItem, id: string, sink: "model" | "timeline"): string {
+		return Path(handoffs.dir(session.projectRoot, session.memoryScope), `${id}.${sink}`);
+	},
+	mark(session: AgentSessionItem, id: string, sink: "model" | "timeline"): boolean {
+		const receipt = handoffs.receipt(session, id, sink);
+		if (!Content.exist(receipt) && !Content.save(receipt, "delivered")) return false;
+		const model = handoffs.receipt(session, id, "model");
+		const timeline = handoffs.receipt(session, id, "timeline");
+		if (Content.exist(model) && Content.exist(timeline)) {
+			handoffs.remove(session.projectRoot, session.memoryScope, id);
+			const path = Path(handoffs.dir(session.projectRoot, session.memoryScope), `${id}.json`);
+			if (!Content.exist(path)) {
+				Content.remove(model);
+				Content.remove(timeline);
+			}
+		}
+		return true;
+	},
+	pending(session: AgentSessionItem) {
+		return handoffs.list(session.projectRoot, session.memoryScope)
+			.filter(item => !Content.exist(handoffs.receipt(session, item.id, "model")))
+			.map(item => {
+				const result = encodeJson({
+					sourceSessionId: item.sourceSessionId,
+					sourceTaskId: item.sourceTaskId,
+					title: clipTextToTokenBudget(item.sourceTitle, 64),
+					status: item.status ?? (item.success === true ? "DONE" : (item.completion?.outcome === "partial" ? "STOPPED" : "FAILED")),
+					outcome: item.completion?.outcome,
+					summary: clipTextToTokenBudget(item.message, 450),
+					changedFiles: item.handoffEvidence?.modifiedFiles.slice(0, 8)
+						.map(path => clipTextToTokenBudget(path, 64)),
+					lastBuild: item.handoffEvidence?.lastBuild?.result,
+					validation: item.completion?.validation.slice(0, 5).map(entry => ({
+						kind: entry.kind,
+						result: entry.result,
+						evidence: entry.evidence.slice(0, 2).map(text => clipTextToTokenBudget(text, 64)),
+					})),
+					openIssues: item.completion?.knownIssues.slice(0, 4).map(text => clipTextToTokenBudget(text, 80)),
+					resultFilePath: item.resultFilePath,
+				}).split("<").join("\\u003c");
+				return {
+					id: `sub_${item.sourceSessionId}_${item.sourceTaskId}`,
+					queueId: item.id,
+					content: `<sub-agent-handoff>\n${result}\n</sub-agent-handoff>`,
+				};
+			});
+	},
+	timelinePublished(session: AgentSessionItem, item: PendingSubAgentHandoffItem): boolean {
+		if (!Content.exist(handoffs.receipt(session, item.id, "timeline"))
+			&& !handoffs.hasTimelineStep(session.id, item.sourceTaskId)) return false;
+		if (!handoffs.mark(session, item.id, "timeline")) {
+			Log("Warn", `[AgentSession] failed to acknowledge sub-agent handoff timeline id=${item.id}`);
+		}
+		return true;
+	},
+	hasTimelineStep(sessionId: number, sourceTaskId: number): boolean {
+		return queryOne(
+			`SELECT id FROM ${TABLE_STEP}
+			WHERE session_id = ? AND tool = 'sub_agent_handoff'
+				AND json_extract(result_json, '$.sourceTaskId') = ?
+			LIMIT 1`,
+			[sessionId, sourceTaskId],
+		) !== undefined;
+	},
+};
 
 function normalizePromptText(prompt: string): string {
 	return truncateAgentUserPrompt(prompt ?? "").trim();
@@ -1779,14 +1854,17 @@ function truncatePersistedSessionBeforeLatestUserPrompt(session: AgentSessionIte
 	const persisted = storage.readSessionState();
 	let userIndex = -1;
 	for (let i = persisted.messages.length - 1; i >= 0; i--) {
-		if (persisted.messages[i].role === "user" && persisted.messages[i].inputKind !== "steer") {
+		if (isTaskInstruction(persisted.messages[i])) {
 			userIndex = i;
 			break;
 		}
 	}
 	if (userIndex < 0) return;
-	const messages = persisted.messages.slice(0, userIndex);
-	const lastConsolidatedIndex = math.min(persisted.lastConsolidatedIndex, messages.length);
+	const messages = [
+		...persisted.messages.slice(0, userIndex),
+		...persisted.messages.slice(userIndex + 1).filter(message => message.handoffId !== undefined),
+	];
+	const lastConsolidatedIndex = math.min(persisted.lastConsolidatedIndex, userIndex);
 	const carryMessageIndex = typeof persisted.carryMessageIndex === "number"
 		&& persisted.carryMessageIndex >= 0
 		&& persisted.carryMessageIndex < lastConsolidatedIndex
@@ -2067,23 +2145,14 @@ function emitSessionDeletedPatch(sessionId: number, rootSessionId: number, proje
 
 function flushPendingSubAgentHandoffs(rootSession: AgentSessionItem): void {
 	if (rootSession.kind !== "main") return;
-	if (rootSession.currentTaskStatus === "RUNNING" && rootSession.currentTaskId && activeStopTokens[rootSession.currentTaskId]) {
+	if (rootSession.currentTaskStatus === "RUNNING") {
 		return;
 	}
-	const items = listPendingHandoffs(rootSession.projectRoot, rootSession.memoryScope);
+	const items = handoffs.list(rootSession.projectRoot, rootSession.memoryScope)
+		.filter(item => !handoffs.timelinePublished(rootSession, item));
 	if (items.length === 0) return;
-	let handoffTaskId = 0;
-	const previousTaskId = rootSession.currentTaskId;
-	const currentTaskPrompt = rootSession.currentTaskId ? getTaskPrompt(rootSession.currentTaskId) : undefined;
-	if (
-		rootSession.currentTaskId
-		&& rootSession.currentTaskId > 0
-		&& rootSession.currentTaskStatus !== "RUNNING"
-		&& typeof currentTaskPrompt === "string"
-		&& currentTaskPrompt.startsWith("[sub_agent_handoff]")
-	) {
-		handoffTaskId = rootSession.currentTaskId;
-	} else {
+	let handoffTaskId = rootSession.currentTaskStatus === "DONE" ? rootSession.currentTaskId : undefined;
+	if (handoffTaskId === undefined) {
 		const taskRes = Tools.createTask(`[sub_agent_handoff] ${tostring(items.length)} item(s)`, "code");
 		if (!taskRes.success) {
 			Log("Warn", `[AgentSession] failed to create sub-agent handoff task for root=${rootSession.id}: ${taskRes.message}`);
@@ -2091,10 +2160,10 @@ function flushPendingSubAgentHandoffs(rootSession: AgentSessionItem): void {
 		}
 		handoffTaskId = taskRes.taskId;
 		Tools.setTaskStatus(handoffTaskId, "DONE");
-		setSessionState(rootSession.id, "DONE", handoffTaskId, "DONE");
-		emitAgentSessionPatch(rootSession.id, {
-			session: getSessionItem(rootSession.id),
-		});
+		if (rootSession.currentTaskId === undefined) {
+			setSessionState(rootSession.id, "DONE", handoffTaskId, "DONE");
+			emitAgentSessionPatch(rootSession.id, { session: getSessionItem(rootSession.id) });
+		}
 	}
 	for (let i = 0; i < items.length; i++) {
 		const item = items[i];
@@ -2108,6 +2177,7 @@ function flushPendingSubAgentHandoffs(rootSession: AgentSessionItem): void {
 				sourceTitle: item.sourceTitle,
 				sourceTaskId: item.sourceTaskId,
 				success: item.success === true,
+				status: item.status,
 				summary: item.message,
 				resultFilePath: item.resultFilePath ?? "",
 				artifactDir: item.artifactDir ?? "",
@@ -2135,13 +2205,12 @@ function flushPendingSubAgentHandoffs(rootSession: AgentSessionItem): void {
 		);
 		if (step) {
 			emitAgentSessionPatch(rootSession.id, { step });
-			deletePendingHandoff(rootSession.projectRoot, rootSession.memoryScope, item.id);
+			if (!handoffs.mark(rootSession, item.id, "timeline")) {
+				Log("Warn", `[AgentSession] failed to acknowledge sub-agent handoff timeline id=${item.id}`);
+			}
 		} else {
 			Log("Warn", `[AgentSession] failed to persist sub-agent handoff reference owner=${handoffTaskId} target=${item.sourceTaskId}`);
 		}
-	}
-	if (previousTaskId && previousTaskId !== handoffTaskId) {
-		cleanupTaskHeavyData(previousTaskId);
 	}
 }
 
@@ -2342,8 +2411,9 @@ function applyEvent(sessionId: number, event: AgentRuntimeEvent) {
 					removedStepIds,
 				});
 			}
-			if (session && session.kind === "main") {
-				flushPendingSubAgentHandoffs(session);
+			const updatedSession = getSessionItem(sessionId);
+			if (updatedSession?.kind === "main") {
+				flushPendingSubAgentHandoffs(updatedSession);
 			}
 			break;
 		}
@@ -2621,15 +2691,13 @@ export function setWorkMode(sessionId: number, workMode: unknown) {
 	return { success: true as const, session: updated ?? { ...normalizedSession, workMode } };
 }
 
-function appendSubAgentHandoffStep(session: AgentSessionItem, taskId: number, result: SubAgentResultRecord, summary: string): void {
+function appendSubAgentHandoffStep(session: AgentSessionItem, taskId: number, result: SubAgentResultRecord, summary: string): boolean {
 	const rootSession = getRootSessionItem(session.id);
-	if (!rootSession) return;
+	if (!rootSession) return false;
 	const changeSet = result.changeSet ?? getTaskChangeSetSummary(taskId);
 	const createdAt = os.date("!%Y-%m-%dT%H:%M:%SZ");
-	const [cleanedTime1] = string.gsub(createdAt, "[-:]", "");
-	const [cleanedTime2] = string.gsub(cleanedTime1, "%.%d+Z$", "Z");
-	const queueResult = writePendingHandoff(rootSession.projectRoot, rootSession.memoryScope, {
-		id: `${cleanedTime2}_sub_${tostring(session.id)}_${tostring(taskId)}`,
+	const queueResult = handoffs.write(rootSession.projectRoot, rootSession.memoryScope, {
+		id: `sub_${session.id}_${taskId}`,
 		sourceSessionId: session.id,
 		sourceTitle: session.title,
 		sourceTaskId: taskId,
@@ -2639,6 +2707,7 @@ function appendSubAgentHandoffStep(session: AgentSessionItem, taskId: number, re
 		expectedOutput: result.expectedOutput ?? "",
 		filesHint: result.filesHint ?? [],
 		success: result.success,
+		status: result.status,
 		resultFilePath: result.resultFilePath,
 		artifactDir: result.artifactDir,
 		finishedAt: result.finishedAt,
@@ -2650,7 +2719,7 @@ function appendSubAgentHandoffStep(session: AgentSessionItem, taskId: number, re
 	});
 	if (!queueResult) {
 		Log("Warn", `[AgentSession] failed to queue sub-agent handoff root=${rootSession.id} source=${session.id}`);
-		return;
+		return false;
 	}
 	if (rootSession.currentTaskId && rootSession.currentTaskId > 0) {
 		addTaskReference(rootSession.currentTaskId, taskId);
@@ -2658,6 +2727,7 @@ function appendSubAgentHandoffStep(session: AgentSessionItem, taskId: number, re
 	if (!(rootSession.currentTaskStatus === "RUNNING" && rootSession.currentTaskId && activeStopTokens[rootSession.currentTaskId])) {
 		flushPendingSubAgentHandoffs(rootSession);
 	}
+	return true;
 }
 
 async function finalizeSubSession(
@@ -2666,7 +2736,8 @@ async function finalizeSubSession(
 	success: boolean,
 	message: string,
 	completion?: AgentCompletionReport,
-	forceHandoff = false
+	forceHandoff = false,
+	stopped = false
 ): Promise<{ success: true } | { success: false; message: string }> {
 	const rootSessionId = getSessionRootId(session);
 	const rootSession = getRootSessionItem(session.id);
@@ -2704,7 +2775,7 @@ async function finalizeSubSession(
 	const completed = success && completionReport.outcome === "completed";
 	const recordStatus: SubAgentResultRecord["status"] = completed
 		? "DONE"
-		: (completionReport.outcome === "partial" ? "STOPPED" : "FAILED");
+		: (stopped || completionReport.outcome === "partial" ? "STOPPED" : "FAILED");
 	const record: SubAgentResultRecord = {
 		sessionId: session.id,
 		rootSessionId,
@@ -2716,7 +2787,7 @@ async function finalizeSubSession(
 		filesHint: spawnInfo?.filesHint ?? [],
 		status: recordStatus,
 		success: completed,
-		resultFilePath: getResultRelativePath(session.memoryScope),
+		resultFilePath: Path(getArtifactRelativeDir(session.memoryScope), `RESULT-${taskId}.md`),
 		artifactDir: getArtifactRelativeDir(session.memoryScope),
 		sourceTaskId: taskId,
 		createdAt: spawnInfo?.createdAt ?? finishedAt,
@@ -2757,8 +2828,10 @@ async function finalizeSubSession(
 	})) {
 		return { success: false, message: "failed to persist sub session spawn info" };
 	}
+	if (!appendSubAgentHandoffStep(session, taskId, record, resultText)) {
+		return { success: false, message: "failed to queue sub-agent handoff" };
+	}
 	if (success || forceHandoff) {
-		appendSubAgentHandoffStep(session, taskId, record, resultText);
 		deleteSessionRecords(session.id, true);
 		emitSessionDeletedPatch(session.id, rootSessionId, rootSession.projectRoot);
 	}
@@ -3041,6 +3114,12 @@ function startPromptTask(
 		...(promptMessageId !== undefined ? {message: getMessageItem(promptMessageId)} : {}),
 	});
 	if (previousTaskId && previousTaskId !== taskId) {
+		if (session.kind === "main") {
+			// Recover a timeline receipt before cleanup can remove the old step.
+			for (const item of handoffs.list(session.projectRoot, session.memoryScope)) {
+				handoffs.timelinePublished(session, item);
+			}
+		}
 		cleanupTaskHeavyData(previousTaskId);
 	}
 	activePromptRuns++;
@@ -3051,6 +3130,12 @@ function startPromptTask(
    pending: () => InputInbox.listInputs(session.id).filter(item=>item.delivery === "steer" && !item.held && item.status === "pending").map(item=>({id:item.id,content:item.content})),
    delivered: (id,step) => followup.delivered(session.id,taskId,id,step),
   },
+		handoffSource: session.kind === "main" ? {
+			pending: () => handoffs.pending(session),
+			delivered: id => {
+				if (!handoffs.mark(session, id, "model")) throw new Error("failed to acknowledge sub-agent handoff");
+			},
+		} : undefined,
 		resumeConversation: options?.resumeConversation,
 		resumeTask: options?.existingTaskId !== undefined,
 		initialStep: options?.initialStep,
@@ -3100,7 +3185,8 @@ function startPromptTask(
 					result.success,
 					result.message,
 					result.completion,
-					options?.forceSubAgentHandoff === true
+					options?.forceSubAgentHandoff === true,
+					stopToken.stopped === true
 				);
 				if (!finalized.success) {
 					Log("Warn", `[AgentSession] sub session finalize failed session=${nextSession.id} error=${finalized.message}`);
@@ -3108,7 +3194,7 @@ function startPromptTask(
 				const finalizedSession = getSessionItem(session.id);
 				if (finalizedSession) {
 					const stopped = stopToken.stopped === true;
-					const finalStatus: AgentSessionStatus = result.success
+					const finalStatus: AgentSessionStatus = result.success && finalized.success
 						? "DONE"
 						: (stopped ? "STOPPED" : "FAILED");
 					setSessionState(session.id, finalStatus, taskId, finalStatus);
