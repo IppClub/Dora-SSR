@@ -1,6 +1,6 @@
 import ts from 'typescript';
 import { Transpiler, LuaTarget, LuaLibImportKind } from '@dora-studio/tstl';
-import { compileSnapshot, doraCompilerOptions } from '@dora-studio/compiler';
+import { compileSnapshot, doraCompilerOptions, runtimeModulesResource } from '@dora-studio/compiler';
 import { PROTOCOL_VERSION, validateSnapshot, isProjectPath, serializeArtifactContent } from '@dora-studio/contracts';
 
 export const COMPILER_VERSION = 'dora-tstl-0.1.0-ts5.9.3';
@@ -50,7 +50,13 @@ export async function compile(r) {
   if (r.snapshot.files.some(f => f.kind === 'text' && /\.tsx?$/.test(f.path) && !/\.d\.ts$/.test(f.path))) {
     if (!r.declarations.some(f => f.path === 'Dora.d.ts')) throw new Error('Dora.d.ts is required');
     const virtual = r.snapshot.files.filter(f => f.kind === 'text').map(f => ({ file: root + f.path, content: f.text }));
+    const moduleResource = r.declarations.find(f => f.path === runtimeModulesResource);
+    const runtimeModules = moduleResource ? JSON.parse(moduleResource.text) : [];
+    if (!Array.isArray(runtimeModules) || !runtimeModules.every(name => typeof name === 'string' && name)) {
+      throw new Error('Invalid runtime module inventory');
+    }
     for (const f of r.declarations) {
+      if (f.path === runtimeModulesResource) continue;
       const file = f.path === 'lualib_bundle.lua' ? root + f.path : '/dora/' + f.path;
       if (virtual.some(v => v.file === file)) throw new Error(`Reserved compiler resource: ${f.path}`);
       virtual.push({ file, content: f.text, moduleName: f.path.endsWith('.d.ts') ? f.path.slice(0, -5) : undefined });
@@ -58,7 +64,8 @@ export async function compile(r) {
     const result = compileSnapshot(ts, {
       rootNames: (r.rootNames ?? r.snapshot.files.filter(f => f.kind === 'text' && /\.tsx?$/.test(f.path)).map(f => f.path)).map(path => root + path),
       projectRoot: '/project', files: virtual, defaultLibFileName: '/dora/Dora.d.ts',
-      options: doraCompilerOptions(ts, LuaTarget.Lua55, LuaLibImportKind.Require, 'studio'),
+      declarationAssetRoot: "/dora",
+      options: doraCompilerOptions(ts, LuaTarget.Lua55, LuaLibImportKind.Require, runtimeModules),
     }, (program, emitHost, writeFile) => new Transpiler({ emitHost, emitLuaDependencies: false }).emit({ program, writeFile }).diagnostics);
     diagnostics = result.diagnostics.map(d => ({
       severity: d.category === ts.DiagnosticCategory.Error ? 'error' : d.category === ts.DiagnosticCategory.Warning ? 'warning' : 'info',

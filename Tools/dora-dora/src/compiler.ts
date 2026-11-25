@@ -29,6 +29,9 @@ type CompilerJob = {
 	content: string;
 	projectRoot?: string;
 	projectScriptRoot?: string;
+	luaRuntimeModules?: string[];
+	assetPath?: string;
+	defaultLibFileName?: string;
 	files?: TranspileTSVirtualFile[];
 };
 
@@ -62,6 +65,9 @@ const runJob = async (job: CompilerJob) => {
 			job.projectRoot,
 			job.files,
 			job.projectScriptRoot,
+			job.luaRuntimeModules,
+			job.assetPath,
+			job.defaultLibFileName,
 		);
 		const message = success ? '' : await getDiagnosticMessage(job.file, diagnostics);
 		await post('/compiler/result', {

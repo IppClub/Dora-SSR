@@ -21,7 +21,8 @@ export function createModuleRequire(
     const params: lua.Expression[] = [];
     if (ts.isStringLiteral(moduleSpecifier)) {
         const symbol = context.checker.getSymbolAtLocation(moduleSpecifier);
-        const source = symbol?.declarations?.find(ts.isSourceFile);
+        const source = symbol?.declarations?.find(ts.isSourceFile) ??
+            symbol?.declarations?.find(ts.isModuleDeclaration)?.getSourceFile();
         if (source) context.importedSources.set(moduleSpecifier.text, source);
         const modulePath = symbol && getSymbolAnnotations(symbol).has(AnnotationKind.NoResolution)
             ? `@NoResolution:${moduleSpecifier.text}`

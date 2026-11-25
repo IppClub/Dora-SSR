@@ -226,6 +226,9 @@ type TranspileTSQueueItem = {
 	content: string;
 	projectRoot?: string;
 	projectScriptRoot?: string;
+	luaRuntimeModules?: string[];
+	assetPath?: string;
+	defaultLibFileName?: string;
 	files?: TranspileTSVirtualFile[];
 	id?: unknown;
 };
@@ -234,6 +237,7 @@ export type TranspileTSVirtualFile = {
 	file: string;
 	content: string;
 	moduleName?: string;
+	sourcePath?: string;
 };
 
 const sendTranspileTSResponse = (item: TranspileTSQueueItem, response: WebSocketPayload) => {
@@ -252,6 +256,9 @@ const handleTranspileTS = async (item: TranspileTSQueueItem) => {
 			item.projectRoot,
 			item.files,
 			item.projectScriptRoot,
+			item.luaRuntimeModules,
+			item.assetPath,
+			item.defaultLibFileName,
 		);
 		if (success) {
 			sendTranspileTSResponse(item, { name: WsEvent.TranspileTS, success, file: item.file, luaCode, message: "" });
@@ -392,18 +399,22 @@ export function openWebSocket() {
 								break;
 							}
 							case WsEvent.TranspileTS: {
-								const { file, content, projectRoot, projectScriptRoot, files } = result;
+								const { file, content, projectRoot, projectScriptRoot, luaRuntimeModules, assetPath, defaultLibFileName, files } = result;
 								if (typeof file === 'string' && typeof content === 'string') {
 									void handleTranspileTS({
 										file,
 										content,
 										projectRoot: typeof projectRoot === "string" ? projectRoot : undefined,
 										projectScriptRoot: typeof projectScriptRoot === "string" ? projectScriptRoot : undefined,
+										luaRuntimeModules: Array.isArray(luaRuntimeModules) ? luaRuntimeModules.filter((name): name is string => typeof name === "string") : undefined,
+										assetPath: typeof assetPath === "string" ? assetPath : undefined,
+										defaultLibFileName: typeof defaultLibFileName === "string" ? defaultLibFileName : undefined,
 										files: Array.isArray(files) ? files.filter((entry): entry is TranspileTSVirtualFile => {
 											if (entry === null || typeof entry !== "object") return false;
 											const candidate = entry as Record<string, unknown>;
 											return typeof candidate.file === "string" && typeof candidate.content === "string"
-												&& (candidate.moduleName === undefined || typeof candidate.moduleName === "string");
+												&& (candidate.moduleName === undefined || typeof candidate.moduleName === "string")
+												&& (candidate.sourcePath === undefined || typeof candidate.sourcePath === "string");
 										}) : undefined,
 										id: result.id
 									});
@@ -743,6 +754,18 @@ export interface InfoResponse {
 export const info = (req?: InfoRequest) => {
 	return post<InfoResponse>("/info", { ...req, embedded: isNativeIDE() });
 };
+
+export type TypeScriptSnapshot = {
+	projectRoot: string;
+	projectScriptRoot?: string;
+	luaRuntimeModules: string[];
+	assetPath: string;
+	defaultLibFileName: string;
+	files: TranspileTSVirtualFile[];
+};
+
+export const tsSnapshot = (file: string) =>
+	post<({ success: true } & TypeScriptSnapshot) | { success: false; message?: string }>("/ts/snapshot", { file });
 
 // LLM Config
 

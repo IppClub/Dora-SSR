@@ -7,6 +7,7 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. ]]
 
 _ENV = Dora Dora.ImGui
+import "ProjectSearch"
 import "ImGuiEnum" as :$WindowFlag, :$SetCond
 import global
 
@@ -1013,10 +1014,8 @@ export enterEntryAsync = (entry) ->
 	return false, "superseded" if launchRunId ~= allEntries.runId or isInEntry or currentEntry ~= entry
 	try
 		workDir ??= Path\getPath file
-		Content\insertSearchPath 1, workDir
-		scriptPath = Path workDir, "Script"
-		if Content\exist scriptPath
-			Content\insertSearchPath 1, scriptPath
+		for directory in *ProjectSearch workDir
+			Content\insertSearchPath 1, directory
 		result = require file
 		result entry.argument if "function" == type result
 		nil

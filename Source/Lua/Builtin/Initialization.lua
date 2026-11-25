@@ -1500,6 +1500,17 @@ do
 	end
 	setmetatable(package.loaded, {__index = Dora})
 
+	-- Record the engine environment before a project can load its own modules.
+	local compilerModules = {}
+	for _, modules in ipairs({package.loaded, package.preload, Dora}) do
+		for name, value in pairs(modules) do
+			if type(name) == "string" and value then
+				compilerModules[name] = true
+			end
+		end
+	end
+	Dora._compilerRuntimeModules = compilerModules
+
 	local globals = {} -- available global value storage
 	_G.globals = globals
 	Dora.globals = globals

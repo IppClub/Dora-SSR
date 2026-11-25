@@ -32,8 +32,6 @@ class ResolutionContext {
 
         // Do this backwards so the replacements do not mess with the positions of the previous requires
         for (const required of findLuaRequires(file.code).reverse()) {
-            // Only explicitly registered runtime modules bypass snapshot resolution.
-            if (this.options.luaExternalModules?.includes(required.requirePath)) continue;
             // Direct require calls in TypeScript keep Lua's runtime resolution semantics.
             if (required.requirePath.startsWith("@RuntimeRequire:")) {
                 const path = this.runtimeRequireName(required.requirePath.slice("@RuntimeRequire:".length));
@@ -73,11 +71,15 @@ class ResolutionContext {
 
         // The source TypeScript checked takes precedence over Lua fallback lookup.
         const source = file.importedSources?.get(required.requirePath);
+        if ((!source || source.isDeclarationFile) && this.options.luaExternalModules?.includes(required.requirePath)) return;
         const dependencyPath = source && !source.isDeclarationFile
             ? source.fileName
             : this.resolveDependencyPath(file, required.requirePath, source);
 
-        if (!dependencyPath) return this.couldNotResolveImport(required, file);
+        if (!dependencyPath) {
+            if (source?.isDeclarationFile && this.isRuntimeDeclaration(source.fileName)) return;
+            return this.couldNotResolveImport(required, file);
+        }
 
         if (this.options.tstlVerbose) {
             console.log(`Resolved ${required.requirePath} to ${normalizeSlashes(dependencyPath)}`);
@@ -86,13 +88,23 @@ class ResolutionContext {
         this.processDependency(dependencyPath);
         // Figure out resolved require path and dependency output path
         if (shouldRewriteRequires(dependencyPath, this.program)) {
-            const moduleName = getEmittedModuleName(dependencyPath, this.program);
+            let moduleName = getEmittedModuleName(dependencyPath, this.program);
+            if (this.options.luaExternalModules?.includes(moduleName)) {
+                moduleName = getEmittedModuleName(dependencyPath, this.program, true);
+            }
             replaceRequireInCode(file, required, moduleName);
             replaceRequireInSourceMap(file, required, moduleName);
         }
     }
 
     public processedDependencies = new Set<string>();
+
+    private isRuntimeDeclaration(fileName: string): boolean {
+        const file = normalizeSlashes(fileName);
+        const root = this.options.luaRuntimeDeclarationRoot;
+        return this.options.luaRuntimeDeclarationFiles?.includes(file) === true ||
+            (!!root && file.startsWith(normalizeSlashes(root).replace(/\/+$/, "") + "/"));
+    }
 
     private formatPathToFile(targetPath: string, required: ProcessedFile) {
         const fileDirectory = path.dirname(required.fileName);

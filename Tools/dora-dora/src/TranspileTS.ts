@@ -7,17 +7,14 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 import monaco, { monacoTypescript } from './monacoBase';
-import type { CompilerHost, CompilerOptions, Diagnostic, Program } from 'typescript';
+import type { CompilerOptions, Diagnostic } from 'typescript';
 import type { CompilerOptions as TstlCompilerOptions } from '@dora-studio/tstl';
 import { SourceMapConsumer } from 'source-map';
 import Info from './Info';
 import * as Service from './Service';
-import type { TranspileTSVirtualFile } from './Service';
-import { getExtraLib } from './MonacoPath';
+import type { TranspileTSVirtualFile, TypeScriptSnapshot } from './Service';
 import { setMonacoRuntime } from './MonacoRuntimeAccess';
-import { isPathWithin } from './PathUtils';
-import { createSnapshotProgram, doraCompilerOptions, registerDoraRuntimeExports, resolveDoraModule } from '@dora-studio/compiler';
-import { toFilePath } from './MonacoPath';
+import { createSnapshotProgram, doraCompilerOptions, normalizePath } from '@dora-studio/compiler';
 import { promoteCompilerWarnings } from './TranspileDiagnostics';
 
 setMonacoRuntime({
@@ -149,8 +146,8 @@ export async function warmupTypescriptTranspiler() {
 	]);
 }
 
-function getTstlOptions(ts: TsModule, tstl: TstlModule): TstlCompilerOptions {
-	return doraCompilerOptions(ts, tstl.LuaTarget.Lua55, tstl.LuaLibImportKind.Require);
+function getTstlOptions(ts: TsModule, tstl: TstlModule, runtimeModules: readonly string[], assetPath?: string): TstlCompilerOptions {
+	return doraCompilerOptions(ts, tstl.LuaTarget.Lua55, tstl.LuaLibImportKind.Require, runtimeModules, assetPath);
 }
 
 function getDeclarationOptions(ts: TsModule): CompilerOptions {
@@ -166,471 +163,50 @@ function getDeclarationOptions(ts: TsModule): CompilerOptions {
 	};
 }
 
-function createCompilerHost(
-	ts: TsModule,
-	rootFileName: string,
-	content: string,
-	projectRoot: string | undefined,
-	compilerOptions: CompilerOptions,
-	virtualFiles?: readonly TranspileTSVirtualFile[],
-): [CompilerHost, Map<string, string>] {
-	const currentDirectory = projectRoot && projectRoot !== "" ? projectRoot : Info.path.dirname(rootFileName);
-	const writeFiles = new Map<string, string>();
-	const pathMap = new Map<string, monaco.Uri>();
-	const unexistMap = new Set<string>();
-	const scriptTarget = ts.ScriptTarget.ESNext;
-	type SourceFileData = {
-		fileName: string;
-		content: string;
-	};
-	const sourceCache = new Map<string, SourceFileData | null>();
-	const virtualFilesByPath = new Map<string, SourceFileData>();
-	const virtualFilesByModule = new Map<string, SourceFileData>();
-	for (const entry of virtualFiles ?? []) {
-		const source = { fileName: Info.path.normalize(entry.file), content: entry.content };
-		virtualFilesByPath.set(source.fileName, source);
-		if (entry.moduleName !== undefined && entry.moduleName !== "") {
-			virtualFilesByModule.set(entry.moduleName, source);
-		}
-	}
-	const readVirtualPath = (requestedPath: string, exts?: string[]) => {
-		const normalizedPath = Info.path.normalize(requestedPath);
-		const paths = [normalizedPath];
-		if (!Info.path.isAbsolute(normalizedPath)) {
-			paths.push(Info.path.normalize(Info.path.join(currentDirectory, normalizedPath)));
-		}
-		for (const path of paths) {
-			const candidates = [path];
-			let stem = path;
-			if (path.endsWith(".d.ts")) {
-				stem = path.slice(0, -".d.ts".length);
-			} else {
-				const ext = Info.path.extname(path);
-				if (ext === ".ts" || ext === ".tsx") stem = path.slice(0, -ext.length);
-			}
-			for (const ext of exts ?? []) candidates.push(stem + ext);
-			for (const candidate of candidates) {
-				const source = virtualFilesByPath.get(Info.path.normalize(candidate));
-				if (source !== undefined) return source;
-			}
-		}
-		return undefined;
-	};
-	const readVirtualFile = (requestedPath: string, exts?: string[]) => {
-		const source = readVirtualPath(requestedPath, exts);
-		if (source !== undefined) return source;
-		const normalizedPath = Info.path.normalize(requestedPath);
-		const baseName = Info.path.basename(normalizedPath);
-		const moduleName = Info.path.extname(baseName) === ""
-			? baseName
-			: Info.path.basename(baseName, Info.path.extname(baseName));
-		return virtualFilesByModule.get(moduleName);
-	};
-	const isSamePath = (a: string, b: string) => {
-		try {
-			return Info.path.relative(a, b) === "";
-		} catch {
-			return false;
-		}
-	};
-	const syncModelContent = (uri: monaco.Uri, nextContent: string) => {
-		const model = monaco.editor.getModel(uri);
-		if (model !== null) {
-			if (model.getValue() !== nextContent) {
-				model.setValue(nextContent);
-			}
-		} else {
-			monaco.editor.createModel(nextContent, 'typescript', uri);
-		}
-	};
-	syncModelContent(monaco.Uri.file(rootFileName), content);
-	const getCachedBuiltinLib = (fileName: string): SourceFileData | undefined => {
-		const directLib = getExtraLib(fileName);
-		if (directLib !== undefined) {
-			return { fileName, content: directLib.content };
-		}
-		const baseName = Info.path.basename(fileName);
-		if (baseName !== "Dora.d.ts" && baseName !== "es6-subset.d.ts" && baseName !== "lua.d.ts") {
-			return undefined;
-		}
-		for (const [libFileName, lib] of Object.entries(monacoTypescript.typescriptDefaults.getExtraLibs()) as [string, { content: string }][]) {
-			if (Info.path.basename(libFileName) === baseName) {
-				return { fileName: libFileName, content: lib.content };
-			}
-		}
-		return undefined;
-	};
-	const readSourceFile = (fileName: string, options?: { exts?: string[], fallbackToBaseName?: boolean }) => {
-		fileName = Info.path.normalize(fileName);
-		const fallbackToBaseName = options?.fallbackToBaseName !== false;
-		const cacheKey = `${fileName}\n${options?.exts?.join("|") ?? ""}\n${fallbackToBaseName ? "base" : ""}`;
-		if (sourceCache.has(cacheKey)) {
-			return sourceCache.get(cacheKey) ?? undefined;
-		}
-		const cacheSource = (source: SourceFileData | undefined) => {
-			sourceCache.set(cacheKey, source ?? null);
-			return source;
-		};
-		if (isSamePath(rootFileName, fileName)) {
-			return cacheSource({ fileName: rootFileName, content });
-		}
-		// A native build request carries an immutable Content snapshot. Prefer its
-		// exact path over an existing Monaco model: UpdateFile notifications are
-		// intentionally UI-batched, so that model may still contain the previous
-		// generation during a rapid project rebuild.
-		if (virtualFiles !== undefined) {
-			const source = readVirtualPath(fileName, options?.exts);
-			if (source !== undefined) {
-				syncModelContent(monaco.Uri.file(source.fileName), source.content);
-				return cacheSource(source);
-			}
-		}
-		const readResolvedFile = (targetPath: string, exts?: string[], fallbackToBaseName = false) => {
-			const resolvedCacheKey = `${Info.path.normalize(targetPath)}\n${exts?.join("|") ?? ""}\n${fallbackToBaseName ? "base" : ""}`;
-			if (sourceCache.has(resolvedCacheKey)) {
-				return sourceCache.get(resolvedCacheKey) ?? undefined;
-			}
-			const cacheResolvedSource = (source: SourceFileData | undefined) => {
-				sourceCache.set(resolvedCacheKey, source ?? null);
-				return source;
-			};
-			const readSync = (path: string) => {
-				if (virtualFiles !== undefined) {
-					const source = readVirtualFile(path, exts);
-					return source === undefined ? { success: false as const } : {
-						success: true as const,
-						content: source.content,
-						fullPath: source.fileName,
-					};
-				}
-				return Service.readSync({ path, exts, projFile: rootFileName, projectRoot });
-			};
-			let res = readSync(targetPath);
-			if (!res?.success && fallbackToBaseName && Info.path.isAbsolute(targetPath)) {
-				const ext = Info.path.extname(targetPath);
-				let baseName = Info.path.basename(targetPath, ext);
-				baseName = Info.path.extname(baseName) === ".d" ? Info.path.basename(baseName, ".d") : baseName;
-				res = readSync(baseName);
-			}
-			if (res?.success) {
-				const fullUri = monaco.Uri.file(res.fullPath);
-				syncModelContent(fullUri, res.content);
-				const requestedUri = monaco.Uri.file(fileName);
-				const requestedModel = monaco.editor.getModel(requestedUri);
-				if (requestedModel !== null && !isSamePath(requestedUri.fsPath, fullUri.fsPath)) {
-					requestedModel.dispose();
-				}
-				pathMap.set(fileName, fullUri);
-				return cacheResolvedSource({ fileName: res.fullPath, content: res.content });
-			}
-			return cacheResolvedSource(undefined);
-		};
-		const mappedUri = pathMap.get(fileName);
-		if (mappedUri !== undefined) {
-			if (virtualFiles !== undefined) {
-				const source = virtualFilesByPath.get(Info.path.normalize(mappedUri.fsPath));
-				if (source !== undefined) {
-					syncModelContent(mappedUri, source.content);
-					return cacheSource(source);
-				}
-			}
-			const mappedModel = monaco.editor.getModel(mappedUri);
-			if (mappedModel !== null) {
-				return cacheSource({ fileName: mappedUri.fsPath, content: mappedModel.getValue() });
-			}
-		}
-		const builtinLib = getCachedBuiltinLib(fileName);
-		if (builtinLib !== undefined) {
-			return cacheSource(builtinLib);
-		}
-		const currentExt = Info.path.extname(fileName);
-		if (options?.exts !== undefined) {
-			const source = readResolvedFile(fileName, options.exts, fallbackToBaseName);
-			if (source !== undefined) return cacheSource(source);
-		} else if (currentExt === ".ts" || currentExt === ".tsx" || currentExt === ".d.ts") {
-			const baseName = Info.path.basename(fileName, currentExt);
-			const lookupBaseName = Info.path.extname(baseName) === ".d" ? Info.path.basename(baseName, ".d") : baseName;
-			const source = readResolvedFile(Info.path.join(Info.path.dirname(fileName), lookupBaseName), [".d.ts", ".ts", ".tsx"], fallbackToBaseName);
-			if (source !== undefined) return cacheSource(source);
-		}
-		const uri = monaco.Uri.file(fileName);
-		const model = monaco.editor.getModel(uri);
-		if (model !== null) {
-			return cacheSource({ fileName: uri.fsPath, content: model.getValue() });
-		}
-		return cacheSource(readResolvedFile(fileName, options?.exts, fallbackToBaseName));
-	};
-	const compilerHost: CompilerHost = {
-		fileExists: fileName => {
-			if (fileName.search("node_modules") > 0) {
-				return false;
-			}
-			fileName = Info.path.normalize(fileName);
-			// The native /ts/build request is authoritative for project files. Resolve
-			// it before consulting Monaco: UpdateFile is intentionally UI-batched and
-			// can still expose the previous generation during a rapid rebuild.
-			if (virtualFiles !== undefined) {
-				const source = readVirtualPath(fileName, [".d.ts", ".ts", ".tsx"]);
-				if (source !== undefined) {
-					const sourceUri = monaco.Uri.file(source.fileName);
-					syncModelContent(sourceUri, source.content);
-					pathMap.set(fileName, sourceUri);
-					return true;
-				}
-			}
-			const uri = pathMap.get(fileName);
-			if (uri !== undefined) {
-				const model = monaco.editor.getModel(uri);
-				if (model !== null) {
-					return true;
-				}
-			}
-			const baseName = Info.path.basename(fileName);
-			if (baseName.startsWith('Dora.d.') && baseName !== 'Dora.d.ts') {
-				return false;
-			}
-			if (baseName.startsWith('Dora.') && baseName !== 'Dora.d.ts') {
-				return true;
-			}
-			if (baseName.toLowerCase().startsWith('dora.')) {
-				return false;
-			}
-			if (baseName === 'lib.Dora.d.ts') {
-				return true;
-			}
-			if (Info.path.isAbsolute(fileName)) {
-				const relativePath = Info.path.relative(currentDirectory, fileName);
-				if (isPathWithin(fileName, currentDirectory, Info.path)) {
-					const ext = Info.path.extname(relativePath);
-					let baseName = Info.path.basename(relativePath, ext);
-					baseName = Info.path.extname(baseName) === ".d" ? Info.path.basename(baseName, ".d") : baseName;
-					const targetFile = baseName;
-					const dirName = Info.path.dirname(relativePath);
-					const relativeTargetPath = Info.path.join(dirName, targetFile);
-					// TSTL's Classic resolver can ask for a project-relative module while
-					// the Web IDE is focused on a tab from another project. Resolve that
-					// URI from the transpile request's project root, not the active tab's
-					// project, so a valid model from the focused tab cannot win lookup.
-					const path = projectRoot && projectRoot !== ""
-						? Info.path.join(currentDirectory, relativeTargetPath)
-						: relativeTargetPath;
-					for (const ext of [".d.ts", ".ts", ".tsx"]) {
-						const uri = monaco.Uri.file(path + ext);
-						const model = monaco.editor.getModel(uri);
-						if (model !== null) {
-							pathMap.set(fileName, uri);
-							return true;
-						}
-					}
-					if (unexistMap.has(path)) {
-						return false;
-					}
-					const source = readSourceFile(path, { exts: [".d.ts", ".ts", ".tsx"] });
-					if (source !== undefined) {
-						pathMap.set(fileName, monaco.Uri.file(source.fileName));
-						return true;
-					} else {
-						pathMap.delete(fileName);
-						unexistMap.add(path);
-					}
-				}
-			}
-			const currentExt = Info.path.extname(fileName);
-			let currentBaseName = Info.path.basename(fileName, currentExt);
-			currentBaseName = Info.path.extname(currentBaseName) === ".d" ? Info.path.basename(currentBaseName, ".d") : currentBaseName;
-			const modelLookupFileName = projectRoot && projectRoot !== "" && !Info.path.isAbsolute(fileName)
-				? Info.path.join(currentDirectory, fileName)
-				: fileName;
-			for (const ext of [".d.ts", ".ts", ".tsx"]) {
-				const uri = monaco.Uri.file(Info.path.join(Info.path.dirname(modelLookupFileName), currentBaseName + ext));
-				const model = monaco.editor.getModel(uri);
-				if (model !== null) {
-					pathMap.set(fileName, uri);
-					return true;
-				}
-			}
-			if (readSourceFile(fileName) !== undefined) {
-				return true;
-			}
-			if (currentExt === "" && readSourceFile(fileName, { exts: [".d.ts", ".ts", ".tsx"] }) !== undefined) {
-				return true;
-			}
-			return false;
-		},
-		getCanonicalFileName: fileName => Info.path.normalize(fileName),
-		getCurrentDirectory: () => currentDirectory,
-		getDefaultLibFileName: () => "lib.Dora.d.ts",
-		readFile: fileName => {
-			fileName = Info.path.normalize(fileName);
-			return readSourceFile(fileName)?.content;
-		},
-		getNewLine: () => "\n",
-		useCaseSensitiveFileNames: () => true,
-		writeFile: (fileName, content) => {
-			writeFiles.set(fileName, content);
-		},
-		getSourceFile(fileName) {
-			fileName = Info.path.normalize(fileName);
-			const baseName = Info.path.basename(fileName);
-			if (baseName.startsWith('Dora.') && baseName !== 'Dora.d.ts') {
-				return ts.createSourceFile("dummy.d.ts", "", scriptTarget, false);
-			}
-			if (baseName === 'jsx.d.ts') {
-				const source = readSourceFile(baseName);
-				if (source !== undefined) {
-					return ts.createSourceFile(source.fileName, source.content, scriptTarget, false);
-				}
-			}
-			if (baseName === 'lib.Dora.d.ts') {
-				const source = readSourceFile("Dora.d.ts");
-				if (source !== undefined) {
-					return ts.createSourceFile(source.fileName, source.content, scriptTarget, false);
-				}
-			}
-			const source = readSourceFile(fileName);
-			if (source !== undefined) {
-				return ts.createSourceFile(source.fileName, source.content, scriptTarget, false);
-			}
-			if (!Info.path.isAbsolute(fileName)) {
-				return undefined;
-			} else {
-				const uri = pathMap.get(fileName);
-				if (uri !== undefined) {
-					const model = monaco.editor.getModel(uri);
-					if (model !== null) {
-						return ts.createSourceFile(uri.fsPath, model.getValue(), scriptTarget, false);
-					}
-				}
-				const fileContent = compilerHost.readFile(fileName);
-				if (fileContent !== undefined) {
-					return ts.createSourceFile(fileName, fileContent, scriptTarget, false);
-				}
-				return undefined;
-			}
-		},
-		resolveModuleNames(moduleNames, containingFile) {
-			return moduleNames.map(moduleName => {
-				const resolved = resolveDoraModule(ts, moduleName, containingFile, compilerOptions, compilerHost);
-				if (resolved !== undefined || moduleName.startsWith(".") || Info.path.isAbsolute(moduleName)) {
-					return resolved;
-				}
-				const virtualSource = virtualFiles === undefined
-					? undefined
-					: readVirtualFile(moduleName, [".d.ts", ".ts", ".tsx"]);
-				const source = virtualSource === undefined
-					? virtualFiles === undefined ? Service.readSync({
-						path: moduleName,
-						exts: [".d.ts", ".ts", ".tsx"],
-						projFile: containingFile,
-						projectRoot,
-					}) : { success: false as const }
-					: { success: true as const, content: virtualSource.content, fullPath: virtualSource.fileName };
-				if (!source?.success) return undefined;
-				const extension = source.fullPath.endsWith(".d.ts")
-					? ts.Extension.Dts
-					: source.fullPath.endsWith(".tsx")
-						? ts.Extension.Tsx
-						: ts.Extension.Ts;
-				return {
-					resolvedFileName: source.fullPath,
-					extension,
-					isExternalLibraryImport: true,
-				};
-			});
-		},
-	};
-	return [compilerHost, writeFiles];
+async function requestTypeScriptSnapshot(file: string): Promise<TypeScriptSnapshot> {
+	const snapshot = await Service.tsSnapshot(file);
+	if (!snapshot.success) throw new Error(snapshot.message || "TypeScript snapshot is unavailable");
+	return snapshot;
 }
 
 function createTypescriptProgram(
-	ts: TsModule,
-	tstlOptions: TstlCompilerOptions,
-	rootFileName: string,
-	content: string,
-	projectRoot?: string,
-	virtualFiles?: readonly TranspileTSVirtualFile[],
-	projectScriptRoot?: string,
-): { program: Program; snapshotHost?: CompilerHost } {
-	const sourceRoot = projectRoot && projectRoot !== "" ? projectRoot : Info.path.dirname(rootFileName);
-	// WebSocket transpile requests may overlap across Agent projects. Keep the
-	// project-specific paths on this program instead of mutating shared options.
-	const compilerOptions = {
-		...tstlOptions,
-		baseUrl: sourceRoot,
-		rootDir: sourceRoot,
-	};
-	if (virtualFiles !== undefined) {
-		// Complete builds must never consult Monaco's possibly stale project models.
-		// Only platform-owned declaration assets are added by this adapter.
-		const files = new Map(virtualFiles.map(file => [Info.path.normalize(file.file), file]));
-		const rootPath = Info.path.normalize(rootFileName);
-		files.set(rootPath, { ...files.get(rootPath), file: rootPath, content });
-		let defaultLibFileName = virtualFiles.find(file => file.moduleName === "Dora" && Info.path.basename(file.file) === "Dora.d.ts")?.file
-			?? virtualFiles.find(file => Info.path.basename(file.file) === "Dora.d.ts")?.file;
-		const extraLibs = defaultLibFileName === undefined ? monacoTypescript.typescriptDefaults.getExtraLibs() : {};
-		for (const [name, lib] of Object.entries(extraLibs) as [string, { content: string }][]) {
-			const file = Info.path.normalize(toFilePath(name));
-			const base = Info.path.basename(file);
-			if (!["Dora.d.ts", "es6-subset.d.ts", "lua.d.ts", "jsx.d.ts"].includes(base)) continue;
-			if (!files.has(file)) files.set(file, { file, content: lib.content });
-			if (base === "Dora.d.ts") defaultLibFileName = file;
-		}
-		const snapshot = createSnapshotProgram(ts, {
-			rootNames: [rootPath], projectRoot: sourceRoot, files: [...files.values()],
-			options: compilerOptions, projectScriptRoot, defaultLibFileName: defaultLibFileName ?? "Dora.d.ts",
-		});
-		return { program: snapshot.program, snapshotHost: snapshot.host };
-	}
-	const [compilerHost] = createCompilerHost(ts, rootFileName, content, projectRoot, compilerOptions, virtualFiles);
-	const program = ts.createProgram([rootFileName], compilerOptions, compilerHost);
-	registerDoraRuntimeExports(ts, program, program.getSourceFile(compilerHost.getDefaultLibFileName(compilerOptions)));
-	return { program };
+	ts: TsModule, options: CompilerOptions, file: string, content: string, snapshot: TypeScriptSnapshot,
+) {
+	const fileName = normalizePath(file);
+	const files = new Map(snapshot.files.map(entry => [normalizePath(entry.file), entry]));
+	files.set(fileName, { ...files.get(fileName), file: fileName, content });
+	return createSnapshotProgram(ts, {
+		...snapshot, rootNames: [fileName], files: [...files.values()], options,
+	});
 }
 
 export async function transpileTypescript(
 	fileName: string,
 	content: string,
 	projectRoot?: string,
-	virtualFiles?: readonly TranspileTSVirtualFile[],
+	virtualFiles?: TranspileTSVirtualFile[],
 	projectScriptRoot?: string,
+	luaRuntimeModules?: string[],
+	assetPath?: string,
+	defaultLibFileName?: string,
 ) {
 	const ts = await loadTypescriptCompiler();
 	const tstl = await loadTstl();
 	await loadSourceMapWasm();
-	const tstlOptions = getTstlOptions(ts, tstl);
-	const sourceRoot = projectRoot || (virtualFiles === undefined
-		? (await Service.projectRoot({ path: fileName, isDir: false }))?.projectRoot
-		: undefined);
-	const { program, snapshotHost } = createTypescriptProgram(ts, tstlOptions, fileName, content, sourceRoot, virtualFiles, projectScriptRoot);
+	const snapshot = projectRoot && virtualFiles && luaRuntimeModules && assetPath && defaultLibFileName
+		? { projectRoot, projectScriptRoot, files: virtualFiles, luaRuntimeModules, assetPath, defaultLibFileName }
+		: await requestTypeScriptSnapshot(fileName);
+	const options = getTstlOptions(ts, tstl, snapshot.luaRuntimeModules, snapshot.assetPath);
+	const { program, host } = createTypescriptProgram(ts, options, fileName, content, snapshot);
 	const preEmitDiagnostics = ts.getPreEmitDiagnostics(program);
 	const { createEmitOutputCollector } = await loadOutputCollector();
 	const collector = createEmitOutputCollector();
-	const dependencyCache = new Map<string, string | undefined>();
-	const readDependency = (filename: string) => {
-		if (snapshotHost) return snapshotHost.readFile(filename);
-		const path = Info.path.normalize(filename);
-		if (!dependencyCache.has(path)) {
-			const context = { projFile: fileName, projectRoot: sourceRoot };
-			let result = Service.readSync({ path, ...context });
-			if (!result?.success && Info.path.isAbsolute(path)) {
-				// TSTL probes absolute paths under the source root for Lua modules.
-				// Retry the module-relative name so Dora's Script/Lib search paths apply.
-				const root = sourceRoot || Info.path.dirname(fileName);
-				const relative = Info.path.relative(root, path);
-				if (relative && !Info.path.isAbsolute(relative) && !/^\.\.(?:[\\/]|$)/.test(relative)) {
-					result = Service.readSync({ path: relative, ...context });
-				}
-			}
-			dependencyCache.set(path, result?.success ? result.content : undefined);
-		}
-		return dependencyCache.get(path);
-	};
 	const res = new tstl.Transpiler({
 		emitHost: {
-			directoryExists: path => snapshotHost?.directoryExists?.(path) ?? false,
-			fileExists: path => snapshotHost ? snapshotHost.fileExists(path) : readDependency(path) !== undefined,
-			getCurrentDirectory: () => sourceRoot || Info.path.dirname(fileName),
-			readFile: readDependency,
+			directoryExists: path => host.directoryExists?.(path) ?? false,
+			fileExists: host.fileExists,
+			getCurrentDirectory: host.getCurrentDirectory,
+			readFile: host.readFile,
 			writeFile: () => { }
 		}
 	}).emit({
@@ -773,12 +349,12 @@ export async function addDiagnosticToLog(fileName: string, diagnostics: readonly
 export async function getDeclarationFile(fileName: string, content: string) {
 	const ts = await loadTypescriptCompiler();
 	const compilerOptions = getDeclarationOptions(ts);
-	const [host, writeFiles] = createCompilerHost(ts, fileName, content, undefined, compilerOptions);
-	const program = ts.createProgram([fileName], compilerOptions, host);
+	const snapshot = await requestTypeScriptSnapshot(fileName);
+	const { program, outputs } = createTypescriptProgram(ts, compilerOptions, fileName, content, snapshot);
 	const result = program.emit();
 	await addDiagnosticToLog(fileName, result.diagnostics);
 	const baseName = Info.path.basename(fileName, Info.path.extname(fileName));
-	for (const [outputFileName, outputContent] of writeFiles.entries()) {
+	for (const [outputFileName, outputContent] of outputs.entries()) {
 		const outputBaseName = Info.path.basename(outputFileName, '.d.ts');
 		if (outputBaseName === baseName && outputFileName.endsWith('.d.ts')) {
 			return {

@@ -135,6 +135,7 @@ target("dora-web-engine")
             end
         end
         files(t, c, {"Source/Lua/LuaBindingWeb.cpp", "Source/Lua/LuaCodeWeb.cpp"}, {always_added = true})
+        if c.studio_agent_host then files(t, c, {"Source/Lua/Xml/DoraTag.cpp"}) end
         files(t, c, {"Source/Wasm/CallStack.cpp", "Source/Web/WebTaskQueue.cpp", "Source/Web/WebAssetLoader.cpp", "Source/Web/WebHttp.cpp",
             "Source/Lua/LuaManual.cpp", "Source/Web/WebXrtNetwork.cpp", "Source/3rdParty/soloud/backend/sdl2_static/soloud_sdl2_static.cpp",
             "Source/3rdParty/LuaSocket/src/compat.c", "Source/3rdParty/LuaSocket/src/mime.c"})

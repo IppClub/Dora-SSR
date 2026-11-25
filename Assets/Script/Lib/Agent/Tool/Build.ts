@@ -1,6 +1,6 @@
 // @preview-file off clear
-import { Content, Path, Director, once, Node, emit, wait, App, HttpServer } from 'Dora';
-import { Log, safeJsonDecode, safeJsonEncode } from 'Agent/Utils';
+import { Content, Path, Director, once, wait, App } from 'Dora';
+import { Log } from 'Agent/Utils';
 import { sendWebIDEFileUpdate } from 'Agent/Tool/WebIDESync';
 import { buildGodotProject, findGodotProject } from 'Agent/Tool/GodotBuild';
 import { planDirectoryBuild } from 'Agent/Tool/BuildPlan';
@@ -61,11 +61,6 @@ function getSupportedBuildKind(path: string): SupportedBuildKind | undefined {
 	}
 }
 
-function encodeJSON(obj: object): string | undefined {
-	const [text] = safeJsonEncode(obj);
-	return text;
-}
-
 async function runSingleNonTsBuild(file: string, projectRoot?:string, isCancelled?:()=>boolean): Promise<BuildMessage> {
 	if(typeof _studio_agent_tool_begin==="function") {
 		if(!projectRoot)return {success:false,file,failureKind:"tool",message:"Studio project root is unavailable"};
@@ -88,8 +83,6 @@ async function runSingleNonTsBuild(file: string, projectRoot?:string, isCancelle
 	})
 }
 
-let transpileRequestSeq = 0;
-const TRANSPILE_READY_TIMEOUT_SECONDS = 5;
 const TRANSPILE_BUILD_TIMEOUT_SECONDS = 30;
 const MISSING_LUA_OUTPUT_MESSAGE = "Compiler returned no Lua output";
 
@@ -139,113 +132,18 @@ export async function runSingleTsTranspile(
 		if(!projectRoot)return {success:false,file,failureKind:"tool",message:"Studio project root is unavailable"};
 		return runStudioBuild(file,content,projectRoot,"transpile-ts",true,isCancelled);
 	}
-	if (App.platform === "Android" || App.platform === "macOS" || App.platform === "Windows") {
-		return new Promise<BuildMessage>((resolve) => {
-			const moduleName = "Script.Dev.WebServer";
-			const webServer = require(moduleName) as {
-				transpileTSFile: (
-					this: void,
-					file: string,
-					content: string,
-					projectRoot?: string,
-					files?: unknown,
-					isCancelled?: () => boolean,
-				) => BuildMessage;
-			};
-			Director.systemScheduler.schedule(once(() => {
-				resolve(webServer.transpileTSFile(file, content, projectRoot, undefined, isCancelled));
-			}));
-		});
-	}
-	let done = false;
-	let ready = false;
-	transpileRequestSeq += 1;
-	const requestId = `agent-build-${transpileRequestSeq}`;
-	let result: BuildMessage = {
-		success: false,
-		file,
-		failureKind: "tool",
-		message: "Web IDE not connected",
-	};
-	if (HttpServer.wsConnectionCount === 0) {
-		return result;
-	}
-	const listener = Node();
-	listener.gslot("AppWS", (event) => {
-		if (event.type !== "Receive") return;
-		const [res] = safeJsonDecode(event.msg);
-		if (!res || Array.isArray(res)) return;
-		const payload = res as AnyTable;
-		if (payload.id !== requestId) return;
-		if (payload.name === "TranspileTSProbe") {
-			ready = payload.success === true;
-			return;
-		}
-		if (payload.name !== "TranspileTS") return;
-		if (payload.success && typeof payload.luaCode === "string" && payload.luaCode.trim() !== "") {
-			const luaFile = Path.replaceExt(file, "lua");
-			if (Content.save(luaFile, tostring(payload.luaCode))) {
-				result = { success: true, file };
-			} else {
-				result = { success: false, file, message: `failed to save ${luaFile}` };
-			}
-		} else {
-			result = { success: false, file, message: payload.success ? MISSING_LUA_OUTPUT_MESSAGE : tostring(payload.message), failureKind: payload.failureKind === "tool" ? "tool" : undefined };
-		}
-		done = true;
-	});
-	const probePayload = encodeJSON({ name: "TranspileTSProbe", id: requestId });
-	const buildPayload = encodeJSON({
-		name: "TranspileTS",
-		id: requestId,
-		file,
-		content,
-		projectRoot,
-	});
-	if (!probePayload || !buildPayload) {
-		listener.removeFromParent();
-		return { success: false, file, failureKind: "tool", message: "failed to encode transpile request" };
-	}
-	await new Promise<void>(resolve => {
+	return new Promise<BuildMessage>(resolve => {
+		const moduleName = "Script.Dev.WebServer";
+		const webServer = require(moduleName) as {
+			transpileTSFile(
+				this: void, file: string, content: string, projectRoot?: string,
+				files?: unknown, isCancelled?: () => boolean,
+			): BuildMessage;
+		};
 		Director.systemScheduler.schedule(once(() => {
-			emit("AppWS", "Send", probePayload);
-			const readyDeadline = App.runningTime + TRANSPILE_READY_TIMEOUT_SECONDS;
-			wait(() => ready
-				|| HttpServer.wsConnectionCount === 0
-				|| App.runningTime >= readyDeadline
-				|| isCancelled?.() === true);
-			if (!ready) {
-				listener.removeFromParent();
-				if (isCancelled?.() === true) {
-					result = { success: false, file, failureKind: "tool", message: "build canceled", interrupted: true };
-				} else if (HttpServer.wsConnectionCount === 0) {
-					result = { success: false, file, failureKind: "tool", message: "Web IDE disconnected" };
-				} else {
-					result = { success: false, file, failureKind: "tool", message: "TypeScript transpiler is not ready" };
-				}
-				resolve();
-				return;
-			}
-			emit("AppWS", "Send", buildPayload);
-			const buildDeadline = App.runningTime + TRANSPILE_BUILD_TIMEOUT_SECONDS;
-			wait(() => done
-				|| HttpServer.wsConnectionCount === 0
-				|| App.runningTime >= buildDeadline
-				|| isCancelled?.() === true);
-			if (!done) {
-				listener.removeFromParent();
-				if (isCancelled?.() === true) {
-					result = { success: false, file, failureKind: "tool", message: "build canceled", interrupted: true };
-				} else if (HttpServer.wsConnectionCount === 0) {
-					result = { success: false, file, failureKind: "tool", message: "Web IDE disconnected" };
-				} else {
-					result = { success: false, file, failureKind: "tool", message: "TypeScript transpile timed out" };
-				}
-			}
-			resolve();
+			resolve(webServer.transpileTSFile(file, content, projectRoot, undefined, isCancelled));
 		}));
 	});
-	return result;
 }
 
 function finalizeBuildResult(workDir: string, messages: BuildMessage[]): BuildResult {

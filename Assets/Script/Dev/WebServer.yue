@@ -8,6 +8,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 _ENV = Dora
 import global
+import "ProjectSearch"
 
 HttpServer\stop!
 
@@ -1889,18 +1890,26 @@ HttpServer\postSchedule "/assets/batch", (req): success: false, message: "invali
 				changes[] = old: source, new: destination
 		return success: true, :changes, :affectedDirectories
 
-withProjectSearchPaths = (projectRoot, projFile, fn) ->
-	fallbackPaths = {}
-	addFallback = (dir) -> fallbackPaths[] = dir if dir and dir ~= "" and Content\exist(dir) and Content\isdir(dir)
-	if projectRoot and projectRoot ~= ""
-		addFallback Path projectRoot, "Script"
-		addFallback projectRoot
-	if projFile
+projectFallbackPaths = (projectRoot, projFile) ->
+	paths, seen = {}, {}
+	add = (dir) ->
+		if dir and dir ~= "" and not seen[dir] and Content\isdir dir
+			seen[dir] = true
+			paths[] = dir
+	addRoot = (root) ->
+		roots = ProjectSearch root
+		for index = #roots, 1, -1
+			add roots[index]
+	addRoot projectRoot
+	if projFile and projFile ~= ""
 		if projDir := getProjectDirFromFile projFile
-			addFallback Path projDir, "Script"
-			addFallback projDir
+			addRoot projDir
 		else
-			addFallback Path\getPath projFile
+			add Path\getPath projFile
+	paths
+
+withProjectSearchPaths = (projectRoot, projFile, fn) ->
+	fallbackPaths = projectFallbackPaths projectRoot, projFile
 	return fn! unless #fallbackPaths > 0
 	:searchPaths = Content
 	Content\addSearchPath dir for dir in *fallbackPaths
@@ -1985,28 +1994,7 @@ readSyncFile = (req): success: false ->
 							return fallbackResult
 				if fileResult := readFileAt targetPath
 					return fileResult
-		fallbackPaths = []
-		fallbackCandidates = []
-		if projectRoot := req.params.projectRoot
-			if projectRoot ~= "" and Content\exist(projectRoot) and Content\isdir(projectRoot)
-				fallbackCandidates[] = Path projectRoot, "Script"
-				fallbackCandidates[] = projectRoot
-		if projFile := req.params.projFile
-			if projDir := getProjectDirFromFile projFile
-				fallbackCandidates[] = Path projDir, "Script"
-				fallbackCandidates[] = projDir
-			else
-				projDir = Path\getPath projFile
-				fallbackCandidates[] = projDir
-		for dir in *fallbackCandidates
-			if dir and dir ~= "" and Content\exist(dir) and Content\isdir(dir)
-				exists = false
-				for fallback in *fallbackPaths
-					if fallback == dir
-						exists = true
-						break
-				fallbackPaths[] = dir unless exists
-		if readResult := readFile fallbackPaths
+		if readResult := readFile projectFallbackPaths(params.projectRoot, params.projFile)
 			return readResult
 
 HttpServer\get "/read-sync", readSyncFile
@@ -2694,6 +2682,23 @@ tsSnapshotGlobs =
 	- "!**/node_modules/**"
 	- "!**/CMakeFiles/**"
 
+luaRuntimeModules = do
+	modules = {}
+	for name in pairs _compilerRuntimeModules or {}
+		modules[] = name
+	for name in *(_loveCompilerModules and _loveCompilerModules! or {})
+		modules[] = name
+	table.sort modules
+	modules
+
+HttpServer\post "/ts/runtime-modules", -> success: true, :luaRuntimeModules, assetPath: Content.assetPath
+
+compilerDeclarationRoot = ->
+	locale = if App.locale\match '^zh' then 'zh-Hans' else 'en'
+	Path Content.assetPath, "Script", "Lib", "Dora", locale
+
+compilerDefaultLib = -> Path compilerDeclarationRoot!, "Dora.d.ts"
+
 collectTSVirtualFiles = (sourceRoot) ->
 	files = []
 	seen = {}
@@ -2704,6 +2709,7 @@ collectTSVirtualFiles = (sourceRoot) ->
 			return
 		if content := Content\load file
 			entry = file: targetFile, :content
+			entry.sourcePath = file if virtualFile and Path\getExt(file) == "ts" and Path\getExt(Path\getName(file)) == "d"
 			entry.moduleName = moduleName if moduleName and moduleName ~= ""
 			seen[targetFile] = entry
 			files[] = entry
@@ -2723,16 +2729,10 @@ collectTSVirtualFiles = (sourceRoot) ->
 				if relative := relativeToRoot file, builtinScriptRoot
 					moduleName = (builtinPrefix .. Path\replaceExt(relative, ""))\gsub "\\", "/"
 			addFile file, moduleName
-		libraryRoots =
-			- Path sourceRoot, "Script", "Lib"
-			- Path sourceRoot, "Lib"
-			- Path Content.assetPath, "Script", "Lib"
-		for libraryRoot in *libraryRoots
-			if Content\exist(libraryRoot) and Content\isdir(libraryRoot)
-				for subFile in *Content\glob(libraryRoot, tsSnapshotGlobs, nil, false)
-					file = Path libraryRoot, subFile
-					virtualFile = Path sourceRoot, subFile
-					addFile file, nil, virtualFile
+		libraryRoot = Path Content.assetPath, "Script", "Lib"
+		if Content\isdir libraryRoot
+			for subFile in *Content\glob(libraryRoot, tsSnapshotGlobs, nil, false)
+				addFile Path(libraryRoot, subFile), nil, Path(sourceRoot, subFile)
 	for namespace in *{"Dev", "Tools"}
 		builtinRoot = Path Content.assetPath, "Script", namespace
 		if Content\isdir builtinRoot
@@ -2740,8 +2740,7 @@ collectTSVirtualFiles = (sourceRoot) ->
 				file = Path builtinRoot, subFile
 				addFile file, nil, Path(sourceRoot, namespace, subFile)
 				addFile file, nil, Path(sourceRoot, "Script", namespace, subFile)
-	locale = if App.locale\match '^zh' then 'zh-Hans' else 'en'
-	declarationRoot = Path Content.assetPath, "Script", "Lib", "Dora", locale
+	declarationRoot = compilerDeclarationRoot!
 	for file in *Content\getFiles declarationRoot
 		if Path\getExt(file) == "ts" and Path\getExt(Path\getName(file)) == "d"
 			fullPath = Path declarationRoot, file
@@ -2760,8 +2759,22 @@ collectTSVirtualFiles = (sourceRoot) ->
 supportsCompilerWebView = -> App.platform in ["Android", "macOS", "Windows"]
 projectCompilerScriptRoot = (sourceRoot) ->
 	return nil unless sourceRoot and not relativeToRoot(sourceRoot, Content.assetPath)
-	scriptRoot = Path sourceRoot, "Script"
-	return scriptRoot if Content\isdir scriptRoot
+	(ProjectSearch sourceRoot)[2]
+
+HttpServer\postSchedule "/ts/snapshot", (req): invalidArguments ->
+	switch req when {body: {:file}}
+		return invalidArguments unless type(file) == "string" and Content\isAbsolutePath(file) and Path\getExt(file) in ["ts", "tsx"]
+		file = Path(Path\getPath(file), Path\getFilename(file))
+		snapshotRoot = getProjectDirFromFile(file) or Path\getPath(file)
+		return invalidArguments unless relativeToRoot(snapshotRoot, Content.writablePath) or relativeToRoot(snapshotRoot, Content.assetPath)
+		return
+			success: true
+			projectRoot: snapshotRoot
+			projectScriptRoot: projectCompilerScriptRoot snapshotRoot
+			files: collectTSVirtualFiles snapshotRoot
+			:luaRuntimeModules
+			assetPath: Content.assetPath
+			defaultLibFileName: compilerDefaultLib!
 
 webIDECompilerReady = false
 webIDEConnectionGeneration = 0
@@ -2825,7 +2838,7 @@ transpileTSFileWithWebIDE = do
 						else
 							result = success: false, :file, message: res.message or "Compiler returned no Lua output", failureKind: if res.success then "tool" else res.failureKind
 						done = true
-		emit "AppWS", "Send", json.encode name: "TranspileTS", id: requestId, :file, :content, projectRoot: sourceRoot, projectScriptRoot: projectCompilerScriptRoot(sourceRoot), :files
+		emit "AppWS", "Send", json.encode name: "TranspileTS", id: requestId, :file, :content, projectRoot: sourceRoot, projectScriptRoot: projectCompilerScriptRoot(sourceRoot), :files, :luaRuntimeModules, assetPath: Content.assetPath, defaultLibFileName: compilerDefaultLib!
 		deadline = App.runningTime + 30
 		wait -> done or HttpServer.wsConnectionCount == 0 or App.runningTime >= deadline or (isCancelled and isCancelled!)
 		listener\removeFromParent!
@@ -2933,6 +2946,9 @@ transpileTSFileWithCompiler = (file, content, sourceRoot, files, isCancelled) ->
 		projectRoot: sourceRoot
 		projectScriptRoot: projectCompilerScriptRoot sourceRoot
 		:files
+		:luaRuntimeModules
+		assetPath: Content.assetPath
+		defaultLibFileName: compilerDefaultLib!
 	deadline = App.runningTime + compilerBuildTimeout
 	wait -> compilerResults[jobId] or compilerFailure or App.runningTime >= deadline or (isCancelled and isCancelled!)
 	response = compilerResults[jobId]
@@ -2955,8 +2971,8 @@ compilerFailureListener\gslot "AppCompilerFailure", (message) ->
 	compilerReady = false
 
 transpileTSFile = (file, content, sourceRoot, files, isCancelled) ->
-	if supportsCompilerWebView! and not files
-		files = collectTSVirtualFiles sourceRoot or Path\getPath file
+	sourceRoot or= getProjectDirFromFile(file) or Path\getPath(file)
+	files or= collectTSVirtualFiles sourceRoot
 	if HttpServer.wsConnectionCount > 0
 		result = transpileTSFileWithWebIDE file, content, sourceRoot, files, isCancelled
 		return result if result.success or result.interrupted or result.failureKind ~= "tool" or not supportsCompilerWebView!

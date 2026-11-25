@@ -527,6 +527,27 @@ static int dora_new_game_id(lua_State* L) {
 }
 #endif
 
+#ifndef DORA_WEB_MINIMAL
+static int dora_love_compiler_modules(lua_State* L) {
+	lua_newtable(L);
+	lua_Integer index = 0;
+#define DORA_LOVE_MODULE(name, loader) \
+	lua_pushliteral(L, name); \
+	lua_seti(L, -2, ++index);
+#include "Love/PreloadModules.inc"
+#undef DORA_LOVE_MODULE
+	return 1;
+}
+#endif
+
+static int dora_open_bit32(lua_State* L) {
+	if (luaL_loadbufferx(L, bit32Source.data(), bit32Source.size(), "@dora-builtin/bit32.lua", "t") != LUA_OK) {
+		return lua_error(L);
+	}
+	lua_call(L, 0, 1);
+	return 1;
+}
+
 static int dora_register_builtin_modules(lua_State* L) {
 #if BX_PLATFORM_WINDOWS || BX_PLATFORM_ANDROID
 	luaL_getsubtable(L, LUA_REGISTRYINDEX, LUA_LOADED_TABLE);
@@ -540,30 +561,20 @@ static int dora_register_builtin_modules(lua_State* L) {
 	lua_setfield(L, -2, "dora.android_game_export");
 	lua_pop(L, 1);
 #endif
-#if !BX_PLATFORM_EMSCRIPTEN
-	luaL_requiref(L, "socket.core", luaopen_socket_core, 0);
+#define DORA_LUA_MODULE(name, loader, global) \
+	luaL_requiref(L, name, loader, global); \
 	lua_pop(L, 1);
-	luaL_requiref(L, "dora.remix_voice", luaopen_dora_remix_voice, 0);
-	lua_pop(L, 1);
+#if BX_PLATFORM_EMSCRIPTEN
+#define DORA_NATIVE_LUA_MODULE(name, loader, global)
+#else
+#define DORA_NATIVE_LUA_MODULE(name, loader, global) DORA_LUA_MODULE(name, loader, global)
 #endif
-	luaL_requiref(L, "mime.core", luaopen_mime_core, 0);
-	lua_pop(L, 1);
-	luaL_requiref(L, "dora.https", luaopen_dora_https, 0);
-	lua_pop(L, 1);
+#include "Lua/BuiltinModuleProviders.inc"
+#undef DORA_NATIVE_LUA_MODULE
+#undef DORA_LUA_MODULE
 	for (const auto& script : DoraLuaSocketScripts::scripts) {
 		dora_preload_lua_module(L, script);
 	}
-	if (luaL_loadbufferx(L, bit32Source.data(), bit32Source.size(), "@dora-builtin/bit32.lua", "t") != LUA_OK) {
-		return lua_error(L);
-	}
-	lua_call(L, 0, 1);
-	lua_pushvalue(L, -1);
-	lua_setglobal(L, "bit32");
-	lua_getglobal(L, "package");
-	lua_getfield(L, -1, "loaded");
-	lua_pushvalue(L, -3);
-	lua_setfield(L, -2, "bit32");
-	lua_pop(L, 3);
 	return 0;
 }
 
@@ -1744,6 +1755,7 @@ LuaEngine::LuaEngine()
 		tolua_function(L, "ubox", dora_ubox);
 		tolua_function(L, "emit", dora_emit);
 		tolua_function(L, "yarncompile", dora_yarn_compile);
+		tolua_function(L, "_loveCompilerModules", dora_love_compiler_modules);
 		tolua_function(L, "bgfxProbeDraw", dora_bgfx_probe_draw);
 		tolua_function(L, "bgfxProbeClearRed", dora_bgfx_probe_clear_red);
 

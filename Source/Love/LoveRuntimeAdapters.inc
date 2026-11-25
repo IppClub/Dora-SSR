@@ -14014,45 +14014,10 @@ void LoveRuntime::registerLoveModule()
 	lua_setglobal(_state, "love");
 
 	luaL_getsubtable(_state, LUA_REGISTRYINDEX, LUA_PRELOAD_TABLE);
-	lua_pushcfunction(_state, openLoveModule);
-	lua_setfield(_state, -2, "love");
-	lua_pushcfunction(_state, openLoveGraphicsModule);
-	lua_setfield(_state, -2, "love.graphics");
-	lua_pushcfunction(_state, openLoveImageModule);
-	lua_setfield(_state, -2, "love.image");
-	lua_pushcfunction(_state, openLoveFontModule);
-	lua_setfield(_state, -2, "love.font");
-	lua_pushcfunction(_state, openLoveSoundModule);
-	lua_setfield(_state, -2, "love.sound");
-	lua_pushcfunction(_state, openLoveMathModule);
-	lua_setfield(_state, -2, "love.math");
-	lua_pushcfunction(_state, openLoveDataModule);
-	lua_setfield(_state, -2, "love.data");
-	lua_pushcfunction(_state, openLoveWindowModule);
-	lua_setfield(_state, -2, "love.window");
-	lua_pushcfunction(_state, openLoveEventModule);
-	lua_setfield(_state, -2, "love.event");
-	lua_pushcfunction(_state, openLoveFilesystemModule);
-	lua_setfield(_state, -2, "love.filesystem");
-	lua_pushcfunction(_state, openLoveKeyboardModule);
-	lua_setfield(_state, -2, "love.keyboard");
-	lua_pushcfunction(_state, openLoveMouseModule);
-	lua_setfield(_state, -2, "love.mouse");
-	lua_pushcfunction(_state, openLoveTouchModule);
-	lua_setfield(_state, -2, "love.touch");
-	lua_pushcfunction(_state, openLoveJoystickModule);
-	lua_setfield(_state, -2, "love.joystick");
-	lua_pushcfunction(_state, openLoveTimerModule);
-	lua_setfield(_state, -2, "love.timer");
-	lua_pushcfunction(_state, openLoveAudioModule);
-	lua_setfield(_state, -2, "love.audio");
-	lua_pushcfunction(_state, openLoveVideoModule);
-	lua_setfield(_state, -2, "love.video");
-	lua_pushcfunction(_state, openLoveSystemModule);
-	lua_setfield(_state, -2, "love.system");
-	lua_pushcfunction(_state, openLoveThreadModule);
-	lua_setfield(_state, -2, "love.thread");
-	lua_pushcfunction(_state, openLovePhysicsModule);
-	lua_setfield(_state, -2, "love.physics");
+#define DORA_LOVE_MODULE(name, loader) \
+	lua_pushcfunction(_state, loader); \
+	lua_setfield(_state, -2, name);
+#include "Love/PreloadModules.inc"
+#undef DORA_LOVE_MODULE
 	lua_pop(_state, 1);
 }

@@ -158,15 +158,16 @@ export function getEmitPath(file: string, program: ts.Program): string {
     return path.join(outDir, relativeOutputPath);
 }
 
-export function getEmittedModuleName(fileName: string, program: ts.Program): string {
+export function getEmittedModuleName(fileName: string, program: ts.Program, explicitFile = false): string {
     const emittedFile = getEmitPathRelativeToOutDir(fileName, program);
     const moduleRoot = (program.getCompilerOptions() as CompilerOptions).luaProjectModuleRoot;
+    const format = (file: string) => explicitFile ? "./" + normalizeSlashes(file) : formatModuleFilePath(file);
     if (moduleRoot) {
         const prefix = normalizeSlashes(path.relative(getSourceDir(program), moduleRoot)) + "/";
         const relativeFile = normalizeSlashes(emittedFile);
-        if (relativeFile.startsWith(prefix)) return formatModuleFilePath(relativeFile.slice(prefix.length));
+        if (relativeFile.startsWith(prefix)) return format(relativeFile.slice(prefix.length));
     }
-    return formatModuleFilePath(emittedFile);
+    return format(emittedFile);
 }
 
 export function getEmitPathRelativeToOutDir(fileName: string, program: ts.Program): string {
