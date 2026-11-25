@@ -7,7 +7,6 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. ]]
 
 _ENV = Dora Dora.ImGui
-import "ProjectSearch"
 import "ImGuiEnum" as :$WindowFlag, :$SetCond
 import global
 
@@ -267,7 +266,7 @@ thread ->
 	sleep 2
 	checkForUpdates false
 
-from "Utils" import Set, Struct, LintYueGlobals
+from "Utils" import Set, Struct, LintYueGlobals, GetProjectSearchPaths
 options: {extension: yueext} = yue
 
 SetDefaultFont "sarasa-mono-sc-regular", 20
@@ -1014,7 +1013,7 @@ export enterEntryAsync = (entry) ->
 	return false, "superseded" if launchRunId ~= allEntries.runId or isInEntry or currentEntry ~= entry
 	try
 		workDir ??= Path\getPath file
-		for directory in *ProjectSearch workDir
+		for directory in *GetProjectSearchPaths workDir
 			Content\insertSearchPath 1, directory
 		result = require file
 		result entry.argument if "function" == type result

@@ -1,4 +1,4 @@
--- [yue]: Script/Dev/GodotDependency.yue
+-- [yue]: Dev/GodotDependency.yue
 local _module_0 = { } -- 1
 local Content, Path -- 1
 do -- 1

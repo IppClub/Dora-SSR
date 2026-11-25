@@ -8,7 +8,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 _ENV = Dora
 import global
-import "ProjectSearch"
 
 HttpServer\stop!
 
@@ -83,7 +82,7 @@ HttpServer\post "/auth/confirm", (req) ->
 		return success: false, message: "pending", retryAfter: 2
 	return success: false, message: "invalid session"
 
-from "Utils" import LintYueGlobals, CheckTIC80Code
+from "Utils" import LintYueGlobals, CheckTIC80Code, GetProjectSearchPaths, GetProjectScriptRoot
 
 getProjectDirFromFile = (file) ->
 	:writablePath, :assetPath = Content
@@ -1897,7 +1896,7 @@ projectFallbackPaths = (projectRoot, projFile) ->
 			seen[dir] = true
 			paths[] = dir
 	addRoot = (root) ->
-		roots = ProjectSearch root
+		roots = GetProjectSearchPaths root
 		for index = #roots, 1, -1
 			add roots[index]
 	addRoot projectRoot
@@ -2759,7 +2758,7 @@ collectTSVirtualFiles = (sourceRoot) ->
 supportsCompilerWebView = -> App.platform in ["Android", "macOS", "Windows"]
 projectCompilerScriptRoot = (sourceRoot) ->
 	return nil unless sourceRoot and not relativeToRoot(sourceRoot, Content.assetPath)
-	(ProjectSearch sourceRoot)[2]
+	GetProjectScriptRoot sourceRoot
 
 HttpServer\postSchedule "/ts/snapshot", (req): invalidArguments ->
 	switch req when {body: {:file}}
@@ -2981,8 +2980,11 @@ transpileTSFile = (file, content, sourceRoot, files, isCancelled) ->
 		return transpileTSFileWithCompiler file, content, sourceRoot, files, isCancelled
 	success: false, :file, message: "Web IDE compiler not connected", failureKind: "tool"
 
-buildTypeScriptFiles = (files, sourceRoot, isCancelled) ->
+buildTypeScriptFiles = (files, sourceRoot, isCancelled, onResult) ->
 	messages = []
+	recordResult = (result) ->
+		messages[] = result
+		onResult result if onResult
 	fileData = {}
 	for file in *files
 		continue if "d" == Path\getExt Path\getName file
@@ -2991,13 +2993,27 @@ buildTypeScriptFiles = (files, sourceRoot, isCancelled) ->
 			fileData[file] = content
 			emit "AppWS", "Send", json.encode name: "UpdateFile", :file, exists: true, :content, projectRoot: sourceRoot
 		else
-			messages[] = success: false, :file, message: "failed to read file"
+			recordResult success: false, :file, message: "failed to read file"
 	if next fileData
 		snapshot = collectTSVirtualFiles sourceRoot
 		for file, content in pairs fileData
 			break if isCancelled and isCancelled!
-			messages[] = transpileTSFile file, content, sourceRoot, snapshot, isCancelled
+			recordResult transpileTSFile file, content, sourceRoot, snapshot, isCancelled
 	messages
+
+logTypeScriptBuildResult = (result) ->
+	file = result.file
+	title = relativeToRoot(file, Content.writablePath) or relativeToRoot(file, Content.assetPath) or file
+	if result.success
+		Log "Info", "Built #{title}"
+	else
+		message = result.message
+		Log "Error", if message then "Failed to build #{title}\n#{message}" else "Failed to build #{title}"
+
+buildTypeScriptBatchWithLog = (files, sourceRoot) ->
+	return {} if #files == 0
+	Log "Info", "Building TypeScript (#{#files} files)"
+	buildTypeScriptFiles files, sourceRoot, nil, logTypeScriptBuildResult
 
 HttpServer\postSchedule "/ts/build", (req): success: false ->
 	finishUpdate = AgentHost.holdSourceUpdate (req.body or {}).path
@@ -3015,24 +3031,23 @@ HttpServer\postSchedule "/ts/build", (req): success: false ->
 		messages = []
 		if not isDir
 			return success: false, message: "expecting a TypeScript file" unless Path\getExt(path) in ["ts", "tsx"]
-			messages = buildTypeScriptFiles {path}, sourceRoot
+			messages = buildTypeScriptFiles {path}, sourceRoot, nil, logTypeScriptBuildResult
 		elseif selected := req.body.files
 			return success: false, message: "invalid TypeScript targets" unless type(selected) == "table"
 			for file in *selected
 				unless type(file) == "string" and Content\isAbsolutePath(file) and relativeToRoot(file, path) and Path\getExt(file) in ["ts", "tsx"]
 					return success: false, message: "TypeScript target must be inside the build directory"
-			messages = buildTypeScriptFiles selected, sourceRoot
+			messages = buildTypeScriptBatchWithLog selected, sourceRoot
 		else
 			import "Agent.Tool.BuildPlan" as BuildPlan
 			for unit in *BuildPlan.planDirectoryBuild(path, sourceRoot, {"!**/.*/**"})
 				files = [file for file in *unit.files when Path\getExt(file) in ["ts", "tsx"]]
-				for result in *buildTypeScriptFiles(files, unit.projectRoot or sourceRoot)
+				for result in *buildTypeScriptBatchWithLog(files, unit.projectRoot or sourceRoot)
 					messages[] = result
 		success = true
 		for item in *messages
 			unless item.success
 				success = false
-				Log "Error", item.message or "Failed to build #{item.file}"
 		message = nil
 		message = "TypeScript compilation failed" unless success
 		buildSucceeded = success

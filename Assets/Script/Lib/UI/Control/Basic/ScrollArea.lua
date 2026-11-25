@@ -1,4 +1,4 @@
--- [yue]: Script/Lib/UI/Control/Basic/ScrollArea.yue
+-- [yue]: Lib/UI/Control/Basic/ScrollArea.yue
 local _module_0 = nil -- 1
 local _ENV = Dora -- 9
 local ScrollArea = require("UI.View.Control.Basic.ScrollArea") -- 10

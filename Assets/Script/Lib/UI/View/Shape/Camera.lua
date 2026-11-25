@@ -1,4 +1,4 @@
--- [xml]: Script/Lib/UI/View/Shape/Camera.xml
+-- [xml]: Lib/UI/View/Shape/Camera.xml
 local LineCircle = require("UI.View.Shape.LineCircle") -- 3
 local LineRect = require("UI.View.Shape.LineRect") -- 4
 return function(args) -- 1

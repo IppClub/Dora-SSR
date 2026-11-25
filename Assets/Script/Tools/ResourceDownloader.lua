@@ -27,14 +27,14 @@ local Texture2D = ____Dora.Texture2D -- 2
 local thread = ____Dora.thread -- 2
 local Vec2 = ____Dora.Vec2 -- 2
 local ImGui = require("ImGui") -- 4
-local ____Catalog = require("Script.Tools.ResourceDownloader.Catalog") -- 5
+local ____Catalog = require("Tools.ResourceDownloader.Catalog") -- 5
 local filterResources = ____Catalog.filterResources -- 6
 local isMinigame = ____Catalog.isMinigame -- 7
 local paginateResources = ____Catalog.paginateResources -- 8
-local ____CatalogSync = require("Script.Tools.ResourceDownloader.CatalogSync") -- 13
+local ____CatalogSync = require("Tools.ResourceDownloader.CatalogSync") -- 13
 local loadCachedCatalog = ____CatalogSync.loadCachedCatalog -- 14
 local syncCatalog = ____CatalogSync.syncCatalog -- 15
-local ____GitInstaller = require("Script.Tools.ResourceDownloader.GitInstaller") -- 19
+local ____GitInstaller = require("Tools.ResourceDownloader.GitInstaller") -- 19
 local getResourceInstallPath = ____GitInstaller.getResourceInstallPath -- 20
 local installResource = ____GitInstaller.installResource -- 21
 local isResourceInstalled = ____GitInstaller.isResourceInstalled -- 22
@@ -532,7 +532,7 @@ function ResourceDownloader.prototype.drawResourceCard(self, resource, itemWidth
 				self.detailsResource = resource -- 439
 				self.detailsPopupShow = true -- 440
 			end -- 440
-			ImGui.TextDisabled(((version.name .. " · ") .. (resource.license.status == "pending" and (zh and "许可待完善" or "license pending") or resource.license.spdx))) -- 442
+			ImGui.TextDisabled((version.name .. " · ") .. (resource.license.status == "pending" and (zh and "许可待完善" or "license pending") or resource.license.spdx)) -- 442
 			local versionNames = __TS__ArrayMap( -- 449
 				resource.versions, -- 449
 				function(____, item) return item.name end -- 449
@@ -639,140 +639,140 @@ function ResourceDownloader.prototype.drawDetailsPopup(self) -- 487
 					detailLine(zh and "状态" or "Status", status) -- 541
 					detailLine(zh and "版本" or "Version", version.name) -- 542
 					detailLine(zh and "发布时间" or "Published", version.publishedAt) -- 543
-					detailLine(zh and "许可证" or "License", license) -- 545
-					ImGui.ScrollWhenDraggingOnVoid() -- 546
+					detailLine(zh and "许可证" or "License", license) -- 544
+					ImGui.ScrollWhenDraggingOnVoid() -- 545
 				end -- 525
 			) -- 525
 			if ImGui.Button( -- 525
-				zh and "关闭" or "Close", -- 548
-				Vec2(-1, 30) -- 548
-			) then -- 548
-				self.detailsResource = nil -- 549
-				ImGui.CloseCurrentPopup() -- 550
-			end -- 550
+				zh and "关闭" or "Close", -- 547
+				Vec2(-1, 30) -- 547
+			) then -- 547
+				self.detailsResource = nil -- 548
+				ImGui.CloseCurrentPopup() -- 549
+			end -- 549
 		end -- 501
 	) -- 501
 end -- 487
-function ResourceDownloader.prototype.drawDeletePopup(self) -- 555
-	local popupTitle = zh and "删除项目" or "Delete project" -- 556
-	if self.deletePopupShow then -- 556
-		self.deletePopupShow = false -- 558
-		ImGui.OpenPopup(popupTitle) -- 559
-	end -- 559
-	ImGui.BeginPopupModal( -- 561
-		popupTitle, -- 561
-		function() -- 561
-			local resource = self.deleteResource -- 562
-			if not resource then -- 562
-				ImGui.CloseCurrentPopup() -- 564
-				return -- 565
-			end -- 565
-			ImGui.TextWrapped(zh and ("将删除 Download/" .. resource.id) .. "，其中可能包含你的 Git 提交和本地修改。" or ("This removes Download/" .. resource.id) .. ", including any local Git commits and changes.") -- 567
-			if ImGui.Button( -- 567
-				zh and "取消" or "Cancel", -- 572
-				Vec2(120, 30) -- 572
-			) then -- 572
-				self.deleteResource = nil -- 573
-				ImGui.CloseCurrentPopup() -- 574
-			end -- 574
-			ImGui.SameLine() -- 576
-			if ImGui.Button( -- 576
-				zh and "确认删除" or "Delete", -- 577
-				Vec2(120, 30) -- 577
-			) then -- 577
-				local removed = Content:remove(getResourceInstallPath(resource.id)) -- 578
-				self.deleteResource = nil -- 579
-				if removed then -- 579
-					Director.postNode:emit("UpdateEntries") -- 581
-				else -- 581
-					self:showMessage(zh and "删除失败" or "Deletion failed", zh and "无法删除项目目录，请检查文件是否正被占用。" or "Could not remove the project directory.") -- 583
-				end -- 583
-				ImGui.CloseCurrentPopup() -- 588
-			end -- 588
-		end -- 561
-	) -- 561
-end -- 555
-function ResourceDownloader.prototype.drawMessagePopup(self) -- 593
-	if self.popupShow then -- 593
-		self.popupShow = false -- 595
-		ImGui.OpenPopup("ResourceMessage") -- 596
-	end -- 596
-	ImGui.BeginPopupModal( -- 598
-		"ResourceMessage", -- 598
-		function() -- 598
-			ImGui.Text(self.popupTitle) -- 599
-			ImGui.Separator() -- 600
-			ImGui.PushTextWrapPos( -- 601
-				380, -- 601
-				function() return ImGui.TextWrapped(self.popupMessage) end -- 601
-			) -- 601
-			if ImGui.Button( -- 601
-				zh and "确认" or "OK", -- 602
-				Vec2(380, 30) -- 602
-			) then -- 602
-				ImGui.CloseCurrentPopup() -- 602
-			end -- 602
-		end -- 598
-	) -- 598
-end -- 593
-function ResourceDownloader.prototype.update(self) -- 606
-	local ____App_visualSize_15 = App.visualSize -- 607
-	local width = ____App_visualSize_15.width -- 607
-	local height = ____App_visualSize_15.height -- 607
-	local maxColumns = math.max( -- 608
-		math.floor(width / 360), -- 608
-		1 -- 608
-	) -- 608
-	local category = self.categoryIndex > 1 and self.categories[self.categoryIndex - 2 + 1] or nil -- 609
-	local filtered = filterResources(self.resources, {section = self.section, category = category, query = self.filterText}) -- 610
-	local pageSize = 12 -- 615
-	local page = paginateResources(filtered, self.page, pageSize) -- 616
-	self.page = page.page -- 617
-	self:drawHeader(width, page) -- 618
-	ImGui.SetNextWindowPos( -- 620
-		Vec2(0, self.headerHeight), -- 620
-		"Always", -- 620
-		Vec2.zero -- 620
+function ResourceDownloader.prototype.drawDeletePopup(self) -- 554
+	local popupTitle = zh and "删除项目" or "Delete project" -- 555
+	if self.deletePopupShow then -- 555
+		self.deletePopupShow = false -- 557
+		ImGui.OpenPopup(popupTitle) -- 558
+	end -- 558
+	ImGui.BeginPopupModal( -- 560
+		popupTitle, -- 560
+		function() -- 560
+			local resource = self.deleteResource -- 561
+			if not resource then -- 561
+				ImGui.CloseCurrentPopup() -- 563
+				return -- 564
+			end -- 564
+			ImGui.TextWrapped(zh and ("将删除 Download/" .. resource.id) .. "，其中可能包含你的 Git 提交和本地修改。" or ("This removes Download/" .. resource.id) .. ", including any local Git commits and changes.") -- 566
+			if ImGui.Button( -- 566
+				zh and "取消" or "Cancel", -- 571
+				Vec2(120, 30) -- 571
+			) then -- 571
+				self.deleteResource = nil -- 572
+				ImGui.CloseCurrentPopup() -- 573
+			end -- 573
+			ImGui.SameLine() -- 575
+			if ImGui.Button( -- 575
+				zh and "确认删除" or "Delete", -- 576
+				Vec2(120, 30) -- 576
+			) then -- 576
+				local removed = Content:remove(getResourceInstallPath(resource.id)) -- 577
+				self.deleteResource = nil -- 578
+				if removed then -- 578
+					Director.postNode:emit("UpdateEntries") -- 580
+				else -- 580
+					self:showMessage(zh and "删除失败" or "Deletion failed", zh and "无法删除项目目录，请检查文件是否正被占用。" or "Could not remove the project directory.") -- 582
+				end -- 582
+				ImGui.CloseCurrentPopup() -- 587
+			end -- 587
+		end -- 560
+	) -- 560
+end -- 554
+function ResourceDownloader.prototype.drawMessagePopup(self) -- 592
+	if self.popupShow then -- 592
+		self.popupShow = false -- 594
+		ImGui.OpenPopup("ResourceMessage") -- 595
+	end -- 595
+	ImGui.BeginPopupModal( -- 597
+		"ResourceMessage", -- 597
+		function() -- 597
+			ImGui.Text(self.popupTitle) -- 598
+			ImGui.Separator() -- 599
+			ImGui.PushTextWrapPos( -- 600
+				380, -- 600
+				function() return ImGui.TextWrapped(self.popupMessage) end -- 600
+			) -- 600
+			if ImGui.Button( -- 600
+				zh and "确认" or "OK", -- 601
+				Vec2(380, 30) -- 601
+			) then -- 601
+				ImGui.CloseCurrentPopup() -- 601
+			end -- 601
+		end -- 597
+	) -- 597
+end -- 592
+function ResourceDownloader.prototype.update(self) -- 605
+	local ____App_visualSize_15 = App.visualSize -- 606
+	local width = ____App_visualSize_15.width -- 606
+	local height = ____App_visualSize_15.height -- 606
+	local maxColumns = math.max( -- 607
+		math.floor(width / 360), -- 607
+		1 -- 607
+	) -- 607
+	local category = self.categoryIndex > 1 and self.categories[self.categoryIndex - 2 + 1] or nil -- 608
+	local filtered = filterResources(self.resources, {section = self.section, category = category, query = self.filterText}) -- 609
+	local pageSize = 12 -- 614
+	local page = paginateResources(filtered, self.page, pageSize) -- 615
+	self.page = page.page -- 616
+	self:drawHeader(width, page) -- 617
+	ImGui.SetNextWindowPos( -- 619
+		Vec2(0, self.headerHeight), -- 619
+		"Always", -- 619
+		Vec2.zero -- 619
+	) -- 619
+	ImGui.SetNextWindowSize( -- 620
+		Vec2(width, height - self.headerHeight), -- 620
+		"Always" -- 620
 	) -- 620
-	ImGui.SetNextWindowSize( -- 621
-		Vec2(width, height - self.headerHeight), -- 621
-		"Always" -- 621
+	ImGui.PushStyleVar( -- 621
+		"WindowPadding", -- 621
+		Vec2(14, 10), -- 621
+		function() -- 621
+			ImGui.Begin( -- 622
+				"Dora Resource Catalog", -- 622
+				windowsFlags, -- 622
+				function() -- 622
+					if self.resetListScroll then -- 622
+						self.resetListScroll = false -- 624
+						ImGui.SetScrollY(0) -- 625
+					end -- 625
+					if #self.resources == 0 then -- 625
+						ImGui.Dummy(Vec2(0, 30)) -- 628
+						ImGui.TextWrapped(self.catalogError ~= "" and self.catalogError or (zh and "正在准备资源目录…" or "Preparing the resource catalog…")) -- 629
+					else -- 629
+						ImGui.Columns(maxColumns, false) -- 635
+						for ____, resource in ipairs(page.items) do -- 636
+							self:drawResourceCard( -- 637
+								resource, -- 637
+								ImGui.GetContentRegionAvail().x -- 637
+							) -- 637
+							ImGui.NextColumn() -- 638
+						end -- 638
+						ImGui.Columns(1, false) -- 640
+						ImGui.Dummy(Vec2(0, 60)) -- 641
+					end -- 641
+					self:drawDetailsPopup() -- 643
+					self:drawDeletePopup() -- 644
+					self:drawMessagePopup() -- 645
+					ImGui.ScrollWhenDraggingOnVoid() -- 646
+				end -- 622
+			) -- 622
+		end -- 621
 	) -- 621
-	ImGui.PushStyleVar( -- 622
-		"WindowPadding", -- 622
-		Vec2(14, 10), -- 622
-		function() -- 622
-			ImGui.Begin( -- 623
-				"Dora Resource Catalog", -- 623
-				windowsFlags, -- 623
-				function() -- 623
-					if self.resetListScroll then -- 623
-						self.resetListScroll = false -- 625
-						ImGui.SetScrollY(0) -- 626
-					end -- 626
-					if #self.resources == 0 then -- 626
-						ImGui.Dummy(Vec2(0, 30)) -- 629
-						ImGui.TextWrapped(self.catalogError ~= "" and self.catalogError or (zh and "正在准备资源目录…" or "Preparing the resource catalog…")) -- 630
-					else -- 630
-						ImGui.Columns(maxColumns, false) -- 636
-						for ____, resource in ipairs(page.items) do -- 637
-							self:drawResourceCard( -- 638
-								resource, -- 638
-								ImGui.GetContentRegionAvail().x -- 638
-							) -- 638
-							ImGui.NextColumn() -- 639
-						end -- 639
-						ImGui.Columns(1, false) -- 641
-						ImGui.Dummy(Vec2(0, 60)) -- 642
-					end -- 642
-					self:drawDetailsPopup() -- 644
-					self:drawDeletePopup() -- 645
-					self:drawMessagePopup() -- 646
-					ImGui.ScrollWhenDraggingOnVoid() -- 647
-				end -- 623
-			) -- 623
-		end -- 622
-	) -- 622
-end -- 606
-__TS__New(ResourceDownloader) -- 653
-return ____exports -- 653
+end -- 605
+__TS__New(ResourceDownloader) -- 652
+return ____exports -- 652

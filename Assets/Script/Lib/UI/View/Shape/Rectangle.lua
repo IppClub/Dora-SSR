@@ -1,4 +1,4 @@
--- [xml]: Script/Lib/UI/View/Shape/Rectangle.xml
+-- [xml]: Lib/UI/View/Shape/Rectangle.xml
 local SolidRect = require("UI.View.Shape.SolidRect") -- 3
 local LineRect = require("UI.View.Shape.LineRect") -- 4
 return function(args) -- 1

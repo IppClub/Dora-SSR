@@ -1,4 +1,4 @@
--- [yue]: Script/Dev/NativeGameExport.yue
+-- [yue]: Dev/NativeGameExport.yue
 local _module_0 = { } -- 1
 local App, Content, Path -- 1
 do -- 1

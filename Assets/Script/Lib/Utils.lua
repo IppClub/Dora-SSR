@@ -1,4 +1,4 @@
--- [yue]: Script/Lib/Utils.yue
+-- [yue]: Lib/Utils.yue
 local _module_0 = { } -- 1
 local _ENV = Dora -- 9
 local insert, concat, remove, sort = table.insert, table.concat, table.remove, table.sort -- 10
@@ -17,6 +17,8 @@ local select <const> = select -- 12
 local assert <const> = assert -- 12
 local load <const> = load -- 12
 local Vec2 <const> = Vec2 -- 12
+local Path <const> = Path -- 12
+local Content <const> = Content -- 12
 local pcall <const> = pcall -- 12
 local _G <const> = _G -- 12
 local Dora <const> = Dora -- 12
@@ -469,144 +471,174 @@ IsValidPath = function(filename) -- 296
 	return not filename:match("[\\/|:*?<>\"]") -- 296
 end -- 296
 _module_0["IsValidPath"] = IsValidPath -- 296
-local tic80APIs -- 298
-local CheckTIC80Code -- 299
-CheckTIC80Code = function(codes) -- 299
-	local isTIC80 = codes:match("^%-%-[ \t]*tic80[ \t]*[$\r\n]") -- 300
-	if isTIC80 then -- 301
-		if not tic80APIs then -- 302
-			local _tbl_0 = { } -- 303
-			for api in ("btn,btnp,key,keyp,mouse,clip,cls,circ,circb,elli,ellib,line,pix,rect,rectb,spr,tri,trib,ttri,font,map,mget,mset,fget,fset,sfx,music,peek,peek1,peek2,peek4,poke,poke1,poke2,poke4,pmem,memcpy,memset,exit,reset,sync,time,tstamp,trace,vbank"):gmatch("[^,]+") do -- 303
-				_tbl_0[api] = true -- 303
-			end -- 303
-			tic80APIs = _tbl_0 -- 303
-		end -- 302
+local GetProjectScriptRoot -- 298
+GetProjectScriptRoot = function(root) -- 298
+	if not (root and root ~= "") then -- 299
+		return nil -- 299
+	end -- 299
+	local script = Path(root, "Script") -- 300
+	if Content:isdir(script) then -- 301
+		return script -- 301
 	end -- 301
-	return isTIC80, tic80APIs -- 304
-end -- 299
-_module_0["CheckTIC80Code"] = CheckTIC80Code -- 299
-local allowedUseOfGlobals = Set({ -- 307
-	"Dora", -- 307
-	"require", -- 308
-	"_G" -- 309
-}) -- 306
-local LintYueGlobals -- 311
-LintYueGlobals = function(luaCodes, globals, globalInLocal, extraGlobals) -- 311
-	if globalInLocal == nil then -- 311
-		globalInLocal = true -- 311
-	end -- 311
-	if extraGlobals == nil then -- 311
-		extraGlobals = nil -- 311
-	end -- 311
-	local errors = { } -- 312
-	local requireModules = { } -- 313
-	luaCodes = luaCodes:gsub("^local _module_[^\r\n]*[^\r\n]+", "") -- 314
-	local importCodes = luaCodes:match("^%s*local%s*_ENV%s*=%s*Dora%(([^%)]-)%)") -- 315
-	local importItems -- 316
-	if importCodes then -- 316
-		local _accum_0 = { } -- 317
-		local _len_0 = 1 -- 317
-		for item in importCodes:gmatch("%s*([^,\n\r]+)%s*") do -- 317
-			local getImport = load("return " .. tostring(item)) -- 318
-			local importItem -- 319
-			do -- 319
-				local success, result = pcall(getImport) -- 319
-				if success then -- 319
-					importItem = result -- 319
-				end -- 319
-			end -- 319
-			if not importItem or "table" ~= type(importItem) then -- 320
-				goto _continue_0 -- 320
-			end -- 320
-			_accum_0[_len_0] = { -- 321
-				importItem, -- 321
-				item -- 321
-			} -- 321
-			_len_0 = _len_0 + 1 -- 318
-			::_continue_0:: -- 318
-		end -- 317
-		importItems = _accum_0 -- 316
-	else -- 322
-		importItems = { } -- 322
-	end -- 316
-	if importCodes == nil then -- 323
-		importCodes = luaCodes:match("^%s*local%s*_ENV%s*=%s*Dora[^%w_$]") -- 323
-	end -- 323
-	local importSet = { } -- 324
-	local globalSet = { } -- 325
-	for _index_0 = 1, #globals do -- 326
-		local globalVar = globals[_index_0] -- 326
-		local name = globalVar[1] -- 327
-		if globalSet[name] then -- 328
-			goto _continue_1 -- 328
-		end -- 328
-		globalSet[name] = true -- 329
-		if allowedUseOfGlobals[name] then -- 330
-			goto _continue_1 -- 330
-		end -- 330
-		if _G[name] or (extraGlobals and extraGlobals[name]) then -- 331
-			if globalInLocal then -- 332
-				requireModules[#requireModules + 1] = "local " .. tostring(name) .. " = _G." .. tostring(name) .. " -- 1" -- 333
-			end -- 332
-			goto _continue_1 -- 334
-		end -- 331
-		local findModule = false -- 335
-		if importCodes then -- 336
-			if Dora[name] then -- 337
-				requireModules[#requireModules + 1] = "local " .. tostring(name) .. " = Dora." .. tostring(name) .. " -- 1" -- 338
-				findModule = true -- 339
-			else -- 341
-				for i, _des_0 in ipairs(importItems) do -- 341
-					local mod, modName = _des_0[1], _des_0[2] -- 341
-					if (mod[name] ~= nil) then -- 342
-						local moduleName = "_module_" .. tostring(i - 1) -- 343
-						if not importSet[mod] then -- 344
-							importSet[mod] = true -- 345
-							requireModules[#requireModules + 1] = "local " .. tostring(moduleName) .. " = " .. tostring(modName) .. " -- 1" -- 346
-						end -- 344
-						requireModules[#requireModules + 1] = "local " .. tostring(name) .. " = " .. tostring(moduleName) .. "." .. tostring(name) .. " -- 1" -- 347
-						findModule = true -- 348
-						break -- 349
-					end -- 342
-				end -- 341
-			end -- 337
-		end -- 336
-		if not findModule then -- 350
-			errors[#errors + 1] = globalVar -- 351
-		end -- 350
-		::_continue_1:: -- 327
-	end -- 326
-	if #errors > 0 then -- 352
-		return false, errors -- 353
-	else -- 355
-		return true, table.concat(requireModules, "\n") -- 355
-	end -- 352
+end -- 298
+_module_0["GetProjectScriptRoot"] = GetProjectScriptRoot -- 298
+local GetProjectSearchPaths -- 304
+GetProjectSearchPaths = function(root) -- 304
+	if not (root and root ~= "") then -- 305
+		return { } -- 305
+	end -- 305
+	do -- 306
+		local script = GetProjectScriptRoot(root) -- 306
+		if script then -- 306
+			return { -- 307
+				root, -- 307
+				script -- 307
+			} -- 307
+		end -- 306
+	end -- 306
+	return { -- 308
+		root -- 308
+	} -- 308
+end -- 304
+_module_0["GetProjectSearchPaths"] = GetProjectSearchPaths -- 304
+local tic80APIs -- 310
+local CheckTIC80Code -- 311
+CheckTIC80Code = function(codes) -- 311
+	local isTIC80 = codes:match("^%-%-[ \t]*tic80[ \t]*[$\r\n]") -- 312
+	if isTIC80 then -- 313
+		if not tic80APIs then -- 314
+			local _tbl_0 = { } -- 315
+			for api in ("btn,btnp,key,keyp,mouse,clip,cls,circ,circb,elli,ellib,line,pix,rect,rectb,spr,tri,trib,ttri,font,map,mget,mset,fget,fset,sfx,music,peek,peek1,peek2,peek4,poke,poke1,poke2,poke4,pmem,memcpy,memset,exit,reset,sync,time,tstamp,trace,vbank"):gmatch("[^,]+") do -- 315
+				_tbl_0[api] = true -- 315
+			end -- 315
+			tic80APIs = _tbl_0 -- 315
+		end -- 314
+	end -- 313
+	return isTIC80, tic80APIs -- 316
 end -- 311
-_module_0["LintYueGlobals"] = LintYueGlobals -- 311
-local GSplit -- 357
-GSplit = function(text, pattern, plain) -- 357
-	local splitStart, length = 1, #text -- 358
-	return function() -- 359
-		if splitStart then -- 360
-			local sepStart, sepEnd = string.find(text, pattern, splitStart, plain) -- 361
-			local ret -- 362
-			if not sepStart then -- 363
-				ret = string.sub(text, splitStart) -- 364
-				splitStart = nil -- 365
-			elseif sepEnd < sepStart then -- 366
-				ret = string.sub(text, splitStart, sepStart) -- 367
-				if sepStart < length then -- 368
-					splitStart = sepStart + 1 -- 369
-				else -- 371
-					splitStart = nil -- 371
-				end -- 368
-			else -- 373
-				ret = sepStart > splitStart and string.sub(text, splitStart, sepStart - 1) or '' -- 373
-				splitStart = sepEnd + 1 -- 374
-			end -- 363
-			return ret -- 375
-		end -- 360
-	end -- 359
-end -- 357
-_module_0["GSplit"] = GSplit -- 357
+_module_0["CheckTIC80Code"] = CheckTIC80Code -- 311
+local allowedUseOfGlobals = Set({ -- 319
+	"Dora", -- 319
+	"require", -- 320
+	"_G" -- 321
+}) -- 318
+local LintYueGlobals -- 323
+LintYueGlobals = function(luaCodes, globals, globalInLocal, extraGlobals) -- 323
+	if globalInLocal == nil then -- 323
+		globalInLocal = true -- 323
+	end -- 323
+	if extraGlobals == nil then -- 323
+		extraGlobals = nil -- 323
+	end -- 323
+	local errors = { } -- 324
+	local requireModules = { } -- 325
+	luaCodes = luaCodes:gsub("^local _module_[^\r\n]*[^\r\n]+", "") -- 326
+	local importCodes = luaCodes:match("^%s*local%s*_ENV%s*=%s*Dora%(([^%)]-)%)") -- 327
+	local importItems -- 328
+	if importCodes then -- 328
+		local _accum_0 = { } -- 329
+		local _len_0 = 1 -- 329
+		for item in importCodes:gmatch("%s*([^,\n\r]+)%s*") do -- 329
+			local getImport = load("return " .. tostring(item)) -- 330
+			local importItem -- 331
+			do -- 331
+				local success, result = pcall(getImport) -- 331
+				if success then -- 331
+					importItem = result -- 331
+				end -- 331
+			end -- 331
+			if not importItem or "table" ~= type(importItem) then -- 332
+				goto _continue_0 -- 332
+			end -- 332
+			_accum_0[_len_0] = { -- 333
+				importItem, -- 333
+				item -- 333
+			} -- 333
+			_len_0 = _len_0 + 1 -- 330
+			::_continue_0:: -- 330
+		end -- 329
+		importItems = _accum_0 -- 328
+	else -- 334
+		importItems = { } -- 334
+	end -- 328
+	if importCodes == nil then -- 335
+		importCodes = luaCodes:match("^%s*local%s*_ENV%s*=%s*Dora[^%w_$]") -- 335
+	end -- 335
+	local importSet = { } -- 336
+	local globalSet = { } -- 337
+	for _index_0 = 1, #globals do -- 338
+		local globalVar = globals[_index_0] -- 338
+		local name = globalVar[1] -- 339
+		if globalSet[name] then -- 340
+			goto _continue_1 -- 340
+		end -- 340
+		globalSet[name] = true -- 341
+		if allowedUseOfGlobals[name] then -- 342
+			goto _continue_1 -- 342
+		end -- 342
+		if _G[name] or (extraGlobals and extraGlobals[name]) then -- 343
+			if globalInLocal then -- 344
+				requireModules[#requireModules + 1] = "local " .. tostring(name) .. " = _G." .. tostring(name) .. " -- 1" -- 345
+			end -- 344
+			goto _continue_1 -- 346
+		end -- 343
+		local findModule = false -- 347
+		if importCodes then -- 348
+			if Dora[name] then -- 349
+				requireModules[#requireModules + 1] = "local " .. tostring(name) .. " = Dora." .. tostring(name) .. " -- 1" -- 350
+				findModule = true -- 351
+			else -- 353
+				for i, _des_0 in ipairs(importItems) do -- 353
+					local mod, modName = _des_0[1], _des_0[2] -- 353
+					if (mod[name] ~= nil) then -- 354
+						local moduleName = "_module_" .. tostring(i - 1) -- 355
+						if not importSet[mod] then -- 356
+							importSet[mod] = true -- 357
+							requireModules[#requireModules + 1] = "local " .. tostring(moduleName) .. " = " .. tostring(modName) .. " -- 1" -- 358
+						end -- 356
+						requireModules[#requireModules + 1] = "local " .. tostring(name) .. " = " .. tostring(moduleName) .. "." .. tostring(name) .. " -- 1" -- 359
+						findModule = true -- 360
+						break -- 361
+					end -- 354
+				end -- 353
+			end -- 349
+		end -- 348
+		if not findModule then -- 362
+			errors[#errors + 1] = globalVar -- 363
+		end -- 362
+		::_continue_1:: -- 339
+	end -- 338
+	if #errors > 0 then -- 364
+		return false, errors -- 365
+	else -- 367
+		return true, table.concat(requireModules, "\n") -- 367
+	end -- 364
+end -- 323
+_module_0["LintYueGlobals"] = LintYueGlobals -- 323
+local GSplit -- 369
+GSplit = function(text, pattern, plain) -- 369
+	local splitStart, length = 1, #text -- 370
+	return function() -- 371
+		if splitStart then -- 372
+			local sepStart, sepEnd = string.find(text, pattern, splitStart, plain) -- 373
+			local ret -- 374
+			if not sepStart then -- 375
+				ret = string.sub(text, splitStart) -- 376
+				splitStart = nil -- 377
+			elseif sepEnd < sepStart then -- 378
+				ret = string.sub(text, splitStart, sepStart) -- 379
+				if sepStart < length then -- 380
+					splitStart = sepStart + 1 -- 381
+				else -- 383
+					splitStart = nil -- 383
+				end -- 380
+			else -- 385
+				ret = sepStart > splitStart and string.sub(text, splitStart, sepStart - 1) or '' -- 385
+				splitStart = sepEnd + 1 -- 386
+			end -- 375
+			return ret -- 387
+		end -- 372
+	end -- 371
+end -- 369
+_module_0["GSplit"] = GSplit -- 369
 return _module_0 -- 1

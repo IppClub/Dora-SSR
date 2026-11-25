@@ -1,4 +1,4 @@
--- [xml]: Script/Lib/UI/View/Control/Basic/ScrollArea.xml
+-- [xml]: Lib/UI/View/Control/Basic/ScrollArea.xml
 local SolidRect = require("UI.View.Shape.SolidRect") -- 3
 return function(args) -- 1
 local _ENV = Dora(args) -- 1

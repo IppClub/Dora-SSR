@@ -1,4 +1,4 @@
--- [yue]: Script/Lib/BodyEx.yue
+-- [yue]: Lib/BodyEx.yue
 local _module_0 = nil -- 1
 local _ENV = Dora -- 9
 local Struct = require("Utils").Struct -- 10

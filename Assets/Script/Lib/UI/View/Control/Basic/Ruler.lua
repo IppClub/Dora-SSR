@@ -1,4 +1,4 @@
--- [xml]: Script/Lib/UI/View/Control/Basic/Ruler.xml
+-- [xml]: Lib/UI/View/Control/Basic/Ruler.xml
 local LineRect = require("UI.View.Shape.LineRect") -- 3
 local SolidRect = require("UI.View.Shape.SolidRect") -- 4
 return function(args) -- 1

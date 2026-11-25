@@ -1,4 +1,4 @@
--- [xml]: Script/Lib/UI/View/Shape/Circle.xml
+-- [xml]: Lib/UI/View/Shape/Circle.xml
 local SolidCircle = require("UI.View.Shape.SolidCircle") -- 3
 local LineCircle = require("UI.View.Shape.LineCircle") -- 4
 return function(args) -- 1

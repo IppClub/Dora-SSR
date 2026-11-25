@@ -1,4 +1,4 @@
--- [xml]: Script/Lib/UI/View/Shape/LineRect.xml
+-- [xml]: Lib/UI/View/Shape/LineRect.xml
 return function(args) -- 1
 local _ENV = Dora(args) -- 1
 local line1 = Line() -- 3

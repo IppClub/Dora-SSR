@@ -1,4 +1,4 @@
--- [yue]: Script/Lib/UI/Control/Basic/FixedLabel.yue
+-- [yue]: Lib/UI/Control/Basic/FixedLabel.yue
 local _ENV = Dora -- 9
 local utf8 = require("utf-8") -- 10
 local Class <const> = Class -- 11

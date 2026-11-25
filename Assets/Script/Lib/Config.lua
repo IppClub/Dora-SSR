@@ -1,4 +1,4 @@
--- [tl]: Script/Lib/Config.tl
+-- [tl]: Lib/Config.tl
 
 
 

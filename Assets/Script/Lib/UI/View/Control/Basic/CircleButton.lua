@@ -1,4 +1,4 @@
--- [xml]: Script/Lib/UI/View/Control/Basic/CircleButton.xml
+-- [xml]: Lib/UI/View/Control/Basic/CircleButton.xml
 local ButtonBase = require("UI.View.Control.Basic.ButtonBase") -- 3
 local SolidCircle = require("UI.View.Shape.SolidCircle") -- 4
 local LineCircle = require("UI.View.Shape.LineCircle") -- 5

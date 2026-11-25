@@ -1,4 +1,4 @@
--- [yue]: Script/Lib/YarnRunner.yue
+-- [yue]: Lib/YarnRunner.yue
 local _module_0 = nil -- 1
 local yarncompile = require("Dora").yarncompile -- 9
 local Content = require("Content") -- 10

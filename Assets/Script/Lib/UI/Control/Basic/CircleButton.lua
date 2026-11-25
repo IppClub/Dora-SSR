@@ -1,4 +1,4 @@
--- [yue]: Script/Lib/UI/Control/Basic/CircleButton.yue
+-- [yue]: Lib/UI/Control/Basic/CircleButton.yue
 local _module_0 = nil -- 1
 local _ENV = Dora -- 9
 local CircleButton = require("UI.View.Control.Basic.CircleButton") -- 10

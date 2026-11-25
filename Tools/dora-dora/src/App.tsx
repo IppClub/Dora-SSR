@@ -3372,7 +3372,6 @@ export default function PersistentDrawerLeft() {
 			}
 			let generatedFile = false;
 			for (const item of result.messages ?? []) {
-				Service.addLog(item.success ? `[info] Built ${item.file}\n` : `[error] ${item.message ?? item.file}\n`);
 				if (!item.success) continue;
 				generatedFile = true;
 				const output = path.join(path.dirname(item.file), path.basename(item.file, path.extname(item.file)) + ".lua");

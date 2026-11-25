@@ -1,4 +1,4 @@
--- [xml]: Script/Lib/UI/View/Shape/SolidCircle.xml
+-- [xml]: Lib/UI/View/Shape/SolidCircle.xml
 return function(args) -- 1
 local _ENV = Dora(args) -- 1
 local drawNode1 = DrawNode() -- 3

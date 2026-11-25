@@ -1,4 +1,4 @@
--- [yue]: Script/Lib/UI/Control/Basic/Ruler.yue
+-- [yue]: Lib/UI/Control/Basic/Ruler.yue
 local _module_0 = nil -- 1
 local _ENV = Dora -- 9
 local Ruler = require("UI.View.Control.Basic.Ruler") -- 10

@@ -295,6 +295,18 @@ export Round = (val) ->
 
 export IsValidPath = (filename) -> not filename\match "[\\/|:*?<>\"]"
 
+export GetProjectScriptRoot = (root) ->
+	return nil unless root and root ~= ""
+	script = Path root, "Script"
+	script if Content\isdir script
+
+-- In insertion order, so Script takes precedence when inserted at the front.
+export GetProjectSearchPaths = (root) ->
+	return {} unless root and root ~= ""
+	if script := GetProjectScriptRoot root
+		return {root, script}
+	{root}
+
 local tic80APIs
 export CheckTIC80Code = (codes) ->
 	isTIC80 = codes\match "^%-%-[ \t]*tic80[ \t]*[$\r\n]"

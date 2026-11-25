@@ -1,4 +1,4 @@
--- [xml]: Script/Lib/UI/View/Control/Basic/Button.xml
+-- [xml]: Lib/UI/View/Control/Basic/Button.xml
 local ButtonBase = require("UI.View.Control.Basic.ButtonBase") -- 3
 local SolidRect = require("UI.View.Shape.SolidRect") -- 4
 local LineRect = require("UI.View.Shape.LineRect") -- 5

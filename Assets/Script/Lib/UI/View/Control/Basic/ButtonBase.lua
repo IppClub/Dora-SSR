@@ -1,4 +1,4 @@
--- [xml]: Script/Lib/UI/View/Control/Basic/ButtonBase.xml
+-- [xml]: Lib/UI/View/Control/Basic/ButtonBase.xml
 return function(args) -- 1
 local _ENV = Dora(args) -- 1
 local node1 = Node() -- 3

@@ -1,4 +1,4 @@
--- [yue]: Script/Lib/UI/View/Shape/LineCircle.yue
+-- [yue]: Lib/UI/View/Shape/LineCircle.yue
 local _module_0 = nil -- 1
 local _ENV = Dora -- 9
 local math <const> = math -- 10

@@ -1,4 +1,4 @@
--- [yue]: Script/Dev/Recovery.yue
+-- [yue]: Dev/Recovery.yue
 local _module_0 = { } -- 1
 local _ENV = Dora -- 21
 local require <const> = require -- 22
