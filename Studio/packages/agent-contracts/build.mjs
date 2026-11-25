@@ -81,13 +81,21 @@ const leaseNames = ['acquireEntryLease', 'recordEntryLeaseRun', 'ownsEntryLease'
 const leaseFunctions = leaseNames.map(name => {
   const fn = leaseSource.statements.find(statement => ts.isFunctionDeclaration(statement) && statement.name?.text === name);
   if (!fn) throw new Error(`Upstream entry lease changed: ${name}`);
-  return fn.getText(leaseSource).replace(/^export /, '');
+  const source = fn.getText(leaseSource).replace(/^export /, '');
+  if (name !== 'acquireEntryLease') return source;
+  const wait = fn.body?.statements[0];
+  if (!wait || !ts.isWhileStatement(wait) || wait.statement.getText(leaseSource) !== 'sleep();') {
+    throw new Error('Upstream entry lease wait changed');
+  }
+  // Dora sleep yields the current coroutine. The JS host yields to the event loop.
+  return 'async ' + source.replace(': void {', ': Promise<void> {').replace('sleep();', 'await sleep();');
 });
 const leaseState = leaseSource.statements.filter(statement => ts.isVariableStatement(statement));
 if (leaseState.length !== 2) throw new Error('Upstream entry lease state changed');
 await build({stdin:{contents:`export function createEntryLease() {
   const error = message => { throw new Error(message); };
   const tostring = value => value instanceof Error ? value.message : String(value);
+  const sleep = () => new Promise(resolve => setTimeout(resolve, 0));
   ${leaseState.map(statement => statement.getText(leaseSource)).join('\n')}
   ${leaseFunctions.join('\n')}
   return {${leaseNames.join(',')}};
