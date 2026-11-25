@@ -270,7 +270,7 @@ size_t AsyncTaskGroup::getPendingCount() const {
 	return _state ? _state->getPendingCount() : 0;
 }
 
-Async::Async()
+Async::Async(uint32_t)
 	: _scheduled(false)
 	, _finisherState(std::make_shared<AsyncFinisherState>())
 	, _standaloneTaskState(std::make_shared<AsyncTaskGroupState>(true))
@@ -406,11 +406,11 @@ Async& AsyncThread::getProcess(int index) {
 	throw std::out_of_range(fmt::format("AsyncThread has no worker {} in the browser profile", index));
 }
 
-Async* AsyncThread::newThread() {
+Async* AsyncThread::newThread(uint32_t stackSize) {
 	if (_stopping.load(std::memory_order_acquire)) {
 		throw std::runtime_error("cannot create an Async worker after AsyncThread has stopped");
 	}
-	_dedicatedThreads.push_back(New<Async>());
+	_dedicatedThreads.push_back(New<Async>(stackSize));
 	return _dedicatedThreads.back().get();
 }
 
@@ -552,8 +552,9 @@ size_t AsyncTaskGroup::getPendingCount() const {
 
 // Async
 
-Async::Async()
+Async::Async(uint32_t stackSize)
 	: _scheduled(false)
+	, _stackSize(stackSize)
 	, _finisherState(std::make_shared<AsyncFinisherState>())
 	, _standaloneTaskState(std::make_shared<AsyncTaskGroupState>(true))
 	, _stopped(false)
@@ -573,7 +574,7 @@ Async::~Async() {
 void Async::initThreadOnce() {
 	std::call_once(_initThreadFlag, [this]() {
 		if (!_thread.isRunning()) {
-			_thread.init(Async::work, this);
+			_thread.init(Async::work, this, _stackSize);
 		}
 	});
 }
@@ -964,12 +965,12 @@ void AsyncThread::run(const std::function<void()>& worker) {
 	run(*_defaultGroup, nullptr, worker);
 }
 
-Async* AsyncThread::newThread() {
+Async* AsyncThread::newThread(uint32_t stackSize) {
 	std::lock_guard<std::mutex> guard(_submitMutex);
 	if (_stopping.load(std::memory_order_acquire)) {
 		throw std::runtime_error("cannot create an Async worker after AsyncThread has stopped");
 	}
-	_dedicatedThreads.push_back(New<Async>());
+	_dedicatedThreads.push_back(New<Async>(stackSize));
 	return _dedicatedThreads.back().get();
 }
 

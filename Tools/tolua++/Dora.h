@@ -287,7 +287,7 @@ class Content
 	tolua_outside void Content_getDirs @ getDirs(String path);
 	tolua_outside void Content_getFiles @ getFiles(String path);
 	tolua_outside void Content_getAllFiles @ getAllFiles(String path);
-	tolua_outside void Content_glob @ glob(String path, Slice globs[tolua_len], Dictionary* extensionLevels = nullptr);
+	tolua_outside void Content_glob @ glob(String path, Slice globs[tolua_len], Dictionary* extensionLevels = nullptr, bool followSymlinks = true);
 	tolua_outside void Content_getAttr @ getAttr(String filename);
 	tolua_outside void Content_loadFile @ load(String filename);
 	string read(String filename, int64_t offset, int64_t length);

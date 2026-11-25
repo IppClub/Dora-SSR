@@ -514,6 +514,29 @@ local type AudioEffectType = LoveEnums.AudioEffectType
 local type BodyType = LoveEnums.BodyType
 
 -- 可绘制图像类型。
+
+local record Data
+	userdata
+end
+local type Color = {number}
+local type ColoredText = string | {string | Color}
+local type MeshVertex = {number}
+local type MeshVertexFormat = {string, string, integer}
+
+local enum StringOutput
+	"string"
+end
+
+local enum DataOutput
+	"data"
+end
+
+local record CompressedImageSettings
+	mipmaps: boolean
+	linear: boolean
+	dpiscale: number
+end
+
 local record Image
 
 	-- 销毁对象的 Lua 引用。如果该对象未被任何其他 LÖVE 对象或线程引用，则该对象将被完全删除。
@@ -985,6 +1008,14 @@ local record Canvas
 	-- @return (WrapMode) 体积纹理 z 轴的包裹模式。
 	getWrap: function(self: Canvas): WrapMode, WrapMode, WrapMode
 end
+
+local record CanvasSetup
+	{Canvas}
+	depth: boolean
+	stencil: boolean
+	depthstencil: boolean | Canvas
+end
+
 
 local record CanvasSettings
 	dpiscale: number
@@ -2103,7 +2134,8 @@ local record Shader
 	-- @param name (string) 发送到着色器的向量的名称。
 	-- @param matrix_layout (MatrixLayout) 内存中矩阵的布局（行优先或列优先）。
 	-- @param matrices ({number} | {{number}}...) Additional matrices of the same type as ''matrix'' 才能存储在统一表中。
-	send: function(self: Shader, name: string, matrix_layout: MatrixLayout, matrices: {number} | {{number}}...)
+	send: function(self: Shader, name: string, matrix_layout: MatrixLayout, matrices: {number}...)
+	send: function(self: Shader, name: string, matrix_layout: MatrixLayout, matrices: {{number}}...)
 
 	-- 将一个或多个值发送到特殊的 (''uniform'') variable inside the shader. Uniform variables have to be marked using the ''uniform'' or ''extern'' 关键字，例如
 	--
@@ -2203,7 +2235,11 @@ local record Shader
 	-- 统一/外部变量在着色器代码中是只读的，并保持不变，直到被 Shader:send 调用修改。统一变量可以在着色器的顶点和像素组件中访问，只要在每个组件中声明该变量即可。
 	-- @param name (string) 发送到着色器的统一矩阵的名称。
 	-- @param values (ShaderValue...) 纹理（图像或画布）发送到统一变量。
-	send: function(self: Shader, name: string, values: ShaderValue...)
+	send: function(self: Shader, name: string, values: number...)
+	send: function(self: Shader, name: string, values: boolean...)
+	send: function(self: Shader, name: string, values: {number}...)
+	send: function(self: Shader, name: string, values: {{number}}...)
+	send: function(self: Shader, name: string, values: {boolean}...)
 
 	-- 将一种或多种颜色发送到着色器内的特殊 (''extern'' / ''uniform'') vec3 或 vec4 变量。颜色分量必须在 1 的范围内。如果启用全局伽玛校正，则对颜色进行伽玛校正。
 	--
@@ -2239,7 +2275,7 @@ local record Shader
 	-- 在11.0之前的版本中，颜色分量值的范围是0到255，而不是0到1。
 	-- @param name (string) 要在着色器中发送到的颜色外部变量的名称。
 	-- @param values (ShaderValue...) 一个表，其中包含红色、绿色、蓝色和 1 范围内的可选 alpha 颜色分量，以向量形式发送到外部。
-	sendColor: function(self: Shader, name: string, values: ShaderValue...)
+	sendColor: function(self: Shader, name: string, colors: Color...)
 end
 
 local record WindowMode
@@ -2544,6 +2580,8 @@ end
 
 -- 表示文件内容的数据。
 local record FileData
+	userdata
+	embed Data
 
 	-- 获取字符串形式的对象类型。
 	-- @return (string) 字符串类型。
@@ -2591,6 +2629,8 @@ end
 
 -- 原始（解码）图像数据。
 local record ImageData
+	userdata
+	embed Data
 
 	-- 销毁对象的 Lua 引用。如果该对象未被任何其他 LÖVE 对象或线程引用，则该对象将被完全删除。
 	-- 这个方法可以用来立即清理资源，而不需要等待Lua的垃圾收集器。
@@ -2704,6 +2744,8 @@ end
 
 -- 表示旨在在 RAM 中保持压缩状态的压缩图像数据。
 local record CompressedImageData
+	userdata
+	embed Data
 
 	-- 销毁对象的 Lua 引用。如果该对象未被任何其他 LÖVE 对象或线程引用，则该对象将被完全删除。
 	-- 这个方法可以用来立即清理资源，而不需要等待Lua的垃圾收集器。
@@ -2867,6 +2909,8 @@ end
 
 -- GlyphData 表示字体光栅化器的可绘制符号。
 local record GlyphData
+	userdata
+	embed Data
 
 	-- 销毁对象的 Lua 引用。如果该对象未被任何其他 LÖVE 对象或线程引用，则该对象将被完全删除。
 	-- 这个方法可以用来立即清理资源，而不需要等待Lua的垃圾收集器。
@@ -3003,6 +3047,8 @@ end
 
 -- 包含原始音频样本。
 local record SoundData
+	userdata
+	embed Data
 
 	-- 获取字符串形式的对象类型。
 	-- @return (string) 字符串类型。
@@ -3174,6 +3220,8 @@ end
 
 -- 连续内存中包含任意字节的数据对象。
 local record ByteData
+	userdata
+	embed Data
 
 	-- 获取字符串形式的对象类型。
 	-- @return (string) 字符串类型。
@@ -3212,6 +3260,8 @@ local record ByteData
 	clone: function(self: ByteData): ByteData
 end
 local record DataView
+	userdata
+	embed Data
 	type: function(self: DataView): string
 	typeOf: function(self: DataView, type_name: string): boolean
 	release: function(self: DataView): boolean
@@ -3224,6 +3274,8 @@ end
 
 -- 表示使用特定算法压缩的字节数据。
 local record CompressedData
+	userdata
+	embed Data
 
 	-- 获取字符串形式的对象类型。
 	-- @return (string) 字符串类型。
@@ -3306,7 +3358,7 @@ local record DataModule
 	-- @param source (string | Data) 要编码的原始数据。
 	-- @param line_length (integer) 输出的最大行长度。仅支持 base64，如果为 0，则忽略。（默认值：0。）
 	-- @return (string) encoded — ByteData/string，其中包含源的编码版本。
-	encode: function(container: DataContainer, format: EncodeFormat, source: string | Data, line_length?: integer): string
+	encode: function(container: StringOutput, format: EncodeFormat, source: string | Data, line_length?: integer): string
 
 	-- 将数据或字符串编码为采用一种编码格式的数据或字符串。
 	-- @param container (DataContainer) 返回编码数据的类型。
@@ -3314,21 +3366,21 @@ local record DataModule
 	-- @param source (string | Data) 要编码的原始数据。
 	-- @param line_length (integer) 输出的最大行长度。仅支持 base64，如果为 0，则忽略。（默认值：0。）
 	-- @return (ByteData) encoded — ByteData/string，其中包含源的编码版本。
-	encode: function(container: DataContainer, format: EncodeFormat, source: string | Data, line_length?: integer): ByteData
+	encode: function(container: DataOutput, format: EncodeFormat, source: string | Data, line_length?: integer): ByteData
 
 	-- 将数据或字符串从任何 EncodeFormat 解码为数据或字符串。
 	-- @param container (DataContainer) 解码后的数据返回什么类型。
 	-- @param format (EncodeFormat) 输入数据的格式。
 	-- @param source (string | Data) 要解码的原始（编码）数据。
 	-- @return (string) decoded — ByteData/string，其中包含源的解码版本。
-	decode: function(container: DataContainer, format: EncodeFormat, source: string | Data): string
+	decode: function(container: StringOutput, format: EncodeFormat, source: string | Data): string
 
 	-- 将数据或字符串从任何 EncodeFormat 解码为数据或字符串。
 	-- @param container (DataContainer) 解码后的数据返回什么类型。
 	-- @param format (EncodeFormat) 输入数据的格式。
 	-- @param source (string | Data) 要解码的原始（编码）数据。
 	-- @return (ByteData) decoded — ByteData/string，其中包含源的解码版本。
-	decode: function(container: DataContainer, format: EncodeFormat, source: string | Data): ByteData
+	decode: function(container: DataOutput, format: EncodeFormat, source: string | Data): ByteData
 
 	-- 使用特定的压缩算法压缩字符串或数据。
 	-- @param container (DataContainer) 返回压缩数据的类型。
@@ -3336,7 +3388,7 @@ local record DataModule
 	-- @param source (string | Data) 要压缩的原始（未压缩）字符串。
 	-- @param level (integer) 要使用的压缩级别，介于 0 和 9 之间。-1 表示默认级别。该参数的含义取决于所使用的压缩格式。 （默认值：-1。）
 	-- @return (string) compressedData — 压缩数据/字符串，其中包含原始字符串的压缩版本。
-	compress: function(container: DataContainer, format: CompressionFormat, source: string | Data, level?: integer): string
+	compress: function(container: StringOutput, format: CompressionFormat, source: string | Data, level?: integer): string
 
 	-- 使用特定的压缩算法压缩字符串或数据。
 	-- @param container (DataContainer) 返回压缩数据的类型。
@@ -3344,33 +3396,33 @@ local record DataModule
 	-- @param source (string | Data) 包含要压缩的原始（未压缩）数据的数据对象。
 	-- @param level (integer) 要使用的压缩级别，介于 0 和 9 之间。-1 表示默认级别。该参数的含义取决于所使用的压缩格式。 （默认值：-1。）
 	-- @return (CompressedData) 压缩数据/字符串，其中包含数据的压缩版本。
-	compress: function(container: DataContainer, format: CompressionFormat, source: string | Data, level?: integer): CompressedData
+	compress: function(container: DataOutput, format: CompressionFormat, source: string | Data, level?: integer): CompressedData
 
 	-- 解压缩 CompressedData 或先前压缩的字符串或数据对象。
 	-- @param container (DataContainer) 解压后的数据返回什么类型。
 	-- @param compressed (CompressedData) 要解压的压缩数据。
 	-- @return (string) decompressedData — 包含原始解压缩数据的数据/字符串。
-	decompress: function(container: DataContainer, compressed: CompressedData): string
+	decompress: function(container: StringOutput, compressed: CompressedData): string
 
 	-- 解压缩 CompressedData 或先前压缩的字符串或数据对象。
 	-- @param container (DataContainer) 解压后的数据返回什么类型。
 	-- @param compressed (CompressedData) 要解压的压缩数据。
 	-- @return (ByteData) decompressedData — 包含原始解压缩数据的数据/字符串。
-	decompress: function(container: DataContainer, compressed: CompressedData): ByteData
+	decompress: function(container: DataOutput, compressed: CompressedData): ByteData
 
 	-- 解压缩 CompressedData 或先前压缩的字符串或数据对象。
 	-- @param container (DataContainer) 解压后的数据返回什么类型。
 	-- @param format (CompressionFormat) 用于压缩给定数据的格式。
 	-- @param source (string | Data) 包含先前使用 love.data.compress. 压缩的数据的数据对象
 	-- @return (string) decompressedData — 包含原始解压缩数据的数据/字符串。
-	decompress: function(container: DataContainer, format: CompressionFormat, source: string | Data): string
+	decompress: function(container: StringOutput, format: CompressionFormat, source: string | Data): string
 
 	-- 解压缩 CompressedData 或先前压缩的字符串或数据对象。
 	-- @param container (DataContainer) 解压后的数据返回什么类型。
 	-- @param format (CompressionFormat) 用于压缩给定数据的格式。
 	-- @param source (string | Data) 包含先前使用 love.data.compress. 压缩的数据的数据对象
 	-- @return (ByteData) decompressedData — 包含原始解压缩数据的数据/字符串。
-	decompress: function(container: DataContainer, format: CompressionFormat, source: string | Data): ByteData
+	decompress: function(container: DataOutput, format: CompressionFormat, source: string | Data): ByteData
 
 	-- 打包（序列化）简单的 Lua 值。
 	--
@@ -3379,7 +3431,7 @@ local record DataModule
 	-- @param format (string) 决定如何打包值的字符串。遵循 Lua 5.3 的 string.pack 格式字符串的规则。
 	-- @param values (any...) 要序列化的第一个值（数字、布尔值或字符串）。
 	-- @return (string) data — 包含序列化数据的数据/字符串。
-	pack: function(container: DataContainer, format: string, values: any...): string
+	pack: function(container: StringOutput, format: string, values: any...): string
 
 	-- 打包（序列化）简单的 Lua 值。
 	--
@@ -3388,7 +3440,7 @@ local record DataModule
 	-- @param format (string) 决定如何打包值的字符串。遵循 Lua 5.3 的 string.pack 格式字符串的规则。
 	-- @param values (any...) 要序列化的第一个值（数字、布尔值或字符串）。
 	-- @return (ByteData) data — 包含序列化数据的数据/字符串。
-	pack: function(container: DataContainer, format: string, values: any...): ByteData
+	pack: function(container: DataOutput, format: string, values: any...): ByteData
 
 	-- 将字节字符串或数据解包（反序列化）为简单的 Lua 值。
 	--
@@ -3998,7 +4050,7 @@ local record MathModule
 	-- @param source (string | Data) 未压缩的源数据。
 	-- @param level (integer) 压缩级别，范围为 0 到 9；-1 表示使用默认级别。
 	-- @return (string) 字符串形式的压缩数据。
-	compress: function(container: DataContainer, format: CompressionFormat, source: string | Data, level?: integer): string
+	compress: function(container: StringOutput, format: CompressionFormat, source: string | Data, level?: integer): string
 
 	-- love.data.compress 的弃用别名。
 	-- @param container (DataContainer) 要返回的值类型。
@@ -4006,19 +4058,19 @@ local record MathModule
 	-- @param source (string | Data) 未压缩的源数据。
 	-- @param level (integer) 压缩级别，范围为 0 到 9；-1 表示使用默认级别。
 	-- @return (CompressedData) CompressedData 对象形式的压缩数据。
-	compress: function(container: DataContainer, format: CompressionFormat, source: string | Data, level?: integer): CompressedData
+	compress: function(container: DataOutput, format: CompressionFormat, source: string | Data, level?: integer): CompressedData
 
 	-- love.data.decompress 的弃用别名。
 	-- @param container (DataContainer) 要返回的值类型。
 	-- @param compressed (CompressedData) 要解压的压缩数据。
 	-- @return (string) 字符串形式的解压缩数据。
-	decompress: function(container: DataContainer, compressed: CompressedData): string
+	decompress: function(container: StringOutput, compressed: CompressedData): string
 
 	-- love.data.decompress 的弃用别名。
 	-- @param container (DataContainer) 要返回的值类型。
 	-- @param compressed (CompressedData) 要解压的压缩数据。
 	-- @return (ByteData) ByteData 对象形式的解压缩数据。
-	decompress: function(container: DataContainer, compressed: CompressedData): ByteData
+	decompress: function(container: DataOutput, compressed: CompressedData): ByteData
 end
 
 -- 表示文件系统上的一个文件。接受文件路径的函数也可以接受文件。
@@ -5804,6 +5856,10 @@ local record Shape
 	setNextVertex: function(self: Shape, x?: number, y?: number)
 end
 
+local type CircleShape = Shape
+local type PolygonShape = Shape
+local type ChainShape = Shape
+
 -- 夹具将形状附加到主体上。
 local record Fixture
 
@@ -6316,6 +6372,12 @@ local record Joint
 	setRatio: function(self: Joint, ratio: number)
 	getJoints: function(self: Joint): Joint, Joint
 end
+
+local type RevoluteJoint = Joint
+local type PrismaticJoint = Joint
+local type WeldJoint = Joint
+local type FrictionJoint = Joint
+local type WheelJoint = Joint
 
 -- 可以真实地模拟二维刚体物理。该模块基于Box2D，并且该API与Box2D API尽可能接近地对应。
 local record Physics
@@ -7497,7 +7559,8 @@ local record Graphics
 	-- @param draw_mode (MeshDrawMode) 绘制网格时使用的图像或画布。不使用纹理可能为零。 （默认值：无。）
 	-- @param usage (MeshUsage) 网格的预期用途。指定的使用模式会影响Mesh的内存使用和性能。 （默认：'dynamic'。）
 	-- @return (Mesh) mesh — 新网格。
-	newMesh: function(format: {MeshVertexFormat}, vertices: {MeshVertex} | number | Data, draw_mode?: MeshDrawMode, usage?: MeshUsage): Mesh
+	newMesh: function(format: {MeshVertexFormat}, vertices: {MeshVertex} | number, draw_mode?: MeshDrawMode, usage?: MeshUsage): Mesh
+	newMesh: function(format: {MeshVertexFormat}, vertices: Data, draw_mode?: MeshDrawMode, usage?: MeshUsage): Mesh
 
 	-- 创建一个新的 SpriteBatch 对象。
 	-- @param texture (Image or Canvas) 用于精灵的图像或画布。
@@ -8174,12 +8237,12 @@ local record Love
 	-- 当按下操纵杆的虚拟游戏手柄按钮时调用。
 	-- @param joystick (Joystick) 操纵杆对象。
 	-- @param button (string) 虚拟游戏手柄按钮。
-	gamepadpressed: function(joystick: Joystick, button: string) | nil
+	gamepadpressed: function(joystick: Joystick, button: GamepadButton) | nil
 
 	-- 当操纵杆的虚拟游戏手柄按钮被释放时调用。
 	-- @param joystick (Joystick) 操纵杆对象。
 	-- @param button (string) 虚拟游戏手柄按钮。
-	gamepadreleased: function(joystick: Joystick, button: string) | nil
+	gamepadreleased: function(joystick: Joystick, button: GamepadButton) | nil
 
 	-- 当操纵杆的虚拟游戏手柄轴移动时调用。
 	-- @param joystick (Joystick) 操纵杆对象。

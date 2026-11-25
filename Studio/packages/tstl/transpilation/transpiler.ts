@@ -2,7 +2,7 @@ import path from "path";
 import * as ts from "typescript";
 import { CompilerOptions, isBundleEnabled, LuaLibImportKind, LuaTarget } from "../CompilerOptions";
 import { buildMinimalLualibBundle, findUsedLualibFeatures, getLuaLibBundle } from "../LuaLib";
-import { normalizeSlashes, trimExtension } from "../utils";
+import { formatModuleFilePath, normalizeSlashes, trimExtension } from "../utils";
 import { getBundleResult } from "./bundle";
 import { explicitAnyTypeNotAllowed } from "./diagnostics";
 import { resolveDependencies } from "./resolve";
@@ -11,6 +11,8 @@ import { EmitFile, EmitHost, ProcessedFile } from "./utils";
 
 export interface TranspilerOptions {
     emitHost?: EmitHost;
+    /** Set to false when the caller retains the original Lua project resources. */
+    emitLuaDependencies?: boolean;
 }
 
 export interface EmitOptions extends TranspileOptions {
@@ -24,9 +26,11 @@ export interface EmitResult {
 
 export class Transpiler {
     protected emitHost: EmitHost;
+    private readonly emitLuaDependencies: boolean;
 
-    constructor({ emitHost = ts.sys }: TranspilerOptions = {}) {
+    constructor({ emitHost = ts.sys, emitLuaDependencies = true }: TranspilerOptions = {}) {
         this.emitHost = emitHost;
+        this.emitLuaDependencies = emitLuaDependencies;
     }
 
     public emit(emitOptions: EmitOptions): EmitResult {
@@ -103,6 +107,9 @@ export class Transpiler {
         // Resolve imported modules and modify output Lua requires
         const resolutionResult = resolveDependencies(program, files, this.emitHost);
         diagnostics.push(...resolutionResult.diagnostics);
+        if (!this.emitLuaDependencies && !isBundleEnabled(options)) {
+            resolutionResult.resolvedFiles = resolutionResult.resolvedFiles.filter(file => !file.fileName.endsWith(".lua"));
+        }
 
         const lualibRequired = resolutionResult.resolvedFiles.some(f => f.fileName === "lualib_bundle");
         if (lualibRequired) {
@@ -149,6 +156,17 @@ export function getEmitPath(file: string, program: ts.Program): string {
     const outDir = getEmitOutDir(program);
 
     return path.join(outDir, relativeOutputPath);
+}
+
+export function getEmittedModuleName(fileName: string, program: ts.Program): string {
+    const emittedFile = getEmitPathRelativeToOutDir(fileName, program);
+    const moduleRoot = (program.getCompilerOptions() as CompilerOptions).luaProjectModuleRoot;
+    if (moduleRoot) {
+        const prefix = normalizeSlashes(path.relative(getSourceDir(program), moduleRoot)) + "/";
+        const relativeFile = normalizeSlashes(emittedFile);
+        if (relativeFile.startsWith(prefix)) return formatModuleFilePath(relativeFile.slice(prefix.length));
+    }
+    return formatModuleFilePath(emittedFile);
 }
 
 export function getEmitPathRelativeToOutDir(fileName: string, program: ts.Program): string {

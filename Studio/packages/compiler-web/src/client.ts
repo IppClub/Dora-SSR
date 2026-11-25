@@ -1,4 +1,5 @@
 import { matchesCompileResult, matchesRequest, isBuildArtifact, isDiagnostic, type CompileRequest, type CompileResult, type RequestFailure } from '@dora-studio/contracts';
+export { studioCompilerResourcesPath } from '@dora-studio/compiler';
 
 export type CompileReply = CompileResult | RequestFailure;
 export interface CompileWorker {

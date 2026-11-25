@@ -26,18 +26,42 @@ function absolutePath(path: string, root: string): string {
     ? normalized : normalizePath(`${root}/${normalized}`);
 }
 
+// These modules are installed by the engine or packaged with its runtime.
+// A declaration elsewhere in a project does not imply a runtime module.
+const engineModuleDeclarations = {
+  "Dora.d.ts": ["Dora"],
+  "DoraX.d.ts": ["DoraX"],
+  "ImGui.d.ts": ["ImGui"],
+  "InputManager.d.ts": ["InputManager"],
+  "nvg.d.ts": ["nvg"],
+  "Platformer.d.ts": ["Platformer"],
+  "bit32.d.ts": ["bit32"],
+  "love.d.ts": ["love"],
+  "socket.d.ts": ["ltn12", "mime", "mime.core"],
+};
+const engineModules = Object.values(engineModuleDeclarations).flat();
+const nativeSocketModules = [
+  "socket", "socket.core", "socket.ftp", "socket.headers", "socket.http", "socket.smtp", "socket.tp", "socket.url", "ssl.https",
+];
+
+export const studioCompilerResourcesPath = "declarations/compiler.json";
+export const studioDeclarationFiles = [
+  ...Object.keys(engineModuleDeclarations),
+  "es6-subset.d.ts", "lua.d.ts", "jsx.d.ts", "tic80.d.ts",
+];
+
 export function doraCompilerOptions<L extends string, I extends string>(
   ts: typeof TS,
   luaTarget: L,
   luaLibImport: I,
+  runtime: "native" | "studio" = "native",
 ): TS.CompilerOptions & { luaTarget: L; luaLibImport: I; noHeader: boolean; noImplicitSelf: boolean; noImplicitGlobalVariables: boolean; luaExternalModules: string[] } {
   return {
     strict: true,
     jsx: ts.JsxEmit.React,
     luaTarget,
     luaLibImport,
-    // Native engine bindings have declarations but no project Lua source.
-    luaExternalModules: ["Dora", "ImGui"],
+    luaExternalModules: runtime === "native" ? [...engineModules, ...nativeSocketModules] : [...engineModules],
     noHeader: true,
     sourceMap: true,
     noImplicitSelf: true,
@@ -48,13 +72,39 @@ export function doraCompilerOptions<L extends string, I extends string>(
   };
 }
 
+/** Lua's package.loaded falls back to the engine's Dora table. */
+export function registerDoraRuntimeExports(ts: typeof TS, program: TS.Program, declaration?: TS.SourceFile) {
+  if (!declaration) return;
+  const checker = program.getTypeChecker();
+  const dora = checker.getAmbientModules().find(module =>
+    module.name === '"Dora"' && module.declarations?.some(node => node.getSourceFile() === declaration));
+  if (!dora) return;
+  const options = program.getCompilerOptions() as TS.CompilerOptions & { luaExternalModules?: string[] };
+  const runtime = new Set(options.luaExternalModules);
+  for (const item of checker.getExportsOfModule(dora)) {
+    if (!item.declarations?.some(node => node.getSourceFile() === declaration)) continue;
+    const value = item.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(item) : item;
+    if (value.flags & ts.SymbolFlags.Value) runtime.add(item.name);
+  }
+  options.luaExternalModules = [...runtime];
+}
+
 export interface SnapshotProgramInput {
   readonly rootNames: readonly string[];
   readonly projectRoot: string;
   readonly files: readonly VirtualFile[];
   readonly options: TS.CompilerOptions;
+  readonly projectScriptRoot?: string;
   /** Exact path to the supplied Dora declaration, never an ambient disk lookup. */
   readonly defaultLibFileName: string;
+}
+
+export function resolveDoraModule(
+  ts: typeof TS, name: string, containingFile: string, options: TS.CompilerOptions, host: TS.ModuleResolutionHost,
+): TS.ResolvedModuleFull | undefined {
+  const resolved = ts.resolveModuleName(name, containingFile, options, host).resolvedModule;
+  if (resolved || name.startsWith(".") || name.startsWith("/") || /^[A-Za-z]:/.test(name)) return resolved;
+  return ts.resolveModuleName(`${name}/index`, containingFile, options, host).resolvedModule;
 }
 
 /** All reads are closed over a copied snapshot; there is no fallback provider. */
@@ -81,14 +131,13 @@ export function createSnapshotProgram(ts: typeof TS, input: SnapshotProgramInput
       dir = dir.slice(0, dir.lastIndexOf("/"));
     }
   }
-  const paths = { ...input.options.paths };
-  for (const [alias, file] of aliases) {
-    const from = root.split("/");
-    const to = file.split("/");
-    while (from.length && to.length && from[0] === to[0]) { from.shift(); to.shift(); }
-    paths[alias] = [[...from.map(() => ".."), ...to].join("/")];
-  }
-  const options = { ...input.options, paths, baseUrl: root, rootDir: root };
+  const luaProjectModuleRoot = input.projectScriptRoot && normalizePath(input.projectScriptRoot);
+  const paths = {
+    ...(luaProjectModuleRoot ? { "*": [`${luaProjectModuleRoot}/*`, "*"] } : {}),
+    ...input.options.paths,
+    ...Object.fromEntries([...aliases].map(([alias, file]) => [alias, [file]])),
+  };
+  const options = { ...input.options, paths, baseUrl: root, rootDir: root, luaProjectModuleRoot };
   const outputs = new Map<string, string>();
   const host: TS.CompilerHost = {
     getCurrentDirectory: () => root,
@@ -106,7 +155,7 @@ export function createSnapshotProgram(ts: typeof TS, input: SnapshotProgramInput
       return content === undefined ? undefined : ts.createSourceFile(file, content, ts.ScriptTarget.ESNext, false);
     },
     resolveModuleNames: (names, containingFile) => names.map(name => {
-      const resolved = ts.resolveModuleName(name, containingFile, options, host).resolvedModule;
+      const resolved = resolveDoraModule(ts, name, containingFile, options, host);
       if (resolved || name.startsWith(".") || name.startsWith("/") || /^[A-Za-z]:/.test(name)) return resolved;
       const file = aliases.get(name);
       if (!file) return undefined;
@@ -118,6 +167,7 @@ export function createSnapshotProgram(ts: typeof TS, input: SnapshotProgramInput
     }),
   };
   const program = ts.createProgram(input.rootNames.map(name => absolutePath(name, root)), options, host);
+  registerDoraRuntimeExports(ts, program, program.getSourceFile(host.getDefaultLibFileName(options)));
   return { program, host, outputs };
 }
 

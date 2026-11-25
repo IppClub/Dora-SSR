@@ -31,6 +31,7 @@ export interface TypeCheckerWithEmitResolver extends ts.TypeChecker {
 
 export class TransformationContext {
     public readonly diagnostics: ts.Diagnostic[] = [];
+    public readonly importedSources = new Map<string, ts.SourceFile>();
     public readonly checker: TypeCheckerWithEmitResolver;
     public readonly resolver: EmitResolver;
     public readonly precedingStatementsStack: lua.Statement[][] = [];

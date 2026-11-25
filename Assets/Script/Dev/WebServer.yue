@@ -2025,7 +2025,6 @@ compileFileAsync = (inputFile, sourceCodes, projectRoot = nil): nil ->
 	searchPath = if projectRoot and projectRoot ~= "" and Content\exist(projectRoot) and Content\isdir(projectRoot)
 		file = relativeToRoot(inputFile, projectRoot) or
 			relativeToRoot(inputFile, Content.assetPath) or
-			relativeToRoot(inputFile, projectRoot) or
 			inputFile
 		Path(projectRoot, "Script", "?.lua") .. ";" .. Path projectRoot, "?.lua"
 	elseif not Content\isAbsolutePath inputFile
@@ -2054,7 +2053,9 @@ compileFileAsync = (inputFile, sourceCodes, projectRoot = nil): nil ->
 			extraGlobal = if isTIC80 then tic80APIs else nil
 			success, message = LintYueGlobals codes, globals, true, extraGlobal
 			unless success
-				resultError = message
+				diagnostics = for [name, row, column] in *message
+					"#{file}:#{row}:#{column}: unknown global '#{name}'"
+				resultError = table.concat diagnostics, "\n"
 				return
 			if codes == ""
 				resultCodes = ""
@@ -2062,28 +2063,34 @@ compileFileAsync = (inputFile, sourceCodes, projectRoot = nil): nil ->
 			resultCodes = addGeneratedSourceHeader codes, "yue", file, isTIC80
 			resultCodes
 		if not success
-			Content\remove outputFile
 			if resultCodes == nil
 				resultCodes = false
+			elseif resultCodes ~= ""
+				resultCodes = false
+				resultError = "failed to save #{outputFile}"
 	when "tl"
 		isTIC80 = CheckTIC80Code sourceCodes
 		if isTIC80
 			sourceCodes = sourceCodes\gsub "^%-%-[ \t]*tic80[ \t]*", "require(\"tic80\")"
-		if codes, err := teal.toluaAsync sourceCodes, file, searchPath
+		codes, err = teal.toluaAsync sourceCodes, file, searchPath
+		if codes
 			if isTIC80
 				codes = codes\gsub "^require%(\"tic80\"%)", "-- tic80"
 			resultCodes = addGeneratedSourceHeader codes, "tl", file, isTIC80
-			Content\saveAsync outputFile, resultCodes
+			unless Content\saveAsync outputFile, resultCodes
+				resultCodes = false
+				resultError = "failed to save #{outputFile}"
 		else
-			Content\remove outputFile
 			resultCodes = false
 			resultError = err
 	when "xml"
-		if codes, err := xml.tolua sourceCodes
+		codes, err = xml.tolua sourceCodes
+		if codes
 			resultCodes = "-- [xml]: #{file}\n#{codes}"
-			Content\saveAsync outputFile, resultCodes
+			unless Content\saveAsync outputFile, resultCodes
+				resultCodes = false
+				resultError = "failed to save #{outputFile}"
 		else
-			Content\remove outputFile
 			resultCodes = false
 			resultError = err
 	wait -> resultCodes ~= nil
@@ -2130,9 +2137,11 @@ HttpServer\postSchedule "/build", (req): success: false ->
 			when "tl", "yue", "xml"
 				if '' == Path\getExt Path\getName path
 					if content := Content\loadAsync path
-						if resultCodes := compileFileAsync path, content, projectRoot
+						resultCodes, compileError = compileFileAsync path, content, projectRoot
+						if resultCodes
 							buildSucceeded = true
 							return success: true, :resultCodes
+						return success: false, message: compileError or "Compilation failed"
 			when "wa"
 				if projDir := getWaProjectDirFromFile path
 					message = Wasm\buildWaAsync projDir
@@ -2677,18 +2686,13 @@ HttpServer\postSchedule "/wa/create", (req): {success: false, message: "invalid 
 			return success: false, message: "failed to copy template"
 		return success: true
 
-tsBuildGlobs =
-	- "**/*.ts"
-	- "**/*.tsx"
-	- "!**/.*/**"
-	- "!**/node_modules/**"
-
 tsSnapshotGlobs =
 	- "**/*.ts"
 	- "**/*.tsx"
 	- "**/*.lua"
 	- "!**/.*/**"
 	- "!**/node_modules/**"
+	- "!**/CMakeFiles/**"
 
 collectTSVirtualFiles = (sourceRoot) ->
 	files = []
@@ -2712,7 +2716,7 @@ collectTSVirtualFiles = (sourceRoot) ->
 			""
 		else
 			nil
-		for subFile in *Content\glob sourceRoot, tsSnapshotGlobs
+		for subFile in *Content\glob(sourceRoot, tsSnapshotGlobs, nil, false)
 			file = Path sourceRoot, subFile
 			moduleName = nil
 			if builtinPrefix and Path\getExt(file) in ["ts", "tsx"] and Path\getExt(Path\getName(file)) ~= "d"
@@ -2725,10 +2729,17 @@ collectTSVirtualFiles = (sourceRoot) ->
 			- Path Content.assetPath, "Script", "Lib"
 		for libraryRoot in *libraryRoots
 			if Content\exist(libraryRoot) and Content\isdir(libraryRoot)
-				for subFile in *Content\glob libraryRoot, tsSnapshotGlobs
+				for subFile in *Content\glob(libraryRoot, tsSnapshotGlobs, nil, false)
 					file = Path libraryRoot, subFile
 					virtualFile = Path sourceRoot, subFile
 					addFile file, nil, virtualFile
+	for namespace in *{"Dev", "Tools"}
+		builtinRoot = Path Content.assetPath, "Script", namespace
+		if Content\isdir builtinRoot
+			for subFile in *Content\glob(builtinRoot, tsSnapshotGlobs, nil, false)
+				file = Path builtinRoot, subFile
+				addFile file, nil, Path(sourceRoot, namespace, subFile)
+				addFile file, nil, Path(sourceRoot, "Script", namespace, subFile)
 	locale = if App.locale\match '^zh' then 'zh-Hans' else 'en'
 	declarationRoot = Path Content.assetPath, "Script", "Lib", "Dora", locale
 	for file in *Content\getFiles declarationRoot
@@ -2747,6 +2758,11 @@ collectTSVirtualFiles = (sourceRoot) ->
 	files
 
 supportsCompilerWebView = -> App.platform in ["Android", "macOS", "Windows"]
+projectCompilerScriptRoot = (sourceRoot) ->
+	return nil unless sourceRoot and not relativeToRoot(sourceRoot, Content.assetPath)
+	scriptRoot = Path sourceRoot, "Script"
+	return scriptRoot if Content\isdir scriptRoot
+
 webIDECompilerReady = false
 webIDEConnectionGeneration = 0
 tsProbeId = 0
@@ -2809,7 +2825,7 @@ transpileTSFileWithWebIDE = do
 						else
 							result = success: false, :file, message: res.message or "Compiler returned no Lua output", failureKind: if res.success then "tool" else res.failureKind
 						done = true
-		emit "AppWS", "Send", json.encode name: "TranspileTS", id: requestId, :file, :content, projectRoot: sourceRoot, :files
+		emit "AppWS", "Send", json.encode name: "TranspileTS", id: requestId, :file, :content, projectRoot: sourceRoot, projectScriptRoot: projectCompilerScriptRoot(sourceRoot), :files
 		deadline = App.runningTime + 30
 		wait -> done or HttpServer.wsConnectionCount == 0 or App.runningTime >= deadline or (isCancelled and isCancelled!)
 		listener\removeFromParent!
@@ -2915,6 +2931,7 @@ transpileTSFileWithCompiler = (file, content, sourceRoot, files, isCancelled) ->
 		:file
 		:content
 		projectRoot: sourceRoot
+		projectScriptRoot: projectCompilerScriptRoot sourceRoot
 		:files
 	deadline = App.runningTime + compilerBuildTimeout
 	wait -> compilerResults[jobId] or compilerFailure or App.runningTime >= deadline or (isCancelled and isCancelled!)
@@ -2948,6 +2965,24 @@ transpileTSFile = (file, content, sourceRoot, files, isCancelled) ->
 		return transpileTSFileWithCompiler file, content, sourceRoot, files, isCancelled
 	success: false, :file, message: "Web IDE compiler not connected", failureKind: "tool"
 
+buildTypeScriptFiles = (files, sourceRoot, isCancelled) ->
+	messages = []
+	fileData = {}
+	for file in *files
+		continue if "d" == Path\getExt Path\getName file
+		if content := Content\load file
+			continue if content\match "^%s*<%?xml"
+			fileData[file] = content
+			emit "AppWS", "Send", json.encode name: "UpdateFile", :file, exists: true, :content, projectRoot: sourceRoot
+		else
+			messages[] = success: false, :file, message: "failed to read file"
+	if next fileData
+		snapshot = collectTSVirtualFiles sourceRoot
+		for file, content in pairs fileData
+			break if isCancelled and isCancelled!
+			messages[] = transpileTSFile file, content, sourceRoot, snapshot, isCancelled
+	messages
+
 HttpServer\postSchedule "/ts/build", (req): success: false ->
 	finishUpdate = AgentHost.holdSourceUpdate (req.body or {}).path
 	buildSucceeded = false
@@ -2959,33 +2994,29 @@ HttpServer\postSchedule "/ts/build", (req): success: false ->
 		sourceRoot = getProjectSourceRoot projectRoot
 		unless Content\exist path
 			return success: false, message: "path not existed"
+		isDir = Content\isdir path
+		sourceRoot or= if isDir then path else getProjectDirFromFile(path) or Path\getPath(path)
 		messages = []
-		if not Content\isdir path
-			unless Path\getExt(path) in ["ts", "tsx"]
-				return success: false, message: "expecting a TypeScript file"
-			content = Content\load path
-			unless content
-				return success: false, message: "failed to read file"
-			emit "AppWS", "Send", json.encode name: "UpdateFile", file: path, exists: true, :content, projectRoot: sourceRoot
-			if "d" ~= Path\getExt Path\getName path
-				files = collectTSVirtualFiles sourceRoot or Path\getPath path
-				messages[] = transpileTSFile path, content, sourceRoot, files
+		if not isDir
+			return success: false, message: "expecting a TypeScript file" unless Path\getExt(path) in ["ts", "tsx"]
+			messages = buildTypeScriptFiles {path}, sourceRoot
+		elseif selected := req.body.files
+			return success: false, message: "invalid TypeScript targets" unless type(selected) == "table"
+			for file in *selected
+				unless type(file) == "string" and Content\isAbsolutePath(file) and relativeToRoot(file, path) and Path\getExt(file) in ["ts", "tsx"]
+					return success: false, message: "TypeScript target must be inside the build directory"
+			messages = buildTypeScriptFiles selected, sourceRoot
 		else
-			fileData = {}
-			for subFile in *Content\glob path, tsBuildGlobs
-				file = Path path, subFile
-				if content := Content\load file
-					fileData[file] = content
-					emit "AppWS", "Send", json.encode name: "UpdateFile", :file, exists: true, :content, projectRoot: sourceRoot
-				else
-					messages[] = success: false, :file, message: "failed to read file"
-			files = collectTSVirtualFiles sourceRoot or path
-			for file, content in pairs fileData
-				continue if "d" == Path\getExt Path\getName file
-				messages[] = transpileTSFile file, content, sourceRoot, files
+			import "Agent.Tool.BuildPlan" as BuildPlan
+			for unit in *BuildPlan.planDirectoryBuild(path, sourceRoot, {"!**/.*/**"})
+				files = [file for file in *unit.files when Path\getExt(file) in ["ts", "tsx"]]
+				for result in *buildTypeScriptFiles(files, unit.projectRoot or sourceRoot)
+					messages[] = result
 		success = true
 		for item in *messages
-			success = false unless item.success
+			unless item.success
+				success = false
+				Log "Error", item.message or "Failed to build #{item.file}"
 		message = nil
 		message = "TypeScript compilation failed" unless success
 		buildSucceeded = success
@@ -3078,6 +3109,20 @@ status = {}
 export default status
 
 status.transpileTSFile = transpileTSFile
+status.buildTypeScriptFiles = buildTypeScriptFiles
+
+HttpServer\post "/build/plan", (req): invalidArguments ->
+	switch req when {body: {:path}}
+		return invalidArguments unless type(path) == "string" and Content\isAbsolutePath(path) and Content\isdir(path)
+		import "Agent.Tool.BuildPlan" as BuildPlan
+		project = getProjectDirFromFile Path path, "__dora_project_root_search__.lua"
+		switch req.body.mode
+			when "editor"
+				return invalidArguments unless relativeToRoot(path, Content.writablePath) or relativeToRoot(path, Content.assetPath)
+				return success: true, units: BuildPlan.planDirectoryBuild path, project, nil, extentionLevels
+			when "cli"
+				return success: true, units: BuildPlan.planDirectoryBuild path, project, {"!**/API/**", "!**/build/**", "!**/dist/**", "!**/target/**", "!**/vendor/**"}
+		return success: true, units: BuildPlan.planDirectoryBuild path, project
 
 -- Manual Web IDE builds share the Agent's editor version, import checks and lock.
 HttpServer\postSchedule "/godot/project", (req): invalidArguments ->
@@ -3101,13 +3146,14 @@ HttpServer\postSchedule "/godot/project", (req): invalidArguments ->
 		result.projectRoot = project
 		return result
 
-status.buildAsync = (path) ->
+status.buildAsync = (path, projectRoot = nil) ->
 	if not Content\exist path
 		return success: false, file: path, message: "file not existed"
 	switch Path\getExt path when "tl", "yue", "xml"
 		if '' == Path\getExt Path\getName path
 			if content := Content\loadAsync path
-				if resultCodes, err := compileFileAsync path, content
+				resultCodes, err = compileFileAsync path, content, projectRoot
+				if resultCodes
 					return success: true, file: path
 				else
 					return success: false, file: path, message: err

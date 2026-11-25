@@ -99,7 +99,7 @@ func (a *AgentService) loadAssets(engineDir string) error {
 	if support.Kind != "dora-studio-agent-host-support" || !support.Requires["studioAgentHost"] || !support.Requires["separateOrigin"] {
 		return errors.New("invalid agent support build")
 	}
-	allowed := []string{"index.html", "page.js", "compiler/worker.js", "compiler/typescript.js", "compiler/compile-worker.js", "declarations/Dora.d.ts", "declarations/es6-subset.d.ts", "declarations/lua.d.ts", "declarations/jsx.d.ts", "declarations/lualib_bundle.lua", "teal/api.js", "teal/worker.mjs", "teal/compiler.mjs", "teal/declarations.json", "yarn/worker.mjs", "yarn/compiler.mjs"}
+	allowed := []string{"index.html", "page.js", "compiler/worker.js", "compiler/typescript.js", "compiler/compile-worker.js", "declarations/compiler.json", "teal/api.js", "teal/worker.mjs", "teal/compiler.mjs", "teal/declarations.json", "yarn/worker.mjs", "yarn/compiler.mjs"}
 	entries := map[string]struct {
 		Hash string
 		Size int64

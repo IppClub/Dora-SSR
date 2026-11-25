@@ -4,7 +4,7 @@ import {type StudioTranslate, type StudioMessage, useStudioI18n} from './i18n';
 import {preventImeSubmit} from '@dora-studio/agent-ui';
 import { useEffect, useRef, useState } from 'react';
 import type {CSSProperties,KeyboardEvent as ReactKeyboardEvent,PointerEvent as ReactPointerEvent,ReactNode} from 'react';
-import { createBrowserCompiler, type CompilerClient } from '@dora-studio/compiler-web';
+import { createBrowserCompiler, studioCompilerResourcesPath, type CompilerClient } from '@dora-studio/compiler-web';
 import { authoredProjectFiles, generatedLuaPathForSource, generatedLuaSourcePath, isProjectPath, serializeArtifactContent, type BuildArtifact, type Diagnostic, type ProjectFile, type ProjectSnapshot } from '@dora-studio/contracts';
 import { prepareTealSnapshot, TealBuildError } from './teal-build';
 import { LocalWorkspace, WorkspaceError, type AgentIteration, type LocalProject } from './workspace';
@@ -730,10 +730,9 @@ export function App({agent:providedAgent,agentHostOrigin,modelGrantId,accountId,
       const authoredFiles=authoredProjectFiles(snapshot.files);
       const needsScriptPreflight = authoredFiles.some(file => file.kind === 'text' && (file.path.endsWith('.lua') || (file.path.endsWith('.tl') && !file.path.endsWith('.d.tl'))));
       const compilerSnapshot = needsScriptPreflight ? await prepareTealSnapshot(snapshot, controller.signal) : snapshot;
-      const declarations = await Promise.all(['Dora.d.ts', 'es6-subset.d.ts', 'lua.d.ts', 'jsx.d.ts', 'lualib_bundle.lua'].map(async path => {
-        const response = await fetch(assetURL(`declarations/${path}`)); if (!response.ok) throw new Error(t('projects.declarationFailed', {path: path}));
-        return { path, kind: 'text' as const, text: await response.text() };
-      }));
+      const response = await fetch(assetURL(studioCompilerResourcesPath), { signal: controller.signal });
+      if (!response.ok) throw new Error(t('projects.declarationFailed', { path: studioCompilerResourcesPath }));
+      const declarations = await response.json();
       if (current !== generation.current) return;
       const result = await compiler.current.compile({ version: 1, sessionId: session.current, projectId: snapshot.projectId,
         revision: snapshot.revision, requestId, buildId: crypto.randomUUID(), compilerVersion: 'dora-tstl-0.1.0-ts5.9.3',

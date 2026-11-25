@@ -41,21 +41,6 @@ local apiFiles = {
 	["mime.d.ts"] = true,
 }
 
-local ignoredDirs = {
-	[".build"] = true,
-	[".cache"] = true,
-	[".download"] = true,
-	[".git"] = true,
-	[".upload"] = true,
-	[".www"] = true,
-	API = true,
-	build = true,
-	dist = true,
-	node_modules = true,
-	target = true,
-	vendor = true,
-}
-
 local function fail(message)
 	error(message, 0)
 end
@@ -86,6 +71,9 @@ Commands:
 	rust upload <target-path> [-p project] [--run]
 
 Connection options: --host, --port, --timeout
+
+Recursive builds honor .dora-no-build. An empty file or comments alone skip
+the entire directory. Relative paths on separate lines skip those entries.
 ]])
 end
 
@@ -317,10 +305,12 @@ local function parseNumberList(value, option)
 end
 
 local function parseOptions(args, index)
+	local configuredTimeout = tonumber(CLI.env("DORA_TIMEOUT", ""))
 	local options = {
 		host = CLI.env("DORA_HOST", defaultHost),
 		port = parseNumber(CLI.env("DORA_PORT", tostring(defaultPort)), defaultPort),
-		timeout = parseNumber(CLI.env("DORA_TIMEOUT", tostring(defaultTimeout)), defaultTimeout),
+		timeout = configuredTimeout or defaultTimeout,
+		timeoutProvided = configuredTimeout ~= nil,
 		project = CLI.absolute(CLI.env("DORA_PROJECT", CLI.cwd())),
 		language = "zh-Hans",
 		languageProvided = false,
@@ -360,6 +350,7 @@ local function parseOptions(args, index)
 			index = index + 1
 			if index > #args then fail("--timeout expects a value") end
 			options.timeout = tonumber(args[index]) or fail("--timeout expects a number")
+			options.timeoutProvided = true
 			index = index + 1
 		elseif arg == "-n" then
 			index = index + 1
@@ -503,8 +494,8 @@ local function tryPostJson(options, path, data, timeout)
 	return decoded
 end
 
-local function postJson(options, path, data)
-	local decoded, err = tryPostJson(options, path, data)
+local function postJson(options, path, data, timeout)
+	local decoded, err = tryPostJson(options, path, data, timeout)
 	if decoded == nil then fail(err) end
 	return decoded
 end
@@ -525,27 +516,6 @@ local function buildableSource(path, kind)
 	return true
 end
 
-local function sourceFiles(project, kind)
-	local files = {}
-	local wantExt = kind
-	local function scan(dir)
-		local entries = CLI.listDir(dir)
-		table.sort(entries, function(a, b) return a.path < b.path end)
-		for _, entry in ipairs(entries) do
-			if entry.isDir then
-				if not ignoredDirs[entry.name] then
-					scan(entry.path)
-				end
-			elseif entry.isFile and extension(entry.path) == wantExt and buildableSource(entry.path, kind) then
-				files[#files + 1] = CLI.absolute(entry.path)
-			end
-		end
-	end
-	scan(project)
-	table.sort(files)
-	return files
-end
-
 local function buildFileKinds(lang)
 	if lang == "all" then
 		return {"ts", "tsx", "yue", "tl", "xml", "wa", "yarn"}
@@ -558,17 +528,6 @@ local function buildFileKinds(lang)
 	end
 end
 
-local function collectBuildFiles(project, lang)
-	local files = {}
-	for _, kind in ipairs(buildFileKinds(lang)) do
-		for _, file in ipairs(sourceFiles(project, kind)) do
-			files[#files + 1] = file
-		end
-	end
-	table.sort(files)
-	return files
-end
-
 local function inferBuildKind(project, target)
 	if target and target ~= "" then
 		local ext = extension(target)
@@ -579,13 +538,16 @@ local function inferBuildKind(project, target)
 	return "all"
 end
 
-local function buildTs(options, project, target)
+local function buildTs(options, project, target, files)
 	local buildTarget = resolve(project, target or "")
+	local isDirectory = CLI.isDir(buildTarget)
+	local timeout = not options.timeoutProvided and isDirectory and 300 or options.timeout
 	print("Compiling Dora SSR TypeScript project: " .. buildTarget)
 	local doc = postJson(options, "/ts/build", {
 		path = buildTarget:gsub("\\", "/"),
-		projectRoot = typescriptRootFor(project, buildTarget, CLI.isDir(buildTarget)):gsub("\\", "/"),
-	})
+		projectRoot = (files and project or typescriptRootFor(project, buildTarget, isDirectory)):gsub("\\", "/"),
+		files = files,
+	}, timeout)
 	if type(doc.messages) == "table" then
 		for _, item in ipairs(doc.messages) do
 			if item.success and item.file then
@@ -717,59 +679,75 @@ local function initWaProject(options, project)
 end
 
 local function buildOne(options, project, kind, target)
-	if kind == "all" then
-		for _, file in ipairs(collectBuildFiles(project, "all")) do
-			buildOne(options, project, inferBuildKind(project, file), file)
-		end
-	elseif kind == "ts" then
+	if kind == "ts" then
 		buildTs(options, project, target)
 	elseif kind == "wa" then
 		buildWa(options, project, target)
 	elseif kind == "yarn" then
-		if target and target ~= "" then
-			checkYarn(options, project, target)
-		else
-			local files = sourceFiles(project, kind)
-			if #files == 0 then
-				print("No " .. kind .. " files found.")
-			end
-			for _, file in ipairs(files) do
-				checkYarn(options, project, file)
-			end
-		end
+		checkYarn(options, project, target)
 	elseif kind == "yue" or kind == "tl" or kind == "xml" then
-		if target and target ~= "" then
-			buildScriptFile(options, project, kind, target)
-		else
-			local files = sourceFiles(project, kind)
-			if #files == 0 then
-				print("No " .. kind .. " files found.")
-			end
-			for _, file in ipairs(files) do
-				buildScriptFile(options, project, kind, file)
-			end
-		end
+		buildScriptFile(options, project, kind, target)
 	else
 		fail("Unsupported build language: " .. tostring(kind))
 	end
+end
+
+local function buildDirectory(options, project, directory)
+	local plan = postJson(options, "/build/plan", {path = directory:gsub("\\", "/"), mode = "cli"})
+	expectSuccess(plan, "Could not plan directory build.")
+	local kinds = {}
+	for _, kind in ipairs(buildFileKinds(options.lang)) do kinds[kind] = true end
+	local attempted, failures = 0, 0
+	local function attempt(fn, ...)
+		attempted = attempted + 1
+		local ok, err = pcall(fn, ...)
+		if not ok then
+			failures = failures + 1
+			io.stderr:write(tostring(err) .. "\n")
+		end
+	end
+	for _, unit in ipairs(plan.units or {}) do
+		local root = unit.projectRoot or project
+		local tsFiles, waTarget = {}, nil
+		if unit.godot and options.lang == "all" then
+			attempt(function()
+				expectSuccess(postJson(options, "/godot/project", {path = unit.godot, build = true}), "Godot build failed.")
+			end)
+		end
+		for _, file in ipairs(unit.files) do
+			local kind = extension(file)
+			if kinds[kind] and buildableSource(file, kind == "tsx" and "ts" or kind) then
+				if kind == "wa" and unit.projectRoot then
+					waTarget = waTarget or file
+				elseif unit.projectRoot and (kind == "ts" or kind == "tsx") then
+					tsFiles[#tsFiles + 1] = file:gsub("\\", "/")
+				else
+					attempt(buildOne, options, root, inferBuildKind(root, file), file)
+				end
+			end
+		end
+		if waTarget then attempt(buildWa, options, root, waTarget) end
+		if #tsFiles > 0 then attempt(buildTs, options, root, root, tsFiles) end
+	end
+	if attempted == 0 then fail("No supported source files found for --lang " .. tostring(options.lang) .. ".") end
+	if failures > 0 then fail(tostring(failures) .. " build target(s) failed.") end
 end
 
 local function runBuild(options)
 	local project = ensureProject(options)
 	if #options.files > 0 then
 		for _, target in ipairs(options.files) do
-			local kind = options.lang == "all" and inferBuildKind(project, target) or options.lang
-			buildOne(options, project, kind, target)
+			target = resolve(project, target)
+			if CLI.isDir(target) then
+				buildDirectory(options, project, target)
+			else
+				local kind = options.lang == "all" and inferBuildKind(project, target) or options.lang
+				buildOne(options, project, kind, target)
+			end
 		end
 		return
 	end
-	local files = collectBuildFiles(project, options.lang)
-	if #files == 0 then
-		fail("No supported source files found for --lang " .. tostring(options.lang) .. ".")
-	end
-	for _, target in ipairs(files) do
-		buildOne(options, project, inferBuildKind(project, target), target)
-	end
+	buildDirectory(options, project, project)
 end
 
 local findLatestWasm

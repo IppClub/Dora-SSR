@@ -225,6 +225,7 @@ type TranspileTSQueueItem = {
 	file: string;
 	content: string;
 	projectRoot?: string;
+	projectScriptRoot?: string;
 	files?: TranspileTSVirtualFile[];
 	id?: unknown;
 };
@@ -250,6 +251,7 @@ const handleTranspileTS = async (item: TranspileTSQueueItem) => {
 			item.content,
 			item.projectRoot,
 			item.files,
+			item.projectScriptRoot,
 		);
 		if (success) {
 			sendTranspileTSResponse(item, { name: WsEvent.TranspileTS, success, file: item.file, luaCode, message: "" });
@@ -390,12 +392,13 @@ export function openWebSocket() {
 								break;
 							}
 							case WsEvent.TranspileTS: {
-								const { file, content, projectRoot, files } = result;
+								const { file, content, projectRoot, projectScriptRoot, files } = result;
 								if (typeof file === 'string' && typeof content === 'string') {
 									void handleTranspileTS({
 										file,
 										content,
 										projectRoot: typeof projectRoot === "string" ? projectRoot : undefined,
+										projectScriptRoot: typeof projectScriptRoot === "string" ? projectScriptRoot : undefined,
 										files: Array.isArray(files) ? files.filter((entry): entry is TranspileTSVirtualFile => {
 											if (entry === null || typeof entry !== "object") return false;
 											const candidate = entry as Record<string, unknown>;
@@ -671,6 +674,21 @@ export const assetFiles = (path: string) => {
 	return post<AssetFilesResponse>('/assets/files', { path });
 };
 
+export const buildTypeScript = (path: string, projectRoot?: string, files?: string[]) => {
+	return post<{
+		success: boolean;
+		message?: string;
+		messages?: { file: string; success: boolean; message?: string }[];
+	}>('/ts/build', { path, projectRoot, files });
+};
+
+export const directoryBuildPlan = (path: string) => {
+	return post<{
+		success: boolean;
+		units?: { projectRoot?: string; godot?: string; files: string[] }[];
+	}>('/build/plan', { path, mode: 'editor' });
+};
+
 export type AssetBatchOperation = "delete" | "copy" | "move";
 export interface AssetBatchChange {
 	old: string;
@@ -866,12 +884,14 @@ export const write = (req: WriteRequest) => {
 
 export interface BuildRequest {
 	path: string;
+	projectRoot?: string;
 };
 export type BuildResponse = {
 	success: true;
 	resultCodes: string;
 } | {
 	success: false;
+	message?: string;
 };
 export const build = (req: BuildRequest) => {
 	return post<BuildResponse>("/build", req);

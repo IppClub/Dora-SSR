@@ -22,6 +22,7 @@ export interface TypeScriptToLuaOptions {
     luaLibImport?: LuaLibImportKind;
     /** Modules supplied by the selected engine runtime, not bundled project files. */
     luaExternalModules?: string[];
+    luaProjectModuleRoot?: string;
     noImplicitGlobalVariables?: boolean;
     noImplicitSelf?: boolean;
     noHeader?: boolean;

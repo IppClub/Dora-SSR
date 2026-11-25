@@ -13,14 +13,6 @@ import { peekScope } from "../../utils/scope";
 import { getCustomNameFromSymbol, transformIdentifier } from "../identifier";
 import { transformPropertyName } from "../literal";
 
-function isNoResolutionPath(context: TransformationContext, moduleSpecifier: ts.Expression): boolean {
-    const moduleOwnerSymbol = context.checker.getSymbolAtLocation(moduleSpecifier);
-    if (!moduleOwnerSymbol) return false;
-
-    const annotations = getSymbolAnnotations(moduleOwnerSymbol);
-    return annotations.has(AnnotationKind.NoResolution);
-}
-
 export function createModuleRequire(
     context: TransformationContext,
     moduleSpecifier: ts.Expression,
@@ -28,7 +20,10 @@ export function createModuleRequire(
 ): lua.CallExpression {
     const params: lua.Expression[] = [];
     if (ts.isStringLiteral(moduleSpecifier)) {
-        const modulePath = isNoResolutionPath(context, moduleSpecifier)
+        const symbol = context.checker.getSymbolAtLocation(moduleSpecifier);
+        const source = symbol?.declarations?.find(ts.isSourceFile);
+        if (source) context.importedSources.set(moduleSpecifier.text, source);
+        const modulePath = symbol && getSymbolAnnotations(symbol).has(AnnotationKind.NoResolution)
             ? `@NoResolution:${moduleSpecifier.text}`
             : moduleSpecifier.text;
 

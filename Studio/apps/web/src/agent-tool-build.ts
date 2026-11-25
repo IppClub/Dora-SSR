@@ -1,9 +1,8 @@
-import {createBrowserCompiler} from '@dora-studio/compiler-web';
+import {createBrowserCompiler,studioCompilerResourcesPath} from '@dora-studio/compiler-web';
 import {formatTypeScriptDiagnostics,isProjectPath,type ProjectFile,type ProjectSnapshot} from '@dora-studio/contracts';
 import {readInstalledAgentFiles,type AgentProjectFS} from './agent-project-install';
 import type {AgentToolRequest,AgentToolReply} from './agent-wasm-source';
 
-const resources=['Dora.d.ts','es6-subset.d.ts','lua.d.ts','jsx.d.ts','lualib_bundle.lua'];
 const decoder=new TextDecoder('utf-8',{fatal:true});
 
 /** Called only by the original Agent `build` tool in its dedicated WASM host.
@@ -23,11 +22,9 @@ export async function transpileAgentTsTool(fs:AgentProjectFS,projectId:string,re
     catch{return {path:file.path,kind:'binary' as const,bytes:file.bytes};}
   });
   const snapshot:ProjectSnapshot={version:1,projectId,revision:0,entry:relative,files};
-  const declarations=await Promise.all(resources.map(async path=>{
-    const response=await fetch(new URL(`./declarations/${path}`,location.href),{credentials:'same-origin',cache:'no-store',signal});
-    if(!response.ok)throw new Error(`Compiler resource unavailable: ${path}`);
-    return {path,kind:'text' as const,text:await response.text()};
-  }));
+  const response=await fetch(new URL(studioCompilerResourcesPath,location.href),{credentials:'same-origin',signal});
+  if(!response.ok)throw new Error(`Compiler resource unavailable: ${studioCompilerResourcesPath}`);
+  const declarations=await response.json();
   signal.throwIfAborted();
   const compiler=createBrowserCompiler(new URL('./compiler/worker.js',location.href));
   try{

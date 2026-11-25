@@ -158,7 +158,7 @@ local record Content
 	-- @param filter (function, 可选) 用于过滤要做解压的 ZIP 归档包中的文件的函数。该函数以文件名作为输入，并返回一个布尔值，表示是否解压文件。如果未提供，则解压所有文件。
 	-- @return (boolean) 如果成功解压缩了文件，则为 `true`，否则为 `false`。
 	-- 可选总字节数与文件数上限，0 表示不限。不安全路径始终被拒绝。
-	unzipAsync: function(self: Content, zipFile: string, folderPath: string, filter?: function(string): boolean, maxBytes?: integer, maxFiles?: integer): boolean
+	unzipAsync: function(self: Content, zipFile: string, folderPath: string, filter?: (function(string): boolean), maxBytes?: integer, maxFiles?: integer): boolean
 
 	-- 获取指定目录及其子目录中所有文件的名称。
 	-- @param path (string) 要搜索的目录的路径。
@@ -166,8 +166,9 @@ local record Content
 	-- - 目标目录下（不包含子目录）的 .txt 文件和 .json 文件：["*.txt", "*.json"]
 	-- - 目标目录下的所有文件，但排除 .txt 文件：["**", "!**.txt"]
 	-- @param extensionLevels ({[string]: integer}) [可选] 扩展名到优先级的映射，用于同名不同后缀时选择优先级最高的文件。
+	-- @param followSymlinks (boolean) 遍历时是否包含遇到的符号链接，默认为 true。
 	-- @return (table) 包含指定目录及其子目录中所有文件名称的列表。
-	glob: function(self: Content, path: string, globs: {string}, extensionLevels?: {string: integer}): {string}
+	glob: function(self: Content, path: string, globs: {string}, extensionLevels?: {string: integer}, followSymlinks?: boolean): {string}
 
 	-- `searchFilesAsync` 返回的搜索结果项。
 	record SearchFilesResult

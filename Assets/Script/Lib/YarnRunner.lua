@@ -1,6 +1,6 @@
 -- [yue]: Script/Lib/YarnRunner.yue
 local _module_0 = nil -- 1
-local yarncompile = require("yarncompile") -- 9
+local yarncompile = require("Dora").yarncompile -- 9
 local Content = require("Content") -- 10
 local tonumber <const> = tonumber -- 11
 local tostring <const> = tostring -- 11

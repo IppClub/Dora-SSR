@@ -53,13 +53,13 @@ export async function compile(r) {
     for (const f of r.declarations) {
       const file = f.path === 'lualib_bundle.lua' ? root + f.path : '/dora/' + f.path;
       if (virtual.some(v => v.file === file)) throw new Error(`Reserved compiler resource: ${f.path}`);
-      virtual.push({ file, content: f.text });
+      virtual.push({ file, content: f.text, moduleName: f.path.endsWith('.d.ts') ? f.path.slice(0, -5) : undefined });
     }
     const result = compileSnapshot(ts, {
       rootNames: (r.rootNames ?? r.snapshot.files.filter(f => f.kind === 'text' && /\.tsx?$/.test(f.path)).map(f => f.path)).map(path => root + path),
       projectRoot: '/project', files: virtual, defaultLibFileName: '/dora/Dora.d.ts',
-      options: doraCompilerOptions(ts, LuaTarget.Lua55, LuaLibImportKind.Require),
-    }, (program, emitHost, writeFile) => new Transpiler({ emitHost }).emit({ program, writeFile }).diagnostics);
+      options: doraCompilerOptions(ts, LuaTarget.Lua55, LuaLibImportKind.Require, 'studio'),
+    }, (program, emitHost, writeFile) => new Transpiler({ emitHost, emitLuaDependencies: false }).emit({ program, writeFile }).diagnostics);
     diagnostics = result.diagnostics.map(d => ({
       severity: d.category === ts.DiagnosticCategory.Error ? 'error' : d.category === ts.DiagnosticCategory.Warning ? 'warning' : 'info',
       code: String(d.code), message: ts.flattenDiagnosticMessageText(d.messageText, '\n'),

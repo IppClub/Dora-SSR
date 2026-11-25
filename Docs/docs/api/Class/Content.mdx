@@ -652,7 +652,7 @@ unzipAsync: function(self: Content, zipFile: string, folderPath: string, filter?
 
 **Signature:**
 ```tl
-glob: function(self: Content, path: string, globs: {string}, extensionLevels?: {string: integer}): {string}
+glob: function(self: Content, path: string, globs: {string}, extensionLevels?: {string: integer}, followSymlinks?: boolean): {string}
 ```
 
 **Parameters:**
@@ -662,6 +662,7 @@ glob: function(self: Content, path: string, globs: {string}, extensionLevels?: {
 | path | string | The path of the directory to search. |
 | globs | \{string} | The glob pattern array used to filter matching filenames or relative paths. Example:<br/>- All .txt and .json files in the directory (not including subdirectories): ["*.txt", "*.json"]<br/>- All files in the directory, but exclude .txt files: ["**", "!**.txt"] |
 | extensionLevels | \{[string]: integer} | [optional] A map from extension to priority level for picking the preferred file when the same basename appears with different extensions. |
+| followSymlinks | boolean | Whether to include symbolic links encountered during traversal. Defaults to true. |
 
 **Returns:**
 

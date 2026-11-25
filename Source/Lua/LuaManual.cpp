@@ -753,7 +753,7 @@ tolua_lerror:
 #endif
 }
 
-void __Content_glob(lua_State* L, Content* self, String path, Slice globs[], int len, Dictionary* extensionLevels = nullptr) {
+void __Content_glob(lua_State* L, Content* self, String path, Slice globs[], int len, Dictionary* extensionLevels, bool followSymlinks) {
 	std::unordered_map<std::string, int> extLevels;
 	if (extensionLevels) {
 		auto keys = extensionLevels->getKeys();
@@ -772,7 +772,7 @@ void __Content_glob(lua_State* L, Content* self, String path, Slice globs[], int
 	for (int i = 0; i < len; i++) {
 		globArr[i] = globs[i].toString();
 	}
-	auto files = self->glob(path, std::move(globArr), std::move(extLevels));
+	auto files = self->glob(path, std::move(globArr), std::move(extLevels), followSymlinks);
 	pushListString(L, files);
 }
 

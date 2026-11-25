@@ -564,7 +564,7 @@ static std::list<std::string> filterFilesByGlob(std::list<std::string>&& files, 
 	return filtered;
 }
 
-std::list<std::string> Content::glob(String path, std::vector<std::string>&& globs, std::unordered_map<std::string, int>&& extensionLevels) {
+std::list<std::string> Content::glob(String path, std::vector<std::string>&& globs, std::unordered_map<std::string, int>&& extensionLevels, bool followSymlinks) {
 	std::string searchName = path.empty() ? _assetPath : path.toString();
 	auto globRules = compileGlobRules(globs);
 	auto normalizedExtensionLevels = normalizeExtensionLevels(std::move(extensionLevels));
@@ -584,6 +584,10 @@ std::list<std::string> Content::glob(String path, std::vector<std::string>&& glo
 	if (Content::isFileExist(fullPath)) {
 		fs::path parentPath = fullPath;
 		std::error_code err;
+		auto isSkippedLink = [followSymlinks](const fs::directory_entry& item) {
+			std::error_code error;
+			return !followSymlinks && (item.is_symlink(error) || error);
+		};
 		std::vector<fs::path> dirStack;
 		dirStack.push_back(parentPath);
 		if (normalizedExtensionLevels.empty()) {
@@ -604,6 +608,7 @@ std::list<std::string> Content::glob(String path, std::vector<std::string>&& glo
 						break;
 					}
 					const auto& item = *it;
+					if (isSkippedLink(item)) continue;
 					bool isDir = item.is_directory(err);
 					if (err) {
 						Warn("failed to get entry of \"{}\" due to \"{}\".", item.path().string(), err.message());
@@ -650,6 +655,7 @@ std::list<std::string> Content::glob(String path, std::vector<std::string>&& glo
 					break;
 				}
 				const auto& item = *it;
+				if (isSkippedLink(item)) continue;
 				bool isDir = item.is_directory(err);
 				if (err) {
 					Warn("failed to get entry of \"{}\" due to \"{}\".", item.path().string(), err.message());

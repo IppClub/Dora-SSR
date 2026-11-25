@@ -3352,7 +3352,7 @@ export default function PersistentDrawerLeft() {
 				godotProjects.set(project.projectRoot, result.success);
 				if (!result.success) {
 					succeeded = false;
-					Service.addLog(`[error] ${formatGodotDiagnostics(result.message ?? "Godot build failed", project.projectRoot)}\n`);
+				Service.addLog(`[error] ${project.projectRoot}\n${formatGodotDiagnostics(result.message ?? "Godot build failed", project.projectRoot)}\n`);
 					if (!quiet) setOpenLog({ title: t("menu.build") + " " + data.title, stopOnClose: false });
 				}
 				return result.success;
@@ -3363,7 +3363,30 @@ export default function PersistentDrawerLeft() {
 				return false;
 			}
 		};
-		const buildFile = async (key: string, buildFolder: boolean) => {
+		const buildTypeScript = async (target: string, projectRoot?: string, selectedFiles?: string[]) => {
+			built = true;
+			const result = await Service.buildTypeScript(target, projectRoot, selectedFiles);
+			succeeded &&= result.success;
+			if (!result.success && !result.messages?.length) {
+				Service.addLog(`[error] ${result.message ?? target}\n`);
+			}
+			let generatedFile = false;
+			for (const item of result.messages ?? []) {
+				Service.addLog(item.success ? `[info] Built ${item.file}\n` : `[error] ${item.message ?? item.file}\n`);
+				if (!item.success) continue;
+				generatedFile = true;
+				const output = path.join(path.dirname(item.file), path.basename(item.file, path.extname(item.file)) + ".lua");
+				const tab = files.find(file => path.relative(file.key, output) === "" && file.contentModified === null);
+				if (!tab) continue;
+				const generated = await Service.read({ path: output });
+				if (generated.success) {
+					tab.content = generated.content;
+					monaco.editor.getModel(monaco.Uri.file(output))?.setValue(generated.content);
+				}
+			}
+			return { success: result.success, generatedFile };
+		};
+		const buildFile = async (key: string, buildFolder: boolean, projectRoot?: string) => {
 			if (key.split(/[\\/]/).some(part => part === '.godot' || part === '.agent')) return;
 			const preferLog = buildFolder;
 			if (checkFileReadonly(key, false)) { succeeded = false; return; }
@@ -3426,51 +3449,16 @@ export default function PersistentDrawerLeft() {
 						setIsWaSaving(false);
 					}
 				} else if ((ext === '.ts' || ext === '.tsx') && !key.toLocaleLowerCase().endsWith(".d.ts")) {
-					built = true;
-					const res = await Service.read({ path: key });
-					if (!res.success || res.content === undefined) succeeded = false;
-					if (res.success && res.content !== undefined) {
-						if (/^[\s\n\r]*<\?xml/.test(res.content)) {
-							return;
-						}
-						const { transpileTypescript, addDiagnosticToLog } = await import('./TranspileTS');
-						const { luaCode, diagnostics } = await transpileTypescript(key, res.content);
-						if (diagnostics.length > 0) {
-							succeeded = false;
-							await addDiagnosticToLog(key, diagnostics);
-							if (!preferLog) {
-								addAlert(t("alert.failedCompile", { title }), "warning");
-							}
-							return;
-						}
-						if (luaCode === undefined) succeeded = false;
-						if (luaCode !== undefined) {
-							if (fileInTab !== undefined) {
-								fileInTab.content = luaCode;
-								const model = monaco.editor.getModel(monaco.Uri.file(luaFile));
-								if (model) {
-									model.setValue(luaCode);
-								}
-							}
-							const res = await Service.write({ path: luaFile, content: luaCode });
-							if (!res.success) succeeded = false;
-							if (res.success) {
-								if (preferLog) {
-									Service.command({ code: `Log "Info", "Built ${title.replace(/[\\"]/g, "\\$&")}"`, log: false });
-								} else {
-									addAlert(t("alert.build", { title }), "success");
-								}
-							} else {
-								if (preferLog) {
-									Service.command({ code: `Log "Error", "Failed to save ${title.replace(/[\\"]/g, "\\$&")}"`, log: false });
-								} else {
-									addAlert(t("alert.saveCurrent"), "error");
-								}
-							}
+					const result = await buildTypeScript(key, projectRoot);
+					if (!preferLog) {
+						if (!result.success) {
+							addAlert(t("alert.failedCompile", { title }), "warning");
+						} else if (result.generatedFile) {
+							addAlert(t("alert.build", { title }), "success");
 						}
 					}
 				} else if (ext === '.yue' || ext === '.tl' || ext === '.xml') {
-					const res = await Service.build({ path: key });
+					const res = await Service.build({ path: key, projectRoot });
 					if (!res.success) succeeded = false;
 					built = true;
 					if (res.success) {
@@ -3490,9 +3478,9 @@ export default function PersistentDrawerLeft() {
 							}, 10);
 						}
 					} else {
-						if (preferLog) {
-							Service.command({ code: `Log "Error", "Failed to build ${title.replace(/[\\"]/g, "\\$&")}"`, log: false });
-						} else {
+						const failure = res.message ? `Failed to build ${title}\n${res.message}` : `Failed to build ${title}`;
+						Service.addLog(`[error] ${failure}\n`);
+						if (!preferLog) {
 							addAlert(t("alert.failedCompile", { title }), "warning");
 						}
 					}
@@ -3523,13 +3511,38 @@ export default function PersistentDrawerLeft() {
 			isSaving = true;
 			try {
 				if (!await checkGodot(key)) return false;
-				const listRes = await Service.assetFiles(data.key);
-				if (!listRes.success) succeeded = false;
-				if (listRes.success) {
-					for (const file of listRes.files) {
-						await buildFile(file, true);
+				const plan = await Service.directoryBuildPlan(key);
+				if (!plan.success) succeeded = false;
+				for (const unit of Array.isArray(plan.units) ? plan.units : []) {
+					try {
+						if (unit.projectRoot) {
+							const running = await getRunningAgentSessionForProject(unit.projectRoot);
+							if (!running.success || running.session) {
+								succeeded = false;
+								Service.addLog(`[error] ${running.success
+									? t("alert.buildProjectAgentRunning", { title: running.session?.title })
+									: running.message}\n`);
+								continue;
+							}
+						}
+						if (unit.godot && !await checkGodot(unit.godot)) continue;
+						const ts = unit.projectRoot
+							? unit.files.filter(file => /(?<!\.d)\.tsx?$/i.test(file) && !checkFileReadonly(file, false))
+							: [];
+						const batched = new Set(ts);
+						for (const file of unit.files) {
+							if (!batched.has(file) && getGodotFileLanguage(file) === undefined) {
+								await buildFile(file, true, unit.projectRoot);
+							}
+						}
+						if (unit.projectRoot && ts.length > 0) {
+							await buildTypeScript(unit.projectRoot, unit.projectRoot, ts);
+						}
+					} catch (error) {
+						succeeded = false;
+						Service.addLog(`[error] ${unit.projectRoot ?? key}: ${String(error)}\n`);
+						}
 					}
-				}
 				await new Promise(resolve => setTimeout(resolve, 100));
 				const summary = t(!succeeded ? "alert.failedCompile" : built ? "alert.buildDone" : "alert.noBuild", { title });
 				Service.command({ code: `Log "${succeeded ? 'Info' : 'Error'}", "${summary.replace(/[\\"]/g, "\\$&")}"`, log: false });
@@ -3542,7 +3555,7 @@ export default function PersistentDrawerLeft() {
 			if (succeeded && getGodotFileLanguage(key) !== undefined) addAlert(t("alert.build", { title: data.title }), "success");
 		}
 		return succeeded;
-	}, [addAlert, checkFileReadonly, files, t]);
+	}, [addAlert, checkFileReadonly, files, getRunningAgentSessionForProject, t]);
 
 	const webPackageAction = useWebPackage({
 		currentFile,

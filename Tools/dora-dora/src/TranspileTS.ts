@@ -16,7 +16,7 @@ import type { TranspileTSVirtualFile } from './Service';
 import { getExtraLib } from './MonacoPath';
 import { setMonacoRuntime } from './MonacoRuntimeAccess';
 import { isPathWithin } from './PathUtils';
-import { createSnapshotProgram, doraCompilerOptions } from '@dora-studio/compiler';
+import { createSnapshotProgram, doraCompilerOptions, registerDoraRuntimeExports, resolveDoraModule } from '@dora-studio/compiler';
 import { toFilePath } from './MonacoPath';
 import { promoteCompilerWarnings } from './TranspileDiagnostics';
 
@@ -510,7 +510,7 @@ function createCompilerHost(
 		},
 		resolveModuleNames(moduleNames, containingFile) {
 			return moduleNames.map(moduleName => {
-				const resolved = ts.resolveModuleName(moduleName, containingFile, compilerOptions, compilerHost).resolvedModule;
+				const resolved = resolveDoraModule(ts, moduleName, containingFile, compilerOptions, compilerHost);
 				if (resolved !== undefined || moduleName.startsWith(".") || Info.path.isAbsolute(moduleName)) {
 					return resolved;
 				}
@@ -549,6 +549,7 @@ function createTypescriptProgram(
 	content: string,
 	projectRoot?: string,
 	virtualFiles?: readonly TranspileTSVirtualFile[],
+	projectScriptRoot?: string,
 ): { program: Program; snapshotHost?: CompilerHost } {
 	const sourceRoot = projectRoot && projectRoot !== "" ? projectRoot : Info.path.dirname(rootFileName);
 	// WebSocket transpile requests may overlap across Agent projects. Keep the
@@ -564,7 +565,8 @@ function createTypescriptProgram(
 		const files = new Map(virtualFiles.map(file => [Info.path.normalize(file.file), file]));
 		const rootPath = Info.path.normalize(rootFileName);
 		files.set(rootPath, { ...files.get(rootPath), file: rootPath, content });
-		let defaultLibFileName = virtualFiles.find(file => Info.path.basename(file.file) === "Dora.d.ts")?.file;
+		let defaultLibFileName = virtualFiles.find(file => file.moduleName === "Dora" && Info.path.basename(file.file) === "Dora.d.ts")?.file
+			?? virtualFiles.find(file => Info.path.basename(file.file) === "Dora.d.ts")?.file;
 		const extraLibs = defaultLibFileName === undefined ? monacoTypescript.typescriptDefaults.getExtraLibs() : {};
 		for (const [name, lib] of Object.entries(extraLibs) as [string, { content: string }][]) {
 			const file = Info.path.normalize(toFilePath(name));
@@ -575,12 +577,14 @@ function createTypescriptProgram(
 		}
 		const snapshot = createSnapshotProgram(ts, {
 			rootNames: [rootPath], projectRoot: sourceRoot, files: [...files.values()],
-			options: compilerOptions, defaultLibFileName: defaultLibFileName ?? "Dora.d.ts",
+			options: compilerOptions, projectScriptRoot, defaultLibFileName: defaultLibFileName ?? "Dora.d.ts",
 		});
 		return { program: snapshot.program, snapshotHost: snapshot.host };
 	}
 	const [compilerHost] = createCompilerHost(ts, rootFileName, content, projectRoot, compilerOptions, virtualFiles);
-	return { program: ts.createProgram([rootFileName], compilerOptions, compilerHost) };
+	const program = ts.createProgram([rootFileName], compilerOptions, compilerHost);
+	registerDoraRuntimeExports(ts, program, program.getSourceFile(compilerHost.getDefaultLibFileName(compilerOptions)));
+	return { program };
 }
 
 export async function transpileTypescript(
@@ -588,33 +592,45 @@ export async function transpileTypescript(
 	content: string,
 	projectRoot?: string,
 	virtualFiles?: readonly TranspileTSVirtualFile[],
+	projectScriptRoot?: string,
 ) {
 	const ts = await loadTypescriptCompiler();
 	const tstl = await loadTstl();
 	await loadSourceMapWasm();
 	const tstlOptions = getTstlOptions(ts, tstl);
-	const { program, snapshotHost } = createTypescriptProgram(ts, tstlOptions, fileName, content, projectRoot, virtualFiles);
+	const sourceRoot = projectRoot || (virtualFiles === undefined
+		? (await Service.projectRoot({ path: fileName, isDir: false }))?.projectRoot
+		: undefined);
+	const { program, snapshotHost } = createTypescriptProgram(ts, tstlOptions, fileName, content, sourceRoot, virtualFiles, projectScriptRoot);
 	const preEmitDiagnostics = ts.getPreEmitDiagnostics(program);
 	const { createEmitOutputCollector } = await loadOutputCollector();
 	const collector = createEmitOutputCollector();
+	const dependencyCache = new Map<string, string | undefined>();
+	const readDependency = (filename: string) => {
+		if (snapshotHost) return snapshotHost.readFile(filename);
+		const path = Info.path.normalize(filename);
+		if (!dependencyCache.has(path)) {
+			const context = { projFile: fileName, projectRoot: sourceRoot };
+			let result = Service.readSync({ path, ...context });
+			if (!result?.success && Info.path.isAbsolute(path)) {
+				// TSTL probes absolute paths under the source root for Lua modules.
+				// Retry the module-relative name so Dora's Script/Lib search paths apply.
+				const root = sourceRoot || Info.path.dirname(fileName);
+				const relative = Info.path.relative(root, path);
+				if (relative && !Info.path.isAbsolute(relative) && !/^\.\.(?:[\\/]|$)/.test(relative)) {
+					result = Service.readSync({ path: relative, ...context });
+				}
+			}
+			dependencyCache.set(path, result?.success ? result.content : undefined);
+		}
+		return dependencyCache.get(path);
+	};
 	const res = new tstl.Transpiler({
 		emitHost: {
 			directoryExists: path => snapshotHost?.directoryExists?.(path) ?? false,
-			fileExists: path => snapshotHost?.fileExists(path) ?? true,
-			getCurrentDirectory: () => projectRoot && projectRoot !== "" ? projectRoot : Info.path.dirname(fileName),
-			readFile: (filename) => {
-				if (snapshotHost) return snapshotHost.readFile(filename);
-				const normalizedFilename = Info.path.normalize(filename);
-				const virtualSource = virtualFiles?.find(entry => Info.path.normalize(entry.file) === normalizedFilename);
-				const res = virtualSource === undefined ? virtualFiles === undefined
-					? Service.readSync({ path: filename, projectRoot })
-					: { success: false as const }
-					: { success: true as const, content: virtualSource.content };
-				if (res?.success) {
-					return res.content;
-				}
-				return undefined;
-			},
+			fileExists: path => snapshotHost ? snapshotHost.fileExists(path) : readDependency(path) !== undefined,
+			getCurrentDirectory: () => sourceRoot || Info.path.dirname(fileName),
+			readFile: readDependency,
 			writeFile: () => { }
 		}
 	}).emit({

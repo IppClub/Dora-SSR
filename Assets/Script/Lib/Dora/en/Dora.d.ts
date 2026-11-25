@@ -4604,9 +4604,10 @@ class Content {
 	 * - All .txt and .json files in the directory (not including subdirectories): ["*.txt", "*.json"]
 	 * - All files in the directory, but exclude .txt files: ["**", "!**.txt"]
 	 * @param extensionLevels Optional map from extension to priority level for selecting the preferred file when files share the same basename.
+	 * @param followSymlinks Whether to include symbolic links encountered during traversal. Defaults to true.
 	 * @returns An array of the names of all files in the specified directory and its subdirectories.
 	 */
-	glob(path: string, globs: string[], extensionLevels?: Record<string, number>): string[];
+	glob(path: string, globs: string[], extensionLevels?: Record<string, number>, followSymlinks?: boolean): string[];
 
 	/**
 	 * Asynchronously searches files and returns the match results. Should be run in a thread.

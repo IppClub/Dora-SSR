@@ -945,6 +945,13 @@ static int dora_check_xml(lua_State* L) {
 	return 2;
 }
 
+static int dora_xml_is_dora_tag(lua_State* L) {
+	size_t len = 0;
+	const char* name = luaL_checklstring(L, 1, &len);
+	lua_pushboolean(L, DoraTag::shared().hasElement(Slice{name, len}));
+	return 1;
+}
+
 static int dora_xml_to_lua(lua_State* L) {
 	size_t len = 0;
 	const char* str = luaL_checklstring(L, 1, &len);
@@ -1273,6 +1280,13 @@ void dora_open_threaded_compiler(void* state) {
 	lua_pop(L, 1);
 }
 
+static Async& yueCompilerWorker() {
+	// The recursive Yue compiler can exceed the default stack of a pool worker.
+	constexpr uint32_t stackSize = 4 * 1024 * 1024;
+	static auto worker = SharedAsyncThread.newThread(stackSize);
+	return *worker;
+}
+
 static int dora_yue_check_async(lua_State* L) {
 	size_t len = 0;
 	const char* str = luaL_checklstring(L, 1, &len);
@@ -1287,7 +1301,7 @@ static int dora_yue_check_async(lua_State* L) {
 		tolua_error(L, "#ferror in function 'yue.checkAsync'.", &err);
 	}
 	Ref<LuaHandler> handler(LuaHandler::create(tolua_ref_function(L, 4)));
-	SharedAsyncThread.run([codes = codes.toString(), searchPath = searchPath.toString(), lax]() {
+	yueCompilerWorker().run([codes = codes.toString(), searchPath = searchPath.toString(), lax]() {
 		yue::YueConfig config;
 		config.implicitReturnRoot = true;
 		config.reserveLineNumber = true;
@@ -1375,7 +1389,7 @@ static int dora_yue_compile(lua_State* L) {
 				auto input = std::make_shared<std::tuple<
 					std::string, std::string, OwnArray<uint8_t>, size_t>>(
 					src, dest, std::move(codes), size);
-				SharedAsyncThread.run(
+			yueCompilerWorker().run(
 					[input, src, searchPath]() {
 						yue::YueConfig config;
 						config.implicitReturnRoot = true;
@@ -1566,6 +1580,7 @@ LuaEngine::LuaEngine()
 	tolua_module(L, "xml", 0);
 	tolua_beginmodule(L, "xml");
 	tolua_function(L, "tolua", dora_xml_to_lua);
+	tolua_function(L, "isDoraTag", dora_xml_is_dora_tag);
 	tolua_endmodule(L);
 #endif
 	tolua_beginmodule(L, "Director");
@@ -1929,6 +1944,7 @@ LuaEngine::LuaEngine()
 		{
 			tolua_function(L, "dostring", dora_do_xml);
 			tolua_function(L, "tolua", dora_xml_to_lua);
+			tolua_function(L, "isDoraTag", dora_xml_is_dora_tag);
 			tolua_function(L, "complete", dora_complete_xml);
 			tolua_function(L, "check", dora_check_xml);
 		}

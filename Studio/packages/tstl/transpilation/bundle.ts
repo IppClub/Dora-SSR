@@ -3,13 +3,13 @@ import { SourceNode } from "source-map";
 import * as ts from "typescript";
 import { CompilerOptions, LuaTarget } from "../CompilerOptions";
 import { escapeString, tstlHeader } from "../LuaPrinter";
-import { cast, formatPathToLuaPath, isNonNull, trimExtension } from "../utils";
+import { cast, isNonNull } from "../utils";
 import { couldNotFindBundleEntryPoint } from "./diagnostics";
-import { getEmitOutDir, getEmitPathRelativeToOutDir, getProjectRoot } from "./transpiler";
+import { getEmittedModuleName, getEmitOutDir, getProjectRoot } from "./transpiler";
 import { EmitFile, ProcessedFile } from "./utils";
 
 const createModulePath = (pathToResolve: string, program: ts.Program) =>
-    escapeString(formatPathToLuaPath(trimExtension(getEmitPathRelativeToOutDir(pathToResolve, program))));
+    escapeString(getEmittedModuleName(pathToResolve, program));
 
 // Override `require` to read from ____modules table.
 function requireOverride(options: CompilerOptions) {

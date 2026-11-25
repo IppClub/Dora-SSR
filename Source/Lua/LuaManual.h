@@ -57,10 +57,10 @@ void __Content_getAllFiles(lua_State* L, Content* self, String path);
 		__Content_getAllFiles(tolua_S, self, path); \
 		return 1; \
 	}
-void __Content_glob(lua_State* L, Content* self, String path, Slice globs[], int len, Dictionary* extensionLevels);
-#define Content_glob(self, path, globs, len, extensionLevels) \
+void __Content_glob(lua_State* L, Content* self, String path, Slice globs[], int len, Dictionary* extensionLevels, bool followSymlinks);
+#define Content_glob(self, path, globs, len, extensionLevels, followSymlinks) \
 	{ \
-		__Content_glob(tolua_S, self, path, globs, len, extensionLevels); \
+		__Content_glob(tolua_S, self, path, globs, len, extensionLevels, followSymlinks); \
 		return 1; \
 	}
 int __Content_getAttr(lua_State* L, Content* self, String filename);

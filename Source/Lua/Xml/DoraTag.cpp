@@ -34,6 +34,10 @@ DoraTag::DoraTag() {
 
 DoraTag::~DoraTag() { }
 
+bool DoraTag::hasElement(String elementName) const {
+	return _elements.find(elementName) != _elements.end();
+}
+
 DoraTag::LineType DoraTag::getType(const std::string& line) {
 	auto lineStr = Slice(line).trimSpace();
 	if (lineStr.empty()) {

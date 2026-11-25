@@ -28,6 +28,7 @@ type CompilerJob = {
 	file: string;
 	content: string;
 	projectRoot?: string;
+	projectScriptRoot?: string;
 	files?: TranspileTSVirtualFile[];
 };
 
@@ -60,6 +61,7 @@ const runJob = async (job: CompilerJob) => {
 			job.content,
 			job.projectRoot,
 			job.files,
+			job.projectScriptRoot,
 		);
 		const message = success ? '' : await getDiagnosticMessage(job.file, diagnostics);
 		await post('/compiler/result', {

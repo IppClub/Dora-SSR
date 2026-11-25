@@ -60,7 +60,7 @@ rebuild = ->
 	return false, detail unless ok
 	unless installMetadata!
 		return false, "database was rebuilt but schema metadata could not be initialized"
-	Log "Dora database was rebuilt. Backup: #{detail}" unless detail == ""
+	Log "Info", "Dora database was rebuilt. Backup: #{detail}" unless detail == ""
 	true
 
 export recover = (status) ->
@@ -69,5 +69,5 @@ export recover = (status) ->
 	if status.kind == "metadata" or status.kind == "migration"
 		ok, reason = migrate status
 		return true if ok
-		Warn "database migration failed: #{reason}; rebuilding the database"
+		Log "Warning", "database migration failed: #{reason}; rebuilding the database"
 	rebuild!

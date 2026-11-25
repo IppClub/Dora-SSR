@@ -46,6 +46,14 @@ export function formatPathToLuaPath(filePath: string): string {
     return filePath.replace(/\.\//g, "").replace(/\//g, ".");
 }
 
+export function formatModuleFilePath(filePath: string): string {
+    const normalized = normalizeSlashes(filePath);
+    const stem = trimExtension(normalized);
+    if (!stem.includes(".")) return formatPathToLuaPath(stem);
+    // An explicit Lua filename keeps literal dots out of package-name expansion.
+    return `./${normalized}`;
+}
+
 type NoInfer<T> = [T][T extends any ? 0 : never];
 
 export function getOrUpdate<K, V>(

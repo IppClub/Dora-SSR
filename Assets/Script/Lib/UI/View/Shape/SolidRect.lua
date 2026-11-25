@@ -1,4 +1,4 @@
--- [xml]: Script/Lib/UI/View/Shape/SolidRect.xml
+-- [xml]: Lib/UI/View/Shape/SolidRect.xml
 return function(args) -- 1
 local _ENV = Dora(args) -- 1
 local drawNode1 = DrawNode() -- 3

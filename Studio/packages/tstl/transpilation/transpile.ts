@@ -93,7 +93,7 @@ export function getProgramTranspileResult(
             console.log(`Transforming ${sourceFile.fileName}`);
         }
 
-        const { file, diagnostics: transformDiagnostics, isTIC80 } = transformSourceFile(program, sourceFile, visitorMap);
+        const { file, diagnostics: transformDiagnostics, isTIC80, importedSources } = transformSourceFile(program, sourceFile, visitorMap);
         diagnostics.push(...transformDiagnostics);
 
         if (isTIC80) {
@@ -110,6 +110,7 @@ export function getProgramTranspileResult(
             const printResult = printer(program, emitHost, sourceFile.fileName, file);
             transpiledFiles.push({
                 sourceFiles: [sourceFile],
+                importedSources,
                 fileName: path.normalize(sourceFile.fileName),
                 luaAst: file,
                 ...printResult,

@@ -70,7 +70,7 @@ class Async : public NonCopyable {
 	friend class AsyncTaskGroup;
 
 public:
-	Async();
+	explicit Async(uint32_t stackSize = 0);
 	virtual ~Async();
 	/** @brief Submits worker work and a logic-thread finisher.
 	 This method must be called from the logic thread. Worker and finisher exceptions
@@ -100,6 +100,7 @@ private:
 	bool isPoolWorker() const;
 	bool _scheduled;
 #if !BX_PLATFORM_EMSCRIPTEN
+	uint32_t _stackSize;
 	bx::Thread _thread;
 	bx::Semaphore _workerSemaphore;
 	std::once_flag _initThreadFlag;
@@ -128,7 +129,7 @@ public:
 	/** @brief Creates a dedicated serial Async worker retained for this AsyncThread's lifetime.
 	 The worker owns a separate queue and OS thread, and never participates in the pool's
 	 task distribution or work stealing. */
-	Async* newThread();
+	Async* newThread(uint32_t stackSize = 0);
 	TaskGroup createTaskGroup();
 	/** @brief Runs one frame-stage batch on the shared task pool and waits for completion.
 	 The same internal batch state is reused across frames and subsystems, so calls are serialized.

@@ -159,7 +159,7 @@ local record Content
 	-- @param filter (function) [optional] A function to filter the files to include in the archive. The function takes a filename as input and returns a boolean indicating whether to include the file. If not provided, all files will be included.
 	-- @return (boolean) `true` if the folder was decompressed successfully, `false` otherwise.
 	-- Optional archive byte and file count limits; 0 means unlimited. Unsafe paths are rejected.
-	unzipAsync: function(self: Content, zipFile: string, folderPath: string, filter?: function(string): boolean, maxBytes?: integer, maxFiles?: integer): boolean
+	unzipAsync: function(self: Content, zipFile: string, folderPath: string, filter?: (function(string): boolean), maxBytes?: integer, maxFiles?: integer): boolean
 
 	-- Gets the names of all files in the specified directory and its subdirectories.
 	-- @param path (string) The path of the directory to search.
@@ -167,8 +167,9 @@ local record Content
 	-- - All .txt and .json files in the directory (not including subdirectories): ["*.txt", "*.json"]
 	-- - All files in the directory, but exclude .txt files: ["**", "!**.txt"]
 	-- @param extensionLevels ({[string]: integer}) [optional] A map from extension to priority level for picking the preferred file when the same basename appears with different extensions.
+	-- @param followSymlinks (boolean) Whether to include symbolic links encountered during traversal. Defaults to true.
 	-- @return (table) An array of the names of all files in the specified directory and its subdirectories.
-	glob: function(self: Content, path: string, globs: {string}, extensionLevels?: {string: integer}): {string}
+	glob: function(self: Content, path: string, globs: {string}, extensionLevels?: {string: integer}, followSymlinks?: boolean): {string}
 
 	-- A search result item returned by `searchFilesAsync`.
 	record SearchFilesResult

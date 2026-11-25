@@ -1,11 +1,13 @@
 import { cp, mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import { build } from 'esbuild';
+import { readStudioCompilerResources, studioCompilerResourcesPath } from '../../../scripts/compiler-resources.mjs';
 const target = new URL('../.generated/', import.meta.url);
 await mkdir(target, { recursive: true });
 await cp(new URL('../../../../Projects/Web/web-package.js', import.meta.url), new URL('web-package.js', target));
 await cp(new URL('../../../packages/compiler-web/dist/browser/', import.meta.url), new URL('compiler/', target), { recursive: true });
 await cp(new URL('../../../../Assets/Script/Lib/Dora/en/', import.meta.url), new URL('declarations/', target), { recursive: true });
 await cp(new URL('../../../../Assets/Script/Lib/lualib_bundle.lua', import.meta.url), new URL('declarations/lualib_bundle.lua', target));
+await writeFile(new URL(studioCompilerResourcesPath, target), await readStudioCompilerResources());
 await cp(new URL('../../../../Docs/static/img/site/logo.svg', import.meta.url), new URL('dora-symbol.svg', target));
 const tealTarget = new URL('teal/', target);
 await mkdir(tealTarget, {recursive:true});

@@ -514,6 +514,29 @@ local type AudioEffectType = LoveEnums.AudioEffectType
 local type BodyType = LoveEnums.BodyType
 
 -- Drawable image type.
+
+local record Data
+	userdata
+end
+local type Color = {number}
+local type ColoredText = string | {string | Color}
+local type MeshVertex = {number}
+local type MeshVertexFormat = {string, string, integer}
+
+local enum StringOutput
+	"string"
+end
+
+local enum DataOutput
+	"data"
+end
+
+local record CompressedImageSettings
+	mipmaps: boolean
+	linear: boolean
+	dpiscale: number
+end
+
 local record Image
 
 	-- Destroys the object's Lua reference. The object will be completely deleted if it's not referenced by any other
@@ -1038,6 +1061,14 @@ local record Canvas
 	-- @return (WrapMode) Wrapping mode for the z-axis of a Volume texture.
 	getWrap: function(self: Canvas): WrapMode, WrapMode, WrapMode
 end
+
+local record CanvasSetup
+	{Canvas}
+	depth: boolean
+	stencil: boolean
+	depthstencil: boolean | Canvas
+end
+
 
 local record CanvasSettings
 	dpiscale: number
@@ -2223,7 +2254,8 @@ local record Shader
 	-- @param name (string) Name of the vector to send to the shader.
 	-- @param matrix_layout (MatrixLayout) The layout (row- or column-major) of the matrix in memory.
 	-- @param matrices ({number} | {{number}}...) Additional vectors to send if the uniform variable is a table. All vectors need to be of the same size (e.g. only vec3's).
-	send: function(self: Shader, name: string, matrix_layout: MatrixLayout, matrices: {number} | {{number}}...)
+	send: function(self: Shader, name: string, matrix_layout: MatrixLayout, matrices: {number}...)
+	send: function(self: Shader, name: string, matrix_layout: MatrixLayout, matrices: {{number}}...)
 
 	-- Sends one or more values to a special (''uniform'') variable inside the shader. Uniform variables have to be marked using the ''uniform'' or ''extern'' keyword, e.g.
 	--
@@ -2323,7 +2355,11 @@ local record Shader
 	-- Uniform / extern variables are read-only in the shader code and remain constant until modified by a Shader:send call. Uniform variables can be accessed in both the Vertex and Pixel components of a shader, as long as the variable is declared in each.
 	-- @param name (string) Name of the uniform to send to the shader.
 	-- @param values (ShaderValue...) Texture (Image or Canvas) to send to the uniform variable.
-	send: function(self: Shader, name: string, values: ShaderValue...)
+	send: function(self: Shader, name: string, values: number...)
+	send: function(self: Shader, name: string, values: boolean...)
+	send: function(self: Shader, name: string, values: {number}...)
+	send: function(self: Shader, name: string, values: {{number}}...)
+	send: function(self: Shader, name: string, values: {boolean}...)
 
 	-- Sends one or more colors to a special (''extern'' / ''uniform'') vec3 or vec4 variable inside the shader. The color components must be in the range of 1. The colors are gamma-corrected if global gamma-correction is enabled.
 	--
@@ -2359,7 +2395,7 @@ local record Shader
 	-- In versions prior to 11.0, color component values were within the range of 0 to 255 instead of 0 to 1.
 	-- @param name (string) The name of the color extern variable to send to in the shader.
 	-- @param values (ShaderValue...) A table with red, green, blue, and optional alpha color components in the range of 1 to send to the extern as a vector.
-	sendColor: function(self: Shader, name: string, values: ShaderValue...)
+	sendColor: function(self: Shader, name: string, colors: Color...)
 end
 
 local record WindowMode
@@ -2687,6 +2723,8 @@ end
 
 -- Data representing the contents of a file.
 local record FileData
+	userdata
+	embed Data
 
 	-- Gets the type of the object as a string.
 	-- @return (string) The type as a string.
@@ -2737,6 +2775,8 @@ end
 
 -- Raw (decoded) image data.
 local record ImageData
+	userdata
+	embed Data
 
 	-- Destroys the object's Lua reference. The object will be completely deleted if it's not referenced by any other
 	-- LÖVE object or thread.
@@ -2857,6 +2897,8 @@ end
 
 -- Represents compressed image data designed to stay compressed in RAM.
 local record CompressedImageData
+	userdata
+	embed Data
 
 	-- Destroys the object's Lua reference. The object will be completely deleted if it's not referenced by any other
 	-- LÖVE object or thread.
@@ -3028,6 +3070,8 @@ end
 
 -- A GlyphData represents a drawable symbol of a font Rasterizer.
 local record GlyphData
+	userdata
+	embed Data
 
 	-- Destroys the object's Lua reference. The object will be completely deleted if it's not referenced by any other
 	-- LÖVE object or thread.
@@ -3167,6 +3211,8 @@ end
 
 -- Contains raw audio samples.
 local record SoundData
+	userdata
+	embed Data
 
 	-- Gets the type of the object as a string.
 	-- @return (string) The type as a string.
@@ -3344,6 +3390,8 @@ end
 
 -- Data object containing arbitrary bytes in an contiguous memory.
 local record ByteData
+	userdata
+	embed Data
 
 	-- Gets the type of the object as a string.
 	-- @return (string) The type as a string.
@@ -3385,6 +3433,8 @@ local record ByteData
 	clone: function(self: ByteData): ByteData
 end
 local record DataView
+	userdata
+	embed Data
 	type: function(self: DataView): string
 	typeOf: function(self: DataView, type_name: string): boolean
 	release: function(self: DataView): boolean
@@ -3397,6 +3447,8 @@ end
 
 -- Represents byte data compressed using a specific algorithm.
 local record CompressedData
+	userdata
+	embed Data
 
 	-- Gets the type of the object as a string.
 	-- @return (string) The type as a string.
@@ -3483,7 +3535,7 @@ local record DataModule
 	-- @param source (string | Data) The raw data to encode.
 	-- @param line_length (integer) The maximum line length of the output. Only supported for base64, ignored if 0. (Default: 0.)
 	-- @return (string) encoded — ByteData/string which contains the encoded version of source.
-	encode: function(container: DataContainer, format: EncodeFormat, source: string | Data, line_length?: integer): string
+	encode: function(container: StringOutput, format: EncodeFormat, source: string | Data, line_length?: integer): string
 
 	-- Encode Data or a string to a Data or string in one of the EncodeFormats.
 	-- @param container (DataContainer) What type to return the encoded data as.
@@ -3491,21 +3543,21 @@ local record DataModule
 	-- @param source (string | Data) The raw data to encode.
 	-- @param line_length (integer) The maximum line length of the output. Only supported for base64, ignored if 0. (Default: 0.)
 	-- @return (ByteData) encoded — ByteData/string which contains the encoded version of source.
-	encode: function(container: DataContainer, format: EncodeFormat, source: string | Data, line_length?: integer): ByteData
+	encode: function(container: DataOutput, format: EncodeFormat, source: string | Data, line_length?: integer): ByteData
 
 	-- Decode Data or a string from any of the EncodeFormats to Data or string.
 	-- @param container (DataContainer) What type to return the decoded data as.
 	-- @param format (EncodeFormat) The format of the input data.
 	-- @param source (string | Data) The raw (encoded) data to decode.
 	-- @return (string) decoded — ByteData/string which contains the decoded version of source.
-	decode: function(container: DataContainer, format: EncodeFormat, source: string | Data): string
+	decode: function(container: StringOutput, format: EncodeFormat, source: string | Data): string
 
 	-- Decode Data or a string from any of the EncodeFormats to Data or string.
 	-- @param container (DataContainer) What type to return the decoded data as.
 	-- @param format (EncodeFormat) The format of the input data.
 	-- @param source (string | Data) The raw (encoded) data to decode.
 	-- @return (ByteData) decoded — ByteData/string which contains the decoded version of source.
-	decode: function(container: DataContainer, format: EncodeFormat, source: string | Data): ByteData
+	decode: function(container: DataOutput, format: EncodeFormat, source: string | Data): ByteData
 
 	-- Compresses a string or data using a specific compression algorithm.
 	-- @param container (DataContainer) What type to return the compressed data as.
@@ -3513,7 +3565,7 @@ local record DataModule
 	-- @param source (string | Data) The raw (un-compressed) string to compress.
 	-- @param level (integer) The level of compression to use, between 0 and 9. -1 indicates the default level. The meaning of this argument depends on the compression format being used. (Default: -1.)
 	-- @return (string) compressedData — CompressedData/string which contains the compressed version of rawstring.
-	compress: function(container: DataContainer, format: CompressionFormat, source: string | Data, level?: integer): string
+	compress: function(container: StringOutput, format: CompressionFormat, source: string | Data, level?: integer): string
 
 	-- Compresses a string or data using a specific compression algorithm.
 	-- @param container (DataContainer) What type to return the compressed data as.
@@ -3521,33 +3573,33 @@ local record DataModule
 	-- @param source (string | Data) A Data object containing the raw (un-compressed) data to compress.
 	-- @param level (integer) The level of compression to use, between 0 and 9. -1 indicates the default level. The meaning of this argument depends on the compression format being used. (Default: -1.)
 	-- @return (CompressedData) CompressedData/string which contains the compressed version of data.
-	compress: function(container: DataContainer, format: CompressionFormat, source: string | Data, level?: integer): CompressedData
+	compress: function(container: DataOutput, format: CompressionFormat, source: string | Data, level?: integer): CompressedData
 
 	-- Decompresses a CompressedData or previously compressed string or Data object.
 	-- @param container (DataContainer) What type to return the decompressed data as.
 	-- @param compressed (CompressedData) The compressed data to decompress.
 	-- @return (string) decompressedData — Data/string containing the raw decompressed data.
-	decompress: function(container: DataContainer, compressed: CompressedData): string
+	decompress: function(container: StringOutput, compressed: CompressedData): string
 
 	-- Decompresses a CompressedData or previously compressed string or Data object.
 	-- @param container (DataContainer) What type to return the decompressed data as.
 	-- @param compressed (CompressedData) The compressed data to decompress.
 	-- @return (ByteData) decompressedData — Data/string containing the raw decompressed data.
-	decompress: function(container: DataContainer, compressed: CompressedData): ByteData
+	decompress: function(container: DataOutput, compressed: CompressedData): ByteData
 
 	-- Decompresses a CompressedData or previously compressed string or Data object.
 	-- @param container (DataContainer) What type to return the decompressed data as.
 	-- @param format (CompressionFormat) The format that was used to compress the given data.
 	-- @param source (string | Data) A Data object containing data previously compressed with love.data.compress.
 	-- @return (string) decompressedData — Data/string containing the raw decompressed data.
-	decompress: function(container: DataContainer, format: CompressionFormat, source: string | Data): string
+	decompress: function(container: StringOutput, format: CompressionFormat, source: string | Data): string
 
 	-- Decompresses a CompressedData or previously compressed string or Data object.
 	-- @param container (DataContainer) What type to return the decompressed data as.
 	-- @param format (CompressionFormat) The format that was used to compress the given data.
 	-- @param source (string | Data) A Data object containing data previously compressed with love.data.compress.
 	-- @return (ByteData) decompressedData — Data/string containing the raw decompressed data.
-	decompress: function(container: DataContainer, format: CompressionFormat, source: string | Data): ByteData
+	decompress: function(container: DataOutput, format: CompressionFormat, source: string | Data): ByteData
 
 	-- Packs (serializes) simple Lua values.
 	--
@@ -3556,7 +3608,7 @@ local record DataModule
 	-- @param format (string) A string determining how the values are packed. Follows the rules of Lua 5.3's string.pack format strings.
 	-- @param values (any...) The first value (number, boolean, or string) to serialize.
 	-- @return (string) data — Data/string which contains the serialized data.
-	pack: function(container: DataContainer, format: string, values: any...): string
+	pack: function(container: StringOutput, format: string, values: any...): string
 
 	-- Packs (serializes) simple Lua values.
 	--
@@ -3565,7 +3617,7 @@ local record DataModule
 	-- @param format (string) A string determining how the values are packed. Follows the rules of Lua 5.3's string.pack format strings.
 	-- @param values (any...) The first value (number, boolean, or string) to serialize.
 	-- @return (ByteData) data — Data/string which contains the serialized data.
-	pack: function(container: DataContainer, format: string, values: any...): ByteData
+	pack: function(container: DataOutput, format: string, values: any...): ByteData
 
 	-- Unpacks (deserializes) a byte-string or Data into simple Lua values.
 	--
@@ -4204,7 +4256,7 @@ local record MathModule
 	-- @param source (string | Data) The uncompressed source data.
 	-- @param level (integer) The compression level, from 0 to 9, or -1 for the default level.
 	-- @return (string) The compressed data as a string.
-	compress: function(container: DataContainer, format: CompressionFormat, source: string | Data, level?: integer): string
+	compress: function(container: StringOutput, format: CompressionFormat, source: string | Data, level?: integer): string
 
 	-- Deprecated alias of love.data.compress.
 	-- @param container (DataContainer) The type of value to return.
@@ -4212,19 +4264,19 @@ local record MathModule
 	-- @param source (string | Data) The uncompressed source data.
 	-- @param level (integer) The compression level, from 0 to 9, or -1 for the default level.
 	-- @return (CompressedData) The compressed data as a CompressedData object.
-	compress: function(container: DataContainer, format: CompressionFormat, source: string | Data, level?: integer): CompressedData
+	compress: function(container: DataOutput, format: CompressionFormat, source: string | Data, level?: integer): CompressedData
 
 	-- Deprecated alias of love.data.decompress.
 	-- @param container (DataContainer) The type of value to return.
 	-- @param compressed (CompressedData) The compressed data to decompress.
 	-- @return (string) The decompressed data as a string.
-	decompress: function(container: DataContainer, compressed: CompressedData): string
+	decompress: function(container: StringOutput, compressed: CompressedData): string
 
 	-- Deprecated alias of love.data.decompress.
 	-- @param container (DataContainer) The type of value to return.
 	-- @param compressed (CompressedData) The compressed data to decompress.
 	-- @return (ByteData) The decompressed data as a ByteData object.
-	decompress: function(container: DataContainer, compressed: CompressedData): ByteData
+	decompress: function(container: DataOutput, compressed: CompressedData): ByteData
 end
 
 -- Represents a file on the filesystem. A function that takes a file path can also take a File.
@@ -6146,6 +6198,10 @@ local record Shape
 	setNextVertex: function(self: Shape, x?: number, y?: number)
 end
 
+local type CircleShape = Shape
+local type PolygonShape = Shape
+local type ChainShape = Shape
+
 -- Fixtures attach shapes to bodies.
 local record Fixture
 
@@ -6689,6 +6745,12 @@ local record Joint
 	setRatio: function(self: Joint, ratio: number)
 	getJoints: function(self: Joint): Joint, Joint
 end
+
+local type RevoluteJoint = Joint
+local type PrismaticJoint = Joint
+local type WeldJoint = Joint
+local type FrictionJoint = Joint
+local type WheelJoint = Joint
 
 -- Can simulate 2D rigid body physics in a realistic manner. This module is based on Box2D, and this API
 -- corresponds to the Box2D API as closely as possible.
@@ -7981,7 +8043,8 @@ local record Graphics
 	-- @param draw_mode (MeshDrawMode) The Image or Canvas to use when drawing the Mesh. May be nil to use no texture. (Default: nil.)
 	-- @param usage (MeshUsage) The expected usage of the Mesh. The specified usage mode affects the Mesh's memory usage and performance. (Default: 'dynamic'.)
 	-- @return (Mesh) mesh — The new mesh.
-	newMesh: function(format: {MeshVertexFormat}, vertices: {MeshVertex} | number | Data, draw_mode?: MeshDrawMode, usage?: MeshUsage): Mesh
+	newMesh: function(format: {MeshVertexFormat}, vertices: {MeshVertex} | number, draw_mode?: MeshDrawMode, usage?: MeshUsage): Mesh
+	newMesh: function(format: {MeshVertexFormat}, vertices: Data, draw_mode?: MeshDrawMode, usage?: MeshUsage): Mesh
 
 	-- Creates a new SpriteBatch object.
 	-- @param texture (Image or Canvas) The Image or Canvas to use for the sprites.
@@ -8710,12 +8773,12 @@ local record Love
 	-- Called when a Joystick's virtual gamepad button is pressed.
 	-- @param joystick (Joystick) The joystick object.
 	-- @param button (string) The virtual gamepad button.
-	gamepadpressed: function(joystick: Joystick, button: string) | nil
+	gamepadpressed: function(joystick: Joystick, button: GamepadButton) | nil
 
 	-- Called when a Joystick's virtual gamepad button is released.
 	-- @param joystick (Joystick) The joystick object.
 	-- @param button (string) The virtual gamepad button.
-	gamepadreleased: function(joystick: Joystick, button: string) | nil
+	gamepadreleased: function(joystick: Joystick, button: GamepadButton) | nil
 
 	-- Called when a Joystick's virtual gamepad axis is moved.
 	-- @param joystick (Joystick) The joystick object.

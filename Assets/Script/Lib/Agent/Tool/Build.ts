@@ -3,11 +3,10 @@ import { Content, Path, Director, once, Node, emit, wait, App, HttpServer } from
 import { Log, safeJsonDecode, safeJsonEncode } from 'Agent/Utils';
 import { sendWebIDEFileUpdate } from 'Agent/Tool/WebIDESync';
 import { buildGodotProject, findGodotProject } from 'Agent/Tool/GodotBuild';
+import { planDirectoryBuild } from 'Agent/Tool/BuildPlan';
 import {
 	resolveWorkspaceSearchPath,
 	toWorkspaceRelativePath,
-	listFiles,
-	codeExtensions,
 } from 'Agent/Tool/Workspace';
 
 export type BuildMessage = {
@@ -83,7 +82,7 @@ async function runSingleNonTsBuild(file: string, projectRoot?:string, isCancelle
 		const moduleName = "Script.Dev.WebServer";
 		const { buildAsync } = require(moduleName);
 		Director.systemScheduler.schedule(once(() => {
-			const result = buildAsync(file);
+			const result = buildAsync(file, projectRoot);
 			resolve(result);
 		}));
 	})
@@ -330,59 +329,58 @@ export async function build(req: { workDir: string; path: string; isCancelled?: 
 		Log("Info", `[build] file=${target} messages=${messages.length}`);
 		return finalizeBuildResult(req.workDir, messages);
 	}
-	const listResult = listFiles({
-		workDir: req.workDir,
-		path: targetRel,
-		globs: codeExtensions.map(e => `**/*${e}`),
-		maxEntries: 10000
-	});
-
-	const relFiles = listResult.success ? listResult.files : [];
-	const tsFileData: Record<string, string> = {};
-	const buildQueue: { file: string; kind: SupportedBuildKind }[] = [];
-	for (const rel of relFiles) {
-		const file = Content.isAbsolutePath(rel) ? rel : Path(target, rel);
-		if (Path.getFilename(file) === 'project.godot' && Path.getPath(file) !== godotProject) {
-			const result = await buildGodotProject(Path.getPath(file), req.isCancelled);
+	for (const unit of planDirectoryBuild(target, req.workDir)) {
+		if (unit.godot && unit.godot !== godotProject) {
+			const result = await buildGodotProject(unit.godot, req.isCancelled);
 			messages.push(...(result.messages ?? [result]));
 			if (req.isCancelled?.() === true) return finalizeBuildResult(req.workDir, messages);
+			if (!result.success) continue;
 		}
-		const kind = getSupportedBuildKind(file);
-		if (!kind) continue;
-		buildQueue.push({ file, kind });
-		if (kind !== "ts") {
-			continue;
+		const projectRoot = unit.projectRoot ?? req.workDir;
+		const nativeCompiler = typeof _studio_agent_tool_begin !== "function"
+			? (require("Script.Dev.WebServer") as {
+				buildTypeScriptFiles?: (this: void, files: string[], root: string, isCancelled?: () => boolean) => BuildMessage[];
+			}).buildTypeScriptFiles
+			: undefined;
+		const tsFiles: string[] = [];
+		for (const file of unit.files) {
+			if (req.isCancelled?.() === true) {
+				return { success: false, failureKind: "tool", message: "Build canceled.", messages, interrupted: true };
+			}
+			const kind = getSupportedBuildKind(file);
+			if (!kind) continue;
+			if (kind !== "ts") {
+				messages.push(await runSingleNonTsBuild(file, projectRoot, req.isCancelled));
+				continue;
+			}
+			if (isDtsFile(file)) continue;
+			if (nativeCompiler) {
+				tsFiles.push(file);
+				continue;
+			}
+			const content = Content.load(file);
+			if (content === undefined) {
+				messages.push({ success: false, file, message: "failed to read file" });
+				continue;
+			}
+			if (isTiledEditorContent(content)) continue;
+			if (!sendWebIDEFileUpdate(file, true, content)) {
+				messages.push({ success: false, file, message: "failed to encode UpdateFile request", failureKind: "tool" });
+				continue;
+			}
+			messages.push(await runSingleTsTranspile(file, content, projectRoot, req.isCancelled));
 		}
-		const content = Content.load(file);
-		if (content === undefined) {
-			messages.push({ success: false, file, message: "failed to read file" });
-			continue;
+		if (nativeCompiler && tsFiles.length > 0) {
+			const results = await new Promise<BuildMessage[]>(resolve => {
+				Director.systemScheduler.schedule(once(() => resolve(nativeCompiler(tsFiles, projectRoot, req.isCancelled))));
+			});
+			messages.push(...results);
 		}
-		if (isTiledEditorContent(content)) {
-			Log("Info", `[build] skip tiled editor file=${file}`);
-			continue;
-		}
-		tsFileData[file] = content;
-	}
-	for (let i = 0; i < buildQueue.length; i++) {
 		if (req.isCancelled?.() === true) {
 			return { success: false, failureKind: "tool", message: "Build canceled.", messages, interrupted: true };
 		}
-		const { file, kind } = buildQueue[i];
-		if (kind === "ts") {
-			const content = tsFileData[file];
-			if (content === undefined || isDtsFile(file)) {
-				continue;
-			}
-			if (!sendWebIDEFileUpdate(file, true, content)) {
-				messages.push({ success: false, file, failureKind: "tool", message: "failed to encode UpdateFile request" });
-				continue;
-			}
-			messages.push(await runSingleTsTranspile(file, content, req.workDir, req.isCancelled));
-			continue;
-		}
-		messages.push(await runSingleNonTsBuild(file,req.workDir,req.isCancelled));
 	}
+
 	if (messages.length === 0) {
 		Log("Info", `[build] dir=${target} messages=0 no buildable code files found`);
 		return { success: false, message: "No code files were found to build." };

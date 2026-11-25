@@ -4586,9 +4586,10 @@ class Content {
 	 * - 目标目录下（不包含子目录）的 .txt 文件和 .json 文件：["*.txt", "*.json"]
 	 * - 目标目录下的所有文件，但排除 .txt 文件：["**", "!**.txt"]
 	 * @param extensionLevels 可选的扩展名优先级映射，用于同名不同后缀时选择优先级最高的文件。
+	 * @param followSymlinks 遍历时是否包含遇到的符号链接，默认为 true。
 	 * @returns 指定目录及其子目录中所有文件的名称的数组。
 	 */
-	glob(path: string, globs: string[], extensionLevels?: Record<string, number>): string[];
+	glob(path: string, globs: string[], extensionLevels?: Record<string, number>, followSymlinks?: boolean): string[];
 
 	/**
 	 * 异步地将ZIP存档解压缩到指定的文件夹。

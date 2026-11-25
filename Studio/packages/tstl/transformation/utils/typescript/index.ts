@@ -51,8 +51,8 @@ export function isStandardLibraryDeclaration(context: TransformationContext, dec
     if (!sourceFile) {
         return false;
     }
-    // Exclude lib.Dora.d.ts and lua.d.ts for Dora SSR
-    if (sourceFile.fileName === "lib.Dora.d.ts" || sourceFile.fileName === "lua.d.ts") {
+    // Dora userdata and Lua declarations may be mounted at absolute paths.
+    if (/(^|[\\/])(?:(?:lib\.)?Dora|lua)\.d\.ts$/.test(sourceFile.fileName)) {
         return false;
     }
     return context.program.isSourceFileDefaultLibrary(sourceFile);

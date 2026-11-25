@@ -4222,6 +4222,7 @@ bool isSafeVirtualPath(std::string_view filename, bool allowEmpty = false)
 
 bool normalizeLoveModulePath(std::string_view moduleName, std::string &modulePath)
 {
+	const bool pathStyle = moduleName.starts_with("./") && moduleName.ends_with(".lua");
 	while (moduleName.starts_with("./"))
 		moduleName.remove_prefix(2);
 	// Love's filesystem searcher treats a leading slash as game-root-relative,
@@ -4230,16 +4231,17 @@ bool normalizeLoveModulePath(std::string_view moduleName, std::string &modulePat
 		moduleName.remove_prefix(1);
 	if (moduleName.empty())
 		return false;
+	if (pathStyle)
+		moduleName.remove_suffix(4); // The configured search patterns supply the extension.
 	modulePath.clear();
 	modulePath.reserve(moduleName.size());
 	bool componentEmpty = true;
 	for (const char character : moduleName)
 	{
-		if (character == '.' || character == '/')
+		if (character == '/' || (!pathStyle && character == '.'))
 		{
-			// Lua accepts both package-style names (foo.bar) and path-style names
-			// (foo/bar). Empty components also cover '.', '..', repeated
-			// separators, and leading/trailing separators after normalization.
+			// Keep package names and the explicit ./filename.lua form on the same
+			// confined virtual filesystem search path.
 			if (componentEmpty)
 				return false;
 			modulePath.push_back('/');

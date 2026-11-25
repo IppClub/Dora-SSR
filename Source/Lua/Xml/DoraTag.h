@@ -18,6 +18,7 @@ public:
 	std::list<std::string> getAttributeHints(const std::string& elementName, const std::string& attrName);
 	std::list<std::string> getSubElements(const std::string& elementName);
 	bool isElementNode(const std::string& elementName);
+	bool hasElement(String elementName) const;
 	static DoraTag& shared();
 
 private:

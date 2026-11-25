@@ -31,10 +31,27 @@ try {
 	await writeFile(join(root, 'init.ts'), 'import {value} from "math"; export const result = value;\n');
 	await writeFile(join(root, 'bad.ts'), 'export const bad: number = "wrong";\n');
 	await writeFile(join(root, 'view.tsx'), 'import {React} from "DoraX"; export const view = <node x={42}/>;\n');
+	await writeFile(join(root, 'love-main.ts'), 'import * as love from "love"; import {value} from "math"; love.window.setTitle(tostring(value));\n');
+	await writeFile(join(root, 'init.lua'), '-- [ts]: init.ts\nreturn {}\n');
+	await writeFile(join(root, 'conf.lua'), 'return {}\n');
+	const [directoryPlan, trailingSeparatorPlan, dotPlan] = await Promise.all(
+		['', '/', '/.'].map(suffix => post('/build/plan', { path: root + suffix })),
+	);
+	assert.equal(directoryPlan.success, true);
+	const plannedFiles = directoryPlan.units.flatMap(unit => unit.files);
+	assert.ok(plannedFiles.includes(join(root, 'init.ts')));
+	assert.ok(plannedFiles.includes(join(root, 'conf.lua')));
+	assert.ok(!plannedFiles.includes(join(root, 'init.lua')));
+	assert.deepEqual(trailingSeparatorPlan, directoryPlan);
+	assert.deepEqual(dotPlan, directoryPlan);
 	const build = (name = 'init.ts') => post('/ts/build', { path: join(root, name), projectRoot: root });
 	const started = Date.now();
 	assert.equal((await build()).success, true);
 	assert.match(await readFile(join(root, 'init.lua'), 'utf8'), /require\(["']math["']\)/);
+	assert.equal((await build('love-main.ts')).success, true);
+	const loveLua = await readFile(join(root, 'love-main.lua'), 'utf8');
+	assert.match(loveLua, /require\(["']love["']\)/);
+	assert.match(loveLua, /require\(["']math["']\)/);
 	assert.equal((await build('view.tsx')).success, true);
 	await access(join(root, 'view.lua'));
 	const diagnostic = await build('bad.ts');

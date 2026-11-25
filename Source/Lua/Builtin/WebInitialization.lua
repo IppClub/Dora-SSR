@@ -518,14 +518,14 @@ do
 
 	local Content_glob = Content.glob
 	local Dictionary = Dora.Dictionary
-	Content.glob = function(self, path, globs, extensionLevels)
+	Content.glob = function(self, path, globs, extensionLevels, followSymlinks)
 		local dict = Dictionary()
 		if extensionLevels then
 			for k, v in pairs(extensionLevels) do
 				dict[k] = v
 			end
 		end
-		return Content_glob(self, path, globs, dict)
+		return Content_glob(self, path, globs, dict, followSymlinks)
 	end
 
 	local Content_searchFilesAsync = Content.searchFilesAsync

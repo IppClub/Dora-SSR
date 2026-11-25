@@ -1,4 +1,4 @@
--- [yue]: Script/Lib/UI/Control/Basic/Button.yue
+-- [yue]: Lib/UI/Control/Basic/Button.yue
 local _module_0 = nil -- 1
 local _ENV = Dora -- 9
 local Button = require("UI.View.Control.Basic.Button") -- 10

@@ -19,6 +19,7 @@ interface BaseFile {
 
 export interface ProcessedFile extends BaseFile {
     fileName: string;
+    importedSources?: ReadonlyMap<string, ts.SourceFile>;
     luaAst?: lua.File;
     sourceMapNode?: SourceNode;
 }

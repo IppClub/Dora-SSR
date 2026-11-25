@@ -651,7 +651,7 @@ unzipAsync: function(self: Content, zipFile: string, folderPath: string, filter?
 
 **签名：**
 ```tl
-glob: function(self: Content, path: string, globs: {string}, extensionLevels?: {string: integer}): {string}
+glob: function(self: Content, path: string, globs: {string}, extensionLevels?: {string: integer}, followSymlinks?: boolean): {string}
 ```
 
 **参数：**
@@ -661,6 +661,7 @@ glob: function(self: Content, path: string, globs: {string}, extensionLevels?: {
 | path | string | 要搜索的目录的路径。 |
 | globs | \{string} | 用于匹配文件名或相对路径的 glob 模式列表。示例：<br/>- 目标目录下（不包含子目录）的 .txt 文件和 .json 文件：["*.txt", "*.json"]<br/>- 目标目录下的所有文件，但排除 .txt 文件：["**", "!**.txt"] |
 | extensionLevels | \{[string]: integer} | [可选] 扩展名到优先级的映射，用于同名不同后缀时选择优先级最高的文件。 |
+| followSymlinks | boolean | 遍历时是否包含遇到的符号链接，默认为 true。 |
 
 **返回值：**
 

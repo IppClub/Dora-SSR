@@ -3,6 +3,7 @@ import {mkdir,readFile,writeFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 import {compileAgentCommand} from './compile-agent.mjs';
+import {readStudioCompilerResources,studioCompilerResourcesPath} from './compiler-resources.mjs';
 
 // A separate trusted-host support artifact, deliberately outside the public
 // Studio web app/Player output. Agent libraries are compiled from their original
@@ -21,8 +22,7 @@ const files=[{path:'host.js',bytes:bundled.outputFiles[0].contents}];
 const page=await build({entryPoints:[fileURLToPath(new URL('agent-host-page.ts',source))],bundle:true,write:false,format:'esm',platform:'browser',target:'es2022'});
 files.push({path:'page.js',bytes:page.outputFiles[0].contents},{path:'index.html',bytes:await readFile(new URL('../packages/runtime-web/agent-host.html',import.meta.url))});
 for(const name of ['worker.js','typescript.js','compile-worker.js'])files.push({path:'compiler/'+name,bytes:await readFile(new URL(`../packages/compiler-web/dist/browser/${name}`,import.meta.url))});
-for(const name of ['Dora.d.ts','es6-subset.d.ts','lua.d.ts','jsx.d.ts'])files.push({path:'declarations/'+name,bytes:await readFile(new URL(`../../Assets/Script/Lib/Dora/en/${name}`,import.meta.url))});
-files.push({path:'declarations/lualib_bundle.lua',bytes:await readFile(new URL('../../Assets/Script/Lib/lualib_bundle.lua',import.meta.url))});
+files.push({path:studioCompilerResourcesPath,bytes:Buffer.from(await readStudioCompilerResources())});
 // The original Lua/Teal checker is built from Dora's tl.lua and WebServer
 // checking source, then copied into this separate, integrity-pinned host.
 for(const name of ['api.js','worker.mjs','compiler.mjs','declarations.json'])files.push({path:'teal/'+name,

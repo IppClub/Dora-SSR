@@ -50,7 +50,7 @@ public:
 	std::list<std::string> getDirs(String path);
 	std::list<std::string> getFiles(String path);
 	std::list<std::string> getAllFiles(String path);
-	std::list<std::string> glob(String path, std::vector<std::string>&& globs, std::unordered_map<std::string, int>&& extensionLevels);
+	std::list<std::string> glob(String path, std::vector<std::string>&& globs, std::unordered_map<std::string, int>&& extensionLevels, bool followSymlinks = true);
 	struct SearchResult {
 		std::string file;
 		size_t pos = 0;

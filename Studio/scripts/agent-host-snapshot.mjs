@@ -26,7 +26,7 @@ export async function createAgentHostSnapshot(value,{engineVersion,supportDirect
   const files=[],seen=new Set(),documentBundles=new Map();
   for(const file of support.files){
     if(['host.js','page.js','index.html','compiler/worker.js','compiler/typescript.js','compiler/compile-worker.js',
-      'declarations/Dora.d.ts','declarations/es6-subset.d.ts','declarations/lua.d.ts','declarations/jsx.d.ts','declarations/lualib_bundle.lua',
+      'declarations/compiler.json',
       'teal/api.js','teal/worker.mjs','teal/compiler.mjs','teal/declarations.json',
       'yarn/worker.mjs','yarn/compiler.mjs'].includes(file.path))continue;
     if(typeof file.path!=='string' || !(file.path==='AgentHostSession.lua' || file.path==='AgentSessionBridge.lua' || file.path==='StudioAgentEntry.lua'
