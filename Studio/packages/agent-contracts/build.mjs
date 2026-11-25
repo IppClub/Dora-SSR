@@ -154,18 +154,17 @@ export function createWorkspaceList(host) {
 // Only platform operations are supplied by the Studio host.
 const buildSourcePath = new URL('../../../Assets/Script/Lib/Agent/Tool/Build.ts', import.meta.url);
 const buildSource = ts.createSourceFile(buildSourcePath.pathname, await readFile(buildSourcePath, 'utf8'), ts.ScriptTarget.Latest, true);
-// Studio shares source compilation, but has no native Godot compiler. Remove
-// the desktop Godot hooks when extracting traversal instead of emitting free
-// references to functions that are not part of the Studio host contract.
-const godotBuildNames = new Set(['godotProject', 'findGodotProject', 'buildGodotProject']);
-function referencesGodot(node) {
-  return ts.isIdentifier(node) && godotBuildNames.has(node.text) || ts.forEachChild(node, referencesGodot);
+// Studio shares source compilation but supplies its own file compiler.
+// Remove native Godot checks and WebServer batching from the extracted build.
+const nativeBuildNames = new Set(['godotProject', 'findGodotProject', 'buildGodotProject', 'nativeCompiler', 'tsFiles']);
+function referencesNativeBuild(node) {
+  return ts.isIdentifier(node) && nativeBuildNames.has(node.text) || ts.forEachChild(node, referencesNativeBuild);
 }
 function studioBuildFunction(fn) {
   const result = ts.transform(fn, [context => {
     const visit = node => {
-      if (ts.isVariableStatement(node) && node.declarationList.declarations.some(d => referencesGodot(d.name))) return undefined;
-      if (ts.isIfStatement(node) && referencesGodot(node.expression)) return undefined;
+      if (ts.isVariableStatement(node) && node.declarationList.declarations.some(d => referencesNativeBuild(d.name))) return undefined;
+      if (ts.isIfStatement(node) && referencesNativeBuild(node.expression)) return undefined;
       return ts.visitEachChild(node, visit, context);
     };
     return node => ts.visitNode(node, visit);
@@ -183,12 +182,33 @@ const extensions = workspaceSource.statements.find(statement => ts.isVariableSta
 if (!extensions) throw new Error('Upstream build extensions changed');
 await build({ stdin: { contents: `${extensions.getText(workspaceSource).replace(/^export /, '')}
 export function createWorkspaceBuild(host) {
-  const { Content, Path, resolveWorkspaceSearchPath, toWorkspaceRelativePath, listFiles,
+  const { Content, Path, resolveWorkspaceSearchPath, toWorkspaceRelativePath,
     sendWebIDEFileUpdate, runSingleTsTranspile, runSingleNonTsBuild, Log } = host;
+  const planDirectoryBuild = (target, workDir) => {
+    const units = host.planDirectoryBuild(target, workDir);
+    let sourceCount = 0;
+    for (const { files } of units) {
+      for (const file of files) {
+        if (codeExtensions.some(extension => file.endsWith(extension)) && ++sourceCount > 10000) {
+          throw new Error('Build file limit exceeded');
+        }
+      }
+    }
+    return units;
+  };
   ${buildFunctions.join('\n')}
   // Lua table fields assigned nil are absent. Preserve that wire representation.
   return async request => Object.fromEntries(Object.entries(await build(request)).filter(([, value]) => value !== undefined));
 }`, loader: 'ts' }, outfile: new URL('workspace-build.js', output).pathname, format: 'esm', platform: 'neutral' });
+const plannerPath = new URL('../../../Assets/Script/Lib/Agent/Tool/BuildPlan.ts', import.meta.url);
+const plannerSource = ts.createSourceFile(plannerPath.pathname, await readFile(plannerPath, 'utf8'), ts.ScriptTarget.Latest, true);
+const planner = plannerSource.statements.find(statement =>
+  ts.isFunctionDeclaration(statement) && statement.name?.text === 'createDirectoryBuildPlanner');
+if (!planner) throw new Error('Upstream directory build planner changed');
+await build({ stdin: { contents: planner.getText(plannerSource), loader: 'ts' },
+  outfile: new URL('directory-build-core.js', output).pathname, format: 'esm', platform: 'neutral' });
+await build({ entryPoints: [new URL('./src/directory-build.js', import.meta.url).pathname],
+  outfile: new URL('directory-build.js', output).pathname, format: 'esm', platform: 'neutral' });
 const readSlice = workspaceSource.statements.find(statement => ts.isFunctionDeclaration(statement) && statement.name?.text === 'formatReadSlice');
 if (!readSlice) throw new Error('Upstream read formatter changed; review required');
 await build({ stdin: { contents: `import * as AgentConfig from 'Agent/Config/Defaults';\nconst math = Math;\n${readSlice.getText(workspaceSource)}\nexport {formatReadSlice};`, loader: 'ts' },

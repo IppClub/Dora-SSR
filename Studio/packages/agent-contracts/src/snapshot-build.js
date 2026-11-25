@@ -1,5 +1,6 @@
 import { authoredProjectFiles, validateSnapshot, isProjectPath } from '@dora-studio/contracts';
 import { createWorkspaceBuild } from './workspace-build.js';
+import { buildPath, createSnapshotDirectoryPlanner } from './directory-build.js';
 
 /** Bind upstream traversal to one revision, never to an ambient host filesystem. */
 export function createSnapshotBuildBackend(input, compileFile) {
@@ -9,7 +10,9 @@ export function createSnapshotBuildBackend(input, compileFile) {
   if (typeof compileFile !== 'function') throw new Error('Missing compiler backend');
   const root = '/project';
   const files = new Map(snapshot.files.map(file => [`${root}/${file.path}`, file]));
-  const authoredPaths = new Set(authoredProjectFiles(snapshot.files).map(file => `${root}/${file.path}`));
+  const load = path => files.get(path)?.kind === 'text' ? files.get(path).text : undefined;
+  const planDirectoryBuild = createSnapshotDirectoryPlanner(
+    authoredProjectFiles(snapshot.files).map(file => `${root}/${file.path}`), load);
   const directories = new Set([root]);
   for (const path of files.keys()) {
     let parent = path.slice(0, path.lastIndexOf('/'));
@@ -24,9 +27,6 @@ export function createSnapshotBuildBackend(input, compileFile) {
     if (normalized === '.' || normalized === '') return root;
     return isProjectPath(normalized) && !normalized.startsWith('@') ? `${root}/${normalized}` : undefined;
   };
-  const Path = (...parts) => parts.join('/');
-  Path.getExt = path => { const name = path.split('/').at(-1); const dot = name.lastIndexOf('.'); return dot < 0 ? '' : name.slice(dot + 1); };
-  Path.getName = path => path.split('/').at(-1).replace(/\.[^.]*$/, '');
   const compile = async (path, isCancelled) => {
     const file = files.get(path);
     if (!file || file.kind !== 'text') return { success: false, file: path, message: 'Cannot compile a binary resource as text' };
@@ -43,21 +43,12 @@ export function createSnapshotBuildBackend(input, compileFile) {
   };
   // Each invocation captures its own cancellation function, including non-TS tools.
   return request => createWorkspaceBuild({
-    Path, Log() {},
+    Path: buildPath, Log() {},
     Content: { exist: path => files.has(path) || directories.has(path), isdir: path => directories.has(path),
-      load: path => files.get(path)?.kind === 'text' ? files.get(path).text : undefined,
-      isAbsolutePath: path => path.startsWith('/') },
+      load },
     resolveWorkspaceSearchPath: resolve,
     toWorkspaceRelativePath: (_workDir, path) => path.startsWith(`${root}/`) ? path.slice(root.length + 1) : path,
-    listFiles: ({ workDir, path, globs, maxEntries }) => {
-      const target = resolve(workDir, path);
-      if (!target || !directories.has(target)) return { success: false, files: [] };
-      const extensions = globs.map(glob => glob.replace(/^\*\*\/\*/, ''));
-      const selected = [...files.keys()].filter(file => authoredPaths.has(file) && file.startsWith(`${target}/`) && extensions.some(ext => file.endsWith(ext))).sort();
-      // Never silently omit files at the upstream traversal limit.
-      if (selected.length > maxEntries) throw new Error('Build file limit exceeded');
-      return { success: true, files: selected.map(file => file.slice(target.length + 1)) };
-    },
+    planDirectoryBuild: target => planDirectoryBuild(target, root),
     sendWebIDEFileUpdate: path => files.get(path)?.kind === 'text',
     runSingleTsTranspile: (path, _content, _workDir, isCancelled) => compile(path, isCancelled),
     runSingleNonTsBuild: path => compile(path, request.isCancelled),
