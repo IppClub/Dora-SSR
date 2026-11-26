@@ -36,7 +36,7 @@ export interface LocalAgentRunControl {
 
 const CONFIG_TABLE = "LocalAgentConfig";
 const SESSION_TABLE = "LocalAgentSession";
-const SKILL_VERSION = 5;
+const SKILL_VERSION = 6;
 const SKILL_MARKER = `<!-- dora-managed-skill:v${SKILL_VERSION} -->`;
 const MANAGED_SKILL_MARKER = "<!-- dora-managed-skill:";
 const supportedPlatforms = ["Windows", "macOS", "Linux"];
@@ -124,6 +124,7 @@ Work inside the current Dora project. Dora games run in the Dora runtime, not a 
 
 - Dora injects a project-scoped \`dora\` command into this Agent process. Use \`dora cli\` directly; do not search for Dora, create aliases, or guess installation paths.
 - Inspect the project before editing. The usual entry is \`init.lua\`, \`init.ts\`, \`init.yue\`, or another project entry selected by the user.
+- When naming a game, use the \`atompie-submission\` skill to configure its launcher title and cover. At project handoff, generate or update a player-facing README.md beside the game entry from verified gameplay, controls and launch steps. Preserve the author's existing text. AtomPie imports the README as its detailed description; authors choose tags.
 - Do not guess Dora APIs. Use \`dora cli doc search <query>\` and \`dora cli doc read <name>\` to verify them.
 - Edit source files with your own file tools. TypeScript is transpiled to Lua by Dora; keep imports compatible with the Dora module declarations.
 - Validate compilation with \`dora cli build <path>\`.
@@ -417,10 +418,12 @@ function loadManagedSkills(): ManagedSkill[] | undefined {
 	const sourceRoot = Path(Content.assetPath, "Doc", "local-agent-skills");
 	const commandContent = Content.load(Path(sourceRoot, "dora-agent-command", "SKILL.md"));
 	const musicContent = Content.load(Path(sourceRoot, "music-generation", "SKILL.md"));
-	if (commandContent === "" || musicContent === "") return undefined;
+	const submissionContent = Content.load(Path(Content.assetPath, "Doc", "skills", "atompie-submission", "SKILL.md"));
+	if (commandContent === "" || musicContent === "" || submissionContent === "") return undefined;
 	return [
 		{name: "dora-engine-coding", content: buildSkillContent()},
 		{name: "dora-agent-command", content: commandContent},
+		{name: "atompie-submission", content: submissionContent},
 		{
 			name: "music-generation",
 			content: musicContent,

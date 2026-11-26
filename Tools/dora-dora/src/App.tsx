@@ -434,7 +434,7 @@ interface EditingFile {
 	status: TabStatus;
 	agentSessionId?: number;
 	agentInitialPrompt?: string;
-	workspaceView?: "agent" | "upload" | "git";
+	workspaceView?: Service.WorkspaceView;
 	repositoryRoot?: string;
 };
 
@@ -659,6 +659,11 @@ const transitionProps = {
 };
 
 let writablePath = "";
+const submissionFileUrl = (file: string) => {
+	const root = isChildFolder(file, assetPath) ? assetPath : writablePath;
+	const relative = toUrlPath(Info.path.relative(root, file), Info.path);
+	return Service.addr("/" + relative.split("/").map(encodeURIComponent).join("/"));
+};
 let assetPath = "";
 let configuredTypeScriptSearchPathKey = "";
 let typeScriptSearchPathUpdateId = 0;
@@ -1501,7 +1506,7 @@ export default function PersistentDrawerLeft() {
 	const openAgentSessionTab = useCallback(async (
 		targetPath: string,
 		isDir: boolean,
-		options?: { silentWhenNotFound?: boolean; }
+		options?: { silentWhenNotFound?: boolean; initialPrompt?: string }
 	) => {
 		const rootRes = await Service.agentProjectRoot({ path: targetPath, isDir });
 		if (!rootRes.success) {
@@ -1531,6 +1536,7 @@ export default function PersistentDrawerLeft() {
 				title: normalizedTitle,
 				folder: true,
 				agentSessionId: createRes.session.id,
+				agentInitialPrompt: options?.initialPrompt,
 				workspaceView: "agent",
 			};
 			setFiles(prev => prev.map((file, index) => index === existingIndex ? updatedFile : file));
@@ -1546,6 +1552,7 @@ export default function PersistentDrawerLeft() {
 			status: "normal",
 			onMount: () => { },
 			agentSessionId: createRes.session.id,
+			agentInitialPrompt: options?.initialPrompt,
 			workspaceView: "agent",
 		};
 		setFiles(prev => {
@@ -1555,6 +1562,15 @@ export default function PersistentDrawerLeft() {
 		});
 		return true;
 	}, [addAlert, files, switchTab, t]);
+
+	const generateProjectReadme = useCallback((root: string, lang: "zh" | "en") => {
+		const initialPrompt = t("agent.readmePrompt", {
+			filename: lang === "en" ? "README.en.md" : "README.md",
+			language: lang === "en" ? "English" : "中文",
+			engineContext: Info.version ? t("agent.readmeEngineContext", { version: Info.version }) : "",
+		});
+		void openAgentSessionTab(root, true, {initialPrompt});
+	}, [openAgentSessionTab, t]);
 
 	const persistFirstProjectTourCompletion = useCallback(async () => {
 		try {
@@ -4569,7 +4585,7 @@ export default function PersistentDrawerLeft() {
 		}
 	}, [tabIndex, refreshTreeDirectory, switchTab, files, openFileInTab, updateCachedFileSearch]);
 
-	const onWorkspaceViewChange = useCallback((fileKey: string, view: "agent" | "upload" | "git") => {
+	const onWorkspaceViewChange = useCallback((fileKey: string, view: Service.WorkspaceView) => {
 		setFiles(prev => prev.map(file => file.key === fileKey ? { ...file, workspaceView: view } : file));
 	}, []);
 
@@ -6092,6 +6108,8 @@ export default function PersistentDrawerLeft() {
 									agentSessionId={file.agentSessionId}
 									agentInitialPrompt={file.agentInitialPrompt}
 									view={file.workspaceView ?? "agent"}
+									fileUrl={submissionFileUrl}
+									onGenerateReadme={generateProjectReadme}
 									addAlert={addAlert}
 									onAgentInitialPromptConsumed={() => onAgentInitialPromptConsumed(file.key)}
 									onRollbackComplete={onAgentRollbackComplete}
@@ -6607,6 +6625,8 @@ export default function PersistentDrawerLeft() {
 											displayPath={getWorkspaceDisplayPath(file.key, true)}
 											agentInitialPrompt={file.agentInitialPrompt}
 											view={file.workspaceView ?? "upload"}
+											fileUrl={submissionFileUrl}
+											onGenerateReadme={generateProjectReadme}
 											addAlert={addAlert}
 											onAgentInitialPromptConsumed={() => onAgentInitialPromptConsumed(file.key)}
 											onUploaded={onUploaded}

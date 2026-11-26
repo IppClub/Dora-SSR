@@ -42,6 +42,8 @@ local once <const> = once -- 10
 HttpServer:stop() -- 12
 HttpServer.wwwPath = Path(Content.appPath, ".www") -- 14
 HttpServer.authToken = "" -- 16
+
+require("Script.Dev.AtomPie")({api = "https://atompie.osgame.org/api/v1/dora"})
 local authFailedCount = 0 -- 18
 local authLockedUntil = 0.0 -- 19
 local PendingTTL = 60 -- 21

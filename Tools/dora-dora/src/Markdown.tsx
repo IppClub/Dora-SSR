@@ -79,7 +79,7 @@ const Markdown = memo((props: MarkdownProps) => {
 							height = Number.parseFloat(size[1]);
 						}
 					}
-					return <img src={path === "" ? src : path + "/" + src} alt={alt} width={width} height={height} {...iprops} />;
+					return <img src={!path || !src || /^(?:[a-z][\w+.-]*:|\/)/i.test(src) ? src : path + "/" + src} alt={alt} width={width} height={height} {...iprops} />;
 				},
 				a({ node, href, ...aprops }) {
 					if (href?.match("^http")) {
