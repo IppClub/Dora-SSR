@@ -22,7 +22,7 @@
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/IppClub/Dora-SSR)
 [![Open Atom Foundation](https://img.shields.io/badge/Open_Atom_Foundation-Incubation-blue)](https://openatom.org/project/RJHufNnSKtDZ)
 
-Dora SSR is a cross-platform game engine that lives on the device your game runs on — a phone, a handheld, or a desktop. Its built-in Web IDE opens in any browser on the same network, so you code, inspect, and iterate against the real runtime instead of a detached preview, with an AI coding agent built in. The engine runs natively on `Android`, `iOS`, `Windows`, `macOS`, `Linux`, and [HarmonyOS](https://github.com/IppClub/ohos_dora_ssr). Finished games can also be exported to the Web as WebAssembly builds that run in any browser from plain static hosting — like the games in the [web gallery](https://dora-ssr.net/play).
+Dora SSR is a cross-platform game engine that lives on the device your game runs on — a phone, a handheld, or a desktop. Its built-in Web IDE opens in any browser on the same network, so you code, inspect, and iterate against the real runtime instead of a detached preview, with an AI coding agent built in. The engine runs natively on `Android`, `iOS`, `Windows`, `macOS`, `Linux`, and [HarmonyOS](https://github.com/IppClub/ohos_dora_ssr). Export finished games as Windows x64 ZIPs, Android APKs, or WebAssembly builds like the games in the [web gallery](https://dora-ssr.net/play).
 
 <div align='center'>
 
@@ -381,7 +381,7 @@ Download a Windows **x64** package from the [release page](https://github.com/Ip
 - **MSI**: run the installer, then launch **Dora SSR** from the Start menu.
 - **ZIP**: extract the entire archive into a writable folder, then run `Dora.exe`, keeping the bundled DLLs and resources together.
 
-The built-in Web IDE opens automatically in the Dora SSR window. Create and run projects there. See the [installation guide](https://dora-ssr.net/docs/tutorial/quick-start) for details, including browser link registration.
+The built-in Web IDE opens automatically in the Dora SSR window. Create and run projects there. See the [installation guide](https://dora-ssr.net/docs/tutorial/installation/) for details, including browser link registration.
 
 ### macOS
 
@@ -431,13 +431,15 @@ See the [official guide](https://dora-ssr.net/docs/tutorial/dev-configuration).
 
 ### From Install to First Game
 
-1. In the Web IDE, right-click `Workspace` in the left panel and create a new folder for your project.
-2. Add an entry file named `init` — Lua, YueScript, Teal, TypeScript, or TSX (see [Languages](#languages)).
-3. Press `Ctrl + R`, or click the `🎮` icon in the lower-right corner and choose `Run` — the game runs on the device.
-4. Right-click the project folder and choose `Download` to export the packaged project.
+1. In the Web IDE, right-click **Workspace** and choose **New → Folder**. Enter a name, enable **Create as Project**, and select a language.
+2. Open the generated `init` entry file and edit it. See [Languages](#languages) for examples.
+3. Save the project and click the toolbar’s triangular **Run** button. The game runs on the device.
+4. Right-click the project folder and choose **Export**. Choose **Export ZIP** to share editable files, or choose **Export HTML**, **Export server HTML**, **Export Windows ZIP**, or **Export Android APK** for a playable build.
 
 > [!TIP]
 > The [Quick Start tutorial](https://dora-ssr.net/docs/tutorial/quick-start) walks through all of this in detail.
+
+Dora packages games in the engine and downloads any missing runtime templates as needed. On Windows, macOS, and Linux you can also export from the terminal with `Dora cli export`. See the [packaging guide](https://dora-ssr.net/docs/tutorial/game-app-pack/) and [Dora CLI guide](https://dora-ssr.net/docs/tutorial/command-line-interface/).
 
 ## Documentation & Community
 

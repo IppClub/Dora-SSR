@@ -8,7 +8,9 @@ import TabItem from '@theme/TabItem';
 
 # How to Package Games as Standalone Applications
 
-Export finished games from the Web IDE or Dora’s native launcher. The platform build guides below also cover packaging from engine source.
+Use the Web IDE on a Dora host running Windows, macOS, Linux, Android, or iOS to export Web games, Windows x64 ZIPs, and Android APKs. On Windows, macOS, and Linux you can also use [Dora CLI export](./115.command-line-interface.mdx#export-a-game). Dora packages games in the engine. Exporting an existing project requires no additional installation of Node.js, a JDK, an Android SDK, or a WebView.
+
+Dora downloads any missing runtime templates on demand and caches them for offline use with the matching engine version and revision. The platform build guides below cover building standalone applications from engine source.
 
 ## Export a playable Web game from the IDE
 
@@ -43,10 +45,10 @@ See [Web IDE common operations](./18.web-ide.mdx#export-a-project) for the forma
 
 ## Export a native game from Dora
 
-- **Web IDE**. Right-click the project folder and select **Export**, or open a project file and use the toolbar's **Export** button. Choose **Export Windows ZIP** or **Export APK** on any native Dora host. Dora downloads and caches a matching template when the host needs one. On Android, sign and save the APK in the native dialog. On desktop, open the Web IDE on the same computer as Dora to enter signing settings and download the APK. Dora signs the APK locally.
+- **Web IDE**. Right-click the project folder and select **Export**, or open a project file and use the toolbar's **Export** button. Choose **Export Windows ZIP** or **Export Android APK**. On Android, sign and save the APK in the native dialog on the device running Dora. On the other supported hosts, open the Web IDE through Dora’s loopback address, such as `http://localhost:8866`, to enter the game title, package name, version and signing settings. Dora signs the APK locally. For an iOS simulator running Dora, open the loopback address in a browser on the Mac while Dora is in the foreground.
 - **Desktop**. In the Classic UI project list, select **Export Windows ZIP** for a runnable project and choose a destination folder. Players extract the entire ZIP and open the game’s EXE. Keep the packaged DLLs and assets beside the EXE.
 - **Android**. In Dora Go, choose **Manage → Share game → Export APK** on the game’s card. Set the game title shown in the Android launcher, confirm the package name and version, then set a signing password or import an existing PKCS#12 signing key. Save or share the APK when export finishes.
-- Build TypeScript or TSX games in Dora before exporting. Back up the Android signing key from the export dialog and keep its password. When moving to another device, import the key and use the same package name and a higher version code to update existing installations.
+- Compile TypeScript or TSX games before exporting from the native launcher. Back up the Android signing key from the export dialog and keep its password. When moving to another device, import the key and use the same package name and a higher version code to update existing installations.
 
 To customize the launcher icon when exporting from the native dialog on Android, place `icon.png` in the project root next to the `init` script. A square 512 × 512 PNG works well. Dora preserves transparency and centers non-square images without cropping. If the file is absent, the exported APK uses the system’s generic Android app icon.
 
@@ -58,9 +60,11 @@ Build Wa projects before exporting to Android or Windows. Game packages run the 
 
 APK exports include all CPU architectures (ABIs) available in the Android template by default. In the native dialog on Android, deselect architectures you do not need to make the APK smaller. Keep at least one ABI that your players' devices support.
 
-If you can no longer use the signing key and want to distribute a separate app, select **Clear key** next to **Back up key** at the bottom left of the APK export dialog. If the local key is missing, look next to **Import key**. After you confirm, Dora deletes the locally stored key and suggests a new package name. An APK signed with a newly generated key cannot update existing installations of the old app.
+If you can no longer use the signing key and want to distribute a separate app, select **Clear key** next to **Back up key** at the bottom left of the native APK export dialog on Android. If the local key is missing, look next to **Import key**. After you confirm, Dora deletes the locally stored key and suggests a new package name. An APK signed with a newly generated key cannot update existing installations of the old app.
 
-## Packaging Process Overview
+## Packaging from Engine Source {#packaging-process-overview}
+
+Use the following workflow when you need to build and customize the native application itself, for example to produce a macOS application or an iOS IPA.
 
 ```mermaid
 graph TD
@@ -232,6 +236,13 @@ Outputs are under the platform directory in `build/package/`; Android outputs re
 xmake app-package --platform=ios --mode=release --appledev=device
 ```
 
+For a simulator build on Apple silicon, use the simulator SDK and ARM64 architecture. The example omits the optional Godot runtime. Once an iOS simulator is booted, install the application bundle with `simctl`.
+
+```sh
+xmake app-package --platform=ios --appledev=simulator --arch=arm64 --mode=debug --without-godot
+xcrun simctl install booted build/iphoneos/simulator/arm64/debug/Dora.app
+```
+
 Outputs are under the platform directory in `build/package/`; Android outputs remain under `Projects/Android/Dora/app/build/outputs/`. Edit app metadata/resources under `Projects/` and build settings under `Projects/xmake/`, not generated IDE projects.
 
 Default iOS device IPA signing is ad-hoc, not installable/distributable. Set installed `DORA_IOS_SIGN_IDENTITY` and `DORA_IOS_PROVISION` and separately validate distribution signing.
@@ -399,13 +410,11 @@ gameScene:addTo(Director.entry)
 - **Google Play**: Android applications
 - **Official Website Download**: Direct distribution
 - **itch.io**: Independent game platform
-- **Static Web Hosting**: Browser games exported with the Web Player (GitHub Pages, itch.io HTML, or your own server)
+- **Static Web Hosting**: Web games exported in server HTML format (GitHub Pages, itch.io HTML, or your own server)
 
 ## Summary
 
-Export Web games directly from the IDE: extract the full HTML ZIP and open `index.html`, or deploy the entire server-format directory. Use ordinary ZIP export to share editable projects.
-
-Native applications also need game startup resources, platform builds, and signing. Validate startup dependencies before trimming resources, then check images, fonts, sound, and input in the packaged result.
+Use the Web IDE or CLI to export playable Web, Windows, or Android packages. Extract the entire HTML ZIP and open `index.html` or deploy the entire server HTML directory. For Windows, keep the EXE with its runtime files. For Android, keep the signing key for future updates. Use **Export ZIP** when sharing an editable project.
 
 ## Related Documentation
 

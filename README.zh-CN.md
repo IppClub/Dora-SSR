@@ -22,7 +22,7 @@
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/IppClub/Dora-SSR)
 [![OpenAtom](https://img.shields.io/badge/%E5%BC%80%E6%94%BE%E5%8E%9F%E5%AD%90%E5%BC%80%E6%BA%90%E5%9F%BA%E9%87%91%E4%BC%9A-%E5%AD%B5%E5%8C%96%E4%B8%AD-blue)](https://openatom.org/project/RJHufNnSKtDZ)
 
-Dora SSR 是一款跨平台游戏引擎，直接运行在游戏的目标设备上——手机、掌机或桌面电脑。通过同一网络内任意浏览器打开内置的 Web IDE，即可针对真实运行时编写、检查与迭代代码，而不是脱离设备的预览；引擎还内置了 AI 编程智能体。支持原生运行于 `Android`、`iOS`、`Windows`、`macOS`、`Linux` 与 [鸿蒙](https://github.com/IppClub/ohos_dora_ssr/blob/main/README.zh-CN.md)。完成的游戏还可以导出为 WebAssembly 版本，通过纯静态托管直接在浏览器中运行——就像[网页游戏画廊](https://dora-ssr.net/zh-Hans/play)中的作品一样。
+Dora SSR 是一款跨平台游戏引擎，直接运行在游戏的目标设备上——手机、掌机或桌面电脑。通过同一网络内任意浏览器打开内置的 Web IDE，即可针对真实运行时编写、检查与迭代代码，而不是脱离设备的预览；引擎还内置了 AI 编程智能体。支持原生运行于 `Android`、`iOS`、`Windows`、`macOS`、`Linux` 与 [鸿蒙](https://github.com/IppClub/ohos_dora_ssr/blob/main/README.zh-CN.md)。完成的游戏可导出为 Windows x64 ZIP、Android APK，或像[网页游戏画廊](https://dora-ssr.net/zh-Hans/play)中的作品一样导出为 WebAssembly 版。
 
 <div align='center'>
 
@@ -381,7 +381,7 @@ fn main () {
 - **MSI 安装版**：运行安装程序，再从开始菜单启动 **Dora SSR**。
 - **ZIP 便携版**：将整个压缩包解压到可写目录，再运行 `Dora.exe`，保留随包 DLL 和资源目录。
 
-启动后会自动打开内置 Web IDE，可直接在 Dora SSR 窗口中新建和运行项目。浏览器链接注册等详情见[安装指南](https://dora-ssr.net/zh-Hans/docs/tutorial/quick-start)。
+启动后会自动打开内置 Web IDE，可直接在 Dora SSR 窗口中新建和运行项目。浏览器链接注册等详情见[安装指南](https://dora-ssr.net/zh-Hans/docs/tutorial/installation/)。
 
 ### macOS
 
@@ -431,13 +431,15 @@ sudo apt install dora-ssr
 
 ### 从安装到第一个游戏
 
-1. 在 Web IDE 左侧的 `工作空间` 上打开右键菜单，新建一个文件夹作为项目。
-2. 在项目下新建入口文件，命名为 `init`，可选 Lua、YueScript、Teal、TypeScript 或 TSX（见「开发语言」）。
-3. 按下 `Ctrl + R`，或点击编辑器右下角 `🎮` 图标并选择 `运行`，游戏即在设备上运行。
-4. 右键项目文件夹并选择 `下载`，导出打包后的项目文件。
+1. 在 Web IDE 中右键点击**工作空间**，选择**新建 → 文件夹**，输入名称，勾选**创建为项目**并选择语言。
+2. 打开自动生成的 `init` 入口文件进行编辑，示例见[开发语言](#开发语言)。
+3. 保存后点击工具栏的三角形**运行**按钮，游戏即在设备上运行。
+4. 右键点击项目文件夹，选择**导出**。分享可编辑项目时选择**导出 ZIP 包**。要生成可玩的成品，可选择**导出 HTML**、**导出 Server 版 HTML**、**导出 Windows ZIP**或**导出 Android APK**。
 
 > [!TIP]
 > [快速上手教程](https://dora-ssr.net/zh-Hans/docs/tutorial/quick-start)有更详细的图文说明。
+
+Dora 在引擎内完成打包，缺少运行时模板时会自动下载。在 Windows、macOS 和 Linux 上也可用 `Dora cli export` 从终端导出。操作详见[项目打包指南](https://dora-ssr.net/zh-Hans/docs/tutorial/game-app-pack/)和 [Dora CLI 指南](https://dora-ssr.net/zh-Hans/docs/tutorial/command-line-interface/)。
 
 ## 文档与社区
 

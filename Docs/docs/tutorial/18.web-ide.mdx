@@ -59,9 +59,9 @@ Right-click the project folder and choose **Export**, or open a project file and
 | **Export HTML** | A ZIP containing a Web game; extract everything, then open `index.html` directly. |
 | **Export server HTML** | A ZIP containing a Web game to extract and serve over HTTP. |
 | **Export Windows ZIP** | Downloads a ZIP containing the Windows x64 game EXE and its runtime files. |
-| **Export Android APK** | Enter the game name, package name, version, and signing key in the local Web IDE. Dora signs the APK. On Android, use the native dialog. |
+| **Export Android APK** | Set the game title, Android package name, version, and signing key. On Android, Dora opens its native export dialog. Other supported hosts accept signing requests through the loopback address, such as `http://localhost:8866`. |
 
-Web export choices appear for recognized runnable projects. Projects in the workspace can export both native formats from a native Dora host. If the host needs an export template, Dora downloads the matching engine version and revision once and caches it for offline export. See [Packaging Projects](./130.game-app-pack.mdx) for delivery details.
+Game export choices appear for recognized runnable projects in the workspace. The Web IDE compiles supported source files before packaging. Dora downloads and caches any required templates for the running engine version and revision. See the [packaging guide](./130.game-app-pack.mdx) for host and signing requirements, or [export from the CLI](./115.command-line-interface.mdx#export-a-game).
 
 Playable Web, Windows and Android exports skip hidden project files, dependency folders, local configuration databases, credential files and logs. Use the project ZIP to keep a backup of editable files.
 

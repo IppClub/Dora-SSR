@@ -8,7 +8,9 @@ import TabItem from '@theme/TabItem';
 
 # 如何打包游戏为独立的应用
 
-开发完成后，可以从 Web IDE 导出网页游戏，或从 Dora 的项目界面导出原生游戏包。下方的平台打包指南也介绍了从引擎源码构建的流程。
+在 Windows、macOS、Linux、Android 或 iOS 上运行 Dora 时，可通过 Web IDE 导出 Web 游戏、Windows x64 ZIP 和 Android APK。在 Windows、macOS 和 Linux 上也可[通过 Dora CLI 导出](./115.command-line-interface.mdx#export-a-game)。打包由引擎完成，导出已有项目无需额外安装 Node.js、JDK、Android SDK 或 WebView。
+
+Dora 会按需下载缺少的运行时模板，并缓存到本地，供同一引擎版本及 revision 后续离线导出使用。下方的平台打包指南介绍如何从引擎源码构建独立应用。
 
 ## 从 Web IDE 导出可玩的 Web 游戏
 
@@ -43,10 +45,10 @@ import TabItem from '@theme/TabItem';
 
 ## 从 Dora 直接导出原生游戏
 
-- **Web IDE**。右键项目文件夹选择 **导出**，也可以打开项目文件后点击工具栏的 **导出**。原生 Dora 的 Web IDE 均可选择 **导出 Windows ZIP** 或 **导出 APK**。需要模板时自动下载并缓存匹配的版本。Android 端在原生弹窗签名并保存。桌面端请在运行 Dora 的同一台电脑打开 Web IDE，填写签名信息并下载 APK，由本机 Dora 完成签名。
+- **Web IDE**。右键项目文件夹选择 **导出**，也可以打开项目文件后点击工具栏的 **导出**。选择 **导出 Windows ZIP** 或 **导出 Android APK**。Dora 运行在 Android 上时，在该设备的原生弹窗中签名并保存。其他受支持宿主通过 Dora 的回环地址（如 `http://localhost:8866`）打开 Web IDE，填写游戏名称、包名、版本和签名信息，由本机 Dora 签名。使用 iOS 模拟器时，让 Dora 保持在前台，再在 Mac 的浏览器中打开该回环地址。
 - **桌面端**。在 Dora 经典界面的项目列表中，对可运行的项目选择 **导出 Windows ZIP**，再选择保存目录。玩家完整解压 ZIP 后双击游戏 EXE，DLL 和资源需要与 EXE 一起保留。
 - **Android**。在 Dora Go 的作品卡选择 **管理 → 分享作品 → 导出 APK**。设置在 Android 启动器中显示的游戏名称，确认包名和版本，再为签名密钥设置密码或导入已有的 PKCS#12 密钥。导出后可保存或分享 APK。
-- TypeScript 或 TSX 作品需要先在 Dora 中编译。请从 Android 导出对话框备份签名密钥并保管密码。换设备时导入该密钥，使用原包名和更高的版本号，才能覆盖升级已安装的游戏。
+- 从 Dora 原生项目界面导出 TypeScript 或 TSX 作品前，请先编译项目。请从 Android 导出对话框备份签名密钥并保管密码。换设备时导入该密钥，使用原包名和更高的版本号，才能覆盖升级已安装的游戏。
 
 在 Android 原生导出弹窗中，如需自定义桌面图标，把 `icon.png` 放在项目根目录，与 `init` 入口文件同级。推荐使用 512 × 512 像素的方形 PNG。Dora 会保留透明区域，非方形图片会等比缩放并居中。没有该文件时，导出的 APK 使用 Android 系统的通用应用图标。
 
@@ -58,9 +60,11 @@ Dora 内置的 GeneralUserGS 音色库用于生成素材。导出游戏前，请
 
 导出 APK 时，默认包含 Android 模板提供的全部处理器架构（ABI）。在 Android 的原生导出弹窗中，取消勾选不需要的架构可以缩小 APK。请至少保留一种目标设备支持的架构。
 
-如果原密钥已无法使用，并且准备把游戏作为独立应用重新发布，可以在 APK 导出窗口左下角点击 **备份密钥** 旁边的 **清除密钥**。本机缺少已发布项目的密钥时，按钮在 **导入密钥** 旁边。确认后，Dora 会删除本机保存的签名密钥并建议使用新的包名。使用新密钥导出的 APK 无法覆盖已安装的旧应用。
+如果原密钥已无法使用，并且准备把游戏作为独立应用重新发布，可以在 Android 原生 APK 导出弹窗左下角点击 **备份密钥** 旁边的 **清除密钥**。本机缺少已发布项目的密钥时，按钮在 **导入密钥** 旁边。确认后，Dora 会删除本机保存的签名密钥并建议使用新的包名。使用新密钥导出的 APK 无法覆盖已安装的旧应用。
 
-## 打包流程概览
+## 从引擎源码打包 {#打包流程概览}
+
+需要构建并定制原生应用本身时，例如生成 macOS 应用或 iOS IPA，请使用下面的流程。
 
 ```mermaid
 graph TD
@@ -232,6 +236,13 @@ xmake app-package --platform=linux --mode=release
 xmake app-package --platform=ios --mode=release --appledev=device
 ```
 
+在 Apple 芯片的 Mac 上测试时，选择模拟器 SDK 和 ARM64 架构。此示例省略可选的 Godot 运行时。启动 iOS 模拟器后，可用 `simctl` 安装生成的应用。
+
+```sh
+xmake app-package --platform=ios --appledev=simulator --arch=arm64 --mode=debug --without-godot
+xcrun simctl install booted build/iphoneos/simulator/arm64/debug/Dora.app
+```
+
 产物位于 `build/package/` 的对应平台目录；Android 位于 `Projects/Android/Dora/app/build/outputs/`。应用名称、版本、图标与平台资源在 `Projects/` 中修改，构建参数在 `Projects/xmake/` 中修改，不修改生成的 IDE 工程。
 
 默认 iOS device IPA 为 ad-hoc，不可直接安装/分发。设置已安装的 `DORA_IOS_SIGN_IDENTITY` 和 `DORA_IOS_PROVISION` 后另行验收正式签名。
@@ -399,13 +410,11 @@ gameScene:addTo(Director.entry)
 - **Google Play**：Android 应用
 - **官网下载**：直接分发
 - **itch.io**：独立游戏平台
-- **静态网站托管**：通过 Web Player 导出的浏览器游戏（GitHub Pages、itch.io HTML 或自有服务器）
+- **静态网站托管**：以 Server 版 HTML 格式导出的 Web 游戏（GitHub Pages、itch.io HTML 或自有服务器）
 
 ## 总结
 
-Web 游戏可以从 Web IDE 直接导出：完整解压 HTML 版的 ZIP 后打开 `index.html`，或把 Server 版的整个目录部署到服务器。分享可编辑工程使用普通 ZIP 导出。
-
-原生应用需要配置游戏启动资源、平台构建与签名。精简资源之前先验证启动依赖，完成打包后再检查图片、字体、声音和输入。
+通过 Web IDE 或 CLI 可导出可玩的 Web、Windows 或 Android 游戏包。完整解压 HTML ZIP 后打开 `index.html`，或部署 Server 版 HTML 的整个目录。Windows 版须将 EXE 和运行文件一起分发。Android 版须保管签名密钥，以便后续更新。分享可编辑项目时选择**导出 ZIP 包**。
 
 ## 相关文档
 

@@ -2,7 +2,7 @@
 
 Dora CLI mode is a special execution mode of the Dora engine executable. When the command-line arguments include `cli`, the executable switches from running the normal engine startup flow to running the minimum required Dora game development helper environment.
 
-In this mode, Dora does not start the normal game runtime. It only loads the CLI Lua script and the minimum helper capabilities needed for command-line development tasks. It is intended to work together with a running Dora SSR engine and Web IDE.
+In this mode, Dora does not start the normal game runtime. It only loads the CLI Lua script and the minimum helper capabilities needed for command-line development tasks. Most commands connect to a running Dora SSR engine.
 
 CLI mode is supported on Windows, macOS, and Linux only.
 
@@ -10,7 +10,7 @@ Use `Dora` in the examples below as the Dora executable name. If it is not on `P
 
 ## 1. Start Dora SSR
 
-Start Dora SSR normally and keep the Web IDE available. Most CLI commands call the Web IDE HTTP service, so pass the host shown by the Web IDE if it is not `127.0.0.1`.
+Start Dora SSR normally. Most CLI commands use the engine’s HTTP service. For commands that support connecting to another device, use `--host` with the host shown by the Web IDE.
 
 If you are working with the local engine and the service is not running, `doctor --fix` can start the native Dora engine for the current desktop platform. If the Web IDE is not connected, it waits briefly for an existing browser tab to reconnect before opening `http://localhost:8866` in the local browser.
 
@@ -54,7 +54,7 @@ Dora cli log -n 100
 
 ## 2. Command Reference
 
-The command list from `Dora cli --help`:
+Command overview. Use `Dora cli --help` for the help bundled with your installation.
 
 ```text
 Usage: dora cli <command> [options]
@@ -95,18 +95,19 @@ Dora cli rust run --help
 
 The `agent` commands use the isolated Agent engine: `status` reports its state, `reload` reloads it, `preview` runs a project and captures screenshots at specified times, `command` reads a Lua or Git request from a JSON file, and `log` reads the service log. These commands return JSON on stdout. Agent runtime operations are separate from the interactive runtime controlled by ordinary `run` and `stop`.
 
-## Export a Game
+## Export a Game {#export-a-game}
 
-Start the local Dora service and build your project first. The project must be inside the Dora workspace. Dora builds Android and Web packages in the engine, including APK signing.
+Start Dora normally on the same computer. The export command connects to its loopback HTTP service and packages the project without a browser. Use a project folder inside the Dora workspace and build any source scripts before exporting. Web exports require a root `init.lua`, which Dora produces when compiling a supported script entry point such as `init.ts`. See the [packaging guide](./130.game-app-pack.mdx) for runtime templates and distribution.
 
 ```sh
 Dora cli export --help
+Dora cli build -p ./MyGame
 Dora cli export windows -p ./MyGame -o ../MyGame-Windows.zip
 Dora cli export html -p ./MyGame -o ../MyGame-HTML.zip
 Dora cli export http -p ./MyGame -o ../MyGame-HTTP.zip
 ```
 
-With no `-o`, Dora saves the package under the project's `.dora/export` directory. The `html` package opens locally after extraction. Serve the `http` package over HTTP. Web projects using Godot require the HTTP package and the COOP/COEP response headers in its included README.
+Run these examples from the directory containing `MyGame`. Skip `build` for projects written directly in Lua. Without `-o`, Dora saves packages in the project's `.dora/export` directory. Choose a new path if the output file already exists. Extract the `html` ZIP and open `index.html` directly. Serve the extracted `http` package over HTTPS or localhost. Web projects using Godot require the HTTP package and the COOP/COEP response headers in its included README.
 
 Set `DORA_ANDROID_KEY_PASSWORD` in the shell environment before exporting an APK. The optional `--title` sets the name displayed in the Android launcher. It defaults to the project folder name.
 
@@ -122,8 +123,8 @@ Keep the generated key and its password. For an update, pass the original key an
 Search Dora SSR docs through the running Web IDE service:
 
 ```sh
-Dora cli doc search Sprite --source tutorial --lang ts
-Dora cli doc search "Sprite|Node" --source api --lang tsx -n 20
+Dora cli doc search Sprite --source dora-tutorial --lang ts
+Dora cli doc search "Sprite|Node" --source dora-api --lang tsx -n 20
 ```
 
 Search results print doc file paths and matching lines. Read a returned file with `doc read`:
