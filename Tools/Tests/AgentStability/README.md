@@ -10,6 +10,12 @@ This suite covers the stable subset extracted from the context evaluation branch
   request-only continuation user message when compacted history has none.
 - Failed compression returns zero covered messages and opens the breaker after
   three failures; it does not archive raw history and pretend compression passed.
+- The memory selection is appended to the conversation when it is new, changed, or
+  covered by a compression boundary, and the system prompt does not change with it.
+  A selection is reference data, not a task instruction: a trailing one does not
+  make a compressed chunk carry an older instruction, and it does not suppress the
+  request-only continuation message. Its marker survives storage and reaches the
+  compression projection, but not the provider request.
 
 Run from the repository root:
 

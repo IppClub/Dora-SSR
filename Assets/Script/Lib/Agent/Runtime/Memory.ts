@@ -99,6 +99,8 @@ const optStr = (str: string, def: string) => str === '' ? def : str;
 export interface AgentConversationMessage extends Message {
 	inputId?: number;
 	handoffId?: string;
+	/** Injected memory-selection snapshot. Reference data, not a user instruction. */
+	memoryContext?: boolean;
 	afterStep?: number;
 	inputKind?: "prompt" | "steer";
 	taskId?: number;
@@ -106,7 +108,15 @@ export interface AgentConversationMessage extends Message {
 }
 
 export function isTaskInstruction(message: AgentConversationMessage): boolean {
-	return message.role === "user" && message.inputKind !== "steer" && message.handoffId === undefined;
+	return message.role === "user" && message.inputKind !== "steer"
+		&& message.handoffId === undefined && message.memoryContext !== true;
+}
+
+/** Provenance label for non-user messages in the text handed to the compression model. */
+function compressionMessageSource(message: AgentConversationMessage): string {
+	if (message.handoffId !== undefined) return " source=sub_agent_handoff";
+	if (message.memoryContext === true) return " source=memory_context";
+	return "";
 }
 
 export interface PersistedSessionState {
@@ -1190,6 +1200,7 @@ export class DualLayerStorage {
 		const message: AgentConversationMessage = { role };
 		if (typeof row.inputId === "number") message.inputId = row.inputId;
 		if (typeof row.handoffId === "string") message.handoffId = row.handoffId;
+		if (row.memoryContext === true) message.memoryContext = true;
 		if (typeof row.afterStep === "number") message.afterStep = row.afterStep;
 		if (typeof row.taskId === "number") message.taskId = row.taskId;
 		if (row.inputKind === "steer" || row.inputKind === "prompt") message.inputKind = row.inputKind;
@@ -1735,8 +1746,10 @@ export class MemoryCompressor {
 		// A trailing user message is an open instruction, not completed history.
 		// Keep it verbatim outside the summary so an older Active Checkpoint (for
 		// example `Next tool: finish`) cannot bind a newly submitted task after
-		// compression.
-		if (chunkEnd > 0 && messages[chunkEnd - 1].role === "user" && messages[chunkEnd - 1].handoffId === undefined) {
+		// compression. A trailing memory selection is reference data, not an
+		// instruction, and must not make the chunk carry an older instruction.
+		const last = messages[chunkEnd - 1];
+		if (chunkEnd > 0 && last.role === "user" && last.handoffId === undefined && last.memoryContext !== true) {
 			return this.buildCarryBoundary(messages, chunkEnd);
 		}
 		return { chunkEnd, compressedCount: chunkEnd };
@@ -1744,7 +1757,7 @@ export class MemoryCompressor {
 
 	private estimateCompressionMessageTokens(message: AgentConversationMessage, index: number): number {
 		const lines: string[] = [];
-		lines.push(`Message ${index + 1}: role=${message.role}${message.handoffId === undefined ? "" : " source=sub_agent_handoff"}`);
+		lines.push(`Message ${index + 1}: role=${message.role}${compressionMessageSource(message)}`);
 		if (message.name && message.name !== "") lines.push(`name=${message.name}`);
 		if (message.tool_call_id && message.tool_call_id !== "") lines.push(`tool_call_id=${message.tool_call_id}`);
 		if (message.reasoning_content && message.reasoning_content !== "") lines.push(`reasoning=${message.reasoning_content}`);
@@ -1761,7 +1774,7 @@ export class MemoryCompressor {
 		const lines: string[] = [];
 		for (let i = 0; i < messages.length; i++) {
 			const message = messages[i];
-			lines.push(`Message ${i + 1}: role=${message.role}${message.handoffId === undefined ? "" : " source=sub_agent_handoff"}`);
+			lines.push(`Message ${i + 1}: role=${message.role}${compressionMessageSource(message)}`);
 			if (message.name && message.name !== "") lines.push(`name=${message.name}`);
 			if (message.tool_call_id && message.tool_call_id !== "") lines.push(`tool_call_id=${message.tool_call_id}`);
 			if (message.reasoning_content && message.reasoning_content !== "") lines.push(`reasoning=${message.reasoning_content}`);

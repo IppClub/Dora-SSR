@@ -521,8 +521,8 @@ ${message.content ?? ""}`;
 export function projectMessagesForCompression(messages: Message[]): Message[] {
 	// Keep task metadata for the compressor's boundary selection, not for normal requests.
 	const projected = projectMessagesForLLMContext(messages).map((message, index) => {
-		const source = messages[index] as Message & { inputId?: number; inputKind?: "prompt" | "steer"; taskId?: number; handoffId?: string };
-		return { ...message, inputId: source.inputId, inputKind: source.inputKind, taskId: source.taskId, handoffId: source.handoffId };
+		const source = messages[index] as Message & { inputId?: number; inputKind?: "prompt" | "steer"; taskId?: number; handoffId?: string; memoryContext?: boolean };
+		return { ...message, inputId: source.inputId, inputKind: source.inputKind, taskId: source.taskId, handoffId: source.handoffId, memoryContext: source.memoryContext };
 	});
 	const seenReads = new Set<string>();
 	const completedWrites = new Set<string>();

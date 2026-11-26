@@ -23,8 +23,13 @@ export function useFastGlmToolDecision(model: string, options: Record<string, un
 // Insert a stable continuation instruction instead of replaying an obsolete
 // user turn as if it were the newest requirement. This is a request projection
 // only: persisted history and the user's current instructions stay untouched.
-export function ensureConversationUserMessage(messages: Message[]): Message[] {
-	if (messages.some(message => message.role === "user")) return messages;
+// `hasUserTurn` lets a caller exclude injected reference messages that only
+// share the user role, so they do not suppress the continuation instruction.
+export function ensureConversationUserMessage(
+	messages: Message[],
+	hasUserTurn = messages.some(message => message.role === "user"),
+): Message[] {
+	if (hasUserTurn) return messages;
 	const index = messages.length > 0 && messages[0].role === "system" ? 1 : 0;
 	return [
 		...messages.slice(0, index),
