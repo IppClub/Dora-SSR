@@ -573,7 +573,7 @@ if is_plat("iphoneos") then
                 envs.GOOS = goos
                 envs.GOARCH = goarch
                 envs.CGO_ENABLED = "1"
-                envs.GOFLAGS = "-mod=vendor"
+                envs.GOFLAGS = "-buildvcs=false -mod=vendor"
                 envs.CC = clang
                 envs.CGO_CFLAGS = "-arch " .. target:arch() .. " -isysroot " .. sysroot .. " " .. minver
                 envs.CGO_LDFLAGS = envs.CGO_CFLAGS

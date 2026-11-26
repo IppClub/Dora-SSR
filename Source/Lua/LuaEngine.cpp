@@ -48,6 +48,9 @@ int luaopen_socket_core(lua_State* L);
 #endif
 } // extern "C"
 
+#if !BX_PLATFORM_EMSCRIPTEN
+int luaopen_dora_game_package(lua_State* L);
+#endif
 #if BX_PLATFORM_ANDROID
 int doraAndroidExportGame(lua_State* state);
 int doraAndroidHasExportTemplate(lua_State* state);
@@ -66,6 +69,7 @@ static void pushYue(lua_State* L, String name) {
 	lua_insert(L, -4); // item package loaded yue
 	lua_pop(L, 3); // item
 }
+
 
 static void pushOptions(lua_State* L, int lineOffset) {
 	lua_newtable(L);

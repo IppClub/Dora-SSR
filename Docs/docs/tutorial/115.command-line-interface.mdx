@@ -70,6 +70,7 @@ Commands:
   build [-p project] [-f file] [--lang all|ts|yue|tl|xml|wa|yarn]
   run [-p project] [--entry init.lua]
   buildrun [-p project] [-f file] [--lang ...] [--entry init.lua]
+  export <windows|android|html|http> [-p project] [-o output]
   stop
   status [-p project]
   doctor [-p project] [--fix]
@@ -93,6 +94,28 @@ Dora cli rust run --help
 ```
 
 The `agent` commands use the isolated Agent engine: `status` reports its state, `reload` reloads it, `preview` runs a project and captures screenshots at specified times, `command` reads a Lua or Git request from a JSON file, and `log` reads the service log. These commands return JSON on stdout. Agent runtime operations are separate from the interactive runtime controlled by ordinary `run` and `stop`.
+
+## Export a Game
+
+Start the local Dora service and build your project first. The project must be inside the Dora workspace. Dora builds Android and Web packages in the engine, including APK signing.
+
+```sh
+Dora cli export --help
+Dora cli export windows -p ./MyGame -o ../MyGame-Windows.zip
+Dora cli export html -p ./MyGame -o ../MyGame-HTML.zip
+Dora cli export http -p ./MyGame -o ../MyGame-HTTP.zip
+```
+
+With no `-o`, Dora saves the package under the project's `.dora/export` directory. The `html` package opens locally after extraction. Serve the `http` package over HTTP. Web projects using Godot require the HTTP package and the COOP/COEP response headers in its included README.
+
+Set `DORA_ANDROID_KEY_PASSWORD` in the shell environment before exporting an APK. The optional `--title` sets the name displayed in the Android launcher. It defaults to the project folder name.
+
+```sh
+Dora cli export android -p ./MyGame -o ../MyGame.apk --package-name org.example.mygame --title "My Game" --new-key ../MyGame.p12
+Dora cli export android -p ./MyGame -o ../MyGame-v2.apk --package-name org.example.mygame --title "My Game" --key ../MyGame.p12 --version-name 1.0.1 --version-code 2
+```
+
+Keep the generated key and its password. For an update, pass the original key and package name and use a higher version code.
 
 ## 3. Documentation Search
 

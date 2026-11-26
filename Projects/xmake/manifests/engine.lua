@@ -39,6 +39,8 @@ function main()
     "Source/Basic/Scheduler.cpp",
     "Source/Basic/Database.cpp",
     "Source/Basic/Content.cpp",
+    "Source/Basic/GamePackage.cpp",
+    "Source/Basic/AndroidGamePackage.cpp",
     "Source/Basic/Application.cpp",
     "Source/Effect/Effect.cpp",
     "Source/Effect/Material.cpp",

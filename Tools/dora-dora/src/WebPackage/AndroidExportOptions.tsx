@@ -1,7 +1,7 @@
 import {Button, Dialog, DialogActions, DialogContent, DialogTitle, Stack, TextField, Typography} from '@mui/material';
 import {useState} from 'react';
 import {useTranslation} from 'react-i18next';
-import type {AndroidGameInfo} from './AndroidManifest';
+import type {AndroidGameInfo} from '../Service';
 
 export interface AndroidExportOptions extends AndroidGameInfo {
   password: string;

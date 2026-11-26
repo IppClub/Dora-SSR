@@ -1,4 +1,6 @@
 local DORA_ROOT = os.projectdir()
+local macos_minver = "12.0"
+local ios_minver = "13.0"
 local function rootpath(relative)
     return path.join(DORA_ROOT, relative)
 end
@@ -30,6 +32,20 @@ local dora_includedirs = {
 
 if is_plat("windows") then
     add_requires("dora-webview2 1.0.2903.40")
+end
+if is_plat("macosx", "linux", "windows", "iphoneos") then
+    local crypto_configs = {shared = false}
+    if is_plat("macosx", "iphoneos") then
+        -- Package toolchains do not inherit Dora's target_minver. Keep the
+        -- static crypto objects deployable to the same OS versions as Dora.
+        local arch = get_config("arch") or os.arch()
+        local sdk = is_plat("macosx") and ("macos" .. macos_minver)
+            or ("ios" .. ios_minver .. (get_config("appledev") == "simulator" and "-simulator" or ""))
+        local target = "--target=" .. arch .. "-apple-" .. sdk
+        crypto_configs.cflags = {target}
+        crypto_configs.asflags = {target}
+    end
+    add_requires("openssl3 3.5.7", {system = false, configs = crypto_configs})
 end
 
 -- The source corpus is generated, not checked in as a second Godot snapshot.
@@ -77,6 +93,10 @@ target("Dora")
     end
     add_includedirs(table.unpack(dora_includedirs))
     add_defines("WITH_SDL2_STATIC", "d_m3HasWASI", "SPDLOG_FMT_EXTERNAL")
+    if is_plat("macosx", "linux", "windows", "iphoneos") then
+        add_packages("openssl3")
+        add_defines("DORA_APK_EXPORT=1")
+    end
     add_defines(has_config("dora_native_tests") and "DORA_TEST=1" or "DORA_TEST=0")
 
     on_load(function (target)
@@ -177,7 +197,7 @@ target("Dora")
             import("Projects.xmake.tools.macos_bundle", {rootdir = DORA_ROOT})(target)
         end)
         set_values("xcode.bundle_identifier", "IppClub.DoraSSR")
-        set_toolchains("xcode", {target_minver = "12.0"})
+        set_toolchains("xcode", {target_minver = macos_minver})
         add_files(rootpath("Projects/macOS/Dora/Info.plist"), rootpath("Projects/macOS/Dora/Assets.xcassets"))
         add_files(rootpath("Source/Basic/Application.mm"), rootpath("Source/Basic/Content.mm"))
         add_files(rootpath("Source/Godot/GodotRuntimeMetal.mm"), {force = {mxxflags = {"-fobjc-arc"}}})
@@ -228,7 +248,7 @@ target("Dora")
         set_autogendir(rootpath("build/.gens/" .. ios_cache .. apple_device))
         add_rules("xcode.application")
         set_values("xcode.bundle_identifier", godot_test and "org.ippclub.dorassr.godotprototype.ios" or "IppClub.DoraSSR")
-        set_toolchains("xcode", {target_minver = godot_test and "14.0" or "13.0"})
+        set_toolchains("xcode", {target_minver = godot_test and "14.0" or ios_minver})
         add_files(
             rootpath("Projects/iOS/Dora/Info.plist"),
             rootpath("Projects/iOS/Dora/Assets.xcassets"),

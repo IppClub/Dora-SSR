@@ -2468,13 +2468,12 @@ minifyAsync = (sourcePath, minifyPath) ->
 
 zipping = false
 HttpServer\postSchedule "/zip", (req): success: false ->
-	switch req when {body: {:path, :zipFile, :obfuscated, :publishWeb}}
+	switch req when {body: {:path, :zipFile, :obfuscated}}
 		goto failed if zipping
 		zipping = true
 		close _ = <close>: -> zipping = false
 		goto failed unless Content\exist path
 		Content\mkdir Path\getPath zipFile
-		return (require "Script.Dev.NativeGameExport").snapshotWeb(path, zipFile) if publishWeb == true
 		if obfuscated
 			scriptPath = Path Content.writablePath, ".download", ".script"
 			obfuscatedPath = Path Content.writablePath, ".download", ".obfuscated"
@@ -3317,11 +3316,20 @@ nativeExportInfo = (projectRoot) ->
 
 
 nativeExporting = false
-HttpServer\postSchedule "/native-game/export", (req): invalidArguments ->
+exportGame = (req, signing = false) ->
 	switch req when {body: {:path, :format}}
 		return invalidArguments unless type(path) == "string" and Content\isAbsolutePath path
 		formats = nativeExportFormats path
-		return invalidArguments unless formats and format in formats and isProjectRootDir path
+		web = format in {"html", "http"}
+		return invalidArguments unless formats and (web or format in formats) and isProjectRootDir path
+		if signing
+			return invalidArguments unless format == "android" and App.platform in {"macOS", "Windows", "Linux", "iOS"}
+			android = req.body.android
+			return invalidArguments unless type(android) == "table" and type(android.game) == "table"
+			return invalidArguments unless type(android.password) == "string" and #android.password > 0 and #android.password <= 1024
+			return invalidArguments if android.key ~= nil and (type(android.key) ~= "string" or #android.key > 1400000)
+		elseif format == "android" and App.platform ~= "Android"
+			return success: false, message: "Use the local APK signing endpoint"
 		zh = App.locale\match "^zh"
 		if nativeExporting
 			return success: false, message: zh and "正在导出游戏" or "A game export is in progress"
@@ -3336,7 +3344,7 @@ HttpServer\postSchedule "/native-game/export", (req): invalidArguments ->
 		close _ = <close>: -> nativeExporting = false
 		title = Path\getFilename path
 		exporter = require "Script.Dev.NativeGameExport"
-		if format == "android" and App.platform == "Android"
+		if format == "android" and not signing
 			ok, result = pcall exporter.exportAndroid, path, entry, title
 			return success: true if ok
 			return success: false, message: tostring result
@@ -3348,19 +3356,12 @@ HttpServer\postSchedule "/native-game/export", (req): invalidArguments ->
 			if format == "windows"
 				archive = exporter.exportWindows path, entry, title, destination
 				return success: true, :archive
-			version = App.version\match "^(%d+%.%d+%.%d+)%.%d+$"
-			templateRoot = exporter.resolveTemplate "android"
-			apk = Path destination, "template.apk"
-			template = Path templateRoot, "dora-ssr-v#{version}-android.apk"
-			unless Content\copyAsync template, apk
-				error zh and "无法准备 Android 模板" or "Could not prepare the Android template", 0
-			assets = Path destination, "assets"
-			needsGodot = exporter.prepareGame path, entry, assets
-			archive = Path destination, "assets.zip"
-			unless Content\zipAsync assets, archive
-				error zh and "无法打包游戏资源" or "Could not package game assets", 0
-			Content\remove assets
-			success: true, :archive, :apk, :needsGodot
+			archive, signingKey = exporter.exportPackage format, path, entry, destination, req.body.android
+			success: true, :archive, :signingKey
 		return result if ok
 		Content\remove destination
 		return success: false, message: tostring result
+	invalidArguments
+
+HttpServer\postSchedule "/native-game/export", (req) -> exportGame req
+HttpServer\postSchedule "/native-game/sign", (req) -> exportGame req, true

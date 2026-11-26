@@ -1,9 +1,9 @@
 -- [yue]: Script/Dev/NativeGameExport.yue
 local _module_0 = { } -- 1
-local App, Content, Path, wait -- 1
+local App, Content, HttpServer, Path, json, wait -- 1
 do -- 1
 	local _obj_0 = require("Dora") -- 1
-	App, Content, Path, wait = _obj_0.App, _obj_0.Content, _obj_0.Path, _obj_0.wait -- 1
+	App, Content, HttpServer, Path, json, wait = _obj_0.App, _obj_0.Content, _obj_0.HttpServer, _obj_0.Path, _obj_0.json, _obj_0.wait -- 1
 end -- 1
 local projectFileAllowed = require("Script.Dev.ExportPolicy").projectFileAllowed -- 2
 local needsGodot = require("Script.Dev.GodotDependency").needsGodot -- 3
@@ -102,171 +102,187 @@ prepareGame = function(root, fileName, assets) -- 47
 	return useGodot -- 60
 end -- 47
 _module_0["prepareGame"] = prepareGame -- 47
-local snapshotWeb -- 62
-snapshotWeb = function(root, archive) -- 62
-	local ok, result = pcall(function() -- 63
-		local stage = Path(Content.appPath, ".native-export", "web-" .. tostring(os.time()) .. "-" .. tostring(App.rand)) -- 64
-		if not Content:mkdir(stage) then -- 65
-			fail("无法创建导出目录", "Could not create the export directory") -- 66
-		end -- 65
-		local _ <close> = setmetatable({ }, { -- 67
-			__close = function() -- 67
-				return Content:remove(stage) -- 67
-			end -- 67
-		}) -- 67
-		local useGodot = copyProject(root, stage) -- 68
-		if not Content:zipAsync(stage, archive) then -- 69
-			fail("无法打包游戏资源", "Could not package game assets") -- 70
-		end -- 69
-		return useGodot -- 71
-	end) -- 63
-	if ok then -- 72
-		return { -- 72
-			success = true, -- 72
-			needsGodot = result -- 72
-		} -- 72
-	end -- 72
-	return { -- 73
-		success = false, -- 73
-		message = tostring(result) -- 73
-	} -- 73
+local resolveTemplate -- 62
+resolveTemplate = function(target) -- 62
+	local resolveExportTemplate = require("Script.Dev.ExportTemplate").resolveExportTemplate -- 63
+	local result -- 64
+	resolveExportTemplate(target, function(value) -- 65
+		result = value -- 65
+	end) -- 65
+	wait(function() -- 66
+		return result ~= nil -- 66
+	end) -- 66
+	if not result.folder then -- 67
+		error(result.message, 0) -- 67
+	end -- 67
+	return result.folder -- 68
 end -- 62
-_module_0["snapshotWeb"] = snapshotWeb -- 62
-local resolveTemplate -- 75
-resolveTemplate = function(target) -- 75
-	local resolveExportTemplate = require("Script.Dev.ExportTemplate").resolveExportTemplate -- 76
-	local result -- 77
-	resolveExportTemplate(target, function(value) -- 78
-		result = value -- 78
-	end) -- 78
-	wait(function() -- 79
-		return result ~= nil -- 79
-	end) -- 79
-	if not result.folder then -- 80
-		error(result.message, 0) -- 80
-	end -- 80
-	return result.folder -- 81
-end -- 75
-_module_0["resolveTemplate"] = resolveTemplate -- 75
-local windowsGodotLibrary = "dora_godot.dll" -- 83
-local windowsRuntimeSource -- 85
-windowsRuntimeSource = function(useGodot) -- 85
-	if App.platform == "Windows" then -- 86
-		local exe = App.executablePath -- 87
-		local godot = Path(Path:getPath(exe), windowsGodotLibrary) -- 88
-		if not useGodot or (Content:exist(godot) and not Content:isdir(godot)) then -- 89
-			return Content.assetPath, exe -- 90
-		end -- 89
-	end -- 86
-	local folder = resolveTemplate("windows-x64") -- 91
-	return folder, Path(folder, "Dora.exe") -- 92
-end -- 85
-local exportWindows -- 94
-exportWindows = function(root, fileName, title, destination) -- 94
-	local name = title:gsub('[\\/:*?"<>|%c]', "_"):match("^%s*(.-)%s*$") -- 95
-	if not name or name == "" then -- 96
-		name = "Game" -- 96
-	end -- 96
-	name = "Game-" .. tostring(name) -- 97
-	do -- 98
-		local last = utf8.offset(name, 61) -- 98
-		if last then -- 98
-			name = name:sub(1, last - 1) -- 99
-		end -- 98
-	end -- 98
-	local archive = Path(destination, tostring(name) .. "-Windows.zip") -- 100
-	local suffix = 2 -- 101
-	while Content:exist(archive) do -- 102
-		archive = Path(destination, tostring(name) .. "-Windows-" .. tostring(suffix) .. ".zip") -- 103
-		suffix = suffix + 1 -- 104
+_module_0["resolveTemplate"] = resolveTemplate -- 62
+local _anon_func_0 = function(result) -- 97
+	if result ~= "" then -- 97
+		return result -- 97
+	end -- 97
+end -- 97
+local exportPackage -- 70
+exportPackage = function(format, root, entry, stage, signing) -- 70
+	local packageBuilder = require("dora.game_package") -- 71
+	local assets = Path(stage, "assets") -- 72
+	if not Content:mkdir(assets) then -- 73
+		fail("无法准备游戏资源", "Could not prepare game assets") -- 74
+	end -- 73
+	local options = { -- 75
+		format = format, -- 75
+		assets = assets -- 75
+	} -- 75
+	if format == "android" then -- 76
+		options.needsGodot = prepareGame(root, entry, assets) -- 77
+		local version = App.version:match("^(%d+%.%d+%.%d+)%.%d+$") -- 78
+		options.template = Path(resolveTemplate("android"), "dora-ssr-v" .. tostring(version) .. "-android.apk") -- 79
+		options.policy = Content:load(Path(Content.assetPath, "Script", "Dev", "ExportPolicy.json")) -- 80
+		options.game = signing.game -- 81
+		options.password = signing.password -- 82
+		options.key = signing.key -- 83
+		options.output = Path(stage, "game.apk") -- 84
+	else -- 86
+		options.needsGodot = copyProject(root, assets) -- 86
+		options.www = HttpServer.wwwPath -- 87
+		options.output = Path(stage, "game.zip") -- 88
+	end -- 76
+	local success, result -- 89
+	local done = false -- 90
+	packageBuilder.run(json.encode(options), function(ok, value) -- 91
+		success, result = ok, value -- 92
+		done = true -- 93
+	end) -- 91
+	wait(function() -- 94
+		return done -- 94
+	end) -- 94
+	if not success then -- 95
+		error(result, 0) -- 95
+	end -- 95
+	Content:remove(assets) -- 96
+	return options.output, _anon_func_0(result) -- 97
+end -- 70
+_module_0["exportPackage"] = exportPackage -- 70
+local windowsGodotLibrary = "dora_godot.dll" -- 99
+local windowsRuntimeSource -- 101
+windowsRuntimeSource = function(useGodot) -- 101
+	if App.platform == "Windows" then -- 102
+		local exe = App.executablePath -- 103
+		local godot = Path(Path:getPath(exe), windowsGodotLibrary) -- 104
+		if not useGodot or (Content:exist(godot) and not Content:isdir(godot)) then -- 105
+			return Content.assetPath, exe -- 106
+		end -- 105
 	end -- 102
-	local cache = Path(Content.appPath, ".native-export") -- 105
-	local stage = Path(cache, "stage-" .. tostring(os.time()) .. "-" .. tostring(App.rand)) -- 106
-	local assets = Path(stage, "game") -- 107
-	local tempZip = Path(destination, ".dora-export-" .. tostring(Path:getName(stage)) .. ".tmp") -- 108
-	local success, result = pcall(function() -- 109
-		local id = projectId(root) -- 110
-		if not Content:mkdir(assets) then -- 111
-			fail("无法创建导出目录", "Could not create the export directory") -- 112
-		end -- 111
-		local useGodot = prepareGame(root, fileName, assets) -- 113
-		local assetRoot, exe = windowsRuntimeSource(useGodot) -- 114
-		if useGodot then -- 116
-			local godot = Path(Path:getPath(exe), windowsGodotLibrary) -- 117
-			if not (Content:exist(godot) and not Content:isdir(godot)) then -- 118
-				fail("此项目需要 Godot，请使用包含 Godot 运行库的 Windows 版 Dora 导出", "Use a Windows build of Dora with Godot to export this project.") -- 119
-			end -- 118
-			copyFile(godot, Path(assets, windowsGodotLibrary)) -- 120
-		end -- 116
-		for _index_0 = 1, #runtimeRoots do -- 121
-			local item = runtimeRoots[_index_0] -- 121
-			local src = Path(assetRoot, item) -- 122
-			if Content:isdir(src) then -- 123
-				local _list_0 = Content:getAllFiles(src) -- 124
-				for _index_1 = 1, #_list_0 do -- 124
-					local file = _list_0[_index_1] -- 124
-					if item == "Audio" and file == "GeneralUserGS.sf3" then -- 125
-						goto _continue_0 -- 125
-					end -- 125
-					if item == "Image" and file:gsub("\\", "/") == "Mobile/dora-remix-states.png" then -- 126
-						goto _continue_0 -- 126
-					end -- 126
-					copyFile(Path(src, file), Path(assets, item, file)) -- 127
-					::_continue_0:: -- 125
-				end -- 124
-			elseif Content:exist(src) then -- 128
-				copyFile(src, Path(assets, item)) -- 129
-			end -- 123
-		end -- 121
-		copyFile(exe, Path(assets, tostring(name) .. ".exe")) -- 130
-		if not Content:save(Path(assets, "dora-game-id"), id) then -- 131
-			fail("无法写入游戏标识", "Could not write the game ID") -- 132
-		end -- 131
-		if not Content:zipAsync(assets, tempZip) then -- 133
-			fail("无法创建游戏 ZIP", "Could not create the game ZIP") -- 134
-		end -- 133
-		if not Content:exist(archive) and Content:move(tempZip, archive) then -- 135
-			return archive -- 136
-		end -- 135
-		return fail("无法保存游戏 ZIP", "Could not save the game ZIP") -- 137
-	end) -- 109
-	if Content:exist(stage) then -- 138
-		Content:remove(stage) -- 138
-	end -- 138
-	if Content:exist(tempZip) then -- 139
-		Content:remove(tempZip) -- 139
-	end -- 139
-	if not success then -- 140
-		error(result, 0) -- 140
-	end -- 140
-	return result -- 141
-end -- 94
-_module_0["exportWindows"] = exportWindows -- 94
-local exportAndroid -- 143
-exportAndroid = function(root, fileName, title) -- 143
-	local dispatch = require("dora.android_game_export") -- 144
-	local stage = Path(Content.appPath, ".native-export", "android-" .. tostring(os.time()) .. "-" .. tostring(App.rand)) -- 145
-	local success, result = pcall(function() -- 146
-		if not Content:mkdir(stage) then -- 147
-			fail("无法创建导出目录", "Could not create the export directory") -- 148
+	local folder = resolveTemplate("windows-x64") -- 107
+	return folder, Path(folder, "Dora.exe") -- 108
+end -- 101
+local exportWindows -- 110
+exportWindows = function(root, fileName, title, destination) -- 110
+	local name = title:gsub('[\\/:*?"<>|%c]', "_"):match("^%s*(.-)%s*$") -- 111
+	if not name or name == "" then -- 112
+		name = "Game" -- 112
+	end -- 112
+	name = "Game-" .. tostring(name) -- 113
+	do -- 114
+		local last = utf8.offset(name, 61) -- 114
+		if last then -- 114
+			name = name:sub(1, last - 1) -- 115
+		end -- 114
+	end -- 114
+	local archive = Path(destination, tostring(name) .. "-Windows.zip") -- 116
+	local suffix = 2 -- 117
+	while Content:exist(archive) do -- 118
+		archive = Path(destination, tostring(name) .. "-Windows-" .. tostring(suffix) .. ".zip") -- 119
+		suffix = suffix + 1 -- 120
+	end -- 118
+	local cache = Path(Content.appPath, ".native-export") -- 121
+	local stage = Path(cache, "stage-" .. tostring(os.time()) .. "-" .. tostring(App.rand)) -- 122
+	local assets = Path(stage, "game") -- 123
+	local tempZip = Path(destination, ".dora-export-" .. tostring(Path:getName(stage)) .. ".tmp") -- 124
+	local success, result = pcall(function() -- 125
+		local id = projectId(root) -- 126
+		if not Content:mkdir(assets) then -- 127
+			fail("无法创建导出目录", "Could not create the export directory") -- 128
+		end -- 127
+		local useGodot = prepareGame(root, fileName, assets) -- 129
+		local assetRoot, exe = windowsRuntimeSource(useGodot) -- 130
+		if useGodot then -- 132
+			local godot = Path(Path:getPath(exe), windowsGodotLibrary) -- 133
+			if not (Content:exist(godot) and not Content:isdir(godot)) then -- 134
+				fail("此项目需要 Godot，请使用包含 Godot 运行库的 Windows 版 Dora 导出", "Use a Windows build of Dora with Godot to export this project.") -- 135
+			end -- 134
+			copyFile(godot, Path(assets, windowsGodotLibrary)) -- 136
+		end -- 132
+		for _index_0 = 1, #runtimeRoots do -- 137
+			local item = runtimeRoots[_index_0] -- 137
+			local src = Path(assetRoot, item) -- 138
+			if Content:isdir(src) then -- 139
+				local _list_0 = Content:getAllFiles(src) -- 140
+				for _index_1 = 1, #_list_0 do -- 140
+					local file = _list_0[_index_1] -- 140
+					if item == "Audio" and file == "GeneralUserGS.sf3" then -- 141
+						goto _continue_0 -- 141
+					end -- 141
+					if item == "Image" and file:gsub("\\", "/") == "Mobile/dora-remix-states.png" then -- 142
+						goto _continue_0 -- 142
+					end -- 142
+					copyFile(Path(src, file), Path(assets, item, file)) -- 143
+					::_continue_0:: -- 141
+				end -- 140
+			elseif Content:exist(src) then -- 144
+				copyFile(src, Path(assets, item)) -- 145
+			end -- 139
+		end -- 137
+		copyFile(exe, Path(assets, tostring(name) .. ".exe")) -- 146
+		if not Content:save(Path(assets, "dora-game-id"), id) then -- 147
+			fail("无法写入游戏标识", "Could not write the game ID") -- 148
 		end -- 147
-		local useGodot = prepareGame(root, fileName, Path(stage, "assets")) -- 149
-		local hasTemplate = require("dora.android_has_export_template") -- 150
-		if not hasTemplate(useGodot) then -- 151
-			local version = App.version:match("^(%d+%.%d+%.%d+)%.%d+$") -- 152
-			local template = resolveTemplate("android") -- 153
-			copyFile(Path(template, "dora-ssr-v" .. tostring(version) .. "-android.apk"), Path(stage, "template.apk")) -- 154
+		if not Content:zipAsync(assets, tempZip) then -- 149
+			fail("无法创建游戏 ZIP", "Could not create the game ZIP") -- 150
+		end -- 149
+		if not Content:exist(archive) and Content:move(tempZip, archive) then -- 151
+			return archive -- 152
 		end -- 151
-		if not dispatch(stage, projectId(root), title, useGodot) then -- 155
-			return fail("无法打开 APK 导出", "Could not open APK export") -- 156
-		end -- 155
-	end) -- 146
-	if not success then -- 157
-		if Content:exist(stage) then -- 158
-			Content:remove(stage) -- 158
-		end -- 158
-		return error(result, 0) -- 159
-	end -- 157
-end -- 143
-_module_0["exportAndroid"] = exportAndroid -- 143
+		return fail("无法保存游戏 ZIP", "Could not save the game ZIP") -- 153
+	end) -- 125
+	if Content:exist(stage) then -- 154
+		Content:remove(stage) -- 154
+	end -- 154
+	if Content:exist(tempZip) then -- 155
+		Content:remove(tempZip) -- 155
+	end -- 155
+	if not success then -- 156
+		error(result, 0) -- 156
+	end -- 156
+	return result -- 157
+end -- 110
+_module_0["exportWindows"] = exportWindows -- 110
+local exportAndroid -- 159
+exportAndroid = function(root, fileName, title) -- 159
+	local dispatch = require("dora.android_game_export") -- 160
+	local stage = Path(Content.appPath, ".native-export", "android-" .. tostring(os.time()) .. "-" .. tostring(App.rand)) -- 161
+	local success, result = pcall(function() -- 162
+		if not Content:mkdir(stage) then -- 163
+			fail("无法创建导出目录", "Could not create the export directory") -- 164
+		end -- 163
+		local useGodot = prepareGame(root, fileName, Path(stage, "assets")) -- 165
+		local hasTemplate = require("dora.android_has_export_template") -- 166
+		if not hasTemplate(useGodot) then -- 167
+			local version = App.version:match("^(%d+%.%d+%.%d+)%.%d+$") -- 168
+			local template = resolveTemplate("android") -- 169
+			copyFile(Path(template, "dora-ssr-v" .. tostring(version) .. "-android.apk"), Path(stage, "template.apk")) -- 170
+		end -- 167
+		if not dispatch(stage, projectId(root), title, useGodot) then -- 171
+			return fail("无法打开 APK 导出", "Could not open APK export") -- 172
+		end -- 171
+	end) -- 162
+	if not success then -- 173
+		if Content:exist(stage) then -- 174
+			Content:remove(stage) -- 174
+		end -- 174
+		return error(result, 0) -- 175
+	end -- 173
+end -- 159
+_module_0["exportAndroid"] = exportAndroid -- 159
 return _module_0 -- 1

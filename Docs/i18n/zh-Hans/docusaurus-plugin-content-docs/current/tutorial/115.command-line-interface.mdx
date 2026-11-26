@@ -70,6 +70,7 @@ Commands:
   build [-p project] [-f file] [--lang all|ts|yue|tl|xml|wa|yarn]
   run [-p project] [--entry init.lua]
   buildrun [-p project] [-f file] [--lang ...] [--entry init.lua]
+  export <windows|android|html|http> [-p project] [-o output]
   stop
   status [-p project]
   doctor [-p project] [--fix]
@@ -93,6 +94,28 @@ Dora cli rust run --help
 ```
 
 `agent` 命令用于隔离的 Agent 引擎：`status` 查看状态，`reload` 重载，`preview` 运行项目并按指定时间截图，`command` 从 JSON 文件读取 Lua 或 Git 请求，`log` 查看服务日志。这组命令在标准输出返回 JSON；其中 Agent 运行时操作与普通 `run`、`stop` 控制的交互引擎相互独立。
+
+## 导出游戏
+
+先启动本机 Dora 服务并构建项目。项目须位于 Dora 工作区内。Android 和 Web 包由 Dora 引擎打包，APK 也由引擎签名。
+
+```sh
+Dora cli export --help
+Dora cli export windows -p ./MyGame -o ../MyGame-Windows.zip
+Dora cli export html -p ./MyGame -o ../MyGame-HTML.zip
+Dora cli export http -p ./MyGame -o ../MyGame-HTTP.zip
+```
+
+省略 `-o` 时，产物保存在项目的 `.dora/export` 目录中。`html` 包解压后可在本地打开，`http` 包需要通过 HTTP 服务运行。使用 Godot 的 Web 项目需要选择 `http` 并按包内 README 设置 COOP/COEP 响应头。
+
+导出 APK 前，在环境变量 `DORA_ANDROID_KEY_PASSWORD` 中设置签名密码。`--title` 用于设置 Android 启动器显示的游戏名称，默认使用项目文件夹名。
+
+```sh
+Dora cli export android -p ./MyGame -o ../MyGame.apk --package-name org.example.mygame --title "我的游戏" --new-key ../MyGame.p12
+Dora cli export android -p ./MyGame -o ../MyGame-v2.apk --package-name org.example.mygame --title "我的游戏" --key ../MyGame.p12 --version-name 1.0.1 --version-code 2
+```
+
+请保管生成的签名密钥和密码。发布更新时，使用原签名密钥、原包名和更高的版本号。
 
 ## 3. 文档搜索
 

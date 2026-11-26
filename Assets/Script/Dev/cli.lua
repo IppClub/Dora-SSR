@@ -60,6 +60,7 @@ Commands:
 	build [-p project] [-f file] [--lang all|ts|yue|tl|xml|wa|yarn]
 	run [-p project] [--entry init.lua]
 	buildrun [-p project] [-f file] [--lang ...] [--entry init.lua]
+	export <windows|android|html|http> [-p project] [-o output]
 	stop
 	status [-p project]
 	doctor [-p project] [--fix]
@@ -107,6 +108,27 @@ end
 
 local function isHelpArg(arg)
 	return arg == "-h" or arg == "--help"
+end
+
+local function exportHelp()
+	print([[
+Usage: dora cli export <windows|android|html|http> [-p project] [-o output]
+
+Export a built project in the running local Dora workspace.
+Without -o or --output, write to the project's .dora/export directory.
+Android and Web packages are built by the local Dora engine.
+
+Android options:
+  --package-name <id>       Required Android package name
+  --title <name>            Game title (defaults to the project folder name)
+  --version-name <version>  Display version (default: 1.0.0)
+  --version-code <integer>  Android version code (default: 1)
+  --key <file.p12>          Sign with an existing PKCS#12 key
+  --new-key <file.p12>      Generate and save a PKCS#12 signing key
+
+Set DORA_ANDROID_KEY_PASSWORD and choose exactly one signing key option.
+Connection options: --host (loopback only), --port, --timeout (default: 600)
+]])
 end
 
 local function toolchainHelp(kind, action)
@@ -304,7 +326,7 @@ local function parseNumberList(value, option)
 	return result
 end
 
-local function parseOptions(args, index)
+local function parseOptions(args, index, extra)
 	local configuredTimeout = tonumber(CLI.env("DORA_TIMEOUT", ""))
 	local options = {
 		host = CLI.env("DORA_HOST", defaultHost),
@@ -423,6 +445,10 @@ local function parseOptions(args, index)
 		elseif arg == "--fix" then
 			options.fix = true
 			index = index + 1
+		elseif extra and extra[arg] then
+			if index == #args then fail(arg .. " expects a value") end
+			options[extra[arg]] = args[index + 1]
+			index = index + 2
 		else
 			break
 		end
@@ -430,8 +456,8 @@ local function parseOptions(args, index)
 	return options, index
 end
 
-local function parseOptionsExact(args, index)
-	local options, nextIndex = parseOptions(args, index)
+local function parseOptionsExact(args, index, extra)
+	local options, nextIndex = parseOptions(args, index, extra)
 	if nextIndex <= #args then
 		fail("Unexpected argument: " .. tostring(args[nextIndex]))
 	end
@@ -792,6 +818,129 @@ end
 
 local function isLocalHost(host)
 	return host == "127.0.0.1" or host == "localhost" or host == "::1"
+end
+
+local exportOptions = {
+	["-o"] = "output",
+	["--output"] = "output",
+	["--package-name"] = "packageName",
+	["--title"] = "title",
+	["--version-name"] = "versionName",
+	["--version-code"] = "versionCode",
+	["--key"] = "key",
+	["--new-key"] = "newKey",
+}
+
+local function androidExportJob(options, project)
+	local id = options.packageName or ""
+	if #id > 200 or not id:find(".", 1, true) or id:find("..", 1, true) or id:sub(-1) == "." then
+		fail("--package-name expects an Android package name such as org.example.game")
+	end
+	for part in (id .. "."):gmatch("(.-)%.") do
+		if not part:match("^[A-Za-z][A-Za-z0-9_]*$") then fail("Invalid Android package name: " .. id) end
+	end
+	local title = (options.title or filename(project)):match("^%s*(.-)%s*$")
+	local versionName = (options.versionName or "1.0.0"):match("^%s*(.-)%s*$")
+	if title == "" or versionName == "" then fail("Android title and display version cannot be empty") end
+	local code = options.versionCode or "1"
+	if not code:match("^[1-9][0-9]*$") or tonumber(code) > 2147483647 then
+		fail("--version-code expects an integer from 1 to 2147483647")
+	end
+	if (options.key == nil) == (options.newKey == nil) then fail("Specify exactly one of --key and --new-key") end
+	local password = CLI.env("DORA_ANDROID_KEY_PASSWORD", "")
+	if password == "" then fail("Set DORA_ANDROID_KEY_PASSWORD to the PKCS#12 signing password") end
+	local key = options.key and CLI.absolute(options.key)
+	local newKey = options.newKey and CLI.absolute(options.newKey)
+	if key and not CLI.isFile(key) then fail("Signing key does not exist: " .. key) end
+	if newKey and CLI.exists(newKey) then fail("Signing key already exists: " .. newKey) end
+	local encoded
+	if key then
+		local file <close> = assert(io.open(key, "rb"))
+		local bytes = file:read(1024 * 1024 + 1)
+		if not bytes or #bytes > 1024 * 1024 then fail("Invalid or oversized PKCS#12 signing key") end
+		encoded = require("mime").b64(bytes)
+	end
+	local signing = {game = {packageName = id, title = title, versionName = versionName, versionCode = tonumber(code)}, password = password, key = encoded}
+	return signing, newKey, key
+end
+
+local function copyExportArchive(archive, output, stage)
+	local created, mkdirError = CLI.mkdirs(dirname(output))
+	if not created then fail(mkdirError) end
+	local temporary = pathJoin(dirname(output), ".dora-export-" .. filename(stage) .. ".tmp")
+	local ok, err = pcall(function()
+		local source <close> = assert(io.open(archive, "rb"))
+		local target <close> = assert(io.open(temporary, "wb"))
+		while true do
+			local bytes, readError = source:read(1024 * 1024)
+			if not bytes then
+				if readError then fail(readError) end
+				break
+			end
+			assert(target:write(bytes))
+		end
+		assert(target:flush())
+	end)
+	if ok and CLI.exists(output) then ok, err = false, "Output already exists: " .. output end
+	if ok then ok, err = os.rename(temporary, output) end
+	if not ok then
+		os.remove(temporary)
+		fail(err)
+	end
+end
+
+local function runExport(args)
+	local format = args[2]
+	if not format or isHelpArg(format) or isHelpArg(args[3]) then
+		exportHelp()
+		return format and 0 or 1
+	end
+	local web = format == "html" or format == "http"
+	if not web and format ~= "windows" and format ~= "android" then fail("Unsupported export format: " .. format) end
+	local options = parseOptionsExact(args, 3, exportOptions)
+	if not isLocalHost(options.host) then fail("Export requires a local Dora service") end
+	local project = ensureProject(options)
+	local signing, newKey, key
+	if format == "android" then
+		signing, newKey, key = androidExportJob(options, project)
+	elseif options.packageName or options.title or options.versionName or options.versionCode or options.key or options.newKey then
+		fail("Package name, title, version and signing options apply to Android exports")
+	end
+	if options.output and options.output == "" then fail("--output expects a file path") end
+	local output = options.output and CLI.absolute(options.output)
+	if output and CLI.exists(output) then fail("Output already exists: " .. output) end
+	if output and (output == key or output == newKey) then fail("The APK and signing key must use different paths") end
+	local status = postJson(options, "/status", {})
+	local relative = relativeToRoot(project, status.writablePath)
+	if not relative or relative == "" or ("/" .. relative):find("/.", 1, true) then
+		fail("Choose a project inside the Dora workspace: " .. tostring(status.writablePath))
+	end
+	if not output and format ~= "windows" then
+		local name = signing and (signing.game.packageName .. "-" .. signing.game.versionCode .. ".apk")
+			or (filename(project) .. "-web-" .. format .. ".zip")
+		output = pathJoin(project, ".dora", "export", name)
+	end
+	if output and output == newKey then fail("The APK and signing key must use different paths") end
+	if output and CLI.exists(output) then fail("Output already exists: " .. output) end
+	local result = postJson(options, signing and "/native-game/sign" or "/native-game/export",
+		{path = project, format = format, android = signing}, options.timeoutProvided and options.timeout or 600)
+	expectSuccess(result, "Export failed.")
+	local stage = result.archive and dirname(result.archive)
+	local stagePath = stage and relativeToRoot(stage, status.writablePath)
+	if not stagePath or not stagePath:match("^%.download/native%-%x+$") then fail("The local Dora service did not return an export archive") end
+	local ok, err = pcall(function()
+		output = output or pathJoin(project, ".dora", "export", filename(result.archive))
+		if CLI.exists(output) then fail("Output already exists: " .. output) end
+		if newKey then
+			if not result.signingKey then fail("Dora did not generate the APK signing key") end
+			assert(require("dora.game_package").writeKey(newKey, result.signingKey))
+			print("Signing key saved to " .. newKey)
+		end
+		copyExportArchive(result.archive, output, stage)
+	end)
+	pcall(tryPostJson, options, "/delete", {path = stage})
+	if not ok then fail(err) end
+	print("Exported " .. output)
 end
 
 local function shellQuote(value)
@@ -1394,6 +1543,8 @@ local function main()
 	elseif command == "buildrun" then
 		local options = parseOptionsExact(args, 2)
 		runBuildRun(options)
+	elseif command == "export" then
+		return runExport(args)
 	elseif command == "stop" then
 		local options = parseOptionsExact(args, 2)
 		stopProject(options)

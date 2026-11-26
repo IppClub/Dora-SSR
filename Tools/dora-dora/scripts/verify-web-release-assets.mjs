@@ -12,7 +12,7 @@ const digest = bytes => createHash('sha256').update(bytes).digest('hex');
 const loadBytes = file => readAsset(webRoot, path.relative(webRoot, file).split(path.sep).join('/'));
 const loadJson = async file => JSON.parse((await loadBytes(file)).toString('utf8'));
 
-for (const name of ['index.html', 'heavy-assets.json']) {
+for (const name of ['index.html', 'heavy-assets.json', 'export-player/index.html', 'export-player/html-loader.js']) {
 	const bytes = await loadBytes(path.join(webRoot, name));
 	if (bytes.length === 0) throw new Error(`Missing Web IDE asset: ${name}`);
 }

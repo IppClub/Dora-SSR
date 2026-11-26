@@ -1,6 +1,4 @@
-// Runs in the exported page before the unmodified engine boot sequence.
-// Classic scripts work on file:// without weakening browser security settings.
-export const htmlPlayer = String.raw`async function(config) {
+(async function(config) {
   'use strict';
   const root = new URL('.', document.baseURI);
   const blobs = [];
@@ -132,4 +130,4 @@ export const htmlPlayer = String.raw`async function(config) {
     script.onerror = () => fail(new Error('Unable to load the engine. Extract the entire ZIP before opening index.html.'));
     document.body.appendChild(script);
   } catch (error) { fail(error); }
-}`;
+})(DORA_EXPORT_CONFIG);

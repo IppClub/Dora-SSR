@@ -1231,6 +1231,10 @@ bool HttpServer::start(int port) {
 		}
 		auto request = make_request(nativeRequest);
 		auto path = request.path.toString();
+		if (path == "/native-game/sign" && access != HttpPolicy::Access::Local) {
+			set_response(nativeResponse, 403, R"({"success":false,"message":"APK signing requires a loopback connection to Dora"})"s, "application/json"s);
+			return true;
+		}
 		// Echo only the validated concrete Origin. Preflights contain no session;
 		// the actual request must still authenticate before reaching a handler.
 		auto origin = find_header(request, "Origin"_slice);
@@ -1251,7 +1255,7 @@ bool HttpServer::start(int port) {
 		const bool authenticationRequired = HttpPolicy::needsAuthentication(access, publicRead,
 			origin.has_value() && !sameOriginBootstrap, fetchSite ? fetchSite->toString() : ""s, documentNavigation);
 		DoraXrtHttpServerResponseSetHeader(nativeResponse, "Vary", "Origin, Sec-Fetch-Site, Sec-Fetch-Mode, Sec-Fetch-Dest");
-		if (authenticationRequired) DoraXrtHttpServerResponseSetHeader(nativeResponse, "Cache-Control", "no-store");
+		if (authenticationRequired || path == "/native-game/sign") DoraXrtHttpServerResponseSetHeader(nativeResponse, "Cache-Control", "no-store");
 		if (origin) {
 			auto value = origin->toString();
 			DoraXrtHttpServerResponseSetHeader(nativeResponse, "Access-Control-Allow-Origin", value.c_str());

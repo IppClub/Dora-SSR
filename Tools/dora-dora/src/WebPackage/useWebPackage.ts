@@ -5,9 +5,8 @@ import Info from '../Info';
 import type {TreeDataType} from '../FileTree';
 import type {AndroidDownloads} from './Service';
 import type {AndroidExportOptions} from './AndroidExportOptions';
-import type {WebPackageFormat} from './Archive';
 
-export type ExportFormat = 'zip' | 'obfuscated' | WebPackageFormat | Service.NativeGameFormat;
+export type ExportFormat = 'zip' | 'obfuscated' | Service.GamePackageFormat;
 
 const exportFormatLabels = {
   zip: 'export.format.zip',
@@ -107,7 +106,7 @@ export function useWebPackage(options: Options): ProjectExportAction {
     options.setBuilding(true);
     const formatLabel = t(exportFormatLabels[format]);
     try {
-      const {downloadWebArchive, packageDirectory, packageNativeProject, packageWebProject} = await import('./Service');
+      const {packageDirectory, packageGame} = await import('./Service');
       if (format === 'zip' || format === 'obfuscated') {
         options.notify(t('export.formatBusy', {format: formatLabel}), 'info');
         await packageDirectory(target.key, options.writablePath, target.title, format === 'obfuscated');
@@ -118,16 +117,12 @@ export function useWebPackage(options: Options): ProjectExportAction {
         options.notify(t('export.formatBusy', {format: formatLabel}), 'info');
         if (!await options.save()) throw new Error('webPackage.saveFailed');
         if (!await options.build({key: target.key, title: target.title, dir: true})) throw new Error('webPackage.buildFailed');
-        if (format === 'windows' || format === 'android') {
-          const result = await packageNativeProject(target.key, options.writablePath, format, android);
-          if (result === true) {
-            options.notify(t('export.androidContinue'), 'info');
-            return;
-          }
-          if (result) setAndroidDownloads(result);
-        } else {
-          downloadWebArchive(await packageWebProject(target.key, options.writablePath, format), target.title, format);
+        const result = await packageGame(target.key, options.writablePath, target.title, format, android);
+        if (result === true) {
+          options.notify(t('export.androidContinue'), 'info');
+          return;
         }
+        if (result) setAndroidDownloads(result);
       }
       options.notify(t('export.formatDone', {format: formatLabel}), 'success');
     } catch (error) {

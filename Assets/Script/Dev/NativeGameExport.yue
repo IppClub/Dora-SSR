@@ -1,4 +1,4 @@
-import "Dora" as :App, :Content, :Path, :wait
+import "Dora" as :App, :Content, :HttpServer, :Path, :json, :wait
 import "Script.Dev.ExportPolicy" as :projectFileAllowed
 import "Script.Dev.GodotDependency" as :needsGodot
 
@@ -59,19 +59,6 @@ export prepareGame = (root, fileName, assets) ->
 
 	useGodot
 
-export snapshotWeb = (root, archive) ->
-	ok, result = pcall ->
-		stage = Path Content.appPath, ".native-export", "web-#{os.time!}-#{App.rand}"
-		unless Content\mkdir stage
-			fail "无法创建导出目录", "Could not create the export directory"
-		close _ = <close>: -> Content\remove stage
-		useGodot = copyProject root, stage
-		unless Content\zipAsync stage, archive
-			fail "无法打包游戏资源", "Could not package game assets"
-		useGodot
-	return success: true, needsGodot: result if ok
-	success: false, message: tostring result
-
 export resolveTemplate = (target) ->
 	:resolveExportTemplate = require "Script.Dev.ExportTemplate"
 	local result
@@ -79,6 +66,35 @@ export resolveTemplate = (target) ->
 	wait -> result ~= nil
 	error result.message, 0 unless result.folder
 	result.folder
+
+export exportPackage = (format, root, entry, stage, signing) ->
+	import "dora.game_package" as packageBuilder
+	assets = Path stage, "assets"
+	unless Content\mkdir assets
+		fail "无法准备游戏资源", "Could not prepare game assets"
+	options = { :format, :assets }
+	if format == "android"
+		options.needsGodot = prepareGame root, entry, assets
+		version = App.version\match "^(%d+%.%d+%.%d+)%.%d+$"
+		options.template = Path resolveTemplate("android"), "dora-ssr-v#{version}-android.apk"
+		options.policy = Content\load Path Content.assetPath, "Script", "Dev", "ExportPolicy.json"
+		options.game = signing.game
+		options.password = signing.password
+		options.key = signing.key
+		options.output = Path stage, "game.apk"
+	else
+		options.needsGodot = copyProject root, assets
+		options.www = HttpServer.wwwPath
+		options.output = Path stage, "game.zip"
+	local success, result
+	done = false
+	packageBuilder.run json.encode(options), (ok, value) ->
+		success, result = ok, value
+		done = true
+	wait -> done
+	error result, 0 unless success
+	Content\remove assets
+	options.output, if result ~= "" then result
 
 windowsGodotLibrary = "dora_godot.dll"
 

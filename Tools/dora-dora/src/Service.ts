@@ -1054,11 +1054,9 @@ export interface ZipRequest {
 	path: string;
 	zipFile: string;
 	obfuscated: boolean;
-	publishWeb?: boolean;
 };
 export interface ZipResponse {
 	success: boolean;
-	needsGodot?: boolean;
 	message?: string;
 };
 export const zip = (req: ZipRequest) => {
@@ -1515,8 +1513,19 @@ export interface AgentProjectRootResponse {
 };
 
 export type NativeGameFormat = 'windows' | 'android';
-export const exportNativeGame = (path: string, format: NativeGameFormat) =>
-	post<{success: boolean; archive?: string; apk?: string; needsGodot?: boolean; message?: string}>('/native-game/export', {path, format});
+export type GamePackageFormat = NativeGameFormat | 'html' | 'http';
+export interface AndroidGameInfo {
+	packageName: string;
+	title: string;
+	versionName: string;
+	versionCode: number;
+}
+export const exportGame = (path: string, format: GamePackageFormat, android?: {
+	game: AndroidGameInfo;
+	password: string;
+	key?: string;
+}) => post<{success: boolean; archive?: string; signingKey?: string; message?: string}>(
+	android ? '/native-game/sign' : '/native-game/export', {path, format, android});
 
 export interface AgentPendingInput {id:number;content:string;delivery:"queue"|"steer";held:boolean;status:string}
 export interface AgentInputSubmission {delivery?:"queue"|"steer";requestId?:string;action?:"cancel"|"edit"|"steer"|"resume"|"hold"|"release";inputId?:number}
