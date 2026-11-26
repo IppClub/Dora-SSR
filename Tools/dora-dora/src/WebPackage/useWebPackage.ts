@@ -3,6 +3,8 @@ import {useTranslation} from 'react-i18next';
 import * as Service from '../Service';
 import Info from '../Info';
 import type {TreeDataType} from '../FileTree';
+import type {AndroidDownloads} from './Service';
+import type {AndroidExportOptions} from './AndroidExportOptions';
 import type {WebPackageFormat} from './Archive';
 
 export type ExportFormat = 'zip' | 'obfuscated' | WebPackageFormat | Service.NativeGameFormat;
@@ -25,7 +27,8 @@ export interface ExportTarget {
 export interface ExportDialogState {
   target: ExportTarget;
   web: boolean;
-  native?: Service.NativeGameFormat;
+  native?: Service.NativeGameFormat[];
+  androidOnDevice?: boolean;
 }
 
 export interface ProjectExportAction {
@@ -33,7 +36,9 @@ export interface ProjectExportAction {
   dialog: ExportDialogState | null;
   open: (target?: ExportTarget) => void;
   close: () => void;
-  export: (format: ExportFormat) => void;
+  androidDownloads: AndroidDownloads | null;
+  closeAndroidDownloads: () => void;
+  export: (format: ExportFormat, android?: AndroidExportOptions) => void;
   downloadFile: (target: ExportTarget) => void;
 }
 
@@ -48,11 +53,17 @@ interface Options {
   notify: (message: string, severity: 'info' | 'success' | 'error') => void;
 }
 
+const nativeFormats = (root: {nativeExports?: Service.NativeGameFormat[]; nativeExport?: Service.NativeGameFormat}) =>
+  root.nativeExports ?? (root.nativeExport ? [root.nativeExport] : []);
+const androidOnDevice = (root: {androidExportOnDevice?: boolean; nativeExport?: Service.NativeGameFormat}) =>
+  root.androidExportOnDevice ?? root.nativeExport === 'android';
+
 export function useWebPackage(options: Options): ProjectExportAction {
   const {t} = useTranslation();
   const locked = useRef(false);
   const [busy, setBusy] = useState(false);
   const [dialog, setDialog] = useState<ExportDialogState | null>(null);
+  const [androidDownloads, setAndroidDownloads] = useState<AndroidDownloads | null>(null);
 
   const canStart = useCallback(() => {
     if (!locked.current && !options.isBusy()) return true;
@@ -66,7 +77,7 @@ export function useWebPackage(options: Options): ProjectExportAction {
       const root = await Service.projectRoot({path: target.key, isDir: true});
       const web = root.success === true && root.found === true
         && root.projectRoot === target.key && root.projectRoot !== options.writablePath;
-      setDialog({target, web, native: web ? root.nativeExport : undefined});
+      setDialog({target, web, native: web ? nativeFormats(root) : undefined, androidOnDevice: androidOnDevice(root)});
       return;
     }
     if (!options.currentFile) {
@@ -84,11 +95,12 @@ export function useWebPackage(options: Options): ProjectExportAction {
     setDialog({
       target: {key: root.projectRoot, title: Info.path.basename(root.projectRoot), dir: true},
       web: true,
-      native: root.nativeExport,
+      native: nativeFormats(root),
+      androidOnDevice: androidOnDevice(root),
     });
   }, [canStart, options, t]);
 
-  const run = useCallback(async (target: ExportTarget, format: ExportFormat) => {
+  const run = useCallback(async (target: ExportTarget, format: ExportFormat, android?: AndroidExportOptions) => {
     if (!canStart()) return;
     locked.current = true;
     setBusy(true);
@@ -107,11 +119,12 @@ export function useWebPackage(options: Options): ProjectExportAction {
         if (!await options.save()) throw new Error('webPackage.saveFailed');
         if (!await options.build({key: target.key, title: target.title, dir: true})) throw new Error('webPackage.buildFailed');
         if (format === 'windows' || format === 'android') {
-          await packageNativeProject(target.key, options.writablePath, format);
-          if (format === 'android') {
+          const result = await packageNativeProject(target.key, options.writablePath, format, android);
+          if (result === true) {
             options.notify(t('export.androidContinue'), 'info');
             return;
           }
+          if (result) setAndroidDownloads(result);
         } else {
           downloadWebArchive(await packageWebProject(target.key, options.writablePath, format), target.title, format);
         }
@@ -130,11 +143,11 @@ export function useWebPackage(options: Options): ProjectExportAction {
     }
   }, [canStart, options, t]);
 
-  const exportTarget = useCallback((format: ExportFormat) => {
+  const exportTarget = useCallback((format: ExportFormat, android?: AndroidExportOptions) => {
     if (dialog === null) return;
     const target = dialog.target;
     setDialog(null);
-    void run(target, format);
+    void run(target, format, android);
   }, [dialog, run]);
 
   const downloadFile = useCallback((target: ExportTarget) => {
@@ -161,6 +174,8 @@ export function useWebPackage(options: Options): ProjectExportAction {
     dialog,
     open: target => void open(target),
     close: () => setDialog(null),
+    androidDownloads,
+    closeAndroidDownloads: () => setAndroidDownloads(null),
     export: exportTarget,
     downloadFile,
   };

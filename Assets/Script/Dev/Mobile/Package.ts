@@ -1,4 +1,5 @@
 import { App, Content, Path, json } from "Dora";
+import { projectFileAllowed } from "Script/Dev/ExportPolicy";
 import type { FeedEntry } from "Dev/Mobile/FeedModel";
 
 const manifestName = "dora-package.json";
@@ -16,14 +17,7 @@ export interface PackagePreview {
 }
 
 export function packageFileAllowed(file: string): boolean {
-	const name = string.gsub(file, "\\", "/")[0];
-	if (name.startsWith("/") || name.indexOf(":") >= 0) return false;
-	const parts = name.split("/");
-	if (parts.some(part => part === ".." || part === "." || part === "")) return false;
-	if (name === ".dora/repo.json" || name === ".dora/banner.jpg" || name === ".dora/banner.png") return true;
-	return !parts.some(part => part.startsWith(".") || part === "node_modules" || part === "__MACOSX"
-		|| part.toLowerCase() === "credentials.json" || part.toLowerCase() === "config.db")
-		&& !name.toLowerCase().endsWith(".log");
+	return projectFileAllowed(file, true);
 }
 
 function fail(zh: string, en: string): never {

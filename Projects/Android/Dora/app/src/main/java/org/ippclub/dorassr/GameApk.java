@@ -23,6 +23,9 @@ import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -30,6 +33,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.security.KeyPairGenerator;
 import java.security.MessageDigest;
@@ -54,7 +58,6 @@ import java.util.zip.ZipOutputStream;
 final class GameApk {
 	private static final String KEY_ALIAS = "game";
 	private static final String MANIFEST = "AndroidManifest.xml";
-	private static final String STARTUP = "assets/Script/init.lua";
 	private static final int ICON_SIZE = 512;
 	private static final long DAY = 24L * 60 * 60 * 1000;
 
@@ -123,6 +126,14 @@ final class GameApk {
 		}
 	}
 
+	static boolean isTemplateAvailable(File source, boolean needsGodot) throws IOException {
+		try (ZipFile template = new ZipFile(source)) {
+			Set<String> abis = availableAbis(template);
+			return !abis.isEmpty() && template.getEntry(MANIFEST) != null && template.getEntry("classes.dex") != null
+					&& (!needsGodot || abis.stream().allMatch(abi -> template.getEntry("lib/" + abi + "/libgodot_android.so") != null));
+		}
+	}
+
 	private static Set<String> availableAbis(ZipFile template) {
 		Set<String> abis = new TreeSet<>();
 		for (Enumeration<? extends ZipEntry> entries = template.entries(); entries.hasMoreElements();) {
@@ -136,7 +147,8 @@ final class GameApk {
 	}
 
 	static void export(File source, Resources resources, File assets, File unsigned, File output, String originalId, String gameId,
-			String title, int versionCode, String versionName, Set<String> abis, KeyStore store, char[] password) throws Exception {
+			String title, int versionCode, String versionName, Set<String> abis, KeyStore store, char[] password,
+			boolean keepGodot, InputStream exportPolicy) throws Exception {
 		if (!validPackageName(gameId, originalId) || versionCode < 1
 				|| title.trim().isEmpty() || versionName.trim().isEmpty()) {
 			throw new IOException("Invalid Android package name, title, or version");
@@ -146,9 +158,10 @@ final class GameApk {
 			throw new IOException("The game snapshot has no startup script or project files");
 		}
 		ApkSigner.SignerConfig signer = getSigner(store, password);
-		boolean keepGodot = GameGodotDependency.isNeeded(project);
+		TemplatePolicy policy = new TemplatePolicy(exportPolicy);
 		byte[] icon = readGameIcon(new File(project, "icon.png"));
-		int iconId = icon == null ? android.R.mipmap.sym_def_app_icon : R.drawable.game_export_icon;
+		int iconId = icon == null ? android.R.mipmap.sym_def_app_icon
+				: resources.getIdentifier("game_export_icon", "drawable", originalId);
 		String iconEntry = null;
 		if (icon != null) {
 			// Resolve the compiled path so it matches the installed APK's resource table.
@@ -178,11 +191,10 @@ final class GameApk {
 			for (Enumeration<? extends ZipEntry> entries = template.entries(); entries.hasMoreElements();) {
 				ZipEntry item = entries.nextElement();
 				String name = item.getName();
-				if (item.isDirectory() || skip(name)) continue;
+				if (item.isDirectory() || policy.excludes(name)) continue;
 				if (name.startsWith("lib/")) {
 					int end = name.indexOf('/', 4);
 					if (end <= 4 || !abis.contains(name.substring(4, end))) continue;
-					if (name.endsWith("/libgojni.so")) continue;
 					// Android resolves this optional runtime on demand via dlopen.
 					if (!keepGodot && name.endsWith("/libgodot_android.so")) continue;
 				}
@@ -265,19 +277,36 @@ final class GameApk {
 		}
 	}
 
-	private static boolean skip(String name) {
-		if (STARTUP.equals(name) || name.equals("assets/Script/init.yue") || name.startsWith("assets/Game/")
-				|| name.startsWith("assets/Script/Dev/") || name.startsWith("assets/Script/Test/")
-				|| name.startsWith("assets/Script/Tools/") || name.equals("assets/Image/Mobile/dora-remix-states.png")
-				|| name.equals("assets/Audio/GeneralUserGS.sf3")
-				|| name.startsWith("assets/dora-wa/")
-				|| name.startsWith("assets/Doc/") || name.startsWith("assets/www/") || name.equals("stamp-cert-sha256")) {
-			return true;
+	private static final class TemplatePolicy {
+		private final List<String> paths, directories, libraries, names, prefixes, suffixes;
+
+		TemplatePolicy(InputStream source) throws IOException, JSONException {
+			ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+			transfer(source, bytes);
+			JSONObject rules = new JSONObject(new String(bytes.toByteArray(), StandardCharsets.UTF_8)).getJSONObject("androidTemplate");
+			paths = strings(rules, "excludedPaths");
+			directories = strings(rules, "excludedDirectories");
+			libraries = strings(rules, "excludedLibraries");
+			names = strings(rules, "signatureNames");
+			prefixes = strings(rules, "signaturePrefixes");
+			suffixes = strings(rules, "signatureSuffixes");
 		}
-		if (!name.startsWith("META-INF/")) return false;
-		String file = name.substring("META-INF/".length()).toUpperCase(Locale.ROOT);
-		return !file.contains("/") && (file.equals("MANIFEST.MF") || file.startsWith("SIG-")
-				|| file.endsWith(".SF") || file.endsWith(".RSA") || file.endsWith(".DSA") || file.endsWith(".EC"));
+
+		private static List<String> strings(JSONObject rules, String key) throws JSONException {
+			JSONArray values = rules.getJSONArray(key);
+			List<String> result = new ArrayList<>(values.length());
+			for (int i = 0; i < values.length(); ++i) result.add(values.getString(i));
+			return result;
+		}
+
+		boolean excludes(String path) {
+			if (paths.contains(path) || directories.stream().anyMatch(path::startsWith)) return true;
+			if (path.startsWith("lib/") && libraries.stream().anyMatch(name -> path.endsWith("/" + name))) return true;
+			if (!path.startsWith("META-INF/")) return false;
+			String name = path.substring("META-INF/".length()).toLowerCase(Locale.ROOT);
+			return !name.contains("/") && (names.contains(name)
+					|| prefixes.stream().anyMatch(name::startsWith) || suffixes.stream().anyMatch(name::endsWith));
+		}
 	}
 
 	private static byte[] readManifest(InputStream input, long size) throws IOException {

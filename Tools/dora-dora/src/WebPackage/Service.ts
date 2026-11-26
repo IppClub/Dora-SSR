@@ -1,6 +1,9 @@
 import * as Service from '../Service';
+import type {AndroidArchiveRequest, AndroidArchiveResponse} from './AndroidArchiveWorker';
+import type {AndroidExportOptions} from './AndroidExportOptions';
 import Info from '../Info';
 import {projectNeedsGodot} from './GodotDependency';
+import {downloadBlob} from './Download';
 import {toUrlPath} from '../PathUtils';
 import {strToU8} from 'fflate';
 import {createWebArchive, digest, readProjectZip, runtimeFiles, godotRuntimeFiles, type PackageFiles, type WebPackageFormat} from './Archive';
@@ -29,29 +32,17 @@ async function fetchBytes(url: string, limit: number): Promise<Uint8Array> {
   return result;
 }
 
-function downloadBlob(blob: Blob, filename: string) {
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement('a');
-  anchor.href = url;
-  anchor.download = Array.from(filename, character => (
-    character.charCodeAt(0) < 32 || '<>:"/\\|?*'.includes(character) ? '_' : character
-  )).join('');
-  document.body.appendChild(anchor);
-  anchor.click();
-  anchor.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 60000);
-}
 
-async function readWorkspaceFile(filename: string, writablePath: string): Promise<Blob> {
+async function requestWorkspaceFile(filename: string, writablePath: string, timeout = 120000): Promise<Response> {
   const relative = toUrlPath(Info.path.relative(writablePath, filename), Info.path);
   const url = Service.addr('/' + relative.split('/').map(encodeURIComponent).join('/'));
-  const response = await fetch(url, {signal: AbortSignal.timeout(120000)});
+  const response = await fetch(url, {signal: AbortSignal.timeout(timeout)});
   if (!response.ok) throw new Error(`Download failed: ${response.status}`);
-  return await response.blob();
+  return response;
 }
 
 export async function downloadWorkspaceFile(filename: string, writablePath: string, title: string) {
-  downloadBlob(await readWorkspaceFile(filename, writablePath), title);
+  downloadBlob(await (await requestWorkspaceFile(filename, writablePath)).blob(), title);
 }
 
 export async function packageDirectory(directory: string, writablePath: string, title: string, obfuscated: boolean) {
@@ -61,19 +52,61 @@ export async function packageDirectory(directory: string, writablePath: string, 
     const result = await Service.zip({path: directory, zipFile, obfuscated});
     if (!result.success) throw new Error('export.failed');
     const suffix = obfuscated ? '-obfuscated.zip' : '.zip';
-    downloadBlob(await readWorkspaceFile(zipFile, writablePath), `${title}${suffix}`);
+    downloadBlob(await (await requestWorkspaceFile(zipFile, writablePath)).blob(), `${title}${suffix}`);
   } finally {
     await Service.deleteFile({path: zipFile}).catch(() => undefined);
   }
 }
 
-export async function packageNativeProject(directory: string, writablePath: string, format: Service.NativeGameFormat) {
+export interface AndroidDownloads {
+  apk: Blob;
+  store?: Blob;
+  packageName: string;
+  versionCode: number;
+}
+
+function buildAndroidArchive(request: AndroidArchiveRequest) {
+  const worker = new Worker(new URL('./AndroidArchiveWorker.ts', import.meta.url), {type: 'module'});
+  return new Promise<AndroidArchiveSuccess>((resolve, reject) => {
+    const fail = (message: string) => {
+      worker.terminate();
+      reject(new Error(message));
+    };
+    worker.onerror = () => fail('Could not run the Android packager');
+    worker.onmessage = ({data}: MessageEvent<AndroidArchiveResponse>) => {
+      if ('error' in data) return fail(data.error);
+      worker.terminate();
+      resolve(data);
+    };
+    try {
+      worker.postMessage(request, request.key ? [request.key] : []);
+    } catch (error) {
+      fail(error instanceof Error ? error.message : String(error));
+    }
+  });
+}
+
+type AndroidArchiveSuccess = Extract<AndroidArchiveResponse, {apk: Blob}>;
+
+export async function packageNativeProject(directory: string, writablePath: string, format: Service.NativeGameFormat, android?: AndroidExportOptions): Promise<AndroidDownloads | true | undefined> {
   const result = await Service.exportNativeGame(directory, format);
   if (!result.success) throw new Error(result.message || 'export.failed');
-  if (format === 'android') return;
+  if (format === 'android' && !result.archive) return true;
   if (!result.archive) throw new Error('export.failed');
   try {
-    await downloadWorkspaceFile(result.archive, writablePath, Info.path.basename(result.archive));
+    if (format === 'android') {
+      if (!result.apk || !android) throw new Error('export.failed');
+      const [template, project, key] = await Promise.all([
+        requestWorkspaceFile(result.apk, writablePath, 600000).then(response => response.blob()),
+        requestWorkspaceFile(result.archive, writablePath).then(response => response.blob()),
+        android.keyFile?.arrayBuffer(),
+      ]);
+      const {packageName, title, versionName, versionCode, password} = android;
+      const {apk, store} = await buildAndroidArchive({template, project, game: {packageName, title, versionName, versionCode}, password, key, needsGodot: result.needsGodot});
+      return {apk, store: store ? new Blob([store], {type: 'application/x-pkcs12'}) : undefined, packageName, versionCode};
+    } else {
+      await downloadWorkspaceFile(result.archive, writablePath, Info.path.basename(result.archive));
+    }
   } finally {
     await Service.deleteFile({path: Info.path.dirname(result.archive)}).catch(() => undefined);
   }
@@ -103,13 +136,14 @@ export async function packageWebProject(projectRoot: string, writablePath: strin
   const id = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
   const zipFile = Info.path.join(writablePath, '.download', `web-package-${id}.zip`);
   try {
-    const result = await Service.zip({path: projectRoot, zipFile, obfuscated: false});
-    if (!result.success) throw new Error('webPackage.snapshotFailed');
+    const result = await Service.zip({path: projectRoot, zipFile, obfuscated: false, publishWeb: true});
+    if (!result.success) throw new Error(result.message || 'webPackage.snapshotFailed');
     const relative = toUrlPath(Info.path.relative(writablePath, zipFile), Info.path);
     const bytes = await fetchBytes(Service.addr('/' + relative.split('/').map(encodeURIComponent).join('/')), 256 * 1024 * 1024);
     const project = readProjectZip(bytes);
-    const runtime = await loadRuntime(projectNeedsGodot(project));
-    return await createWebArchive(project, runtime, format);
+    const includeGodot = result.needsGodot ?? projectNeedsGodot(project);
+    const runtime = await loadRuntime(includeGodot);
+    return await createWebArchive(project, runtime, format, includeGodot);
   } finally {
     await Service.deleteFile({path: zipFile}).catch(() => undefined);
   }

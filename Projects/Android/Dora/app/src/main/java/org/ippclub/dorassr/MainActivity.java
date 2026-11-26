@@ -369,10 +369,20 @@ public class MainActivity extends SDLActivity {
 	}
 
 	@Keep
-	public void exportGameApk(String path, String id, String title) {
+	public boolean hasGameApkTemplate(boolean needsGodot) {
+		String[] splits = getApplicationInfo().splitSourceDirs;
+		if (splits != null && splits.length > 0) return false;
+		try {
+			return GameApk.isTemplateAvailable(new File(getApplicationInfo().sourceDir), needsGodot);
+		} catch (IOException error) {
+			return false;
+		}
+	}
+
+	public void exportGameApk(String path, String id, String title, boolean needsGodot) {
 		runOnUiThread(() -> {
 			if (gameApkExport == null) gameApkExport = new GameExportDialog(this, gameFileWorker);
-			gameApkExport.open(path, id, title);
+			gameApkExport.open(path, id, title, needsGodot);
 		});
 	}
 

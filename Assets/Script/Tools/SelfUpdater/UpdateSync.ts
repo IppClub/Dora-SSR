@@ -1,5 +1,5 @@
 // @preview-file off
-import { Content, HttpClient, json, Path, thread } from "Dora";
+import { App, Content, HttpClient, json, Path, thread } from "Dora";
 import { gitHeadFromStatus, quoteGitArgument, runGit, type GitOperationStatus } from "Script/Tools/ResourceDownloader/Git";
 import {
 	loadUpdateManifest,
@@ -328,7 +328,7 @@ export const checkGitHubRelease = (
 
 const verifyPackage = async (
 	root: string,
-	item: GitHubUpdatePackage,
+	item: Pick<GitHubUpdatePackage, "file" | "size" | "sha256">,
 	options: UpdateOperationOptions,
 ) => runGit(
 	root,
@@ -337,17 +337,18 @@ const verifyPackage = async (
 );
 
 const prepareFromAtomGit = async (
-	item: UpdatePackage,
+	ref: string,
+	resolvePackage: (path: string, commit: string) => Pick<UpdatePackage, "file" | "size" | "sha256"> | undefined,
 	options: UpdateOperationOptions,
 ): Promise<PreparedUpdate | undefined> => {
 	const root = Path(Content.writablePath, ".download");
-	const candidateName = `dora-update-${os.time()}-atomgit`;
+	const candidateName = `dora-update-${os.time()}-${App.rand}-atomgit`;
 	const candidatePath = Path(root, candidateName);
 	if (Content.exist(candidatePath)) Content.remove(candidatePath);
 	emit(options, 0.02, "Connecting to AtomGit LFS", "AtomGit");
 	const clone = await runGit(
 		root,
-		`clone ${quoteGitArgument(ATOMGIT_RELEASES_REMOTE)} ${quoteGitArgument(candidateName)} --branch ${quoteGitArgument(item.ref)} --depth 1`,
+		`clone ${quoteGitArgument(ATOMGIT_RELEASES_REMOTE)} ${quoteGitArgument(candidateName)} --branch ${quoteGitArgument(ref)} --depth 1`,
 		{
 			timeout: 1800,
 			isCanceled: options.isCanceled,
@@ -364,7 +365,7 @@ const prepareFromAtomGit = async (
 		return undefined;
 	}
 	const commit = gitHeadFromStatus(clone.status);
-	if (commit !== item.commit) {
+	if (!commit) {
 		Content.remove(candidatePath);
 		return undefined;
 	}
@@ -373,6 +374,11 @@ const prepareFromAtomGit = async (
 		isCanceled: options.isCanceled,
 	});
 	if (!signature.success) {
+		Content.remove(candidatePath);
+		return undefined;
+	}
+	const item = resolvePackage(candidatePath, commit);
+	if (!item) {
 		Content.remove(candidatePath);
 		return undefined;
 	}
@@ -395,7 +401,7 @@ const downloadFromGitHub = (
 ): Promise<[string, string] | undefined> => new Promise(resolve => {
 	thread(() => {
 		const root = Path(Content.writablePath, ".download");
-		const candidatePath = Path(root, `dora-update-${os.time()}-github`);
+		const candidatePath = Path(root, `dora-update-${os.time()}-${App.rand}-github`);
 		if (Content.exist(candidatePath)) Content.remove(candidatePath);
 		if (!Content.mkdir(candidatePath) && !Content.isdir(candidatePath)) {
 			resolve(undefined);
@@ -452,9 +458,45 @@ export const prepareUpdatePackage = async (
 	if (snapshot.source === "AtomGit") {
 		const item = snapshot.manifest.packages[platform];
 		if (!item) return undefined;
-		return prepareFromAtomGit(item, options);
+		return prepareFromAtomGit(item.ref, (_path, commit) => commit === item.commit ? item : undefined, options);
 	}
 	const item = snapshot.packages[platform];
 	if (!item) return undefined;
 	return prepareFromGitHub(item, options);
+};
+
+/** Resolve an exact build even when the stable channel has already advanced. */
+export const preparePinnedUpdatePackage = async (
+	version: string,
+	revision: number,
+	platform: UpdatePlatform,
+	options: UpdateOperationOptions = {},
+): Promise<PreparedUpdate | undefined> => {
+	Content.mkdir(Path(Content.writablePath, ".download"));
+	const file = updatePackageFilename(version, platform);
+	const cached = loadCachedUpdateManifest().snapshot;
+	const item = cached?.source === "AtomGit" && cached.manifest.version === version && cached.manifest.revision === revision
+		? cached.manifest.packages[platform] : undefined;
+	const preferGitHub = item !== undefined && !localeIsChinese(App.locale);
+	if (item && preferGitHub) {
+		const prepared = await prepareFromGitHub(item, options);
+		if (prepared) return prepared;
+	}
+	const ref = `refs/tags/${version}-${revision}-${platform}`;
+	const prepared = await prepareFromAtomGit(ref, (path, commit) => {
+		if (item && item.commit !== commit) return undefined;
+		const metadata = Path(path, "package.json");
+		const text = Content.exist(metadata) ? Content.read(metadata, 0, 4097) : undefined;
+		if (!text || text.length > 4096) return undefined;
+		const [data, error] = json.decode(text);
+		if (error !== undefined || typeof data !== "object" || data === undefined) return undefined;
+		const pkg = data as Partial<GitHubUpdatePackage> & {schemaVersion?: number; platform?: string; version?: string; revision?: number};
+		if (pkg.schemaVersion !== 1 || pkg.platform !== platform || pkg.version !== version || pkg.revision !== revision
+			|| pkg.file !== file || typeof pkg.size !== "number" || pkg.size < 1 || pkg.size > 2 * 1024 * 1024 * 1024
+			|| math.floor(pkg.size) !== pkg.size || typeof pkg.sha256 !== "string" || pkg.sha256.length !== 64
+			|| string.match(pkg.sha256, "^[0-9a-f]+$")[0] === undefined) return undefined;
+		if (item && (item.sha256 !== pkg.sha256 || item.size !== pkg.size)) return undefined;
+		return {file, size: pkg.size, sha256: pkg.sha256};
+	}, options);
+	return prepared ?? (item && !preferGitHub ? await prepareFromGitHub(item, options) : undefined);
 };

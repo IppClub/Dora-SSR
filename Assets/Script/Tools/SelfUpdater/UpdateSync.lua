@@ -7,6 +7,7 @@ local __TS__Promise = ____lualib.__TS__Promise -- 1
 local __TS__New = ____lualib.__TS__New -- 1
 local ____exports = {} -- 1
 local ____Dora = require("Dora") -- 2
+local App = ____Dora.App -- 2
 local Content = ____Dora.Content -- 2
 local HttpClient = ____Dora.HttpClient -- 2
 local json = ____Dora.json -- 2
@@ -308,161 +309,233 @@ local function verifyPackage(root, item, options) -- 329
 		) -- 336
 	end) -- 336
 end -- 329
-local function prepareFromAtomGit(item, options) -- 339
+local function prepareFromAtomGit(ref, resolvePackage, options) -- 339
 	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 339
-		local root = Path(Content.writablePath, ".download") -- 343
-		local candidateName = ("dora-update-" .. tostring(os.time())) .. "-atomgit" -- 344
-		local candidatePath = Path(root, candidateName) -- 345
-		if Content:exist(candidatePath) then -- 345
-			Content:remove(candidatePath) -- 346
-		end -- 346
-		emit(options, 0.02, "Connecting to AtomGit LFS", "AtomGit") -- 347
-		local clone = __TS__Await(runGit( -- 348
-			root, -- 349
-			((((("clone " .. quoteGitArgument(ATOMGIT_RELEASES_REMOTE)) .. " ") .. quoteGitArgument(candidateName)) .. " --branch ") .. quoteGitArgument(item.ref)) .. " --depth 1",
-			{ -- 351
-				timeout = 1800, -- 352
-				isCanceled = options.isCanceled, -- 353
-				onStatus = function(____, status) return emit( -- 354
-					options, -- 355
-					math.max( -- 356
-						0.03, -- 356
-						math.min(0.85, status.progress * 0.85) -- 356
-					), -- 356
-					status.message or "Downloading update from AtomGit LFS", -- 357
-					"AtomGit" -- 358
-				) end -- 358
-			} -- 358
-		)) -- 358
-		if not clone.success then -- 358
-			Content:remove(candidatePath) -- 363
-			return ____awaiter_resolve(nil, nil) -- 363
-		end -- 363
-		local commit = gitHeadFromStatus(clone.status) -- 366
-		if commit ~= item.commit then -- 366
-			Content:remove(candidatePath) -- 368
-			return ____awaiter_resolve(nil, nil) -- 368
-		end -- 368
-		local signature = __TS__Await(runGit( -- 371
-			candidatePath, -- 371
-			"verify-update " .. quoteGitArgument(commit), -- 371
-			{timeout = 60, isCanceled = options.isCanceled} -- 371
-		)) -- 371
-		if not signature.success then -- 371
-			Content:remove(candidatePath) -- 376
-			return ____awaiter_resolve(nil, nil) -- 376
-		end -- 376
-		emit(options, 0.9, "Verifying update package", "AtomGit") -- 379
-		local packageResult = __TS__Await(verifyPackage(candidatePath, item, options)) -- 380
-		if not packageResult.success then -- 380
+		local root = Path(Content.writablePath, ".download") -- 344
+		local candidateName = ((("dora-update-" .. tostring(os.time())) .. "-") .. tostring(App.rand)) .. "-atomgit" -- 345
+		local candidatePath = Path(root, candidateName) -- 346
+		if Content:exist(candidatePath) then -- 346
+			Content:remove(candidatePath) -- 347
+		end -- 347
+		emit(options, 0.02, "Connecting to AtomGit LFS", "AtomGit") -- 348
+		local clone = __TS__Await(runGit( -- 349
+			root, -- 350
+			((((("clone " .. quoteGitArgument(ATOMGIT_RELEASES_REMOTE)) .. " ") .. quoteGitArgument(candidateName)) .. " --branch ") .. quoteGitArgument(ref)) .. " --depth 1",
+			{ -- 352
+				timeout = 1800, -- 353
+				isCanceled = options.isCanceled, -- 354
+				onStatus = function(____, status) return emit( -- 355
+					options, -- 356
+					math.max( -- 357
+						0.03, -- 357
+						math.min(0.85, status.progress * 0.85) -- 357
+					), -- 357
+					status.message or "Downloading update from AtomGit LFS", -- 358
+					"AtomGit" -- 359
+				) end -- 359
+			} -- 359
+		)) -- 359
+		if not clone.success then -- 359
+			Content:remove(candidatePath) -- 364
+			return ____awaiter_resolve(nil, nil) -- 364
+		end -- 364
+		local commit = gitHeadFromStatus(clone.status) -- 367
+		if not commit then -- 367
+			Content:remove(candidatePath) -- 369
+			return ____awaiter_resolve(nil, nil) -- 369
+		end -- 369
+		local signature = __TS__Await(runGit( -- 372
+			candidatePath, -- 372
+			"verify-update " .. quoteGitArgument(commit), -- 372
+			{timeout = 60, isCanceled = options.isCanceled} -- 372
+		)) -- 372
+		if not signature.success then -- 372
+			Content:remove(candidatePath) -- 377
+			return ____awaiter_resolve(nil, nil) -- 377
+		end -- 377
+		local item = resolvePackage(candidatePath, commit) -- 380
+		if not item then -- 380
 			Content:remove(candidatePath) -- 382
 			return ____awaiter_resolve(nil, nil) -- 382
 		end -- 382
-		return ____awaiter_resolve( -- 382
-			nil, -- 382
-			{ -- 385
-				source = "AtomGit", -- 386
-				file = Path(candidatePath, item.file), -- 387
-				cleanupPath = candidatePath -- 388
-			} -- 388
-		) -- 388
-	end) -- 388
+		emit(options, 0.9, "Verifying update package", "AtomGit") -- 385
+		local packageResult = __TS__Await(verifyPackage(candidatePath, item, options)) -- 386
+		if not packageResult.success then -- 386
+			Content:remove(candidatePath) -- 388
+			return ____awaiter_resolve(nil, nil) -- 388
+		end -- 388
+		return ____awaiter_resolve( -- 388
+			nil, -- 388
+			{ -- 391
+				source = "AtomGit", -- 392
+				file = Path(candidatePath, item.file), -- 393
+				cleanupPath = candidatePath -- 394
+			} -- 394
+		) -- 394
+	end) -- 394
 end -- 339
-local function downloadFromGitHub(item, options) -- 392
-	return __TS__New( -- 395
-		__TS__Promise, -- 395
-		function(____, resolve) -- 395
-			thread(function() -- 396
-				local root = Path(Content.writablePath, ".download") -- 397
-				local candidatePath = Path( -- 398
-					root, -- 398
-					("dora-update-" .. tostring(os.time())) .. "-github" -- 398
-				) -- 398
-				if Content:exist(candidatePath) then -- 398
-					Content:remove(candidatePath) -- 399
-				end -- 399
-				if not Content:mkdir(candidatePath) and not Content:isdir(candidatePath) then -- 399
-					resolve(nil, nil) -- 401
-					return -- 402
-				end -- 402
-				local target = Path(candidatePath, item.file) -- 404
-				emit(options, 0.02, "Connecting to GitHub Releases", "GitHub") -- 405
-				local success = HttpClient:downloadAsync( -- 406
-					item.github, -- 407
-					target, -- 408
-					300, -- 409
-					function(current, total) -- 410
-						emit( -- 411
-							options, -- 412
-							total > 0 and math.max( -- 413
-								0.03, -- 413
-								math.min(0.85, current / total * 0.85) -- 413
-							) or 0.03, -- 413
-							"Downloading update from GitHub Releases", -- 414
-							"GitHub" -- 415
-						) -- 415
-						local ____options_isCanceled_4 -- 417
-						if options.isCanceled then -- 417
-							____options_isCanceled_4 = options:isCanceled() -- 417
-						else -- 417
-							____options_isCanceled_4 = false -- 417
-						end -- 417
-						return ____options_isCanceled_4 -- 417
-					end -- 410
-				) -- 410
-				if not success then -- 410
-					Content:remove(candidatePath) -- 421
-					resolve(nil, nil) -- 422
-					return -- 423
-				end -- 423
-				resolve(nil, {candidatePath, target}) -- 425
-			end) -- 396
-		end -- 395
-	) -- 395
-end -- 392
-local function prepareFromGitHub(item, options) -- 429
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 429
-		local download = __TS__Await(downloadFromGitHub(item, options)) -- 433
-		if not download then -- 433
-			return ____awaiter_resolve(nil, nil) -- 433
-		end -- 433
-		local candidatePath, target = table.unpack(download, 1, 2) -- 435
-		emit(options, 0.9, "Verifying update package", "GitHub") -- 436
-		local verified = __TS__Await(verifyPackage(candidatePath, item, options)) -- 437
-		if not verified.success then -- 437
-			Content:remove(candidatePath) -- 439
+local function downloadFromGitHub(item, options) -- 398
+	return __TS__New( -- 401
+		__TS__Promise, -- 401
+		function(____, resolve) -- 401
+			thread(function() -- 402
+				local root = Path(Content.writablePath, ".download") -- 403
+				local candidatePath = Path( -- 404
+					root, -- 404
+					((("dora-update-" .. tostring(os.time())) .. "-") .. tostring(App.rand)) .. "-github" -- 404
+				) -- 404
+				if Content:exist(candidatePath) then -- 404
+					Content:remove(candidatePath) -- 405
+				end -- 405
+				if not Content:mkdir(candidatePath) and not Content:isdir(candidatePath) then -- 405
+					resolve(nil, nil) -- 407
+					return -- 408
+				end -- 408
+				local target = Path(candidatePath, item.file) -- 410
+				emit(options, 0.02, "Connecting to GitHub Releases", "GitHub") -- 411
+				local success = HttpClient:downloadAsync( -- 412
+					item.github, -- 413
+					target, -- 414
+					300, -- 415
+					function(current, total) -- 416
+						emit( -- 417
+							options, -- 418
+							total > 0 and math.max( -- 419
+								0.03, -- 419
+								math.min(0.85, current / total * 0.85) -- 419
+							) or 0.03, -- 419
+							"Downloading update from GitHub Releases", -- 420
+							"GitHub" -- 421
+						) -- 421
+						local ____options_isCanceled_4 -- 423
+						if options.isCanceled then -- 423
+							____options_isCanceled_4 = options:isCanceled() -- 423
+						else -- 423
+							____options_isCanceled_4 = false -- 423
+						end -- 423
+						return ____options_isCanceled_4 -- 423
+					end -- 416
+				) -- 416
+				if not success then -- 416
+					Content:remove(candidatePath) -- 427
+					resolve(nil, nil) -- 428
+					return -- 429
+				end -- 429
+				resolve(nil, {candidatePath, target}) -- 431
+			end) -- 402
+		end -- 401
+	) -- 401
+end -- 398
+local function prepareFromGitHub(item, options) -- 435
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 435
+		local download = __TS__Await(downloadFromGitHub(item, options)) -- 439
+		if not download then -- 439
 			return ____awaiter_resolve(nil, nil) -- 439
 		end -- 439
-		return ____awaiter_resolve(nil, {source = "GitHub", file = target, cleanupPath = candidatePath}) -- 439
-	end) -- 439
-end -- 429
-____exports.prepareUpdatePackage = function(snapshot, platform, options) -- 445
-	if options == nil then -- 445
-		options = {} -- 448
-	end -- 448
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 448
-		Content:mkdir(Path(Content.writablePath, ".download")) -- 450
-		if options.isCanceled and options:isCanceled() then -- 450
-			return ____awaiter_resolve(nil, nil) -- 450
-		end -- 450
-		if snapshot.source == "AtomGit" then -- 450
-			local item = snapshot.manifest.packages[platform] -- 453
-			if not item then -- 453
-				return ____awaiter_resolve(nil, nil) -- 453
-			end -- 453
-			return ____awaiter_resolve( -- 453
-				nil, -- 453
-				prepareFromAtomGit(item, options) -- 455
-			) -- 455
-		end -- 455
-		local item = snapshot.packages[platform] -- 457
-		if not item then -- 457
-			return ____awaiter_resolve(nil, nil) -- 457
-		end -- 457
-		return ____awaiter_resolve( -- 457
-			nil, -- 457
-			prepareFromGitHub(item, options) -- 459
-		) -- 459
-	end) -- 459
-end -- 445
-return ____exports -- 445
+		local candidatePath, target = table.unpack(download, 1, 2) -- 441
+		emit(options, 0.9, "Verifying update package", "GitHub") -- 442
+		local verified = __TS__Await(verifyPackage(candidatePath, item, options)) -- 443
+		if not verified.success then -- 443
+			Content:remove(candidatePath) -- 445
+			return ____awaiter_resolve(nil, nil) -- 445
+		end -- 445
+		return ____awaiter_resolve(nil, {source = "GitHub", file = target, cleanupPath = candidatePath}) -- 445
+	end) -- 445
+end -- 435
+____exports.prepareUpdatePackage = function(snapshot, platform, options) -- 451
+	if options == nil then -- 451
+		options = {} -- 454
+	end -- 454
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 454
+		Content:mkdir(Path(Content.writablePath, ".download")) -- 456
+		if options.isCanceled and options:isCanceled() then -- 456
+			return ____awaiter_resolve(nil, nil) -- 456
+		end -- 456
+		if snapshot.source == "AtomGit" then -- 456
+			local item = snapshot.manifest.packages[platform] -- 459
+			if not item then -- 459
+				return ____awaiter_resolve(nil, nil) -- 459
+			end -- 459
+			return ____awaiter_resolve( -- 459
+				nil, -- 459
+				prepareFromAtomGit( -- 461
+					item.ref, -- 461
+					function(_path, commit) return commit == item.commit and item or nil end, -- 461
+					options -- 461
+				) -- 461
+			) -- 461
+		end -- 461
+		local item = snapshot.packages[platform] -- 463
+		if not item then -- 463
+			return ____awaiter_resolve(nil, nil) -- 463
+		end -- 463
+		return ____awaiter_resolve( -- 463
+			nil, -- 463
+			prepareFromGitHub(item, options) -- 465
+		) -- 465
+	end) -- 465
+end -- 451
+--- Resolve an exact build even when the stable channel has already advanced.
+____exports.preparePinnedUpdatePackage = function(version, revision, platform, options) -- 469
+	if options == nil then -- 469
+		options = {} -- 473
+	end -- 473
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 473
+		Content:mkdir(Path(Content.writablePath, ".download")) -- 475
+		local file = updatePackageFilename(version, platform) -- 476
+		local cached = ____exports.loadCachedUpdateManifest().snapshot -- 477
+		local ____temp_7 -- 478
+		if (cached and cached.source) == "AtomGit" and cached.manifest.version == version and cached.manifest.revision == revision then -- 478
+			____temp_7 = cached.manifest.packages[platform] -- 479
+		else -- 479
+			____temp_7 = nil -- 479
+		end -- 479
+		local item = ____temp_7 -- 478
+		local preferGitHub = item ~= nil and not localeIsChinese(App.locale) -- 480
+		if item and preferGitHub then -- 480
+			local prepared = __TS__Await(prepareFromGitHub(item, options)) -- 482
+			if prepared then -- 482
+				return ____awaiter_resolve(nil, prepared) -- 482
+			end -- 482
+		end -- 482
+		local ref = (((("refs/tags/" .. version) .. "-") .. tostring(revision)) .. "-") .. platform -- 485
+		local prepared = __TS__Await(prepareFromAtomGit( -- 486
+			ref, -- 486
+			function(path, commit) -- 486
+				if item and item.commit ~= commit then -- 486
+					return nil -- 487
+				end -- 487
+				local metadata = Path(path, "package.json") -- 488
+				local text = Content:exist(metadata) and Content:read(metadata, 0, 4097) or nil -- 489
+				if not text or #text > 4096 then -- 489
+					return nil -- 490
+				end -- 490
+				local data, ____error = json.decode(text) -- 491
+				if ____error ~= nil or type(data) ~= "table" or data == nil then -- 491
+					return nil -- 492
+				end -- 492
+				local pkg = data -- 493
+				if pkg.schemaVersion ~= 1 or pkg.platform ~= platform or pkg.version ~= version or pkg.revision ~= revision or pkg.file ~= file or type(pkg.size) ~= "number" or pkg.size < 1 or pkg.size > 2 * 1024 * 1024 * 1024 or math.floor(pkg.size) ~= pkg.size or type(pkg.sha256) ~= "string" or #pkg.sha256 ~= 64 or (string.match(pkg.sha256, "^[0-9a-f]+$")) == nil then -- 493
+					return nil -- 497
+				end -- 497
+				if item and (item.sha256 ~= pkg.sha256 or item.size ~= pkg.size) then -- 497
+					return nil -- 498
+				end -- 498
+				return {file = file, size = pkg.size, sha256 = pkg.sha256} -- 499
+			end, -- 486
+			options -- 500
+		)) -- 500
+		local ____prepared_9 = prepared -- 501
+		if ____prepared_9 == nil then -- 501
+			local ____temp_8 -- 501
+			if item and not preferGitHub then -- 501
+				____temp_8 = __TS__Await(prepareFromGitHub(item, options)) -- 501
+			else -- 501
+				____temp_8 = nil -- 501
+			end -- 501
+			____prepared_9 = ____temp_8 -- 501
+		end -- 501
+		return ____awaiter_resolve(nil, ____prepared_9) -- 501
+	end) -- 501
+end -- 469
+return ____exports -- 469

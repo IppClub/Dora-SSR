@@ -281,6 +281,27 @@ static bool androidFileAction(const char* name, const std::string& path) {
 	return success;
 }
 
+int doraAndroidHasExportTemplate(lua_State* state) {
+	JNIEnv* env = Android_JNI_GetEnv();
+	bool available = false;
+	if (env) {
+		auto activity = r_cast<jobject>(SDL_AndroidGetActivity());
+		if (activity) {
+			auto clazz = env->GetObjectClass(activity);
+			auto method = clazz ? env->GetMethodID(clazz, "hasGameApkTemplate", "(Z)Z") : nullptr;
+			if (method) available = env->CallBooleanMethod(activity, method, lua_toboolean(state, 1) ? JNI_TRUE : JNI_FALSE) == JNI_TRUE;
+			if (env->ExceptionCheck()) {
+				env->ExceptionClear();
+				available = false;
+			}
+			if (clazz) env->DeleteLocalRef(clazz);
+			env->DeleteLocalRef(activity);
+		}
+	}
+	lua_pushboolean(state, available);
+	return 1;
+}
+
 // Internal editor integration. The Java activity owns the dialog and worker.
 int doraAndroidExportGame(lua_State* state) {
 	const char* values[] = {luaL_checkstring(state, 1), luaL_checkstring(state, 2), luaL_checkstring(state, 3)};
@@ -294,7 +315,7 @@ int doraAndroidExportGame(lua_State* state) {
 	if (activity) {
 		auto clazz = env->GetObjectClass(activity);
 		auto method = clazz ? env->GetMethodID(clazz, "exportGameApk",
-			"(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V") : nullptr;
+			"(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Z)V") : nullptr;
 		if (method) {
 			jstring args[3]{};
 			for (size_t i = 0; i < 3; ++i) {
@@ -303,7 +324,7 @@ int doraAndroidExportGame(lua_State* state) {
 				if (!args[i]) break;
 			}
 			if (args[2]) {
-				env->CallVoidMethod(activity, method, args[0], args[1], args[2]);
+				env->CallVoidMethod(activity, method, args[0], args[1], args[2], lua_toboolean(state, 4) ? JNI_TRUE : JNI_FALSE);
 				dispatched = !env->ExceptionCheck();
 			}
 			for (auto arg : args) if (arg) env->DeleteLocalRef(arg);

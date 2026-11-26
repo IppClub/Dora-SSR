@@ -1,6 +1,9 @@
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
+import {projectFileAllowed, projectPathIsSafe} from "./project_export_policy.mjs";
+
+const {projectFiles} = JSON.parse(fs.readFileSync(new URL("../../../../Assets/Script/Dev/ExportPolicy.json", import.meta.url), "utf8"));
 
 const inputDir = path.resolve(process.argv[2] || "");
 const outputDir = path.resolve(process.argv[3] || "");
@@ -22,17 +25,6 @@ if (!fs.statSync(inputDir, { throwIfNoEntry: false })?.isDirectory()) {
 	throw new Error(`game input directory does not exist: ${inputDir}`);
 }
 
-function validatePath(relativePath) {
-	if (!relativePath || relativePath.includes("\\") || relativePath.startsWith("/") || /[\0-\x1f]/.test(relativePath)) {
-		throw new Error(`unsafe game path: ${JSON.stringify(relativePath)}`);
-	}
-	const parts = relativePath.split("/");
-	if (parts.some((part) => !part || part === "." || part === "..")) {
-		throw new Error(`unsafe game path: ${JSON.stringify(relativePath)}`);
-	}
-	return relativePath;
-}
-
 // Static hosts such as Gitee Pages do not serve common license/readme names,
 // even after a content hash is inserted before the extension. These files are
 // package metadata, not runtime assets, so keep them out of the game manifest.
@@ -40,14 +32,17 @@ function isPackageMetadata(relativePath) {
 	return /^(?:license|fontlog|readme|copying|notice)(?:\.|$)/i.test(path.posix.basename(relativePath));
 }
 
-function collectFiles(directory, prefix = "") {
+function collectFiles(directory, prefix = "", insideGodotCache = false) {
 	const files = [];
 	for (const item of fs.readdirSync(directory, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
-		if (item.name.startsWith(".") && !(process.env.DORA_WEB_INCLUDE_GODOT_CACHE === "1" && item.name === ".godot" && fs.existsSync(path.join(directory, "project.godot")))) continue;
-		const relativePath = validatePath(prefix ? `${prefix}/${item.name}` : item.name);
+		const godotCache = insideGodotCache || (process.env.DORA_WEB_INCLUDE_GODOT_CACHE === "1" && item.name === ".godot"
+			&& fs.existsSync(path.join(directory, "project.godot")));
+		const relativePath = prefix ? `${prefix}/${item.name}` : item.name;
+		if (!projectPathIsSafe(relativePath)) throw new Error(`unsafe game path: ${JSON.stringify(relativePath)}`);
+		if (!projectFileAllowed(relativePath, projectFiles, godotCache)) continue;
 		const sourcePath = path.join(directory, item.name);
 		if (item.isSymbolicLink()) throw new Error(`symbolic links are not supported: ${relativePath}`);
-		if (item.isDirectory()) files.push(...collectFiles(sourcePath, relativePath));
+		if (item.isDirectory()) files.push(...collectFiles(sourcePath, relativePath, godotCache));
 		else if (item.isFile() && !isPackageMetadata(relativePath)) files.push({ path: relativePath, sourcePath });
 	}
 	return files;

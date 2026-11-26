@@ -50,6 +50,7 @@ int luaopen_socket_core(lua_State* L);
 
 #if BX_PLATFORM_ANDROID
 int doraAndroidExportGame(lua_State* state);
+int doraAndroidHasExportTemplate(lua_State* state);
 #endif
 
 NS_DORA_BEGIN
@@ -506,7 +507,7 @@ end
 return bit32
 )lua";
 
-#if BX_PLATFORM_WINDOWS || BX_PLATFORM_ANDROID
+#if !BX_PLATFORM_EMSCRIPTEN
 static int dora_new_game_id(lua_State* L) {
 	try {
 		std::random_device random;
@@ -525,6 +526,7 @@ static int dora_new_game_id(lua_State* L) {
 		return luaL_error(L, "could not generate a game ID");
 	}
 }
+
 #endif
 
 #ifndef DORA_WEB_MINIMAL
@@ -549,7 +551,7 @@ static int dora_open_bit32(lua_State* L) {
 }
 
 static int dora_register_builtin_modules(lua_State* L) {
-#if BX_PLATFORM_WINDOWS || BX_PLATFORM_ANDROID
+#if !BX_PLATFORM_EMSCRIPTEN
 	luaL_getsubtable(L, LUA_REGISTRYINDEX, LUA_LOADED_TABLE);
 	lua_pushcfunction(L, dora_new_game_id);
 	lua_setfield(L, -2, "dora.new_game_id");
@@ -559,6 +561,8 @@ static int dora_register_builtin_modules(lua_State* L) {
 	luaL_getsubtable(L, LUA_REGISTRYINDEX, LUA_LOADED_TABLE);
 	lua_pushcfunction(L, doraAndroidExportGame);
 	lua_setfield(L, -2, "dora.android_game_export");
+	lua_pushcfunction(L, doraAndroidHasExportTemplate);
+	lua_setfield(L, -2, "dora.android_has_export_template");
 	lua_pop(L, 1);
 #endif
 #define DORA_LUA_MODULE(name, loader, global) \

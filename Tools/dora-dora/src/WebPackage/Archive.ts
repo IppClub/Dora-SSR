@@ -1,3 +1,5 @@
+import exportPolicy from '../../../../Assets/Script/Dev/ExportPolicy.json';
+import {projectFileAllowed, projectPathIsSafe} from '../../../../Projects/xmake/tools/web/project_export_policy.mjs';
 import {strToU8, strFromU8, unzipSync, zip} from 'fflate';
 import {sha256} from '@noble/hashes/sha2.js';
 import {bytesToHex} from '@noble/hashes/utils.js';
@@ -15,16 +17,10 @@ const maxFileBytes = 64 * 1024 * 1024;
 const maxTotalBytes = 256 * 1024 * 1024;
 
 function validatePath(name: string) {
-  if (!name || /[\\\x00-\x1f]/.test(name) || /^[A-Za-z]:/.test(name)
-    || name.split('/').some(part => !part || part === '.' || part === '..')) {
-    throw new Error(`Invalid package path: ${name}`);
-  }
+  if (!projectPathIsSafe(name)) throw new Error(`Invalid package path: ${name}`);
 }
 
-function allowed(name: string) {
-  return !name.split('/').some(part => part.startsWith('.') || ['node_modules', '__MACOSX'].includes(part))
-    && !/(?:^|\/)(?:credentials\.json|config\.db)$|\.log$/i.test(name);
-}
+const allowed = (name: string) => projectFileAllowed(name, exportPolicy.projectFiles);
 
 export function readProjectZip(bytes: Uint8Array): PackageFiles {
   if (bytes.length > maxTotalBytes) throw new Error('Project archive is too large');
@@ -47,13 +43,13 @@ export function digest(bytes: Uint8Array): string {
   return bytesToHex(sha256(bytes));
 }
 
-export async function createWebArchive(project: PackageFiles, runtime: PackageFiles, format: WebPackageFormat = 'http'): Promise<Uint8Array> {
+export async function createWebArchive(project: PackageFiles, runtime: PackageFiles, format: WebPackageFormat = 'http',
+  includeGodot = projectNeedsGodot(Object.fromEntries(Object.entries(project).filter(([name]) => allowed(name))))): Promise<Uint8Array> {
   if (format !== 'html' && format !== 'http') throw new Error('Unsupported Web package format');
   for (const file of runtimeFiles) {
     if (!runtime[file]?.length) throw new Error(`Missing Web runtime file: ${file}`);
   }
   const features = JSON.parse(strFromU8(runtime['dora-web-features.json']));
-  const includeGodot = projectNeedsGodot(Object.fromEntries(Object.entries(project).filter(([name]) => allowed(name))));
   if (includeGodot) {
     if (!features.modules?.godotNode) throw new Error('Godot runtime is unavailable for this project');
     for (const file of godotRuntimeFiles) if (!runtime[file]?.length) throw new Error(`Missing Godot runtime file: ${file}`);

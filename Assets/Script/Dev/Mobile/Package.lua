@@ -1,10 +1,9 @@
 -- [ts]: Package.ts
 local ____lualib = require("lualib_bundle") -- 1
 local __TS__StringStartsWith = ____lualib.__TS__StringStartsWith -- 1
-local __TS__StringSplit = ____lualib.__TS__StringSplit -- 1
 local __TS__ArraySome = ____lualib.__TS__ArraySome -- 1
-local __TS__StringEndsWith = ____lualib.__TS__StringEndsWith -- 1
 local __TS__ArrayFilter = ____lualib.__TS__ArrayFilter -- 1
+local __TS__StringSplit = ____lualib.__TS__StringSplit -- 1
 local __TS__ArrayMap = ____lualib.__TS__ArrayMap -- 1
 local __TS__StringSubstring = ____lualib.__TS__StringSubstring -- 1
 local __TS__ArrayFind = ____lualib.__TS__ArrayFind -- 1
@@ -19,339 +18,321 @@ local App = ____Dora.App -- 1
 local Content = ____Dora.Content -- 1
 local Path = ____Dora.Path -- 1
 local json = ____Dora.json -- 1
-local manifestName = "dora-package.json" -- 4
-local maxPackageBytes = 256 * 1024 * 1024 -- 5
-local maxUnpackedBytes = 512 * 1024 * 1024 -- 6
-local runtimeEntries = { -- 7
-	"init.lua", -- 7
-	"init.yue", -- 7
-	"init.tl", -- 7
-	"init.xml", -- 7
-	"init.wasm" -- 7
-} -- 7
-function ____exports.packageFileAllowed(file) -- 18
-	local name = (string.gsub(file, "\\", "/")) -- 19
-	if __TS__StringStartsWith(name, "/") or (string.find(name, ":", nil, true) or 0) - 1 >= 0 then -- 19
-		return false -- 20
-	end -- 20
-	local parts = __TS__StringSplit(name, "/") -- 21
-	if __TS__ArraySome( -- 21
-		parts, -- 22
-		function(____, part) return part == ".." or part == "." or part == "" end -- 22
-	) then -- 22
-		return false -- 22
-	end -- 22
-	if name == ".dora/repo.json" or name == ".dora/banner.jpg" or name == ".dora/banner.png" then -- 22
-		return true -- 23
-	end -- 23
-	return not __TS__ArraySome( -- 24
-		parts, -- 24
-		function(____, part) return __TS__StringStartsWith(part, ".") or part == "node_modules" or part == "__MACOSX" or string.lower(part) == "credentials.json" or string.lower(part) == "config.db" end -- 24
-	) and not __TS__StringEndsWith( -- 24
-		string.lower(name), -- 26
-		".log" -- 26
-	) -- 26
-end -- 18
-local function fail(zh, en) -- 29
-	error(__TS__StringStartsWith( -- 30
-		string.lower(App.locale), -- 30
-		"zh" -- 30
-	) and zh or en) -- 30
-end -- 29
-local function cleanName(value) -- 33
-	local replaced = (string.gsub(value, "[\\/:*?\"<>|%c]", "_")) -- 34
-	local cleaned = (string.match(replaced, "^%s*(.-)%s*$")) or replaced -- 38
-	local name = (string.gsub(cleaned, "^%.+", "")) -- 39
-	local ____end = utf8.offset(name, 61) -- 40
-	return name == "" and "Game" or (____end and string.sub(name, 1, ____end - 1) or name) -- 41
-end -- 33
-local function newStage() -- 44
-	local cache = Path(Content.writablePath, ".share") -- 45
-	for ____, dir in ipairs(Content:exist(cache) and Content:getDirs(cache) or ({})) do -- 47
-		local stamp = string.match(dir, "^(%d+)%-%d+$") -- 48
-		if stamp ~= nil and (tonumber(stamp) or os.time()) < os.time() - 7 * 86400 then -- 48
-			Content:remove(Path(cache, dir)) -- 49
-		end -- 49
-	end -- 49
-	local path = Path( -- 51
-		Content.writablePath, -- 51
-		".share", -- 51
-		(tostring(os.time()) .. "-") .. tostring(App.rand) -- 51
-	) -- 51
-	if not Content:mkdir(path) then -- 51
-		fail("无法创建临时目录", "Could not create temporary folder") -- 52
+local ____ExportPolicy = require("Dev.ExportPolicy") -- 2
+local projectFileAllowed = ____ExportPolicy.projectFileAllowed -- 2
+local manifestName = "dora-package.json" -- 5
+local maxPackageBytes = 256 * 1024 * 1024 -- 6
+local maxUnpackedBytes = 512 * 1024 * 1024 -- 7
+local runtimeEntries = { -- 8
+	"init.lua", -- 8
+	"init.yue", -- 8
+	"init.tl", -- 8
+	"init.xml", -- 8
+	"init.wasm" -- 8
+} -- 8
+function ____exports.packageFileAllowed(file) -- 19
+	return projectFileAllowed(file, true) -- 20
+end -- 19
+local function fail(zh, en) -- 23
+	error(__TS__StringStartsWith( -- 24
+		string.lower(App.locale), -- 24
+		"zh" -- 24
+	) and zh or en) -- 24
+end -- 23
+local function cleanName(value) -- 27
+	local replaced = (string.gsub(value, "[\\/:*?\"<>|%c]", "_")) -- 28
+	local cleaned = (string.match(replaced, "^%s*(.-)%s*$")) or replaced -- 32
+	local name = (string.gsub(cleaned, "^%.+", "")) -- 33
+	local ____end = utf8.offset(name, 61) -- 34
+	return name == "" and "Game" or (____end and string.sub(name, 1, ____end - 1) or name) -- 35
+end -- 27
+local function newStage() -- 38
+	local cache = Path(Content.writablePath, ".share") -- 39
+	for ____, dir in ipairs(Content:exist(cache) and Content:getDirs(cache) or ({})) do -- 41
+		local stamp = string.match(dir, "^(%d+)%-%d+$") -- 42
+		if stamp ~= nil and (tonumber(stamp) or os.time()) < os.time() - 7 * 86400 then -- 42
+			Content:remove(Path(cache, dir)) -- 43
+		end -- 43
+	end -- 43
+	local path = Path( -- 45
+		Content.writablePath, -- 45
+		".share", -- 45
+		(tostring(os.time()) .. "-") .. tostring(App.rand) -- 45
+	) -- 45
+	if not Content:mkdir(path) then -- 45
+		fail("无法创建临时目录", "Could not create temporary folder") -- 46
+	end -- 46
+	return path -- 47
+end -- 38
+local function encodeObject(value) -- 50
+	local encoded = json.encode(value) -- 51
+	if encoded == nil then -- 51
+		fail("无法编码作品信息", "Could not encode game metadata") -- 52
 	end -- 52
-	return path -- 53
-end -- 44
-local function encodeObject(value) -- 56
-	local encoded = json.encode(value) -- 57
-	if encoded == nil then -- 57
-		fail("无法编码作品信息", "Could not encode game metadata") -- 58
-	end -- 58
-	return encoded -- 59
+	return encoded -- 53
+end -- 50
+local function readObject(path) -- 56
+	if not Content:exist(path) then -- 56
+		return nil -- 57
+	end -- 57
+	local size = Content:getAttr(path) -- 58
+	if size == nil or size > 64 * 1024 then -- 58
+		fail("作品信息过大", "Package metadata is too large") -- 59
+	end -- 59
+	local value = json.decode(Content:load(path)) -- 60
+	if type(value) ~= "table" then -- 60
+		fail("作品信息格式不正确", "Invalid package metadata") -- 61
+	end -- 61
+	return value -- 62
 end -- 56
-local function readObject(path) -- 62
-	if not Content:exist(path) then -- 62
-		return nil -- 63
-	end -- 63
-	local size = Content:getAttr(path) -- 64
-	if size == nil or size > 64 * 1024 then -- 64
-		fail("作品信息过大", "Package metadata is too large") -- 65
-	end -- 65
-	local value = json.decode(Content:load(path)) -- 66
-	if type(value) ~= "table" then -- 66
-		fail("作品信息格式不正确", "Invalid package metadata") -- 67
-	end -- 67
-	return value -- 68
-end -- 62
-local function runnable(root) -- 71
-	return __TS__ArraySome( -- 72
-		runtimeEntries, -- 72
-		function(____, file) return Content:exist(Path(root, file)) and not Content:isdir(Path(root, file)) end -- 72
-	) -- 72
-end -- 71
-function ____exports.discardPackage(preview) -- 75
-	Content:remove(preview.stage) -- 76
-end -- 75
+local function runnable(root) -- 65
+	return __TS__ArraySome( -- 66
+		runtimeEntries, -- 66
+		function(____, file) return Content:exist(Path(root, file)) and not Content:isdir(Path(root, file)) end -- 66
+	) -- 66
+end -- 65
+function ____exports.discardPackage(preview) -- 69
+	Content:remove(preview.stage) -- 70
+end -- 69
 --- Call in a Dora coroutine. This inspects data only, never executes imported code.
-function ____exports.inspectPackage(path) -- 80
-	local bytes = Content:getAttr(path) -- 81
-	if bytes == nil or bytes > maxPackageBytes or bytes == 0 or Content:isdir(path) then -- 81
-		fail("无法读取作品包，文件应小于 256 MB", "Cannot read package; maximum size is 256 MB") -- 83
-	end -- 83
-	local stage = newStage() -- 85
-	do -- 85
-		local function ____catch(e) -- 85
-			Content:remove(stage) -- 127
-			error(e, 0) -- 128
-		end -- 128
-		local ____try, ____hasReturned, ____returnValue = pcall(function() -- 128
-			local unpacked = Path(stage, "content") -- 87
-			if not Content:unzipAsync( -- 87
-				path, -- 88
-				unpacked, -- 88
-				____exports.packageFileAllowed, -- 88
-				maxUnpackedBytes, -- 88
-				10000 -- 88
-			) then -- 88
-				fail("作品包损坏、过大或含有无效路径", "Package is damaged, too large, or contains invalid paths") -- 88
+function ____exports.inspectPackage(path) -- 74
+	local bytes = Content:getAttr(path) -- 75
+	if bytes == nil or bytes > maxPackageBytes or bytes == 0 or Content:isdir(path) then -- 75
+		fail("无法读取作品包，文件应小于 256 MB", "Cannot read package; maximum size is 256 MB") -- 77
+	end -- 77
+	local stage = newStage() -- 79
+	do -- 79
+		local function ____catch(e) -- 79
+			Content:remove(stage) -- 121
+			error(e, 0) -- 122
+		end -- 122
+		local ____try, ____hasReturned, ____returnValue = pcall(function() -- 122
+			local unpacked = Path(stage, "content") -- 81
+			if not Content:unzipAsync( -- 81
+				path, -- 82
+				unpacked, -- 82
+				____exports.packageFileAllowed, -- 82
+				maxUnpackedBytes, -- 82
+				10000 -- 82
+			) then -- 82
+				fail("作品包损坏、过大或含有无效路径", "Package is damaged, too large, or contains invalid paths") -- 82
+			end -- 82
+			local root = unpacked -- 83
+			if not runnable(root) then -- 83
+				local dirs = __TS__ArrayFilter( -- 85
+					Content:getDirs(root), -- 85
+					function(____, dir) return not __TS__StringStartsWith(dir, ".") end -- 85
+				) -- 85
+				if #dirs == 1 and runnable(Path(root, dirs[1])) then -- 85
+					root = Path(root, dirs[1]) -- 86
+				end -- 86
+			end -- 86
+			if not runnable(root) then -- 86
+				fail("未找到可运行入口 init，请先在 Dora 中构建作品", "No runnable init entry; build the project in Dora first") -- 88
 			end -- 88
-			local root = unpacked -- 89
-			if not runnable(root) then -- 89
-				local dirs = __TS__ArrayFilter( -- 91
-					Content:getDirs(root), -- 91
-					function(____, dir) return not __TS__StringStartsWith(dir, ".") end -- 91
-				) -- 91
-				if #dirs == 1 and runnable(Path(root, dirs[1])) then -- 91
-					root = Path(root, dirs[1]) -- 92
-				end -- 92
+			local total = 0 -- 89
+			for ____, file in ipairs(Content:getAllFiles(root)) do -- 90
+				local size = Content:getAttr(Path(root, file)) -- 91
+				total = total + (size or 0) -- 92
 			end -- 92
-			if not runnable(root) then -- 92
-				fail("未找到可运行入口 init，请先在 Dora 中构建作品", "No runnable init entry; build the project in Dora first") -- 94
+			if total > maxUnpackedBytes then -- 92
+				fail("解包后的作品不能超过 512 MB", "Unpacked game exceeds 512 MB") -- 94
 			end -- 94
-			local total = 0 -- 95
-			for ____, file in ipairs(Content:getAllFiles(root)) do -- 96
-				local size = Content:getAttr(Path(root, file)) -- 97
-				total = total + (size or 0) -- 98
-			end -- 98
-			if total > maxUnpackedBytes then -- 98
-				fail("解包后的作品不能超过 512 MB", "Unpacked game exceeds 512 MB") -- 100
-			end -- 100
-			local manifest = readObject(Path(root, manifestName)) -- 101
-			if manifest and (manifest.format ~= "dora-game" or manifest.version ~= 1) then -- 101
-				fail("不支持此作品包版本，请更新 Dora", "Unsupported package version; update Dora") -- 102
-			end -- 102
-			local repo = readObject(Path(root, ".dora", "repo.json")) -- 103
-			if type(manifest and manifest.engineVersion) == "string" then -- 103
-				local required = __TS__ArrayMap( -- 105
-					__TS__StringSplit(manifest.engineVersion, "."), -- 105
-					function(____, part) return tonumber(part) or 0 end -- 105
-				) -- 105
-				local current = __TS__ArrayMap( -- 106
-					__TS__StringSplit(App.version, "."), -- 106
-					function(____, part) return tonumber(part) or 0 end -- 106
-				) -- 106
-				do -- 106
-					local i = 0 -- 107
-					while i < math.max(#required, #current) do -- 107
-						if (required[i + 1] or 0) > (current[i + 1] or 0) then -- 107
-							fail("作品由更新版本的 Dora 导出，请先更新引擎", "This package was exported by a newer Dora; update the engine first") -- 108
-						end -- 108
-						if (required[i + 1] or 0) < (current[i + 1] or 0) then -- 108
-							break -- 109
-						end -- 109
-						i = i + 1 -- 107
-					end -- 107
-				end -- 107
-			end -- 107
-			local title = cleanName(type(manifest and manifest.title) == "string" and manifest.title or (root ~= unpacked and Path:getFilename(root) or Path:getName(path))) -- 112
-			local author = type(manifest and manifest.author) == "string" and __TS__StringSubstring(manifest.author, 0, 80) or nil -- 113
-			if repo then -- 113
-				local ____temp_6 -- 116
-				if type(repo.title) == "table" then -- 116
-					____temp_6 = repo.title -- 116
-				else -- 116
-					____temp_6 = {} -- 116
-				end -- 116
-				local titleInfo = ____temp_6 -- 116
-				local ____temp_7 -- 117
-				if type(repo.description) == "table" then -- 117
-					____temp_7 = repo.description -- 117
-				else -- 117
-					____temp_7 = {} -- 117
-				end -- 117
-				local description = ____temp_7 -- 117
-				repo.title = { -- 118
-					zh = type(titleInfo.zh) == "string" and titleInfo.zh or title, -- 118
-					en = type(titleInfo.en) == "string" and titleInfo.en or title -- 118
-				} -- 118
-				repo.description = { -- 119
-					zh = type(description.zh) == "string" and description.zh or "", -- 119
-					en = type(description.en) == "string" and description.en or "" -- 119
-				} -- 119
-				repo.categories = {} -- 120
-				if not Content:save( -- 120
-					Path(root, ".dora", "repo.json"), -- 121
-					encodeObject(repo) -- 121
-				) then -- 121
-					fail("无法保存作品信息", "Could not save game metadata") -- 121
-				end -- 121
-			end -- 121
-			local bannerFile = __TS__ArrayFind( -- 123
-				__TS__ArrayMap( -- 123
-					{".dora/banner.jpg", ".dora/banner.png", "Image/banner.jpg", "Image/banner.png"}, -- 123
-					function(____, file) return Path(root, file) end -- 124
-				), -- 124
-				function(____, file) return Content:exist(file) end -- 124
-			) -- 124
-			return true, { -- 125
-				stage = stage, -- 125
-				root = root, -- 125
-				title = title, -- 125
-				author = author, -- 125
-				bannerFile = bannerFile, -- 125
-				bytes = bytes -- 125
-			} -- 125
-		end) -- 125
-		if not ____try then -- 125
-			____hasReturned, ____returnValue = ____catch(____hasReturned) -- 125
-		end -- 125
-		if ____hasReturned then -- 125
-			return ____returnValue -- 86
-		end -- 86
-	end -- 86
-end -- 80
-function ____exports.installPackage(preview) -- 132
-	local ____array_8 = __TS__SparseArrayNew(table.unpack(Content:getDirs(Content.writablePath))) -- 132
-	__TS__SparseArrayPush( -- 132
-		____array_8, -- 132
-		table.unpack(Content:getFiles(Content.writablePath)) -- 133
-	) -- 133
-	local existing = __TS__ArrayMap( -- 133
-		{__TS__SparseArraySpread(____array_8)}, -- 133
-		function(____, name) return string.lower(name) end -- 133
-	) -- 133
-	local name = cleanName(preview.title) -- 134
-	local suffix = 2 -- 135
-	while __TS__ArrayIncludes( -- 135
-		existing, -- 136
-		string.lower(name) -- 136
-	) or Content:exist(Path(Content.writablePath, name)) do -- 136
-		local ____cleanName_result_10 = cleanName(preview.title) -- 136
-		local ____suffix_9 = suffix -- 136
-		suffix = ____suffix_9 + 1 -- 136
-		name = ((____cleanName_result_10 .. " (") .. tostring(____suffix_9)) .. ")" -- 136
-	end -- 136
-	local target = Path(Content.writablePath, name) -- 137
-	local banner = preview.bannerFile and Path:getRelative(preview.bannerFile, preview.root) or nil -- 138
-	if not Content:move(preview.root, target) then -- 138
-		fail("无法安装作品，请检查剩余空间后重试", "Could not install game; check available space and retry") -- 139
-	end -- 139
-	Content:remove(preview.stage) -- 140
-	return { -- 141
-		id = name, -- 141
-		title = preview.title, -- 141
-		description = "", -- 141
-		kind = "local", -- 141
-		workDir = target, -- 141
-		fileName = Path(target, "init"), -- 142
-		bannerFile = banner and Path(target, banner) or nil -- 142
-	} -- 142
-end -- 132
+			local manifest = readObject(Path(root, manifestName)) -- 95
+			if manifest and (manifest.format ~= "dora-game" or manifest.version ~= 1) then -- 95
+				fail("不支持此作品包版本，请更新 Dora", "Unsupported package version; update Dora") -- 96
+			end -- 96
+			local repo = readObject(Path(root, ".dora", "repo.json")) -- 97
+			if type(manifest and manifest.engineVersion) == "string" then -- 97
+				local required = __TS__ArrayMap( -- 99
+					__TS__StringSplit(manifest.engineVersion, "."), -- 99
+					function(____, part) return tonumber(part) or 0 end -- 99
+				) -- 99
+				local current = __TS__ArrayMap( -- 100
+					__TS__StringSplit(App.version, "."), -- 100
+					function(____, part) return tonumber(part) or 0 end -- 100
+				) -- 100
+				do -- 100
+					local i = 0 -- 101
+					while i < math.max(#required, #current) do -- 101
+						if (required[i + 1] or 0) > (current[i + 1] or 0) then -- 101
+							fail("作品由更新版本的 Dora 导出，请先更新引擎", "This package was exported by a newer Dora; update the engine first") -- 102
+						end -- 102
+						if (required[i + 1] or 0) < (current[i + 1] or 0) then -- 102
+							break -- 103
+						end -- 103
+						i = i + 1 -- 101
+					end -- 101
+				end -- 101
+			end -- 101
+			local title = cleanName(type(manifest and manifest.title) == "string" and manifest.title or (root ~= unpacked and Path:getFilename(root) or Path:getName(path))) -- 106
+			local author = type(manifest and manifest.author) == "string" and __TS__StringSubstring(manifest.author, 0, 80) or nil -- 107
+			if repo then -- 107
+				local ____temp_6 -- 110
+				if type(repo.title) == "table" then -- 110
+					____temp_6 = repo.title -- 110
+				else -- 110
+					____temp_6 = {} -- 110
+				end -- 110
+				local titleInfo = ____temp_6 -- 110
+				local ____temp_7 -- 111
+				if type(repo.description) == "table" then -- 111
+					____temp_7 = repo.description -- 111
+				else -- 111
+					____temp_7 = {} -- 111
+				end -- 111
+				local description = ____temp_7 -- 111
+				repo.title = { -- 112
+					zh = type(titleInfo.zh) == "string" and titleInfo.zh or title, -- 112
+					en = type(titleInfo.en) == "string" and titleInfo.en or title -- 112
+				} -- 112
+				repo.description = { -- 113
+					zh = type(description.zh) == "string" and description.zh or "", -- 113
+					en = type(description.en) == "string" and description.en or "" -- 113
+				} -- 113
+				repo.categories = {} -- 114
+				if not Content:save( -- 114
+					Path(root, ".dora", "repo.json"), -- 115
+					encodeObject(repo) -- 115
+				) then -- 115
+					fail("无法保存作品信息", "Could not save game metadata") -- 115
+				end -- 115
+			end -- 115
+			local bannerFile = __TS__ArrayFind( -- 117
+				__TS__ArrayMap( -- 117
+					{".dora/banner.jpg", ".dora/banner.png", "Image/banner.jpg", "Image/banner.png"}, -- 117
+					function(____, file) return Path(root, file) end -- 118
+				), -- 118
+				function(____, file) return Content:exist(file) end -- 118
+			) -- 118
+			return true, { -- 119
+				stage = stage, -- 119
+				root = root, -- 119
+				title = title, -- 119
+				author = author, -- 119
+				bannerFile = bannerFile, -- 119
+				bytes = bytes -- 119
+			} -- 119
+		end) -- 119
+		if not ____try then -- 119
+			____hasReturned, ____returnValue = ____catch(____hasReturned) -- 119
+		end -- 119
+		if ____hasReturned then -- 119
+			return ____returnValue -- 80
+		end -- 80
+	end -- 80
+end -- 74
+function ____exports.installPackage(preview) -- 126
+	local ____array_8 = __TS__SparseArrayNew(table.unpack(Content:getDirs(Content.writablePath))) -- 126
+	__TS__SparseArrayPush( -- 126
+		____array_8, -- 126
+		table.unpack(Content:getFiles(Content.writablePath)) -- 127
+	) -- 127
+	local existing = __TS__ArrayMap( -- 127
+		{__TS__SparseArraySpread(____array_8)}, -- 127
+		function(____, name) return string.lower(name) end -- 127
+	) -- 127
+	local name = cleanName(preview.title) -- 128
+	local suffix = 2 -- 129
+	while __TS__ArrayIncludes( -- 129
+		existing, -- 130
+		string.lower(name) -- 130
+	) or Content:exist(Path(Content.writablePath, name)) do -- 130
+		local ____cleanName_result_10 = cleanName(preview.title) -- 130
+		local ____suffix_9 = suffix -- 130
+		suffix = ____suffix_9 + 1 -- 130
+		name = ((____cleanName_result_10 .. " (") .. tostring(____suffix_9)) .. ")" -- 130
+	end -- 130
+	local target = Path(Content.writablePath, name) -- 131
+	local banner = preview.bannerFile and Path:getRelative(preview.bannerFile, preview.root) or nil -- 132
+	if not Content:move(preview.root, target) then -- 132
+		fail("无法安装作品，请检查剩余空间后重试", "Could not install game; check available space and retry") -- 133
+	end -- 133
+	Content:remove(preview.stage) -- 134
+	return { -- 135
+		id = name, -- 135
+		title = preview.title, -- 135
+		description = "", -- 135
+		kind = "local", -- 135
+		workDir = target, -- 135
+		fileName = Path(target, "init"), -- 136
+		bannerFile = banner and Path(target, banner) or nil -- 136
+	} -- 136
+end -- 126
 --- Snapshot source and assets before zipping so subsequent edits cannot alter a shared package.
-function ____exports.exportPackage(entry) -- 146
-	local root = entry.workDir -- 147
-	if not root or not runnable(root) then -- 147
-		fail("请先构建作品，确认可以试玩后再分享", "Build the game and check that it runs before sharing") -- 148
-	end -- 148
-	local stage = newStage() -- 149
-	do -- 149
-		local function ____catch(e) -- 149
-			Content:remove(stage) -- 174
-			error(e, 0) -- 175
-		end -- 175
-		local ____try, ____hasReturned, ____returnValue = pcall(function() -- 175
-			local snapshot = Path(stage, "snapshot") -- 151
-			if not Content:mkdir(snapshot) then -- 151
-				fail("无法创建作品快照", "Could not create game snapshot") -- 152
-			end -- 152
-			local total = 0 -- 153
-			local files = __TS__ArrayFilter( -- 154
-				Content:getAllFiles(root), -- 154
-				function(____, file) return ____exports.packageFileAllowed(file) end -- 154
-			) -- 154
-			if #files > 10000 then -- 154
-				fail("作品文件数量过多", "Too many game files") -- 155
-			end -- 155
-			for ____, file in ipairs(files) do -- 156
-				local size = Content:getAttr(Path(root, file)) -- 157
-				total = total + (size or 0) -- 158
-				if total > maxUnpackedBytes then -- 158
-					fail("作品不能超过 512 MB", "Game exceeds 512 MB") -- 159
-				end -- 159
-				local target = Path(snapshot, file) -- 160
-				Content:mkdir(Path:getPath(target)) -- 161
-				if not Content:copyAsync( -- 161
-					Path(root, file), -- 162
-					target -- 162
-				) then -- 162
-					fail("复制作品文件失败", "Could not copy game files") -- 162
-				end -- 162
+function ____exports.exportPackage(entry) -- 140
+	local root = entry.workDir -- 141
+	if not root or not runnable(root) then -- 141
+		fail("请先构建作品，确认可以试玩后再分享", "Build the game and check that it runs before sharing") -- 142
+	end -- 142
+	local stage = newStage() -- 143
+	do -- 143
+		local function ____catch(e) -- 143
+			Content:remove(stage) -- 168
+			error(e, 0) -- 169
+		end -- 169
+		local ____try, ____hasReturned, ____returnValue = pcall(function() -- 169
+			local snapshot = Path(stage, "snapshot") -- 145
+			if not Content:mkdir(snapshot) then -- 145
+				fail("无法创建作品快照", "Could not create game snapshot") -- 146
+			end -- 146
+			local total = 0 -- 147
+			local files = __TS__ArrayFilter( -- 148
+				Content:getAllFiles(root), -- 148
+				function(____, file) return ____exports.packageFileAllowed(file) end -- 148
+			) -- 148
+			if #files > 10000 then -- 148
+				fail("作品文件数量过多", "Too many game files") -- 149
+			end -- 149
+			for ____, file in ipairs(files) do -- 150
+				local size = Content:getAttr(Path(root, file)) -- 151
+				total = total + (size or 0) -- 152
+				if total > maxUnpackedBytes then -- 152
+					fail("作品不能超过 512 MB", "Game exceeds 512 MB") -- 153
+				end -- 153
+				local target = Path(snapshot, file) -- 154
+				Content:mkdir(Path:getPath(target)) -- 155
+				if not Content:copyAsync( -- 155
+					Path(root, file), -- 156
+					target -- 156
+				) then -- 156
+					fail("复制作品文件失败", "Could not copy game files") -- 156
+				end -- 156
+			end -- 156
+			local previous = readObject(Path(snapshot, manifestName)) -- 158
+			local manifest = __TS__ObjectAssign({}, previous or ({}), { -- 159
+				format = "dora-game", -- 159
+				version = 1, -- 159
+				title = entry.title, -- 159
+				engineVersion = App.version, -- 159
+				entry = "init" -- 159
+			}) -- 159
+			if not Content:save( -- 159
+				Path(snapshot, manifestName), -- 160
+				encodeObject(manifest) -- 160
+			) then -- 160
+				fail("无法保存作品信息", "Could not save game metadata") -- 160
+			end -- 160
+			local path = Path( -- 161
+				stage, -- 161
+				cleanName(entry.title) .. ".zip" -- 161
+			) -- 161
+			if not Content:zipAsync(snapshot, path) then -- 161
+				fail("作品打包失败", "Could not package game") -- 162
 			end -- 162
-			local previous = readObject(Path(snapshot, manifestName)) -- 164
-			local manifest = __TS__ObjectAssign({}, previous or ({}), { -- 165
-				format = "dora-game", -- 165
-				version = 1, -- 165
-				title = entry.title, -- 165
-				engineVersion = App.version, -- 165
-				entry = "init" -- 165
-			}) -- 165
-			if not Content:save( -- 165
-				Path(snapshot, manifestName), -- 166
-				encodeObject(manifest) -- 166
-			) then -- 166
-				fail("无法保存作品信息", "Could not save game metadata") -- 166
-			end -- 166
-			local path = Path( -- 167
-				stage, -- 167
-				cleanName(entry.title) .. ".zip" -- 167
-			) -- 167
-			if not Content:zipAsync(snapshot, path) then -- 167
-				fail("作品打包失败", "Could not package game") -- 168
-			end -- 168
-			Content:remove(snapshot) -- 169
-			local bytes = Content:getAttr(path) -- 170
-			if bytes == nil or bytes > maxPackageBytes then -- 170
-				fail("作品包不能超过 256 MB", "Package exceeds 256 MB") -- 171
-			end -- 171
-			return true, {path = path, bytes = bytes} -- 172
-		end) -- 172
-		if not ____try then -- 172
-			____hasReturned, ____returnValue = ____catch(____hasReturned) -- 172
-		end -- 172
-		if ____hasReturned then -- 172
-			return ____returnValue -- 150
-		end -- 150
-	end -- 150
-end -- 146
-return ____exports -- 146
+			Content:remove(snapshot) -- 163
+			local bytes = Content:getAttr(path) -- 164
+			if bytes == nil or bytes > maxPackageBytes then -- 164
+				fail("作品包不能超过 256 MB", "Package exceeds 256 MB") -- 165
+			end -- 165
+			return true, {path = path, bytes = bytes} -- 166
+		end) -- 166
+		if not ____try then -- 166
+			____hasReturned, ____returnValue = ____catch(____hasReturned) -- 166
+		end -- 166
+		if ____hasReturned then -- 166
+			return ____returnValue -- 144
+		end -- 144
+	end -- 144
+end -- 140
+return ____exports -- 140

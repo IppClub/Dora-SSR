@@ -4,8 +4,12 @@ import type {PackageFiles} from './Archive';
 // retain their original API token. Unrelated binary assets are never decoded.
 export function projectNeedsGodot(project: PackageFiles): boolean {
   return Object.entries(project).some(([name, bytes]) => {
-    if (/(?:^|\/)project\.godot$|\.(?:pck|gd|tscn|scn|tres|gdshader)$/i.test(name)) return true;
-    if (!/\.(?:lua|yue|tl|ts|tsx|js|jsx|xml|wasm)$/i.test(name)) return false;
+    if (/(?:^|\/)project\.godot$|\.(?:pck|gd|gdc|tscn|scn|tres|gdshader|gdshaderinc|gdextension)$/i.test(name)) return true;
+    if (/\.res$/i.test(name)) {
+      const magic = new TextDecoder().decode(bytes.subarray(0, 4));
+      return magic === 'RSRC' || magic === 'RSCC';
+    }
+    if (!/\.(?:lua|yue|tl|ts|tsx|js|jsx|xml|wasm|wa|rs|vs|bl|json)$/i.test(name)) return false;
     let source = new TextDecoder().decode(bytes);
     // Preserve strings (including quoted API/property names), discard comments.
     const comments = /\.(?:lua|yue|tl)$/i.test(name)

@@ -1,4 +1,4 @@
--- [yue]: Dev/Entry.yue
+-- [yue]: Script/Dev/Entry.yue
 local _module_0 = { } -- 1
 local _ENV = Dora(Dora.ImGui) -- 9
 local App <const> = App -- 11
@@ -2504,6 +2504,10 @@ do -- 1298
 		end -- 1513
 	end) -- 1310
 end -- 1298
+local _anon_func_10 = function() -- 1719
+	local _val_0 = App.platform -- 1719
+	return "Windows" == _val_0 or "macOS" == _val_0 or "Linux" == _val_0 -- 1719
+end -- 1719
 do -- 1526
 	local MaxWidth <const> = 960 -- 1527
 	local toolOpen = false -- 1529
@@ -2767,7 +2771,7 @@ do -- 1526
 													enterDemoEntry(game) -- 1718
 												end -- 1715
 											end -- 1687
-											if App.platform == "Windows" and not windowsExport.busy and not game.needsBuild then -- 1719
+											if _anon_func_10() and not windowsExport.busy and not game.needsBuild then -- 1719
 												if Button(tostring(zh and "导出 Windows ZIP" or "Export Windows ZIP") .. "##" .. tostring(fileName), Vec2(-1, 30)) then -- 1720
 													allEntries.exportWindowsGame(game, displayName) -- 1721
 												end -- 1720
@@ -2989,11 +2993,11 @@ if not (App.platform == "Emscripten") then -- 1825
 		end) -- 1831
 	end -- 1830
 end -- 1825
-local _anon_func_10 = function(saved) -- 1856
+local _anon_func_11 = function(saved) -- 1856
 	local _val_0 = saved.kind -- 1856
 	return "local" == _val_0 or "discover" == _val_0 -- 1856
 end -- 1856
-local _anon_func_11 = function(saved) -- 1860
+local _anon_func_12 = function(saved) -- 1860
 	local _val_0 = saved.activeTab -- 1860
 	return "local" == _val_0 or "discover" == _val_0 -- 1860
 end -- 1860
@@ -3039,7 +3043,7 @@ startMobileUI = function() -- 1835
 		if not (ok and type(saved) == "table") then -- 1855
 			return -- 1855
 		end -- 1855
-		if type(saved.id) == "string" and _anon_func_10(saved) then -- 1856
+		if type(saved.id) == "string" and _anon_func_11(saved) then -- 1856
 			local state = { -- 1857
 				activeTab = saved.kind -- 1857
 			} -- 1857
@@ -3047,7 +3051,7 @@ startMobileUI = function() -- 1835
 			return state -- 1859
 		end -- 1856
 		local state = { -- 1860
-			activeTab = _anon_func_11(saved) and saved.activeTab or "local" -- 1860
+			activeTab = _anon_func_12(saved) and saved.activeTab or "local" -- 1860
 		} -- 1860
 		local _list_0 = { -- 1861
 			"local", -- 1861

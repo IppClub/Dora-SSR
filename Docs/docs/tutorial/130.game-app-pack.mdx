@@ -43,20 +43,20 @@ See [Web IDE common operations](./18.web-ide.mdx#export-a-project) for the forma
 
 ## Export a native game from Dora
 
-- **Web IDE**. Right-click the project folder and select **Export**, or open a project file and use the toolbar's **Export** button. Choose **Export Windows ZIP** when the engine runs on Windows or **Export APK** when it runs on Android. Complete APK signing and saving on the Android device running Dora.
-- **Windows**. In the Classic UI project list, select **Export Windows ZIP** for a runnable project and choose a destination folder. Players extract the entire ZIP and open the game’s EXE. Keep the packaged DLLs and assets beside the EXE.
-- **Android**. Install the complete Dora APK. In Dora Go, choose **Manage → Share game → Export APK** on the game’s card. Confirm the package name and version, then set a signing password or import an existing PKCS#12 signing key. Save or share the APK when export finishes.
+- **Web IDE**. Right-click the project folder and select **Export**, or open a project file and use the toolbar's **Export** button. Choose **Export Windows ZIP** or **Export APK** on any native Dora host. Dora downloads and caches a matching template when the host needs one. On Android, sign and save the APK in the native dialog. On other systems, sign and save it in the browser.
+- **Desktop**. In the Classic UI project list, select **Export Windows ZIP** for a runnable project and choose a destination folder. Players extract the entire ZIP and open the game’s EXE. Keep the packaged DLLs and assets beside the EXE.
+- **Android**. In Dora Go, choose **Manage → Share game → Export APK** on the game’s card. Confirm the package name and version, then set a signing password or import an existing PKCS#12 signing key. Save or share the APK when export finishes.
 - Build TypeScript or TSX games in Dora before exporting. Back up the Android signing key from the export dialog and keep its password. When moving to another device, import the key and use the same package name and a higher version code to update existing installations.
 
-To customize the Android launcher icon, place `icon.png` in the project root next to the `init` script. A square 512 × 512 PNG works well. Dora preserves transparency and centers non-square images without cropping. If the file is absent, the exported APK uses the system’s generic Android app icon.
+To customize the launcher icon when exporting from the native dialog on Android, place `icon.png` in the project root next to the `init` script. A square 512 × 512 PNG works well. Dora preserves transparency and centers non-square images without cropping. If the file is absent, the exported APK uses the system’s generic Android app icon.
 
-Dora scans the project for Godot assets and API references when exporting an Android APK or Windows ZIP. When it detects either one, it includes the platform's Godot native library. If the library is missing, use a Dora installation with Godot for the export.
+Dora scans the project for Godot assets and API references when exporting an Android APK or Windows ZIP. When it detects either one, it includes the platform's Godot native library. If the library is missing, use a Dora export template that includes Godot.
 
 Dora's built-in GeneralUserGS SoundFont is used for asset generation. Add the generated audio files to your project before exporting the game.
 
 Build Wa projects before exporting to Android or Windows. Game packages run the compiled Wasm files without bundling the Wa compiler, formatter, or Git tools.
 
-APK exports include all CPU architectures (ABIs) available in the installed Dora APK by default. Deselect architectures you do not need to make the APK smaller. Keep at least one ABI that your players' devices support.
+APK exports include all CPU architectures (ABIs) available in the Android template by default. In the native dialog on Android, deselect architectures you do not need to make the APK smaller. Keep at least one ABI that your players' devices support.
 
 If you can no longer use the signing key and want to distribute a separate app, select **Clear key** next to **Back up key** at the bottom left of the APK export dialog. If the local key is missing, look next to **Import key**. After you confirm, Dora deletes the locally stored key and suggests a new package name. An APK signed with a newly generated key cannot update existing installations of the old app.
 

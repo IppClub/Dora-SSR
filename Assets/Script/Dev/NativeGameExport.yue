@@ -1,11 +1,9 @@
-import "Dora" as :App, :Content, :Path
-import "Script.Dev.Mobile.Package" as :packageFileAllowed
+import "Dora" as :App, :Content, :Path, :wait
+import "Script.Dev.ExportPolicy" as :projectFileAllowed
+import "Script.Dev.GodotDependency" as :needsGodot
 
 runtimeRoots = {"Audio", "Font", "Image", "Shader", "Script/Lib", "LICENSES", "GodotRuntimeNotices", "gamecontrollerdb.txt"}
 entryExtensions = {"lua", "yue", "tl", "xml", "wasm"}
-
--- Remix metadata is only needed when sharing an editable project.
-nativeFileAllowed = (file) -> file\sub(1, 1) != "." and packageFileAllowed file
 
 fail = (zh, en) -> error App.locale\match("^zh") and zh or en, 0
 
@@ -13,6 +11,13 @@ copyFile = (src, dst) ->
 	Content\mkdir Path\getPath dst
 	unless Content\copyAsync src, dst
 		fail "复制失败：#{src}", "Could not copy: #{src}"
+
+copyProject = (root, folder) ->
+	-- Analyze the published files, without hidden workspace or Remix metadata.
+	for file in *Content\getAllFiles root
+		if projectFileAllowed file
+			copyFile Path(root, file), Path(folder, file)
+	needsGodot folder
 
 projectId = (root) ->
 	metadata = Path root, ".dora"
@@ -41,18 +46,50 @@ if type(run) == "function" then run() end
 
 export prepareGame = (root, fileName, assets) ->
 	entry = Path\getRelative(fileName, root)\gsub "\\", "/"
-	unless nativeFileAllowed entry
+	unless projectFileAllowed entry
 		fail "游戏入口必须在项目内", "The game entry must be inside the project"
 	runnable = for ext in *entryExtensions
 		break true if Content\exist Path(root, "#{entry}.#{ext}")
 	unless runnable
 		fail "请先在 IDE 中编译游戏", "Build the game in the IDE first"
-	for file in *Content\getAllFiles root
-		if nativeFileAllowed file
-			copyFile Path(root, file), Path(assets, "Game", file)
+	useGodot = copyProject root, Path(assets, "Game")
 	Content\mkdir Path assets, "Script"
 	unless Content\save Path(assets, "Script", "init.lua"), bootstrap(entry)
 		fail "无法写入游戏入口", "Could not write the game entry"
+
+	useGodot
+
+export snapshotWeb = (root, archive) ->
+	ok, result = pcall ->
+		stage = Path Content.appPath, ".native-export", "web-#{os.time!}-#{App.rand}"
+		unless Content\mkdir stage
+			fail "无法创建导出目录", "Could not create the export directory"
+		close _ = <close>: -> Content\remove stage
+		useGodot = copyProject root, stage
+		unless Content\zipAsync stage, archive
+			fail "无法打包游戏资源", "Could not package game assets"
+		useGodot
+	return success: true, needsGodot: result if ok
+	success: false, message: tostring result
+
+export resolveTemplate = (target) ->
+	:resolveExportTemplate = require "Script.Dev.ExportTemplate"
+	local result
+	resolveExportTemplate target, (value) -> result = value
+	wait -> result ~= nil
+	error result.message, 0 unless result.folder
+	result.folder
+
+windowsGodotLibrary = "dora_godot.dll"
+
+windowsRuntimeSource = (useGodot) ->
+	if App.platform == "Windows"
+		exe = App.executablePath
+		godot = Path Path\getPath(exe), windowsGodotLibrary
+		if not useGodot or (Content\exist(godot) and not Content\isdir(godot))
+			return Content.assetPath, exe
+	folder = resolveTemplate "windows-x64"
+	folder, Path(folder, "Dora.exe")
 
 export exportWindows = (root, fileName, title, destination) ->
 	name = title\gsub('[\\/:*?"<>|%c]', "_")\match "^%s*(.-)%s*$"
@@ -65,7 +102,6 @@ export exportWindows = (root, fileName, title, destination) ->
 	while Content\exist archive
 		archive = Path destination, "#{name}-Windows-#{suffix}.zip"
 		suffix += 1
-	assetRoot = Content.assetPath
 	cache = Path Content.appPath, ".native-export"
 	stage = Path cache, "stage-#{os.time!}-#{App.rand}"
 	assets = Path stage, "game"
@@ -74,14 +110,14 @@ export exportWindows = (root, fileName, title, destination) ->
 		id = projectId root
 		unless Content\mkdir assets
 			fail "无法创建导出目录", "Could not create the export directory"
-		prepareGame root, fileName, assets
-		exe = App.executablePath
-		import "Script.Dev.GodotDependency" as :needsGodot
-		if needsGodot Path(assets, "Game")
-			godot = Path Path\getPath(exe), "dora_godot.dll"
+		useGodot = prepareGame root, fileName, assets
+		assetRoot, exe = windowsRuntimeSource useGodot
+		-- Package game runtime dependencies explicitly for both sources.
+		if useGodot
+			godot = Path Path\getPath(exe), windowsGodotLibrary
 			unless Content\exist(godot) and not Content\isdir(godot)
 				fail "此项目需要 Godot，请使用包含 Godot 运行库的 Windows 版 Dora 导出", "Use a Windows build of Dora with Godot to export this project."
-			copyFile godot, Path(assets, "dora_godot.dll")
+			copyFile godot, Path(assets, windowsGodotLibrary)
 		for item in *runtimeRoots
 			src = Path assetRoot, item
 			if Content\isdir src
@@ -110,8 +146,13 @@ export exportAndroid = (root, fileName, title) ->
 	success, result = pcall ->
 		unless Content\mkdir stage
 			fail "无法创建导出目录", "Could not create the export directory"
-		prepareGame root, fileName, Path(stage, "assets")
-		unless dispatch stage, projectId(root), title
+		useGodot = prepareGame root, fileName, Path(stage, "assets")
+		hasTemplate = require "dora.android_has_export_template"
+		unless hasTemplate useGodot
+			version = App.version\match "^(%d+%.%d+%.%d+)%.%d+$"
+			template = resolveTemplate "android"
+			copyFile Path(template, "dora-ssr-v#{version}-android.apk"), Path(stage, "template.apk")
+		unless dispatch stage, projectId(root), title, useGodot
 			fail "无法打开 APK 导出", "Could not open APK export"
 	unless success
 		Content\remove stage if Content\exist stage

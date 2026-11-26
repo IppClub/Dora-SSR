@@ -15,6 +15,8 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
+import android.content.res.Resources;
 import android.net.Uri;
 import android.text.InputType;
 import android.util.AtomicFile;
@@ -56,7 +58,7 @@ final class GameExportDialog {
 		settings = activity.getSharedPreferences("game-export", Activity.MODE_PRIVATE);
 	}
 
-	void open(String path, String id, String title) {
+	void open(String path, String id, String title, boolean needsGodot) {
 		File stage;
 		try {
 			stage = new File(path).getCanonicalFile();
@@ -69,16 +71,16 @@ final class GameExportDialog {
 			activity.showToast(text("无法读取导出项目", "Could not read the game snapshot"));
 			return;
 		}
-		String[] splits = activity.getApplicationInfo().splitSourceDirs;
-		if (active != null || (splits != null && splits.length > 0)) {
+		if (active != null) {
 			removeStage(stage);
-			activity.showToast(active != null ? text("正在处理另一项导出", "An export is already in progress")
-					: text("请使用完整安装包版本的 Dora 导出", "Install the complete Dora APK to export games"));
+			activity.showToast(text("正在处理另一项导出", "An export is already in progress"));
 			return;
 		}
+		File downloaded = new File(stage, "template.apk");
+		File template = downloaded.isFile() ? downloaded : new File(activity.getApplicationInfo().sourceDir);
 		Set<String> availableAbis;
 		try {
-			availableAbis = GameApk.availableAbis(new File(activity.getApplicationInfo().sourceDir));
+			availableAbis = GameApk.availableAbis(template);
 		} catch (IOException error) {
 			removeStage(stage);
 			activity.showToast(text("无法读取 Dora APK 的架构", "Could not read the ABIs from this Dora APK."));
@@ -89,7 +91,7 @@ final class GameExportDialog {
 			activity.showToast(text("请使用完整安装包版本的 Dora 导出", "Install the complete Dora APK to export games"));
 			return;
 		}
-		active = new Request(stage, id, title, availableAbis);
+		active = new Request(stage, id, title, template, availableAbis, needsGodot);
 		if (settings.getBoolean(id + ".resetSigning", false)) {
 			clearSigning(active);
 		} else {
@@ -326,7 +328,7 @@ final class GameExportDialog {
 				}
 				activity.runOnUiThread(() -> {
 					if (active == request && !activity.isFinishing()) {
-						active = new Request(request.stage, request.id, request.title, request.availableAbis);
+						active = new Request(request.stage, request.id, request.title, request.template, request.availableAbis, request.needsGodot);
 						active.selectedAbis.retainAll(request.selectedAbis);
 						showOptions(active);
 					}
@@ -373,9 +375,21 @@ final class GameExportDialog {
 				}
 				File unsigned = new File(request.stage, "unsigned.apk");
 				File signed = new File(request.stage, "signed.apk");
-				GameApk.export(new File(activity.getApplicationInfo().sourceDir), activity.getResources(), new File(request.stage, "assets"),
-						unsigned, signed, activity.getPackageName(), request.packageName, request.title,
-							versionCode, request.version, request.selectedAbis, store, password);
+				Resources resources = activity.getResources();
+				String templatePackage = activity.getPackageName();
+				if (!request.template.getAbsolutePath().equals(activity.getApplicationInfo().sourceDir)) {
+					PackageInfo info = activity.getPackageManager().getPackageArchiveInfo(request.template.getAbsolutePath(), 0);
+					if (info == null || info.applicationInfo == null) throw new IOException("Invalid Dora Android template");
+					info.applicationInfo.sourceDir = request.template.getAbsolutePath();
+					info.applicationInfo.publicSourceDir = request.template.getAbsolutePath();
+					resources = activity.getPackageManager().getResourcesForApplication(info.applicationInfo);
+					templatePackage = info.packageName;
+				}
+				try (InputStream policy = activity.getAssets().open("Script/Dev/ExportPolicy.json")) {
+					GameApk.export(request.template, resources, new File(request.stage, "assets"),
+							unsigned, signed, templatePackage, request.packageName, request.title,
+							versionCode, request.version, request.selectedAbis, store, password, request.needsGodot, policy);
+				}
 				if (!key.isFile()) {
 					FileOutputStream stream = persistentKey.startWrite();
 					try {
@@ -462,6 +476,8 @@ final class GameExportDialog {
 		final File stage;
 		final String id;
 		final String title;
+		final File template;
+		final boolean needsGodot;
 		final Set<String> availableAbis;
 		final Set<String> selectedAbis;
 		String packageName;
@@ -469,10 +485,12 @@ final class GameExportDialog {
 		String versionCode;
 		Uri importedKey;
 
-		Request(File stage, String id, String title, Set<String> availableAbis) {
+		Request(File stage, String id, String title, File template, Set<String> availableAbis, boolean needsGodot) {
 			this.stage = stage;
 			this.id = id;
 			this.title = title;
+			this.template = template;
+			this.needsGodot = needsGodot;
 			this.availableAbis = availableAbis;
 			selectedAbis = new LinkedHashSet<>(availableAbis);
 			packageName = settings.getString(id + ".package",

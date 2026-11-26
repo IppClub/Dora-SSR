@@ -1,4 +1,4 @@
--- [yue]: Dev/WebServer.yue
+-- [yue]: Script/Dev/WebServer.yue
 local _module_0 = nil -- 1
 local _ENV = Dora -- 9
 local HttpServer <const> = HttpServer -- 10
@@ -39,6 +39,7 @@ local next <const> = next -- 10
 local Log <const> = Log -- 10
 local yarncompile <const> = yarncompile -- 10
 local once <const> = once -- 10
+local error <const> = error -- 10
 HttpServer:stop() -- 12
 HttpServer.wwwPath = Path(Content.appPath, ".www") -- 14
 HttpServer.authToken = "" -- 16
@@ -304,7 +305,7 @@ local invalidArguments = { -- 131
 	success = false, -- 131
 	message = "invalid arguments" -- 131
 } -- 131
-local nativeExportFormat -- 132
+local nativeExportFormats, nativeExportInfo -- 132
 HttpServer:post("/agent/project-root", function(req) -- 133
 	do -- 134
 		local _type_0 = type(req) -- 134
@@ -329,13 +330,7 @@ HttpServer:post("/agent/project-root", function(req) -- 133
 			if path ~= nil and isDir ~= nil then -- 134
 				local projectRoot, err = getProjectRootFromPath(path, isDir) -- 135
 				if projectRoot then -- 135
-					return { -- 136
-						success = true, -- 136
-						found = true, -- 136
-						projectRoot = projectRoot, -- 136
-						title = Path:getFilename(projectRoot), -- 136
-						nativeExport = nativeExportFormat(projectRoot) -- 136
-					} -- 136
+					return nativeExportInfo(projectRoot) -- 136
 				else -- 138
 					return { -- 138
 						success = true, -- 138
@@ -6063,49 +6058,60 @@ minifyAsync = function(sourcePath, minifyPath) -- 2431
 	return files -- 2467
 end -- 2431
 local zipping = false -- 2469
-HttpServer:postSchedule("/zip", function(req) -- 2471
-	do -- 2472
-		local _type_0 = type(req) -- 2472
-		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 2472
-		if _tab_0 then -- 2472
-			local path -- 2472
-			do -- 2472
-				local _obj_0 = req.body -- 2472
-				local _type_1 = type(_obj_0) -- 2472
-				if "table" == _type_1 or "userdata" == _type_1 then -- 2472
-					path = _obj_0.path -- 2472
+HttpServer:postSchedule("/zip", function(req) -- 2470
+	do -- 2471
+		local _type_0 = type(req) -- 2471
+		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 2471
+		if _tab_0 then -- 2471
+			local path -- 2471
+			do -- 2471
+				local _obj_0 = req.body -- 2471
+				local _type_1 = type(_obj_0) -- 2471
+				if "table" == _type_1 or "userdata" == _type_1 then -- 2471
+					path = _obj_0.path -- 2471
+				end -- 2471
+			end -- 2471
+			local zipFile -- 2471
+			do -- 2471
+				local _obj_0 = req.body -- 2471
+				local _type_1 = type(_obj_0) -- 2471
+				if "table" == _type_1 or "userdata" == _type_1 then -- 2471
+					zipFile = _obj_0.zipFile -- 2471
+				end -- 2471
+			end -- 2471
+			local obfuscated -- 2471
+			do -- 2471
+				local _obj_0 = req.body -- 2471
+				local _type_1 = type(_obj_0) -- 2471
+				if "table" == _type_1 or "userdata" == _type_1 then -- 2471
+					obfuscated = _obj_0.obfuscated -- 2471
+				end -- 2471
+			end -- 2471
+			local publishWeb -- 2471
+			do -- 2471
+				local _obj_0 = req.body -- 2471
+				local _type_1 = type(_obj_0) -- 2471
+				if "table" == _type_1 or "userdata" == _type_1 then -- 2471
+					publishWeb = _obj_0.publishWeb -- 2471
+				end -- 2471
+			end -- 2471
+			if path ~= nil and zipFile ~= nil and obfuscated ~= nil and publishWeb ~= nil then -- 2471
+				if zipping then -- 2472
+					goto failed -- 2472
 				end -- 2472
-			end -- 2472
-			local zipFile -- 2472
-			do -- 2472
-				local _obj_0 = req.body -- 2472
-				local _type_1 = type(_obj_0) -- 2472
-				if "table" == _type_1 or "userdata" == _type_1 then -- 2472
-					zipFile = _obj_0.zipFile -- 2472
-				end -- 2472
-			end -- 2472
-			local obfuscated -- 2472
-			do -- 2472
-				local _obj_0 = req.body -- 2472
-				local _type_1 = type(_obj_0) -- 2472
-				if "table" == _type_1 or "userdata" == _type_1 then -- 2472
-					obfuscated = _obj_0.obfuscated -- 2472
-				end -- 2472
-			end -- 2472
-			if path ~= nil and zipFile ~= nil and obfuscated ~= nil then -- 2472
-				if zipping then -- 2473
-					goto failed -- 2473
-				end -- 2473
-				zipping = true -- 2474
-				local _ <close> = setmetatable({ }, { -- 2475
-					__close = function() -- 2475
-						zipping = false -- 2475
-					end -- 2475
-				}) -- 2475
-				if not Content:exist(path) then -- 2476
-					goto failed -- 2476
-				end -- 2476
-				Content:mkdir(Path:getPath(zipFile)) -- 2477
+				zipping = true -- 2473
+				local _ <close> = setmetatable({ }, { -- 2474
+					__close = function() -- 2474
+						zipping = false -- 2474
+					end -- 2474
+				}) -- 2474
+				if not Content:exist(path) then -- 2475
+					goto failed -- 2475
+				end -- 2475
+				Content:mkdir(Path:getPath(zipFile)) -- 2476
+				if publishWeb == true then -- 2477
+					return (require("Script.Dev.NativeGameExport")).snapshotWeb(path, zipFile) -- 2477
+				end -- 2477
 				if obfuscated then -- 2478
 					local scriptPath = Path(Content.writablePath, ".download", ".script") -- 2479
 					local obfuscatedPath = Path(Content.writablePath, ".download", ".obfuscated") -- 2480
@@ -6156,14 +6162,14 @@ HttpServer:postSchedule("/zip", function(req) -- 2471
 						end) -- 2500
 					} -- 2500
 				end -- 2478
-			end -- 2472
-		end -- 2472
-	end -- 2472
+			end -- 2471
+		end -- 2471
+	end -- 2471
 	::failed:: -- 2502
-	return { -- 2471
-		success = false -- 2471
-	} -- 2471
-end) -- 2471
+	return { -- 2470
+		success = false -- 2470
+	} -- 2470
+end) -- 2470
 HttpServer:postSchedule("/unzip", function(req) -- 2504
 	do -- 2505
 		local _type_0 = type(req) -- 2505
@@ -8050,7 +8056,7 @@ Director.systemScheduler:schedule(once(function() -- 3248
 		return print("8866 Port not available!") -- 3299
 	end -- 3292
 end)) -- 3248
-nativeExportFormat = function(root) -- 3301
+nativeExportFormats = function(root) -- 3301
 	local relative = relativeToRoot(root, Content.writablePath) -- 3302
 	if not (relative and relative ~= "") then -- 3303
 		return nil -- 3303
@@ -8060,111 +8066,167 @@ nativeExportFormat = function(root) -- 3301
 			return nil -- 3306
 		end -- 3306
 	end -- 3305
-	local _exp_0 = App.platform -- 3307
-	if "Windows" == _exp_0 then -- 3308
-		return "windows" -- 3308
-	elseif "Android" == _exp_0 then -- 3309
-		return "android" -- 3309
+	if App.platform == "Emscripten" then -- 3307
+		return nil -- 3307
 	end -- 3307
+	return { -- 3308
+		"windows", -- 3308
+		"android" -- 3308
+	} -- 3308
 end -- 3301
-local nativeExporting = false -- 3311
-local _anon_func_19 = function(file) -- 3321
-	local _val_0 = Path:getExt(file) -- 3321
-	return "lua" == _val_0 or "yue" == _val_0 or "tl" == _val_0 or "xml" == _val_0 or "wasm" == _val_0 -- 3321
-end -- 3321
-HttpServer:postSchedule("/native-game/export", function(req) -- 3312
-	do -- 3313
-		local _type_0 = type(req) -- 3313
-		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 3313
-		if _tab_0 then -- 3313
-			local path -- 3313
-			do -- 3313
-				local _obj_0 = req.body -- 3313
-				local _type_1 = type(_obj_0) -- 3313
-				if "table" == _type_1 or "userdata" == _type_1 then -- 3313
-					path = _obj_0.path -- 3313
-				end -- 3313
-			end -- 3313
-			local format -- 3313
-			do -- 3313
-				local _obj_0 = req.body -- 3313
-				local _type_1 = type(_obj_0) -- 3313
-				if "table" == _type_1 or "userdata" == _type_1 then -- 3313
-					format = _obj_0.format -- 3313
-				end -- 3313
-			end -- 3313
-			if path ~= nil and format ~= nil then -- 3313
-				if not (type(path) == "string" and Content:isAbsolutePath(path)) then -- 3314
-					return invalidArguments -- 3314
-				end -- 3314
-				if not (nativeExportFormat(path) == format and isProjectRootDir(path)) then -- 3315
-					return invalidArguments -- 3315
-				end -- 3315
-				local zh = App.locale:match("^zh") -- 3316
-				if nativeExporting then -- 3317
-					return { -- 3318
-						success = false, -- 3318
-						message = zh and "正在导出游戏" or "A game export is in progress" -- 3318
-					} -- 3318
-				end -- 3317
-				local entry -- 3319
-				local _list_0 = Content:getFiles(path) -- 3320
-				for _index_0 = 1, #_list_0 do -- 3320
-					local file = _list_0[_index_0] -- 3320
-					if Path:getName(file):lower() == "init" and _anon_func_19(file) then -- 3321
-						entry = Path(path, Path:replaceExt(file, "")) -- 3322
-						break -- 3323
-					end -- 3321
-				end -- 3320
-				if not entry then -- 3324
-					return { -- 3325
-						success = false, -- 3325
-						message = zh and "请先在 IDE 中编译游戏" or "Build the game in the IDE first" -- 3325
-					} -- 3325
-				end -- 3324
-				nativeExporting = true -- 3326
-				local _ <close> = setmetatable({ }, { -- 3327
-					__close = function() -- 3327
-						nativeExporting = false -- 3327
-					end -- 3327
-				}) -- 3327
-				local title = Path:getFilename(path) -- 3328
-				local exporter = require("Script.Dev.NativeGameExport") -- 3329
-				if format == "android" then -- 3330
-					local ok, result = pcall(exporter.exportAndroid, path, entry, title) -- 3331
-					if ok then -- 3332
-						return { -- 3332
-							success = true -- 3332
-						} -- 3332
-					end -- 3332
-					return { -- 3333
-						success = false, -- 3333
-						message = tostring(result) -- 3333
-					} -- 3333
-				end -- 3330
-				local newId = require("dora.new_game_id") -- 3334
-				local destination = Path(Content.writablePath, ".download", "native-" .. tostring(newId())) -- 3335
-				if not Content:mkdir(destination) then -- 3336
-					return { -- 3337
-						success = false, -- 3337
-						message = zh and "无法创建导出目录" or "Could not create the export directory" -- 3337
-					} -- 3337
-				end -- 3336
-				local ok, result = pcall(exporter.exportWindows, path, entry, title, destination) -- 3338
-				if ok then -- 3339
-					return { -- 3339
-						success = true, -- 3339
-						archive = result -- 3339
-					} -- 3339
-				end -- 3339
-				Content:remove(destination) -- 3340
-				return { -- 3341
-					success = false, -- 3341
-					message = tostring(result) -- 3341
-				} -- 3341
-			end -- 3313
+nativeExportInfo = function(projectRoot) -- 3310
+	local formats = nativeExportFormats(projectRoot) -- 3311
+	local legacy -- 3312
+	if formats then -- 3312
+		local _exp_0 = App.platform -- 3313
+		if "Windows" == _exp_0 then -- 3314
+			legacy = "windows" -- 3314
+		elseif "Android" == _exp_0 then -- 3315
+			legacy = "android" -- 3315
 		end -- 3313
-	end -- 3313
-	return invalidArguments -- 3312
-end) -- 3312
+	end -- 3312
+	return { -- 3316
+		success = true, -- 3316
+		found = true, -- 3316
+		projectRoot = projectRoot, -- 3316
+		title = Path:getFilename(projectRoot), -- 3316
+		nativeExports = formats, -- 3316
+		nativeExport = legacy, -- 3316
+		androidExportOnDevice = App.platform == "Android" -- 3316
+	} -- 3316
+end -- 3310
+local nativeExporting = false -- 3319
+local _anon_func_19 = function(format, formats) -- 3324
+	for _index_0 = 1, #formats do -- 3324
+		if formats[_index_0] == format then -- 3324
+			return true -- 3324
+		end -- 3324
+	end -- 3324
+	return false -- 3324
+end -- 3324
+local _anon_func_20 = function(file) -- 3330
+	local _val_0 = Path:getExt(file) -- 3330
+	return "lua" == _val_0 or "yue" == _val_0 or "tl" == _val_0 or "xml" == _val_0 or "wasm" == _val_0 -- 3330
+end -- 3330
+HttpServer:postSchedule("/native-game/export", function(req) -- 3320
+	do -- 3321
+		local _type_0 = type(req) -- 3321
+		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 3321
+		if _tab_0 then -- 3321
+			local path -- 3321
+			do -- 3321
+				local _obj_0 = req.body -- 3321
+				local _type_1 = type(_obj_0) -- 3321
+				if "table" == _type_1 or "userdata" == _type_1 then -- 3321
+					path = _obj_0.path -- 3321
+				end -- 3321
+			end -- 3321
+			local format -- 3321
+			do -- 3321
+				local _obj_0 = req.body -- 3321
+				local _type_1 = type(_obj_0) -- 3321
+				if "table" == _type_1 or "userdata" == _type_1 then -- 3321
+					format = _obj_0.format -- 3321
+				end -- 3321
+			end -- 3321
+			if path ~= nil and format ~= nil then -- 3321
+				if not (type(path) == "string" and Content:isAbsolutePath(path)) then -- 3322
+					return invalidArguments -- 3322
+				end -- 3322
+				local formats = nativeExportFormats(path) -- 3323
+				if not (formats and (#formats > 0 and _anon_func_19(format, formats)) and isProjectRootDir(path)) then -- 3324
+					return invalidArguments -- 3324
+				end -- 3324
+				local zh = App.locale:match("^zh") -- 3325
+				if nativeExporting then -- 3326
+					return { -- 3327
+						success = false, -- 3327
+						message = zh and "正在导出游戏" or "A game export is in progress" -- 3327
+					} -- 3327
+				end -- 3326
+				local entry -- 3328
+				local _list_0 = Content:getFiles(path) -- 3329
+				for _index_0 = 1, #_list_0 do -- 3329
+					local file = _list_0[_index_0] -- 3329
+					if Path:getName(file):lower() == "init" and _anon_func_20(file) then -- 3330
+						entry = Path(path, Path:replaceExt(file, "")) -- 3331
+						break -- 3332
+					end -- 3330
+				end -- 3329
+				if not entry then -- 3333
+					return { -- 3334
+						success = false, -- 3334
+						message = zh and "请先在 IDE 中编译游戏" or "Build the game in the IDE first" -- 3334
+					} -- 3334
+				end -- 3333
+				nativeExporting = true -- 3335
+				local _ <close> = setmetatable({ }, { -- 3336
+					__close = function() -- 3336
+						nativeExporting = false -- 3336
+					end -- 3336
+				}) -- 3336
+				local title = Path:getFilename(path) -- 3337
+				local exporter = require("Script.Dev.NativeGameExport") -- 3338
+				if format == "android" and App.platform == "Android" then -- 3339
+					local ok, result = pcall(exporter.exportAndroid, path, entry, title) -- 3340
+					if ok then -- 3341
+						return { -- 3341
+							success = true -- 3341
+						} -- 3341
+					end -- 3341
+					return { -- 3342
+						success = false, -- 3342
+						message = tostring(result) -- 3342
+					} -- 3342
+				end -- 3339
+				local newId = require("dora.new_game_id") -- 3343
+				local destination = Path(Content.writablePath, ".download", "native-" .. tostring(newId())) -- 3344
+				if not Content:mkdir(destination) then -- 3345
+					return { -- 3346
+						success = false, -- 3346
+						message = zh and "无法创建导出目录" or "Could not create the export directory" -- 3346
+					} -- 3346
+				end -- 3345
+				local ok, result = pcall(function() -- 3347
+					if format == "windows" then -- 3348
+						local archive = exporter.exportWindows(path, entry, title, destination) -- 3349
+						return { -- 3350
+							success = true, -- 3350
+							archive = archive -- 3350
+						} -- 3350
+					end -- 3348
+					local version = App.version:match("^(%d+%.%d+%.%d+)%.%d+$") -- 3351
+					local templateRoot = exporter.resolveTemplate("android") -- 3352
+					local apk = Path(destination, "template.apk") -- 3353
+					local template = Path(templateRoot, "dora-ssr-v" .. tostring(version) .. "-android.apk") -- 3354
+					if not Content:copyAsync(template, apk) then -- 3355
+						error(zh and "无法准备 Android 模板" or "Could not prepare the Android template", 0) -- 3356
+					end -- 3355
+					local assets = Path(destination, "assets") -- 3357
+					local needsGodot = exporter.prepareGame(path, entry, assets) -- 3358
+					local archive = Path(destination, "assets.zip") -- 3359
+					if not Content:zipAsync(assets, archive) then -- 3360
+						error(zh and "无法打包游戏资源" or "Could not package game assets", 0) -- 3361
+					end -- 3360
+					Content:remove(assets) -- 3362
+					return { -- 3363
+						success = true, -- 3363
+						archive = archive, -- 3363
+						apk = apk, -- 3363
+						needsGodot = needsGodot -- 3363
+					} -- 3363
+				end) -- 3347
+				if ok then -- 3364
+					return result -- 3364
+				end -- 3364
+				Content:remove(destination) -- 3365
+				return { -- 3366
+					success = false, -- 3366
+					message = tostring(result) -- 3366
+				} -- 3366
+			end -- 3321
+		end -- 3321
+	end -- 3321
+	return invalidArguments -- 3320
+end) -- 3320
 return _module_0 -- 1

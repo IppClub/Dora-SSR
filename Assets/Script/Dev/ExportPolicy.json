@@ -1,0 +1,15 @@
+{
+  "projectFiles": {
+    "excludedNames": ["node_modules", "__macosx", "credentials.json", "config.db"],
+    "excludedSuffixes": [".log"],
+    "remixFiles": [".dora/repo.json", ".dora/banner.jpg", ".dora/banner.png"]
+  },
+  "androidTemplate": {
+    "excludedPaths": ["assets/Script/init.lua", "assets/Script/init.yue", "assets/Audio/GeneralUserGS.sf3", "assets/Image/Mobile/dora-remix-states.png", "stamp-cert-sha256"],
+    "excludedDirectories": ["assets/Game/", "assets/Script/Dev/", "assets/Script/Test/", "assets/Script/Tools/", "assets/dora-wa/", "assets/Doc/", "assets/www/"],
+    "excludedLibraries": ["libgojni.so"],
+    "signatureNames": ["manifest.mf"],
+    "signaturePrefixes": ["sig-"],
+    "signatureSuffixes": [".sf", ".rsa", ".dsa", ".ec"]
+  }
+}

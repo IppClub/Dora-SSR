@@ -1716,7 +1716,7 @@ entryWindow = do
 								ImGui.TextDisabled zh and "请先在 IDE 中编译项目" or "Build in the IDE first"
 							elseif Button "#{zh and "开始测试" or "Game Test"}###{fileName}", Vec2 -1, 40
 								enterDemoEntry game
-						if App.platform == "Windows" and not windowsExport.busy and not game.needsBuild
+						if App.platform in ["Windows", "macOS", "Linux"] and not windowsExport.busy and not game.needsBuild
 							if Button "#{zh and "导出 Windows ZIP" or "Export Windows ZIP"}###{fileName}", Vec2 -1, 30
 								allEntries.exportWindowsGame game, displayName
 						if #tests == 0 and #examples == 0
