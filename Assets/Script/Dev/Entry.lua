@@ -1,4 +1,4 @@
--- [yue]: Dev/Entry.yue
+-- [yue]: Dev\Entry.yue
 local _module_0 = { } -- 1
 local _ENV = Dora(Dora.ImGui) -- 9
 local App <const> = App -- 11
@@ -455,6 +455,7 @@ local allEntries = { -- 304
 	hasDirty = false, -- 304
 	runId = 0 -- 304
 } -- 304
+local projectCoverPaths = json.decode(Content:load(Path(Content.assetPath, "Script", "Dev", "ProjectCoverPaths.json"))) -- 305
 local _anon_func_1 = function(file) -- 350
 	local _val_0 = Path:getExt(file) -- 350
 	return "ts" == _val_0 or "tsx" == _val_0 -- 350
@@ -557,27 +558,20 @@ allEntries.scanDir = function(path, dir, noPreview) -- 306
 							_val_0 = nil -- 353
 							break -- 353
 						end -- 353
-						local f = Path(projectPath, ".dora", "banner.jpg") -- 354
-						if Content:exist(f) then -- 355
-							_val_0 = f -- 355
-							break -- 355
+						local projectCover = nil -- 354
+						for _index_1 = 1, #projectCoverPaths do -- 355
+							local candidate = projectCoverPaths[_index_1] -- 355
+							local candidatePath = Path(projectPath, candidate) -- 356
+							if Content:exist(candidatePath) then -- 357
+								projectCover = candidatePath -- 358
+								break -- 359
+							end -- 357
 						end -- 355
-						f = Path(projectPath, ".dora", "banner.png") -- 356
-						if Content:exist(f) then -- 357
-							_val_0 = f -- 357
-							break -- 357
-						end -- 357
-						f = Path(projectPath, "Image", "banner.jpg") -- 358
-						if Content:exist(f) then -- 359
-							_val_0 = f -- 359
-							break -- 359
-						end -- 359
-						f = Path(projectPath, "Image", "banner.png") -- 360
-						if Content:exist(f) then -- 361
-							_val_0 = f -- 361
-							break -- 361
-						end -- 361
-						f = Path(Content.assetPath, "Image", "banner.jpg") -- 362
+						if projectCover then -- 360
+							_val_0 = projectCover -- 360
+							break -- 360
+						end -- 360
+						local f = Path(Content.assetPath, "Image", "banner.jpg") -- 362
 						if Content:exist(f) then -- 363
 							_val_0 = f -- 363
 							break -- 363

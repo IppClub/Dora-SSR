@@ -21,6 +21,8 @@ import Tabs from '@mui/material/Tabs';
 import TextField from '@mui/material/TextField';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
+import { SiGitee, SiGithub } from 'react-icons/si';
+import atomGitIcon from './atomgit-icon.png';
 import { DiffEditor } from '@monaco-editor/react';
 import './MonacoEditorRuntime';
 import { MacScrollbar } from 'mac-scrollbar';
@@ -47,6 +49,12 @@ import {
 	trackGitJob,
 } from './GitJobStore';
 import { parseGitProgressMessage } from './GitProgress';
+
+const gitPlatforms = [
+	{ name: 'GitHub', url: 'https://github.com/', icon: <SiGithub size={17} aria-hidden /> },
+	{ name: 'AtomGit', url: 'https://atomgit.com/', icon: <img width={17} height={17} src={atomGitIcon} alt="" /> },
+	{ name: 'Gitee', url: 'https://gitee.com/', icon: <SiGitee size={17} aria-hidden /> },
+];
 
 interface GitPanelProps {
 	projectRoot: string;
@@ -1761,7 +1769,21 @@ export default function GitPanel(props: GitPanelProps) {
 						<Box sx={{ mt: 0.75 }}>{branchActionButtons}</Box>
 					</Box>
 					<Box>
-						<Typography variant="caption" sx={{ color: primaryText, fontWeight: 700 }}>{t("git.remotes")}</Typography>
+						<Stack direction="row" alignItems="center" columnGap={1} flexWrap="wrap">
+							<Typography variant="caption" sx={{ color: primaryText, fontWeight: 700 }}>{t("git.remotes")}</Typography>
+							<Stack direction="row" spacing={0.25}>
+								{gitPlatforms.map(platform => (
+									<Tooltip key={platform.name} title={platform.name}>
+										<IconButton component="a" href={platform.url} target="_blank" rel="noopener noreferrer"
+											aria-label={platform.name} size="small" sx={{
+												width: 28, height: 28, color: Color.Primary, borderRadius: 1,
+												'&:hover': { color: Color.TextPrimary, bgcolor: Color.SurfaceHover },
+												'&.Mui-focusVisible': { outline: `2px solid ${Color.Theme}`, outlineOffset: -2 },
+											}}>{platform.icon}</IconButton>
+									</Tooltip>
+								))}
+							</Stack>
+						</Stack>
 						<Stack spacing={0.25} sx={{ mt: 0.5 }}>
 							{summary?.success && summary.remotes?.map(remote => (
 								<Box key={remote.name}>

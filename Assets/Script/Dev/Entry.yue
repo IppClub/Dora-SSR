@@ -302,7 +302,7 @@ getFileEntries = (path, recursive = true, excludeFiles = nil) ->
 	entries
 
 local allEntries = {dirty: {}, hasDirty: false, runId: 0}
-
+projectCoverPaths = json.decode Content\load Path(Content.assetPath, "Script", "Dev", "ProjectCoverPaths.json")
 allEntries.scanDir = (path, dir, noPreview = false) ->
 	entries = []
 	unless dir\match "^%."
@@ -351,14 +351,14 @@ allEntries.scanDir = (path, dir, noPreview = false) ->
 				bannerFile = repeat
 					break nil if noPreview
 					break nil unless config.showPreview
-					f = Path projectPath, ".dora", "banner.jpg"
-					break f if Content\exist f
-					f = Path projectPath, ".dora", "banner.png"
-					break f if Content\exist f
-					f = Path projectPath, "Image", "banner.jpg"
-					break f if Content\exist f
-					f = Path projectPath, "Image", "banner.png"
-					break f if Content\exist f
+					projectCover = nil
+					for candidate in *projectCoverPaths
+						candidatePath = Path projectPath, candidate
+						if Content\exist candidatePath
+							projectCover = candidatePath
+							break
+					break projectCover if projectCover
+					-- Only the launcher uses the bundled fallback image.
 					f = Path Content.assetPath, "Image", "banner.jpg"
 					break f if Content\exist f
 				until true

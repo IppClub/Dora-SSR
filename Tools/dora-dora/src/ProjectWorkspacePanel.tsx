@@ -7,12 +7,13 @@ import { MacScrollbar } from 'mac-scrollbar';
 import { useTranslation } from 'react-i18next';
 import { Color } from './Theme';
 import Info from './Info';
+import type { WorkspaceView } from './Service';
 
 const AgentPanel = React.lazy(() => import('./AgentPanel'));
 const DoraUpload = React.lazy(() => import('./Upload'));
 const GitPanel = React.lazy(() => import('./GitPanel'));
 
-type WorkspaceView = "agent" | "upload" | "git";
+const AtomPieSubmission = React.lazy(() => import('./AtomPieSubmission'));
 
 function PanelFallback() {
 	return (
@@ -43,6 +44,8 @@ interface ProjectWorkspacePanelProps {
 	onUploaded: (path: string, file: string, open: boolean) => void;
 	onViewChange?: (view: WorkspaceView) => void;
 	onOpenFile?: (filePath: string) => void;
+	fileUrl: (path:string) => string;
+	onGenerateReadme: (root: string, lang:'zh' | 'en') => void;
 	onOpenProject?: (projectPath: string) => void;
 	onRepositoryFilesChanged?: (projectRoot: string) => void | Promise<void>;
 	onOpenLLMConfig?: () => void;
@@ -117,6 +120,7 @@ export default function ProjectWorkspacePanel(props: ProjectWorkspacePanelProps)
 		...(hasAgent ? [{ value: "agent" as const, label: t("agent.workspaceAgent") }] : []),
 		{ value: "upload", label: t("agent.workspaceFiles") },
 		{ value: "git", label: "Git" },
+		...(!isWorkspaceRoot ? [{ value: "submission" as const, label: t("agent.workspaceSubmission") }] : []),
 	];
 
 	return (
@@ -190,6 +194,15 @@ export default function ProjectWorkspacePanel(props: ProjectWorkspacePanelProps)
 				</Stack>
 			</Box>
 			<Box sx={{ flex: 1, minHeight: 0 }}>
+				{!isWorkspaceRoot && (currentView === "submission" || mountedViews.has("submission")) && (
+					<Box hidden={currentView !== "submission"} sx={{ height: "100%" }}>
+						<React.Suspense fallback={<PanelFallback />}>
+							<AtomPieSubmission key={uploadPath} project={uploadPath} repository={repositoryRoot ?? uploadPath}
+								fileUrl={props.fileUrl} onGenerateReadme={props.onGenerateReadme} onOpenFile={onOpenFile}
+								active={active && currentView === "submission"} onCardSaved={() => { void onRepositoryFilesChanged?.(uploadPath); }} />
+						</React.Suspense>
+					</Box>
+				)}
 				{hasAgent && (currentView === "agent" || mountedViews.has("agent")) ? (
 					<Box sx={{ display: currentView === "agent" ? "block" : "none", height: "100%" }}>
 						<React.Suspense fallback={<PanelFallback />}>

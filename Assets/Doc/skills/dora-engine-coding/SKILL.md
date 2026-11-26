@@ -8,6 +8,10 @@ always: true
 
 These rules apply whenever writing, fixing or reviewing code for a Dora SSR workspace/game project.
 
+When naming a new game or preparing its launcher card, follow the title and cover steps in the `atompie-submission` skill. Configure the card beside the game's entry so it travels with the repository.
+
+When preparing a playable project for handoff, generate a player-facing `README.md` beside its entry from the implemented gameplay, controls and verified run steps. Preserve the author's existing text. AtomPie imports this Markdown as the game's detailed description. Let the author enter tags.
+
 ## What Runtime This Is
 
 - Dora runtime game code is executed by the Dora engine, not by a browser or Node.js.
