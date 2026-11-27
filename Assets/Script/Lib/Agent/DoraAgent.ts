@@ -1606,7 +1606,19 @@ function refreshMemoryContextMessage(shared: AgentShared): void {
 		shared.userQuery,
 		shared.memory.compressor.getMemoryContextBudget()
 	);
-	if (selection === "") return;
+	if (selection === "") {
+		const cleared = wrapMemorySelection("No relevant memory is available for the current task.");
+		let changed = false;
+		// Redact old snapshots without moving history, carry, or compression indices.
+		for (const message of shared.messages) {
+			if (message.memoryContext === true && message.content !== cleared) {
+				message.content = cleared;
+				changed = true;
+			}
+		}
+		if (changed) persistHistoryState(shared);
+		return;
+	}
 	const content = wrapMemorySelection(selection);
 	for (let i = shared.messages.length - 1; i >= shared.lastConsolidatedIndex; i--) {
 		if (shared.messages[i].memoryContext === true) {

@@ -177,6 +177,32 @@ const test = async (name, run) => { await run(); passed++; console.log('PASS ' +
     selection.value='';c.refreshMemoryContextMessage(shared);
     assert.equal(appended.length,3);
   });
+  await test('an empty memory selection redacts persisted snapshots without changing history indices',()=>{
+    const selection={value:''};
+    let persisted;
+    let writes=0;
+    const c=setupMemory({AgentUtils:{sanitizeUTF8:s=>s},appendConversationMessage:(s,m)=>s.messages.push(m),
+      persistHistoryState:s=>{persisted=JSON.stringify(s.messages);writes++;}});
+    const shared=memoryShared(selection);
+    c.refreshMemoryContextMessage(shared);
+    assert.equal(writes,0);
+    selection.value='covered old memory';c.refreshMemoryContextMessage(shared);
+    shared.lastConsolidatedIndex=2;
+    const currentUser={role:'user',content:'new task'};
+    shared.messages.push(currentUser);
+    selection.value='active old memory';c.refreshMemoryContextMessage(shared);
+    selection.value='';c.refreshMemoryContextMessage(shared);
+    assert.equal(shared.lastConsolidatedIndex,2);
+    assert.equal(shared.messages.length,4);
+    assert.equal(shared.messages[2],currentUser);
+    assert.ok(!persisted.includes('old memory'));
+    assert.match(shared.messages[3].content,/No relevant memory/);
+    c.refreshMemoryContextMessage(shared);
+    assert.equal(writes,3);
+    selection.value='new memory';c.refreshMemoryContextMessage(shared);
+    assert.equal(shared.messages.length,5);
+    assert.match(shared.messages[4].content,/new memory/);
+  });
   await test('prep refreshes the selection before and after the compression check',async()=>{
     const order=[];const selection={value:'A'};
     const c=setupMemory({AgentUtils:{sanitizeUTF8:s=>s},appendConversationMessage:(s,m)=>{s.messages.push(m);order.push(`append:${s.messages.length}`);},persistHistoryState:()=>{},
