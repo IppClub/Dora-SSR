@@ -91,7 +91,7 @@ final class GameExportDialog {
 			activity.showToast(text("请使用完整安装包版本的 Dora 导出", "Install the complete Dora APK to export games"));
 			return;
 		}
-		active = new Request(stage, id, title, template, availableAbis, needsGodot);
+		active = new Request(stage, id, settings.getString(id + ".title", title), template, availableAbis, needsGodot);
 		if (settings.getBoolean(id + ".resetSigning", false)) {
 			clearSigning(active);
 		} else {
@@ -116,6 +116,7 @@ final class GameExportDialog {
 		form.setPadding(padding, 0, padding, 0);
 		ScrollView scroll = new ScrollView(activity);
 		scroll.addView(form);
+		EditText gameTitle = field(form, text("游戏名称", "Game title"), request.title, InputType.TYPE_CLASS_TEXT);
 		TextView packageName;
 		if (existingRelease) {
 			caption(form, text("包名（长按复制）", "Package name (hold to copy)"));
@@ -160,7 +161,7 @@ final class GameExportDialog {
 		addFooter(content, keyActions, exportActions, padding / 3);
 
 		AlertDialog dialog = new AlertDialog.Builder(activity)
-				.setTitle(text("导出 APK", "Export APK"))
+				.setTitle(text("导出 Android APK", "Export Android APK"))
 				.setView(content)
 				.create();
 		keyAction.setOnClickListener(view -> {
@@ -168,6 +169,7 @@ final class GameExportDialog {
 				activity.saveGameFile(keyFile.getAbsolutePath(), request.packageName + ".p12");
 				return;
 			}
+			request.title = gameTitle.getText().toString().trim();
 			request.packageName = packageName.getText().toString().trim();
 			request.version = version.getText().toString().trim();
 			request.versionCode = versionCode.getText().toString();
@@ -192,6 +194,7 @@ final class GameExportDialog {
 							"This deletes the signing key saved on this device for this project. APKs signed with a new key cannot update existing installations. Back up the original key first if you still need to publish updates."))
 					.setNegativeButton(text("取消", "Cancel"), null)
 					.setPositiveButton(text("清除密钥", "Clear key"), (ignored, which) -> {
+						request.title = gameTitle.getText().toString().trim();
 						password.setText("");
 						dialog.dismiss();
 						clearSigning(request);
@@ -199,9 +202,15 @@ final class GameExportDialog {
 					.show());
 		}
 		export.setOnClickListener(button -> {
+			request.title = gameTitle.getText().toString().trim();
 			request.packageName = packageName.getText().toString().trim();
 			request.version = version.getText().toString().trim();
 			request.versionCode = versionCode.getText().toString();
+			if (request.title.isEmpty()) {
+				gameTitle.setError(text("请输入游戏名称", "Enter a game title"));
+				gameTitle.requestFocus();
+				return;
+			}
 			int code;
 			try {
 				code = Integer.parseInt(request.versionCode);
@@ -402,6 +411,7 @@ final class GameExportDialog {
 				}
 				if (!settings.edit().putString(request.id + ".package", request.packageName)
 						.putString(request.id + ".certificate", fingerprint)
+						.putString(request.id + ".title", request.title)
 						.putString(request.id + ".version", request.version)
 						.putInt(request.id + ".versionCode", versionCode).commit()) {
 					throw new IOException("Could not record the game's release settings");
@@ -475,11 +485,11 @@ final class GameExportDialog {
 	private final class Request {
 		final File stage;
 		final String id;
-		final String title;
 		final File template;
 		final boolean needsGodot;
 		final Set<String> availableAbis;
 		final Set<String> selectedAbis;
+		String title;
 		String packageName;
 		String version;
 		String versionCode;
