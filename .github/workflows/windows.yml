@@ -64,7 +64,8 @@ jobs:
       - name: Windows build
         run: |
           Remove-Item Env:MSYSTEM -ErrorAction SilentlyContinue
-          xmake f -y -p windows -a x64 -m debug
+          xmake f -y -v -p windows -a x64 -m debug
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           xmake build Dora
 
       - name: Retain failed Godot component build logs
