@@ -581,7 +581,13 @@ function ____exports.projectMessagesForCompression(messages) -- 521
 		____exports.projectMessagesForLLMContext(messages), -- 523
 		function(____, message, index) -- 523
 			local source = messages[index + 1] -- 524
-			return __TS__ObjectAssign({}, message, {inputId = source.inputId, inputKind = source.inputKind, taskId = source.taskId, handoffId = source.handoffId}) -- 525
+			return __TS__ObjectAssign({}, message, { -- 525
+				inputId = source.inputId, -- 525
+				inputKind = source.inputKind, -- 525
+				taskId = source.taskId, -- 525
+				handoffId = source.handoffId, -- 525
+				memoryContext = source.memoryContext -- 525
+			}) -- 525
 		end -- 523
 	) -- 523
 	local seenReads = __TS__New(Set) -- 527
