@@ -159,12 +159,13 @@ task("doctor")
             end
             tool("cl", "Install Visual Studio Build Tools with the Desktop C++ workload.", {envs = vsenvs})
             tool("msbuild", "MSBuild is optional for opening/building generated Visual Studio projects.", {optional = true, envs = vsenvs})
-            local gcc = os.getenv("CC") or (find_tool(machine .. "-w64-mingw32-gcc", {force = true}) or {}).program
-            gcc = tool("gcc", "Install " .. machine .. " MinGW GCC for Wa cgo, or set CC.", {program = gcc})
+            local gcc = os.getenv("DORA_WA_CC") or os.getenv("CC")
+                or (find_tool(machine .. "-w64-mingw32-gcc", {force = true}) or {}).program
+            gcc = tool("gcc", "Install " .. machine .. " MinGW GCC for Wa cgo, or set DORA_WA_CC.", {program = gcc})
             if gcc then
                 local triple = try {function () return first_line(os.iorunv(gcc, {"-dumpmachine"})) end}
                 report(triple and triple:find(machine, 1, true) and "OK" or "ERROR", "Wa cgo target", triple or "unknown",
-                    not (triple and triple:find(machine, 1, true)) and "CC must select a " .. machine .. " MinGW compiler." or nil)
+                    not (triple and triple:find(machine, 1, true)) and "DORA_WA_CC must select a " .. machine .. " MinGW compiler." or nil)
             end
         end
 

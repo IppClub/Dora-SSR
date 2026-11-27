@@ -330,14 +330,15 @@ if is_plat("windows") then
             table.join2(inputs, os.files(path.join(wa_dir, "**.go")))
 
             depend.on_changed(function ()
-                local cc = os.getenv("CC") or (config.get("toolchain") == "mingw" and target:tool("cc"))
+                local cc = os.getenv("DORA_WA_CC") or os.getenv("CC")
+                    or (config.get("toolchain") == "mingw" and target:tool("cc"))
                 if not cc then
                     local gcc = find_tool(selected.cc, {force = true})
                         or find_tool("gcc", {force = true})
                     cc = gcc and gcc.program
                 end
                 assert(cc and os.iorunv(cc, {"-dumpmachine"}):find(selected.machine, 1, true),
-                    "Windows " .. target:arch() .. " Wa build requires matching MinGW GCC; set CC")
+                    "Windows " .. target:arch() .. " Wa build requires matching MinGW GCC; set DORA_WA_CC")
                 local envs = with_host_path(target:pkgenvs())
                 envs.GOOS = "windows"
                 envs.GOARCH = selected.go

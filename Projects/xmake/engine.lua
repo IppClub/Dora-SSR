@@ -35,10 +35,7 @@ if is_plat("windows") then
 end
 if is_plat("macosx", "linux", "windows", "iphoneos") then
     local crypto_configs = {shared = false}
-    if is_plat("windows") then
-        -- Use OpenSSL's supported MSVC build path for static packages.
-        crypto_configs.jom = false
-    elseif is_plat("macosx", "iphoneos") then
+    if is_plat("macosx", "iphoneos") then
         -- Package toolchains do not inherit Dora's target_minver. Keep the
         -- static crypto objects deployable to the same OS versions as Dora.
         local arch = get_config("arch") or os.arch()

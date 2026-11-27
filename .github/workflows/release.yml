@@ -171,7 +171,7 @@ jobs:
           mingw64_gcc="$(cygpath -w /mingw64/bin/gcc.exe)"
           test -x /mingw64/bin/gcc.exe
           echo "${mingw64_bin}" >> "${GITHUB_PATH}"
-          echo "CC=${mingw64_gcc}" >> "${GITHUB_ENV}"
+          echo "DORA_WA_CC=${mingw64_gcc}" >> "${GITHUB_ENV}"
 
       - name: Record xmake version
         run: xmake --version
