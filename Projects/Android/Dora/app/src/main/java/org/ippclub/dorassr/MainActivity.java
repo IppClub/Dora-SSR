@@ -379,6 +379,7 @@ public class MainActivity extends SDLActivity {
 		}
 	}
 
+	@Keep // Called by name from the native Android export bridge.
 	public void exportGameApk(String path, String id, String title, boolean needsGodot) {
 		runOnUiThread(() -> {
 			if (gameApkExport == null) gameApkExport = new GameExportDialog(this, gameFileWorker);
